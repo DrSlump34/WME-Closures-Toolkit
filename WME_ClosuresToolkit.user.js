@@ -2,7 +2,7 @@
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.70.01
+// @version      0.71.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -47,7 +47,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.70.01';
+const VERSION     = '0.71.00';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -163,7 +163,7 @@ GM_addStyle(`
 #wct-overlay {
     position: fixed;
     z-index: 9990;
-    width: 620px;
+    width: min(620px, calc(100vw - 24px));
     background: var(--wct-surface);
     border-radius: 12px;
     box-shadow: var(--wct-shadow);
@@ -883,6 +883,53 @@ GM_addStyle(`
 #wct-overlay.wct-compact .wct-src-desc-item + .wct-src-desc-item,
 #wct-overlay.wct-compact .wct-src-mte-item + .wct-src-mte-item { border-top: 1px dotted #808080; }
 #wct-overlay.wct-compact .wct-src-mte-unresolved { color: #800000; border-bottom-color: #800000; }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — adaptation automatique aux petits écrans
+   S'applique quel que soit le thème (normal ou compact), sans réglage.
+══════════════════════════════════════════ */
+
+/* Grille 2 colonnes de l'onglet Configurer (ex-style inline, désormais pilotable) */
+.wct-cfg-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start; }
+
+/* — Écrans peu hauts (portables) : on densifie verticalement pour que le bouton
+     « Valider » et la file d'attente restent visibles sans devoir scroller — */
+@media (max-height: 820px) {
+    /* Police de base réduite : tout étant en em, ceci rétrécit l'ensemble d'un coup */
+    #wct-overlay { --wct-fs-base: 11px !important; max-height: calc(100vh - 68px); top: 52px; }
+    #wct-body { padding-top: 0.25em; padding-bottom: 0.2em; }
+    #wct-body .wct-section { margin: 0.3em 0 0.2em; }
+    #wct-body .wct-row { margin-bottom: 0.2em; }
+    #wct-body .wct-input, #wct-body .wct-select { padding-top: 0.12em; padding-bottom: 0.12em; }
+    #wct-body .wct-check { margin-top: 0.1em; }
+    #wct-body .wct-btn-full { margin-top: 2px; }
+    #wct-body .wct-days { margin-top: 0.2em; }
+    #wct-body .wct-shortcuts { margin-top: 0.15em; }
+    #wct-main-tabs .wct-main-tab { padding-top: 0.4em; padding-bottom: 0.4em; }
+    #wct-action-bar-wrap { padding-top: 0.35em; padding-bottom: 0.4em; }
+    /* Le bouton « Valider et ajouter à la file » reste toujours visible en bas
+       de la zone qui défile — l'action clé n'est plus jamais cachée sous le pli */
+    .wct-validate-row {
+        position: sticky; bottom: 0; z-index: 5;
+        background: var(--wct-surface);
+        margin-top: 0.4em !important; padding: 0.3em 0 0.2em;
+        box-shadow: 0 -6px 10px -6px rgba(0,0,0,.18);
+    }
+    #wct-overlay.wct-compact .wct-validate-row { background: #c0c0c0; }
+}
+
+/* — Écrans très bas : densité maximale — */
+@media (max-height: 680px) {
+    #wct-overlay { max-height: calc(100vh - 44px); top: 36px; }
+    #wct-hdr { padding-top: 0.35em; padding-bottom: 0.35em; }
+    #wct-sel-strip { padding-top: 0.12em; padding-bottom: 0.12em; }
+    #wct-body .wct-section { margin: 0.2em 0 0.12em; }
+}
+
+/* — Fenêtre étroite : on empile les 2 colonnes du Configurer en une seule — */
+@media (max-width: 560px) {
+    .wct-cfg-grid { grid-template-columns: 1fr; gap: 4px; }
+}
 
 `);
 
@@ -3803,7 +3850,7 @@ const buildOverlay=()=>{
 
       <!-- ONGLET CONFIGURER -->
       <div id="wct-pane-cfg" class="wct-main-pane on">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+        <div class="wct-cfg-grid">
           <div>
             <div class="wct-section" style="margin-top:0">${t('sectionPeriod')}</div>
             <div class="wct-row">
@@ -3923,7 +3970,7 @@ const buildOverlay=()=>{
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <div class="wct-validate-row" style="display:flex;gap:8px;margin-top:8px;align-items:center">
           <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate">${t('btnValidate')}</button>
           <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">&#x1F4BE;</button>
         </div>
@@ -4878,17 +4925,24 @@ const handleCSV=files=>{
 
 // ─── Drag & drop du FAB ────────────────────────────────────────────────────
 const makeFabDraggable=(wrap)=>{
-    let dragging=false,ox=0,oy=0;
+    let dragging=false,ox=0,oy=0,startX=0,startY=0;
     wrap.addEventListener('mousedown',e=>{
         if(e.button!==0) return;
         dragging=true; _fabDragged=false;
         const r=wrap.getBoundingClientRect();
         ox=e.clientX-r.left; oy=e.clientY-r.top;
+        startX=e.clientX; startY=e.clientY;
         e.preventDefault();
     });
     document.addEventListener('mousemove',e=>{
         if(!dragging) return;
-        _fabDragged=true;
+        // Seuil anti-faux-glissement : sous ~5px de déplacement, on reste sur un
+        // clic (sinon un clic un peu tremblé était pris pour un drag et n'ouvrait pas le panneau)
+        if(!_fabDragged){
+            const dx=e.clientX-startX, dy=e.clientY-startY;
+            if(dx*dx+dy*dy < 25) return;
+            _fabDragged=true;
+        }
         let x=e.clientX-ox, y=e.clientY-oy;
         x=Math.max(0,Math.min(x,window.innerWidth-wrap.offsetWidth));
         y=Math.max(0,Math.min(y,window.innerHeight-wrap.offsetHeight));
