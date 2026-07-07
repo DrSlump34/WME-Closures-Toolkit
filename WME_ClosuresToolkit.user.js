@@ -2,7 +2,7 @@
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.71.01
+// @version      0.71.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -47,7 +47,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.71.01';
+const VERSION     = '0.71.02';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -70,9 +70,6 @@ let queue      = [];
 let lastConfig = null;
 let collapsed  = false;
 let csvList    = null;
-let _fabX      = -1;   // -1 = position par défaut (calculée au premier affichage)
-let _fabY      = -1;
-let _fabDragged= false; // true si le dernier mousedown a produit un déplacement
 let _displayMode = 'normal'; // 'compact' | 'normal'
 let _cardsCollapsedDefault = false; // true = nouvelles cartes de file pliées par défaut
 let _applyAborted = false;  // true si l'utilisateur interrompt l'application en cours
@@ -107,11 +104,6 @@ GM_addStyle(`
    BOUTON FAB DRAGGABLE
 ══════════════════════════════════════════ */
 #wct-fab-wrap {
-    position: fixed;
-    z-index: 9980;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpath d='M8 1.5a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1V8h.5V4a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1v4h.25V6a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1v5.5c0 3.038-2.462 5.5-5.5 5.5S5 14.538 5 11.5V8a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1v3H8V1.5z' fill='%23222' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E") 4 0, grab;
-    user-select: none;
-    touch-action: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -120,10 +112,12 @@ GM_addStyle(`
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    user-select: none;
     transition: box-shadow .15s;
 }
 #wct-fab-wrap:hover { box-shadow: 0 3px 10px rgba(0,0,0,.4); }
-#wct-fab-wrap:active { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpath d='M7 6.5a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1V8h.5V6a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1v2h.25V5.5a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1V8c0 3.038-2.462 5.5-5.5 5.5S4 11.038 4 8V6.5a1 1 0 0 1 1-1h.5a1 1 0 0 1 1 1V8H7V6.5z' fill='%23222' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E") 4 0, grabbing; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+#wct-fab-wrap:active { box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 #wct-fab-btn {
     position: relative;
     background: none;
@@ -1842,8 +1836,8 @@ const waitMapLoaded=()=>new Promise(resolve=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
-const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,fabX:_fabX,fabY:_fabY,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault});}catch(e){}};
-const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_fabX=typeof d.fabX==='number'?d.fabX:-1;_fabY=typeof d.fabY==='number'?d.fabY:-1;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;}}catch(e){}};
+const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault});}catch(e){}};
+const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;}}catch(e){}};
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
@@ -4925,75 +4919,20 @@ const handleCSV=files=>{
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  FAB — bouton draggable position:fixed (détaché du container WME)
+//  FAB — bouton docké dans le container natif WME (4e bouton)
 // ═══════════════════════════════════════════════════════════════════════════
+// Ancré comme 4e bouton du container natif : suit automatiquement le zoom /
+// la résolution, et partage le contexte d'empilement des boutons natifs
+// (donc passe derrière le panneau des calques comme eux, sans bidouille de z-index).
 
-// ─── Drag & drop du FAB ────────────────────────────────────────────────────
-const makeFabDraggable=(wrap)=>{
-    let dragging=false,ox=0,oy=0,startX=0,startY=0;
-    wrap.addEventListener('mousedown',e=>{
-        if(e.button!==0) return;
-        dragging=true; _fabDragged=false;
-        const r=wrap.getBoundingClientRect();
-        ox=e.clientX-r.left; oy=e.clientY-r.top;
-        startX=e.clientX; startY=e.clientY;
-        e.preventDefault();
-    });
-    document.addEventListener('mousemove',e=>{
-        if(!dragging) return;
-        // Seuil anti-faux-glissement : sous ~5px de déplacement, on reste sur un
-        // clic (sinon un clic un peu tremblé était pris pour un drag et n'ouvrait pas le panneau)
-        if(!_fabDragged){
-            const dx=e.clientX-startX, dy=e.clientY-startY;
-            if(dx*dx+dy*dy < 25) return;
-            _fabDragged=true;
-        }
-        let x=e.clientX-ox, y=e.clientY-oy;
-        x=Math.max(0,Math.min(x,window.innerWidth-wrap.offsetWidth));
-        y=Math.max(0,Math.min(y,window.innerHeight-wrap.offsetHeight));
-        wrap.style.left=x+'px'; wrap.style.top=y+'px';
-        wrap.style.right='auto'; wrap.style.bottom='auto';
-        _fabX=x; _fabY=y;
-    });
-    document.addEventListener('mouseup',e=>{
-        if(!dragging) return;
-        dragging=false;
-        if(_fabDragged){ save(); }
-    });
-};
-
-// ─── Position par défaut : sous le dernier bouton natif du container WME ──
-const _fabDefaultPos=()=>{
-    // Chercher le container natif WME et lire la position de son dernier bouton
-    const container=document.querySelector('.overlay-buttons-container.top')
-                 ||document.querySelector('.overlay-buttons-container');
-    if(container){
-        const btns=container.querySelectorAll('wz-button.overlay-button');
-        if(btns.length>0){
-            const last=btns[btns.length-1];
-            const r=last.getBoundingClientRect();
-            return { x: Math.round(r.left), y: Math.round(r.bottom+8) };
-        }
-        // Fallback : positionner à partir du container lui-même
-        const cr=container.getBoundingClientRect();
-        return { x: Math.round(cr.left), y: Math.round(cr.bottom+8) };
-    }
-    // Fallback absolu si container introuvable
-    return { x: window.innerWidth-52, y: 220 };
-};
+const _findOverlayContainer=()=>document.querySelector('.overlay-buttons-container.top')
+                             ||document.querySelector('.overlay-buttons-container');
 
 const doInjectFab=()=>{
     if($id('wct-fab-btn')) return;
 
-    // Wrapper draggable
     const wrap=document.createElement('div');
     wrap.id='wct-fab-wrap';
-
-    // Appliquer position sauvegardée ou défaut — clamp aux dimensions actuelles du viewport
-    const _clampFabPos=(p)=>({x:Math.max(0,Math.min(p.x,window.innerWidth-40)),y:Math.max(0,Math.min(p.y,window.innerHeight-40))});
-    const pos=_clampFabPos((_fabX>=0&&_fabY>=0)?{x:_fabX,y:_fabY}:_fabDefaultPos());
-    wrap.style.left=pos.x+'px';
-    wrap.style.top=pos.y+'px';
 
     const wzBtn=document.createElement('button');
     wzBtn.id='wct-fab-btn';
@@ -5022,14 +4961,13 @@ const doInjectFab=()=>{
     wzBtn.appendChild(badge);
 
     wrap.appendChild(wzBtn);
-    document.body.appendChild(wrap);
-    makeFabDraggable(wrap);
-    log('FAB injecte (draggable fixed)');
+    // Docker le FAB dans le container natif WME (body en secours si pas encore prêt au boot)
+    (_findOverlayContainer()||document.body).appendChild(wrap);
+    log('FAB injecté (docké container natif)');
 
-    // Clic : ouvrir overlay — distinguer drag (déplacement) du simple clic
+    // Clic : ouvrir / fermer l'overlay
     wzBtn.addEventListener('click', e=>{
         e.stopPropagation();
-        if(_fabDragged) return; // ignorer si c'était un drag
         if(!enabled) return;
         const ov=$id('wct-overlay');
         const isOpen=ov.classList.contains('open');
@@ -5048,22 +4986,20 @@ const doInjectFab=()=>{
     });
 };
 
-const injectFab=()=>{
-    // Le FAB est maintenant un élément fixed indépendant — injection directe
-    // On réessaie si le DOM n'est pas encore prêt (cas rare au boot)
-    if(!document.body){ setTimeout(injectFab,200); return; }
-    doInjectFab();
-};
-
-// Reclamper le FAB si le zoom navigateur change (window.innerWidth/Height varient avec le zoom CSS)
-window.addEventListener('resize',()=>{
+// Garantit que le FAB reste le 4e bouton du container natif.
+// Si WME (re)crée le container après le boot, on le (re)docke automatiquement.
+const ensureFabDocked=()=>{
     const wrap=$id('wct-fab-wrap');
     if(!wrap) return;
-    const x=Math.max(0,Math.min(_fabX>=0?_fabX:parseInt(wrap.style.left)||0, window.innerWidth-40));
-    const y=Math.max(0,Math.min(_fabY>=0?_fabY:parseInt(wrap.style.top)||0,  window.innerHeight-40));
-    wrap.style.left=x+'px'; wrap.style.top=y+'px';
-    _fabX=x; _fabY=y;
-});
+    const cont=_findOverlayContainer();
+    if(cont && wrap.parentElement!==cont) cont.appendChild(wrap);
+};
+
+const injectFab=()=>{
+    if(!document.body){ setTimeout(injectFab,200); return; }
+    doInjectFab();
+    ensureFabDocked();
+};
 
 
 
@@ -5193,11 +5129,6 @@ const buildSidebar=()=>`
     <p style="margin-top:12px;font-size:11px;color:var(--wct-grey);line-height:1.6">
         ${t('sbDesc')}
     </p>
-    <div style="margin-top:10px">
-        <button id="wct-reset-fab" class="wct-btn wct-btn-neutral" style="font-size:11px;padding:5px 10px">
-            &#x21BA; ${t('sbResetFab')}
-        </button>
-    </div>
 </div>`;
 
 
@@ -5230,13 +5161,6 @@ const init=async()=>{
         $id('wct-cards-collapsed')?.addEventListener('change',e=>{
             _cardsCollapsedDefault=e.target.checked; save();
         });
-        $id('wct-reset-fab')?.addEventListener('click',()=>{
-            const pos=_fabDefaultPos();
-            _fabX=pos.x; _fabY=pos.y;
-            const wrap=$id('wct-fab-wrap');
-            if(wrap){wrap.style.left=pos.x+'px';wrap.style.top=pos.y+'px';wrap.style.right='auto';wrap.style.bottom='auto';}
-            save();
-        });
     } catch(e) { log('Sidebar: '+e.message); }
 
     // Overlay
@@ -5248,32 +5172,15 @@ const init=async()=>{
     // FAB
     injectFab();
 
-    // Selection listeners
-    const onSel=()=>{updateFab();updateCountryInfo();};
+    // Selection listeners (+ on garantit que le FAB reste docké au container natif)
+    const onSel=()=>{updateFab();updateCountryInfo();ensureFabDocked();};
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
     try{W.selectionManager.events.register('selectionchanged',null,onSel);}catch(e){}
     setInterval(onSel,500);
     onSel();
 
-    // Baisser le z-index du FAB quand le panneau Calques WME est ouvert
-    // Interception du bouton natif WME (détection DOM impossible — Shadow DOM)
-    let _layerPanelOpen = false;
-    const setFabZIndex=()=>{
-        const fabWrap=$id('wct-fab-wrap');
-        if(fabWrap) fabWrap.style.zIndex=_layerPanelOpen?'900':'9980';
-    };
-    const hookLayerBtn=()=>{
-        const btn=document.querySelector('.layer-switcher-button.overlay-button');
-        if(!btn||btn._wctHooked) return;
-        btn._wctHooked=true;
-        btn.addEventListener('click',()=>{
-            _layerPanelOpen=!_layerPanelOpen;
-            setFabZIndex();
-        },true);
-    };
-    hookLayerBtn();
-    // Retry si le bouton n'est pas encore dans le DOM au chargement
-    const hookTimer=setInterval(()=>{ hookLayerBtn(); if(document.querySelector('.layer-switcher-button.overlay-button')?._wctHooked) clearInterval(hookTimer); },500);
+    // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
+    // le FAB étant docké dans le container natif, il suit le même empilement que les boutons WME.
 
     log('v'+VERSION+' pret');
 };
