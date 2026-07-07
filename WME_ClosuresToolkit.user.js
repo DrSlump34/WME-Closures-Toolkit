@@ -994,6 +994,9 @@ const t = (key, ...args) => {
             tipIT:'Si coch\u00e9, Waze ne r\u00e9ouvre pas automatiquement le segment m\u00eame s\u2019il d\u00e9tecte du trafic passant.',
             tipHolSkip:'Aucune fermeture ne sera propos\u00e9e les jours f\u00e9ri\u00e9s \u2014 ces occurrences sont retir\u00e9es de la liste.',
             tipHolOnly:'Les fermetures ne seront propos\u00e9es QUE les jours f\u00e9ri\u00e9s \u2014 toutes les autres occurrences sont ignor\u00e9es.',
+            tipHolAdd:'Ajoute les jours f\u00e9ri\u00e9s de la plage en suppl\u00e9ment des jours s\u00e9lectionn\u00e9s (union).',
+            holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
+            holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             alertDir:'\u26A0\uFE0F Pour les longs tron\u00E7ons, le sens A \u21D2 B peut diff\u00E9rer par segment.',
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
@@ -1223,6 +1226,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipIT:'If checked, Waze will not automatically reopen the segment even if it detects traffic passing through.',
             tipHolSkip:'No closure will be proposed on public holidays \u2014 those occurrences are removed from the list.',
             tipHolOnly:'Closures will be proposed ONLY on public holidays \u2014 all other occurrences are ignored.',
+            tipHolAdd:'Adds public holidays in the range on top of the selected weekdays (union).',
+            holidayModeAdd:'+ Public holidays',
+            holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             alertDir:'\u26A0\uFE0F For long segments, A \u21D2 B direction may differ per segment.',
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
             btnValidate:'\u2714 Validate and add to queue',
@@ -1853,8 +1859,12 @@ const buildClosureList=async()=>{
         }
     }
     // Filtre jours fériés : 'skip' = sauf JF, 'only' = uniquement JF
-    const holidayMode=$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none';
-    if(holidayMode!=='none'&&list.length>0){
+    const holidayMode=$id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none';
+    if(holidayMode==='none'){
+        const warnEl2=$id('wct-holidays-warn');
+        if(warnEl2&&!$id('wct-hol-skip')?.disabled) warnEl2.style.display='none';
+    }
+    if(holidayMode!=='none'&&(list.length>0||holidayMode==='add')){
         const sel=getSelection();
         const cc=checkSelectionCountry(sel.ids);
         if(cc.ok&&cc.country){
@@ -1874,6 +1884,24 @@ const buildClosureList=async()=>{
                     warnEl.textContent=filtered.length>0?t('holidaysOnly',filtered.length):t('holidaysOnlyNone');
                 }
             }
+            if(holidayMode==='add'){
+                const rsStr=`${new Date(rs).getFullYear()}-${pad(new Date(rs).getMonth()+1)}-${pad(new Date(rs).getDate())}`;
+                const reStr=`${new Date(re).getFullYear()}-${pad(new Date(re).getMonth()+1)}-${pad(new Date(re).getDate())}`;
+                const existingDateStrs=new Set(list.map(cl=>{const d=cl.start;return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;}));
+                const extra=[];
+                for(const h of hols){
+                    if(h<rsStr||h>reStr) continue;
+                    if(existingDateStrs.has(h)) continue;
+                    const s=makeDSTSafeDate(h,0,stH,stM);
+                    const e=s.clone().addMinutes(dur);
+                    if(e>reDT) continue;
+                    extra.push({start:new Date(s),end:new Date(e)});
+                }
+                const merged=[...list,...extra].sort((a,b)=>a.start-b.start);
+                const warnElAdd=$id('wct-holidays-warn');
+                if(warnElAdd){warnElAdd.style.display='block';warnElAdd.textContent=extra.length>0?t('holidaysAdded',extra.length):t('holidaysNone');}
+                return{list:merged,error:''};
+            }
             return{list:filtered,error:''};
         }
     }
@@ -1891,7 +1919,7 @@ const readConfig=()=>({
     reason:$id('wct-reason')?.value||'',
     direction:$id('wct-direction')?.value||'3',ignoretraffic:$id('wct-ignoretraffic')?.checked||false,
     mteId:$id('wct-mtesel')?.value||'',
-    holidayMode:($id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none'),
+    holidayMode:($id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none'),
     days:[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c?.classList.contains('on')||false;}),
     activeTab:document.querySelector('#wct-body .wct-pane.on')?.id||'wct-tab-each',
     repntimes:$id('wct-rep-ntimes')?.value||'1',
@@ -1932,6 +1960,7 @@ const applyConfig=cfg=>{
     const hm=cfg.holidayMode||(cfg.skipHolidays?'skip':'none');
     if($id('wct-hol-skip'))$id('wct-hol-skip').checked=(hm==='skip');
     if($id('wct-hol-only'))$id('wct-hol-only').checked=(hm==='only');
+    if($id('wct-hol-add'))$id('wct-hol-add').checked=(hm==='add');
     if(cfg.days)[0,1,2,3,4,5,6].forEach(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);if(c)c.classList.toggle('on',cfg.days[i]);});
     if(cfg.activeTab){
         document.querySelectorAll('#wct-body .wct-tab').forEach(t=>t.classList.remove('on'));
@@ -2414,9 +2443,9 @@ const updateCountryInfo=()=>{
     const cc=checkSelectionCountry(sel.ids);
     if(!cc.ok&&cc.countries.length>1){
         if(holidaysWarn){holidaysWarn.style.display='block';holidaysWarn.innerHTML=t('multiCountry',cc.countries.join(', '));}
-        if(holSkip)holSkip.disabled=true;if(holOnly)holOnly.disabled=true;
+        if(holSkip)holSkip.disabled=true;if(holOnly)holOnly.disabled=true;const holAddEl=$id('wct-hol-add');if(holAddEl)holAddEl.disabled=true;
     } else {
-        if(holSkip)holSkip.disabled=false;if(holOnly)holOnly.disabled=false;
+        if(holSkip)holSkip.disabled=false;if(holOnly)holOnly.disabled=false;const holAddEl=$id('wct-hol-add');if(holAddEl)holAddEl.disabled=false;
         if(holidaysWarn&&(holidaysWarn.innerHTML.includes('multi-pays')||holidaysWarn.innerHTML.includes('Multi-country')))holidaysWarn.style.display='none';
     }
 };
@@ -3831,6 +3860,7 @@ const buildOverlay=()=>{
               </div>
               <label class="wct-check" style="margin-top:6px" title="${t('tipHolSkip')}"><input type="checkbox" id="wct-hol-skip"> ${t('holidayModeSkip')}</label>
               <label class="wct-check" title="${t('tipHolOnly')}"><input type="checkbox" id="wct-hol-only"> ${t('holidayModeOnly')}</label>
+              <label class="wct-check" title="${t('tipHolAdd')}"><input type="checkbox" id="wct-hol-add"> ${t('holidayModeAdd')}</label>
               <div id="wct-holidays-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.333em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
             </div>
             <div id="wct-tab-repeat" class="wct-pane">
@@ -4657,8 +4687,10 @@ const connectOverlay=ov=>{
     // Checkboxes jours fériés — exclusivité mutuelle
     const holSkip=$id('wct-hol-skip'),holOnly=$id('wct-hol-only');
     if(holSkip&&holOnly){
-        holSkip.addEventListener('change',()=>{if(holSkip.checked)holOnly.checked=false;refreshSmallPreview();});
-        holOnly.addEventListener('change',()=>{if(holOnly.checked)holSkip.checked=false;refreshSmallPreview();});
+        const holAdd=$id('wct-hol-add');
+        holSkip.addEventListener('change',()=>{if(holSkip.checked){holOnly.checked=false;if(holAdd)holAdd.checked=false;}refreshSmallPreview();});
+        holOnly.addEventListener('change',()=>{if(holOnly.checked){holSkip.checked=false;if(holAdd)holAdd.checked=false;}refreshSmallPreview();});
+        if(holAdd)holAdd.addEventListener('change',()=>{if(holAdd.checked){holSkip.checked=false;holOnly.checked=false;}refreshSmallPreview();});
     }
 
     // Valider
@@ -4899,10 +4931,7 @@ const doInjectFab=()=>{
     wrap.id='wct-fab-wrap';
 
     // Appliquer position sauvegardée ou défaut — clamp aux dimensions actuelles du viewport
-    const _clampFabPos=(p)=>({
-        x: Math.max(0,Math.min(p.x, window.innerWidth-40)),
-        y: Math.max(0,Math.min(p.y, window.innerHeight-40))
-    });
+    const _clampFabPos=(p)=>({x:Math.max(0,Math.min(p.x,window.innerWidth-40)),y:Math.max(0,Math.min(p.y,window.innerHeight-40))});
     const pos=_clampFabPos((_fabX>=0&&_fabY>=0)?{x:_fabX,y:_fabY}:_fabDefaultPos());
     wrap.style.left=pos.x+'px';
     wrap.style.top=pos.y+'px';
