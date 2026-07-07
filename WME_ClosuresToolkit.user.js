@@ -2,7 +2,7 @@
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.71.00
+// @version      0.71.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -47,7 +47,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.71.00';
+const VERSION     = '0.71.01';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -527,6 +527,16 @@ GM_addStyle(`
     overflow-y: auto;
     padding-bottom: 0.333em;
 }
+/* Pied « Valider » — footer fixe hors défilement, toujours accessible.
+   Visible uniquement quand l'onglet Configurer est actif (via :has). */
+.wct-validate-footer {
+    flex-shrink: 0;
+    padding: 0.5em 1.167em 0.333em;
+    border-top: 1px solid var(--wct-border);
+    background: var(--wct-surface);
+}
+#wct-overlay:not(:has(#wct-pane-cfg.on)) .wct-validate-footer { display: none !important; }
+#wct-overlay.wct-compact .wct-validate-footer { background: #c0c0c0; border-top-color: #808080; }
 #wct-action-bar-wrap {
     flex-shrink: 0;
     padding: 0.5em 1.167em 0.667em;
@@ -907,15 +917,7 @@ GM_addStyle(`
     #wct-body .wct-shortcuts { margin-top: 0.15em; }
     #wct-main-tabs .wct-main-tab { padding-top: 0.4em; padding-bottom: 0.4em; }
     #wct-action-bar-wrap { padding-top: 0.35em; padding-bottom: 0.4em; }
-    /* Le bouton « Valider et ajouter à la file » reste toujours visible en bas
-       de la zone qui défile — l'action clé n'est plus jamais cachée sous le pli */
-    .wct-validate-row {
-        position: sticky; bottom: 0; z-index: 5;
-        background: var(--wct-surface);
-        margin-top: 0.4em !important; padding: 0.3em 0 0.2em;
-        box-shadow: 0 -6px 10px -6px rgba(0,0,0,.18);
-    }
-    #wct-overlay.wct-compact .wct-validate-row { background: #c0c0c0; }
+    .wct-validate-footer { padding-top: 0.3em; padding-bottom: 0.2em; }
 }
 
 /* — Écrans très bas : densité maximale — */
@@ -929,6 +931,8 @@ GM_addStyle(`
 /* — Fenêtre étroite : on empile les 2 colonnes du Configurer en une seule — */
 @media (max-width: 560px) {
     .wct-cfg-grid { grid-template-columns: 1fr; gap: 4px; }
+    /* Onglets du haut : moins d'air pour éviter que les libellés passent à la ligne */
+    #wct-main-tabs .wct-main-tab { font-size: 0.8em; padding-left: 2px; padding-right: 2px; }
 }
 
 `);
@@ -3970,10 +3974,6 @@ const buildOverlay=()=>{
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
-        <div class="wct-validate-row" style="display:flex;gap:8px;margin-top:8px;align-items:center">
-          <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate">${t('btnValidate')}</button>
-          <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">&#x1F4BE;</button>
-        </div>
       </div>
 
       <!-- ONGLET CSV -->
@@ -4094,6 +4094,11 @@ const buildOverlay=()=>{
     </div>
     <!-- Log application -->
     <div id="wct-apply-log" class="wct-log" style="display:none;margin:0 10px 4px"></div>
+    <!-- Pied fixe : Valider (hors défilement, visible seulement sur l'onglet Configurer via :has) -->
+    <div class="wct-validate-footer" style="display:flex;gap:8px;align-items:center">
+      <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate">${t('btnValidate')}</button>
+      <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">&#x1F4BE;</button>
+    </div>
     <!-- Boutons fixes hors scroll -->
     <div id="wct-action-bar-wrap">
         <button class="wct-btn wct-btn-success wct-btn-dis" id="wct-btn-apply">${t('btnApply')}</button>
