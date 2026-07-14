@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
+// @name:de      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.71.03
+// @version      0.72.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
+// @description:de Wiederkehrende Sperrungen mit Warteschlangenverwaltung — inspiriert von WME Advanced Closures & waze.tech-informatique.fr
 // @author       DrSlump34
 // @copyright    DrSlump34 2026
 // @license      MIT
@@ -47,7 +49,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.71.03';
+const VERSION     = '0.72.00';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -59,7 +61,9 @@ class JDate extends Date {
 // ─── Constants & State ─────────────────────────────────────────────────────
 const DIR     = { AtoB:1, BtoA:2, TWO:3 };
 const NODE_CL = { none:1, inside:2, all:3 };
-const DIR_STR = { 1:'A \u21D2 B', 2:'B \u21D2 A', 3:'Double sens' };
+// Libell\u00E9 de sens affich\u00E9 dans l'UI \u2014 traduit \u00E0 l'appel (t() n'est pas encore d\u00E9fini ici).
+// Ne pas remettre de table fig\u00E9e : \u00AB Double sens \u00BB s'affichait en fran\u00E7ais quelle que soit la langue.
+const dirStr  = d => d===DIR.TWO ? t('dirBoth') : d===DIR.AtoB ? t('dirAtoB') : t('dirBtoA');
 const DIR_CSV = { 1:'A to B', 2:'B to A', 3:'TWO WAY' };
 
 let sdk        = null;
@@ -944,16 +948,23 @@ GM_addStyle(`
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I18N — détection langue + dictionnaire FR/EN
+//  I18N — détection langue + dictionnaire FR/EN/DE
 // ═══════════════════════════════════════════════════════════════════════════
 let _lang = 'en';
 
+const LANGS = ['fr','de'];   // langues traduites ; toute autre locale retombe sur 'en'
+
 const detectLang = () => {
     try {
-        const l = W?.userscripts?.state?.locale || document.documentElement.lang || navigator.language || 'en';
-        return l.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+        const l = (W?.userscripts?.state?.locale || document.documentElement.lang || navigator.language || 'en').toLowerCase();
+        return LANGS.find(code => l.startsWith(code)) || 'en';
     } catch(e) { return 'en'; }
 };
+
+// Sélecteur de variante par langue, avec repli sur l'anglais.
+// Usage : _L({fr:'…', en:'…', de:'…'}) — utilisé pour les gros blocs (aide) et les
+// libellés qui ne peuvent pas vivre dans le dictionnaire.
+const _L = obj => obj[_lang] ?? obj.en;
 
 const t = (key, ...args) => {
     const D = {
@@ -1011,6 +1022,13 @@ const t = (key, ...args) => {
             srcTipColStatus:'Trier par \u00E9tat',
             srcTipColMte:'Trier par nom d\u2019\u00E9v\u00E9nement MTE',
             gpxLayerCtrl:'Calque Trac\u00e9s',
+            // Tableau des trac\u00e9s
+            trkColTrack:'Trac\u00e9', trkColTime:'Heure',
+            trkTipFileColor:'Couleur pour tous les trac\u00e9s', trkTipColor:'Changer la couleur', trkTipColorCol:'Couleur',
+            trkExpand:'D\u00e9plier', trkCollapse:'Replier',
+            trkTipDelFile:'Supprimer le fichier', trkTipDel:'Supprimer', trkTipFocus:'Centrer',
+            trkTipLoadTime:'Heure de chargement', trkTipFormat:'Format du fichier',
+            trkTipPts:'Points trac\u00e9s (sous-\u00e9chantillonn\u00e9s si > 3 000)', trkTipStatus:'\u00c9tat',
             // P\u00E9riode
             sectionPeriod:'\uD83D\uDCC5 P\u00E9riode',
             lblStart:'D\u00E9but', lblEnd:'Fin',
@@ -1152,6 +1170,7 @@ const t = (key, ...args) => {
             exclTxtFooter1:'Ces segments n\u2019ont pas \u00e9t\u00e9 ajout\u00e9s \u00e0 la file.',
             exclTxtFooter2:'Configurez-les dans un autre lot avec le sens adapt\u00e9.',
             exclTxtFilename:'segments_ecartes',
+            exclTxtDir:'sens',
             // Poubelle ligne
             tipRowDel:'Supprimer cette occurrence',
             // Header badge file
@@ -1251,6 +1270,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcTipColStatus:'Sort by status',
             srcTipColMte:'Sort by MTE event name',
             gpxLayerCtrl:'Tracks layer',
+            // Tracks table
+            trkColTrack:'Track', trkColTime:'Time',
+            trkTipFileColor:'Color for all tracks', trkTipColor:'Change color', trkTipColorCol:'Color',
+            trkExpand:'Expand', trkCollapse:'Collapse',
+            trkTipDelFile:'Remove file', trkTipDel:'Remove', trkTipFocus:'Focus',
+            trkTipLoadTime:'Load time', trkTipFormat:'File format',
+            trkTipPts:'Plotted points (subsampled if > 3,000)', trkTipStatus:'Status',
             sectionPeriod:'\uD83D\uDCC5 Period',
             lblStart:'Start', lblEnd:'End',
             lblStartTime:'Start time', lblDurTime:'Duration h:mm', lblDurDay:'+Days',
@@ -1379,6 +1405,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             exclTxtFooter1:'These segments were not added to the queue.',
             exclTxtFooter2:'Configure them in a separate batch with the appropriate direction.',
             exclTxtFilename:'excluded_segments',
+            exclTxtDir:'dir',
             // Row delete
             tipRowDel:'Remove this occurrence',
             // Header badge queue
@@ -1422,6 +1449,240 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS4:'Click <b>\u2714 Validate and add to queue</b>',
             helpS5:'Repeat for other segments if needed',
             helpS6:'Click <b>\u25B6 Apply</b> to create closures in WME',
+        },
+        de: {
+            // Reiter
+            tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCC2 CSV',
+            tabPre:'\uD83D\uDCBE Vorlagen', tabGpx:'\uD83D\uDDFA Tracks', tabSrc:'\uD83D\uDD0D Suche', tabHelp:'\u2753', tabHelpTitle:'Hilfe',
+            // Reiter Suche
+            srcSectionTime:'\uD83D\uDCC5 Zeitfenster',
+            srcLblStartAfter:'Beginn nach dem', srcLblStartBefore:'Beginn vor dem',
+            srcLblEndAfter:'Ende nach dem', srcLblEndBefore:'Ende vor dem',
+            srcSectionKeywords:'\uD83D\uDD0D Suchbegriffe',
+            srcLblDesc:'Beschreibung enth\u00E4lt', srcLblMte:'MTE-Ereignis enth\u00E4lt',
+            srcBtnAnd:'UND', srcBtnOr:'ODER',
+            srcBtnSearch:'Suchen',
+            srcBtnClear:'Zur\u00FCcksetzen',
+            srcNoResults:'Keine Segmente gefunden, die diesen Kriterien entsprechen.',
+            srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
+            srcResults: n => `${n} Segment(e) gefunden`,
+            srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
+            srcHint:'Segmente mit Sperrungen, die in der aktuellen Ansicht geladen sind.',
+            srcLoading:'Suche l\u00E4uft\u2026',
+            srcSectionStatus:'\uD83D\uDCA1 Status',
+            srcStatusAll:'Alle',
+            srcStatusLabels:{
+                ACTIVE:'Aktiv',
+                NOT_STARTED:'Ausstehend',
+                SUSPENDED:'Ausgesetzt',
+                FINISHED:'Beendet',
+                FINISHED_EARLY_DUE_TO_DELETION:'Gel\u00F6scht',
+                FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES:'\u00DCberschneidung',
+                UNVERIFIED:'Ungepr\u00FCft',
+                FAILED:'Fehlgeschlagen',
+                UNKNOWN:'Unbekannt',
+            },
+            srcTipStatus:'Nach Sperrungsstatus filtern. Die einzubeziehenden Status ankreuzen.',
+            srcTipStartAfter:'Beginn der Sperrung \u2265 dieses Datum',
+            srcTipStartBefore:'Beginn der Sperrung \u2264 dieses Datum',
+            srcTipEndAfter:'Ende der Sperrung \u2265 dieses Datum',
+            srcTipEndBefore:'Ende der Sperrung \u2264 dieses Datum',
+            srcTipDesc:'Suche in der Sperrungsbeschreibung (Gro\u00DF-/Kleinschreibung wird ignoriert)',
+            srcTipMte:'Suche im Namen des zugeh\u00F6rigen MTE-Ereignisses (Gro\u00DF-/Kleinschreibung wird ignoriert)',
+            srcTipAndOr:'UND: beide Felder m\u00FCssen passen \u2014 ODER: mindestens eines muss passen',
+            srcTipAndOrLbl:'zwischen Beschreibung und MTE',
+            srcTipSearch:'Sperrungen suchen, die im aktuellen Kartenausschnitt geladen sind',
+            srcTipClear:'Alle Kriterien und Ergebnisse zur\u00FCcksetzen',
+            srcTipGoCfg:'Diese Segmente ausw\u00E4hlen und zum Reiter Einrichten wechseln, um Sperrungen anzulegen',
+            srcTipCenterRow:'Karte auf dieses Segment zentrieren (versetzt in den sichtbaren Bereich)',
+            srcColId:'ID', srcColName:'Name', srcColClosures:'Sp.', srcColStatus:'Status', srcColDesc:'Beschreibung', srcColMte:'MTE',
+            srcTipColDesc:'Nach Beschreibung sortieren',
+            srcTipMteId:'MTE-Ereignis nicht im Speicher geladen \u2014 nur die ID ist verf\u00FCgbar. \u00D6ffne den Reiter Ereignisse in WME, um die Namen zu laden, und starte die Suche erneut.',
+            srcTipColId:'Nach Segment-ID sortieren',
+            srcTipColName:'Nach Stra\u00DFenname sortieren',
+            srcTipColClosures:'Nach Anzahl der passenden Sperrungen sortieren',
+            srcTipColStatus:'Nach Status sortieren',
+            srcTipColMte:'Nach MTE-Ereignisname sortieren',
+            gpxLayerCtrl:'Track-Ebene',
+            // Track-Tabelle
+            trkColTrack:'Track', trkColTime:'Zeit',
+            trkTipFileColor:'Farbe f\u00FCr alle Tracks', trkTipColor:'Farbe \u00E4ndern', trkTipColorCol:'Farbe',
+            trkExpand:'Ausklappen', trkCollapse:'Einklappen',
+            trkTipDelFile:'Datei entfernen', trkTipDel:'Entfernen', trkTipFocus:'Zentrieren',
+            trkTipLoadTime:'Ladezeit', trkTipFormat:'Dateiformat',
+            trkTipPts:'Gezeichnete Punkte (unterabgetastet ab > 3.000)', trkTipStatus:'Status',
+            sectionPeriod:'\uD83D\uDCC5 Zeitraum',
+            lblStart:'Beginn', lblEnd:'Ende',
+            lblStartTime:'Startzeit', lblDurTime:'Dauer h:mm', lblDurDay:'+Tage',
+            lblEndTime:'Endzeit',
+            btnDur:'\u23F1 Dauer', btnEndTime:'\u23F1 Endzeit',
+            lblToggleDur:'DAUER', lblToggleEnd:'ENDE',
+            lblDuration:'Dauer',
+            jpnPrefix:'T+',
+            tipToggle:'Dauer-Modus\u00A0: eine Dauer eingeben (H:MM) \u2014 Endzeit-Modus\u00A0: die genaue Endzeit eingeben. Zum Umschalten klicken.',
+            tabEachDay:'\uD83D\uDCC6 Wochentage', tabRepeat:'\uD83D\uDD01 Wiederholen',
+            days:['So','Mo','Di','Mi','Do','Fr','Sa'],
+            scAll:'Alle', scWth:'Mo\u2013Do', scWd:'Mo\u2013Fr', scWe:'Sa\u2013So', scNone:'Keine',
+            skipHolidays:'Au\u00DFer an Feiertagen',
+            lblHolidays:'Feiertage:',
+            lblNtimes:'Wie oft?', lblEvery:'Alle',
+            unitDay:'Tag(e)', unitHour:'Stunde(n)', unitMin:'Minute(n)',
+            sectionParams:'\uD83D\uDCDD Parameter',
+            lblDesc:'Beschreibung', lblDir:'Fahrtrichtung',
+            dirBoth:'Beide Richtungen', dirAtoB:'A \u21D2 B', dirBtoA:'B \u21D2 A',
+            lblMte:'Zugeh\u00F6riges MTE',
+            lblMteHint:'\u00D6ffne den Reiter Ereignisse in WME, um MTEs zu laden',
+            lblMtePh:'Kein MTE',
+            mteRefresh:'\u21BB',
+            mteRefreshTip:'MTEs aus dem WME-Reiter Ereignisse neu laden',
+            mteNone:'\u2014 Kein MTE \u2014',
+            mteEmpty:'\u00D6ffne den WME-Reiter Ereignisse und klicke dann \u21BB',
+            lblNodes:'Knotensperrungen',
+            nodeNone:'Keine (\u25A1\u2014\u25A1\u2014\u25A1\u2014\u25A1)', nodeInner:'Innere Knoten (\u25A1\u2014\u25A0\u2014\u25A0\u2014\u25A1)', nodeAll:'Alle (\u25A0\u2014\u25A0\u2014\u25A0\u2014\u25A0)',
+            lblIT:'Verkehr ignorieren',
+            tipIT:'Wenn aktiviert, \u00F6ffnet Waze das Segment nicht automatisch wieder, selbst wenn Verkehr darauf erkannt wird.',
+            tipHolSkip:'An Feiertagen wird keine Sperrung vorgeschlagen \u2014 diese Termine werden aus der Liste entfernt.',
+            tipHolOnly:'Sperrungen werden AUSSCHLIESSLICH an Feiertagen vorgeschlagen \u2014 alle anderen Termine entfallen.',
+            tipHolAdd:'F\u00FCgt die Feiertage im Zeitraum zus\u00E4tzlich zu den gew\u00E4hlten Wochentagen hinzu (Vereinigung).',
+            holidayModeAdd:'+ Feiertage',
+            holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
+            alertDir:'\u26A0\uFE0F Bei langen Abschnitten kann die Richtung A \u21D2 B je Segment unterschiedlich sein.',
+            sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
+            btnValidate:'\u2714 Best\u00E4tigen und zur Warteschlange',
+            btnStop:'\u23F9 Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6 Anwenden', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Leeren',
+            dropText:'\uD83D\uDCC4 CSV-Datei hier klicken oder ablegen',
+            dropHint:'Wird direkt in die Warteschlange \u00FCbernommen',
+            gpxDropText:'\uD83D\uDDFA Datei hier klicken oder ablegen',
+            gpxDropHint:'Zul\u00E4ssige Formate\u00A0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 Ebenen summieren sich',
+            // Abdeckung
+            covTitle:'Auf nicht ausgew\u00E4hlte Streckensegmente pr\u00FCfen',
+            covResult: (pct,n) => n===0 ? `Abdeckung: ${pct}% \u2014 alle befahrenen Segmente sind ausgew\u00E4hlt \u2705` : `Abdeckung: ${pct}% \u2014 ${n} befahrene(s) Segment(e) nicht ausgew\u00E4hlt`,
+            covLegend:'\uD83D\uDFE3 Magenta gestrichelt: Segmente, auf denen der Track verl\u00E4uft, die aber nicht ausgew\u00E4hlt sind (zu bearbeiten).',
+            covAllOk:'\u2705 Der Track verl\u00E4uft \u00FCber kein vergessenes Segment.',
+            covZone: (n,k) => `Bereich ${n} \u2014 ${k} Segment(e)`,
+            covClear:'L\u00F6schen',
+            covNoSel:'W\u00E4hle zuerst die Streckensegmente aus.',
+            covNoPts:'Diese Datei enth\u00E4lt keine verwertbaren Punkte.',
+            covNoSeg:'Keine WME-Segmente in der N\u00E4he des Tracks geladen (Karte auf die Strecke schwenken/zoomen).',
+            covNoOverlap:'Der Track verl\u00E4uft nicht durch den geladenen Bereich (Karte auf die Strecke schwenken).',
+            covOutside: p => `${p}% des Tracks liegen au\u00DFerhalb des geladenen Bereichs \u2014 schwenke die Karte, um ihn vollst\u00E4ndig zu pr\u00FCfen.`,
+            covFocus:'Auf diesen Bereich zentrieren',
+            noSel:'Kein Segment ausgew\u00E4hlt',
+            hasSel: n => `\u2705 ${n} Segment(e) ausgew\u00E4hlt`,
+            newSel:'Neue Auswahl \u2014 Warteschlange bleibt erhalten.',
+            multiCountry: cc => `\u26A0\uFE0F Mehrere L\u00E4nder: ${cc} \u2014 Feiertagsfilter nicht verf\u00FCgbar.`,
+            toastOk: (n,s,b) => b>0 ? `\u26A0\uFE0F ${n} Sperrung(en) f\u00FCr ${s} g\u00FCltige(s) Segment(e) \u2014 ${b} Segment(e) \u00FCbersprungen` : `\u2705 ${n} Sperrung(en) f\u00FCr ${s} Segment(e) hinzugef\u00FCgt.`,
+            errNone:'\u274C Keine Sperrung erzeugt.',
+            fillForm:'Formular ausf\u00FCllen\u2026',
+            closuresN: n => `${n} Sperrung(en) eingerichtet`,
+            previewHead: n => `${n} anzuwendende Sperrung(en):`,
+            previewMore: n => `\u2026 und ${n} weitere`,
+            confirmClear:'Warteschlange leeren?',
+            confirmApply: n => `${n} Paket(e) in WME anwenden?`,
+            confirmDel: n => `\u201E${n}\u201C l\u00F6schen?`,
+            colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
+            colIdTip:'Segment-ID', colNameTip:'Segmentname',
+            colStartTip:'Startdatum/-zeit', colEndTip:'Enddatum/-zeit',
+            colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 Laufend  \uD83D\uDD34 \u00DCberschneidung  \u26AB Vergangen',
+            stateOk:'OK', stateOn:'Laufend', stateOv:'\u00DCberschneidung', statePast:'Vergangen',
+            stateNull:'Segment nicht im Datenmodell gefunden \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. Wird beim Anwenden \u00FCbersprungen.',
+            nullSegBadgeTip: n => `${n} Segment(e) fehlen im Datenmodell \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. F\u00FCr Details zur Warteschlange hinzuf\u00FCgen.`,
+            stateRecent:'Segment nach dem letzten Waze-Tile-Build bearbeitet \u2014 die Sperrung kann beim Anwenden abgelehnt werden. Warte auf die n\u00E4chste Tile-Aktualisierung (alle 24 h).',
+            recentSegBadgeTip: n => `${n} Segment(e) nach dem letzten Tile-Build bearbeitet \u2014 Sperrungen k\u00F6nnen beim Anwenden abgelehnt werden.`,
+            nodeIconNone:'\u26AA Keine', nodeIconInner:'\uD83D\uDFE1 Innere', nodeIconAll:'\uD83D\uDD34 Alle',
+            noMte:'Kein MTE',
+            countBadge: (o,s) => `${o}\u00D7${s} Seg`,
+            tipCount: (o,s) => `${o} Sperrung(en) \u00D7 ${s} Segment(e) \u2014 ohne gel\u00F6schte Zeilen und Richtungskonflikte. \u00DCberschneidungen werden erst beim Anwenden erkannt.`,
+            tipDir:'Sperrrichtung',
+            tipITon:'Ignoriert den Verkehr \u2014 keine Erkennung', tipIToff:'Erkennt den Verkehr',
+            tipNodes: n => `Knotensperrungen: ${n}`,
+            tipMte: n => `Zugeh\u00F6riges MTE: ${n}`,
+            tipPresetLoad:'Laden', tipPresetDel:'L\u00F6schen',
+            fabNoSeg:'Segmente auf der Karte ausw\u00E4hlen',
+            btnCollapse:'Einklappen', btnClose:'Schlie\u00DFen',
+            presetColName:'Name', presetColDesc:'Beschreibung',
+            presetColTime:'Zeitplan', presetColDir:'Richt.',
+            presetNamePh:'Name der Vorlage\u2026',
+            presetPopupTitle:'\uD83D\uDCBE Vorlage speichern',
+            btnSave:'Speichern', btnCancel:'Abbrechen',
+            presetErrEmpty:'Gib einen Namen ein.', presetErrDup:'Dieser Name existiert bereits.',
+            presetSaved: n => `\u2705 Vorlage \u201E${n}\u201C gespeichert.`,
+            holidaysExcl: n => `\u2139\uFE0F ${n} Feiertag(e) ausgeschlossen.`,
+            holidaysNone:'\u2139\uFE0F Keine Feiertage im Zeitraum.',
+            holidayModeNone:'Feiertage: kein Filter',
+            holidayModeSkip:'Au\u00DFer an Feiertagen',
+            holidayModeOnly:'Nur an Feiertagen',
+            holidaysOnly: n => `\u2705 ${n} Termin(e) an Feiertagen beibehalten.`,
+            holidaysOnlyNone:'\u26A0\uFE0F Keine Feiertage im Zeitraum \u2014 die Warteschlange bleibt leer.',
+            warnInt: (ev,dur) => `\u26A0\uFE0F Intervall (${ev}\u00A0Min.) < Dauer (${dur}\u00A0Min.): die Sperrungen \u00FCberschneiden sich.`,
+            warnOcc: (max,req) => `\u2139\uFE0F Im Zeitraum sind nur ${max} Termin(e) m\u00F6glich (${req} angefordert).`,
+            warnZero:'\u26A0\uFE0F Intervall ist null.',
+            applyOk: (r,s) => `\u2705 ${r} ${s}`,
+            applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
+            errDateStart:'Ung\u00FCltiges Startdatum',
+            errDateEnd:'Enddatum liegt vor dem Startdatum',
+            warnDatePast:'Das Startdatum liegt in der Vergangenheit.',
+            warnDateEnd:'Das Enddatum liegt vor dem Startdatum.',
+            warnDateMax: n => `Der Zeitraum w\u00FCrde mehr als ${n} Sperrungen erzeugen. Verk\u00FCrze den Zeitraum.`,
+            errRepeat:'Ung\u00FCltige Anzahl an Wiederholungen',
+            errMaxItems: n => `\u274C Grenze von ${n} Sperrungen erreicht \u2014 pr\u00FCfe den Datumsbereich oder verk\u00FCrze den Zeitraum.`,
+            defaultClosure:'Sperrung',
+            selectAll:'Alle ausw\u00E4hlen',
+            tipCenter:'Auf dieses Segment zentrieren',
+            tipPresetSaveBtn:'Als Vorlage speichern',
+            // Ausgeschlossene Segmente (Richtungskonflikt)
+            exclWarnTitle: n => `${n} Segment(e) ausgeschlossen \u2014 unpassende Fahrtrichtung. Sie werden nicht verarbeitet. F\u00FCr Details klicken.`,
+            dirConflictTip:'Unpassende Fahrtrichtung \u2014 Segment \u00FCbersprungen',
+            toastNoCompatible: dir => `\u26A0\uFE0F Kein Segment passt zur Richtung ${dir} \u2014 Paket nicht hinzugef\u00FCgt`,
+            exclTxtHeader: dir => `Ausgeschlossene Segmente \u2014 Fahrtrichtung unvereinbar mit der Sperrung ${dir}`,
+            exclTxtBatch:'Paket: ',
+            exclTxtFooter1:'Diese Segmente wurden nicht zur Warteschlange hinzugef\u00FCgt.',
+            exclTxtFooter2:'Richte sie in einem separaten Paket mit der passenden Fahrtrichtung ein.',
+            exclTxtFilename:'ausgeschlossene_segmente',
+            exclTxtDir:'Richtung',
+            // Zeile l\u00F6schen
+            tipRowDel:'Diesen Termin entfernen',
+            // Badge Warteschlange
+            queueBadge: n => n===1?'1 Paket in der Warteschlange':`${n} Pakete in der Warteschlange`,
+            // Paket l\u00F6schen
+            tipDelBatch:'Dieses Paket entfernen',
+            tipEditLabel:'Bezeichnung dieses Pakets \u00E4ndern',
+            // Anwenden beendet
+            applyStopping:'\u23F3 Stopp angefordert \u2014 die laufende Sperrung wird abgeschlossen, danach wird abgebrochen.',
+            applyStopped:(ok,ko)=>`\u23F9 Abgebrochen \u2014 ${ok} angewendet, ${ko} fehlgeschlagen`,
+            applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' Fehler':''} von ${total} Sperrung(en).`,
+            // Warnung mehrere L\u00E4nder
+            multiCountryAlert: cc => `\u26A0\uFE0F Auswahl \u00FCber mehrere L\u00E4nder (${cc}).\nDer Feiertagsfilter kann nicht verwendet werden.\nW\u00E4hle Segmente aus nur einem Land ab.`,
+            // CSV-Importprotokoll
+            csvAdded: (ok,ko) => `\u2705 ${ok} Sperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Fehler':''}.`,
+            // Detail eines Warteschlangeneintrags
+            entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
+            sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
+            sbToggle:'Werkzeug aktivieren',
+            emojiPickerTip:'Emoji einf\u00FCgen',
+            sbResetFab:'Position der Schaltfl\u00E4che zur\u00FCcksetzen',
+            sbDesc:'Die Schaltfl\u00E4che \uD83D\uDEA7 ist immer auf der Karte sichtbar und l\u00E4sst sich frei per Drag & Drop verschieben.<br>Sie zeigt in Gr\u00FCn die Anzahl der ausgew\u00E4hlten Segmente.<br>Das Overlay ist verschiebbar und einklappbar.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss-Thread</a> &nbsp;\u00B7&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDisplayMode:'Darstellung',
+            sbModeCompact:'Windows 95',
+            sbModeNormal:'Normal',
+            sbCardsCollapsed:'Karten der Warteschlange standardm\u00E4\u00DFig eingeklappt',
+
+            sbDateFormat:'Datumsformat',
+            sbDateDmy:'TT/MM/JJJJ (Europa, weltweit)',
+            sbDateMdy:'MM/TT/JJJJ (USA)',
+            sbDateIso:'JJJJ-MM-TT (ISO)',
+            sbDateAuto:'(automatisch erkannt)',
+            helpH1:'\uD83D\uDE80 Schnellstart', helpH2:'\u2699\uFE0F Eine Sperrung einrichten',
+            helpH3:'\uD83D\uDCCB Warteschlange', helpH4:'\uD83D\uDCC2 CSV-Import',
+            helpH5:'\uD83D\uDCBE Vorlagen', helpH6:'\u26A0\uFE0F H\u00E4ufige Fehler & Grenzen', helpH7:'\uD83D\uDDA5\uFE0F Seitenleiste / Einstellungen',
+            helpH8:'\uD83D\uDDFA Tracks',
+            helpH9:'\uD83D\uDD0D Sperrungssuche',
+            helpS1:'<b>W\u00E4hle</b> ein oder mehrere Segmente auf der WME-Karte aus',
+            helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
+            helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
+            helpS4:'Klicke auf <b>\u2714 Best\u00E4tigen und zur Warteschlange</b>',
+            helpS5:'Wiederhole dies bei Bedarf f\u00FCr weitere Segmente',
+            helpS6:'Klicke auf <b>\u25B6 Anwenden</b>, um die Sperrungen in WME anzulegen',
         }
     };
     const s = D[_lang] || D.en;
@@ -1430,16 +1691,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
     return v !== undefined ? v : key;
 };
 
-// buildHelpHTML — contenu aide selon la langue
+// buildHelpHTML — contenu aide selon la langue (_L : repli sur l'anglais)
 const buildHelpHTML = () => {
-    const fr = _lang === 'fr';
     const sections = [
         { id:'h1', title:t('helpH1'), open:true, body:`
             <ol style="margin:0;padding-left:16px;line-height:1.8">
                 <li>${t('helpS1')}</li><li>${t('helpS2')}</li><li>${t('helpS3')}</li>
                 <li>${t('helpS4')}</li><li>${t('helpS5')}</li><li>${t('helpS6')}</li>
             </ol>` },
-        { id:'h2', title:t('helpH2'), body: fr ? `
+        { id:'h2', title:t('helpH2'), body: _L({ fr:`
             <table class="wct-help-table">
             <tr><td><b>D\u00E9but / Fin</b></td><td>Plage de dates sur laquelle r\u00E9p\u00E9ter la fermeture</td></tr>
             <tr><td><b>Heure d\u00E9but</b></td><td>Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement \u2014 voir Limites connues.</td></tr>
@@ -1454,7 +1714,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Ouvrez l\u2019onglet \u00C9v\u00E9nements dans WME, puis cliquez \u21BB dans le champ MTE pour charger la liste.</td></tr>
             <tr><td><b>Fermetures aux n\u0153uds</b></td><td>Aucune / Int\u00E9rieures (n\u0153uds partag\u00E9s) / Toutes</td></tr>
             <tr><td><b>Ignorer le trafic</b></td><td>Si coch\u00e9, la fermeture s\u2019applique sans tenir compte du trafic r\u00e9el. Waze ne r\u00e9ouvre pas automatiquement le segment m\u00eame s\u2019il d\u00e9tecte du trafic passant.</td></tr>
-            </table>` : `
+            </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Start / End</b></td><td>Date range over which to repeat the closure</td></tr>
             <tr><td><b>Start time</b></td><td>Time at which the closure starts each day. DST transitions are handled automatically \u2014 see Known limits.</td></tr>
@@ -1469,8 +1729,23 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Open the Events tab in WME, then click \u21BB in the MTE field to load the list.</td></tr>
             <tr><td><b>Node closures</b></td><td>None / Inner nodes (shared between segments) / All</td></tr>
             <tr><td><b>Ignore traffic</b></td><td>If checked, closure applies regardless of actual traffic. Waze will not automatically reopen the segment even if it detects traffic passing through.</td></tr>
-            </table>` },
-        { id:'h3', title:t('helpH3'), body: fr ? `
+            </table>`, de:`
+            <table class="wct-help-table">
+            <tr><td><b>Beginn / Ende</b></td><td>Zeitraum, über den die Sperrung wiederholt wird</td></tr>
+            <tr><td><b>Startzeit</b></td><td>Uhrzeit, zu der die Sperrung täglich beginnt. Zeitumstellungen werden automatisch berücksichtigt — siehe Bekannte Grenzen.</td></tr>
+            <tr><td><b>⏱ Dauer / Endzeit</b></td><td>Umschalten zwischen Dauer (z. B. 08:00) und ausdrücklicher Endzeit. Liegt die Endzeit vor der Startzeit, läuft die Sperrung bis zum Folgetag (Kennzeichnung T+1)</td></tr>
+            <tr><td><b>+Tage</b></td><td>Zusätzliche Tage. Im Dauer-Modus: werden zur Dauer h:mm addiert. Im Endzeit-Modus: die Endzeit wird um so viele Tage nach hinten verschoben.</td></tr>
+            <tr><td><b>Wochentage</b></td><td>Wähle die aktiven Wochentage. Schnellauswahl: Alle, Mo–Fr, Sa–So, Keine</td></tr>
+            <tr><td><b>Außer an Feiertagen</b></td><td>Schließt die Feiertage des erkannten Landes automatisch aus. Erfordert eine Internetverbindung. Bei einer Auswahl über mehrere Länder nicht verfügbar.</td></tr>
+            <tr><td><b>Nur an Feiertagen</b></td><td>Behält nur die Termine, die auf einen Feiertag fallen (nützlich für jährliche Beschränkungen mit wechselndem Datum). Erfordert eine Internetverbindung.</td></tr>
+            <tr><td><b>Wiederholen</b></td><td>Erzeugt N Termine alle X Tage/Stunden/Minuten. Warnung, wenn das Intervall kleiner als die Dauer ist.</td></tr>
+            <tr><td><b>Beschreibung</b></td><td>Text, der in WME zur Kennzeichnung der Sperrung angezeigt wird. Klicke auf die Schaltfläche 📌 rechts neben dem Feld, um an der Cursorposition ein Emoji einzufügen (Bauarbeiten, Sport, Wetter…).</td></tr>
+            <tr><td><b>Fahrtrichtung</b></td><td>Beide Richtungen, A ⇒ B oder B ⇒ A. Achtung: Bei langen Abschnitten kann die Richtung je Segment unterschiedlich sein.</td></tr>
+            <tr><td><b>MTE</b></td><td>Öffne den Reiter Ereignisse in WME und klicke dann im MTE-Feld auf ↻, um die Liste zu laden.</td></tr>
+            <tr><td><b>Knotensperrungen</b></td><td>Keine / Innere Knoten (zwischen Segmenten geteilt) / Alle</td></tr>
+            <tr><td><b>Verkehr ignorieren</b></td><td>Wenn aktiviert, gilt die Sperrung unabhängig vom tatsächlichen Verkehr. Waze öffnet das Segment nicht automatisch wieder, selbst wenn Verkehr darauf erkannt wird.</td></tr>
+            </table>` }) },
+        { id:'h3', title:t('helpH3'), body: _L({ fr:`
             <p>La file accumule des <b>lots</b> de fermetures avant application.</p>
             <table class="wct-help-table">
             <tr><td><b>\uD83C\uDFAF</b></td><td>Centre la carte sur le segment correspondant</td></tr>
@@ -1479,7 +1754,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑</b></td><td>Supprime une ligne de fermeture du lot (exclue de l'application et de l'export)</td></tr>
             <tr><td><b>Bordure color\u00E9e</b></td><td>\uD83D\uDD35 Configur\u00E9 manuellement \u00B7 \uD83D\uDFE2 Import\u00E9 CSV \u00B7 \uD83D\uDFE0 Charg\u00E9 depuis pr\u00E9r\u00E9glage</td></tr>
             <tr><td><b>\u00C9tat \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 En cours \u00B7 \uD83D\uDD34 Chevauchement \u00B7 \u26AB Date pass\u00E9e</td></tr>
-            </table>` : `
+            </table>`, en:`
             <p>The queue accumulates <b>batches</b> of closures before applying.</p>
             <table class="wct-help-table">
             <tr><td><b>\uD83C\uDFAF</b></td><td>Centers the map on the corresponding segment</td></tr>
@@ -1488,26 +1763,43 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑</b></td><td>Remove an individual closure row from the batch (excluded from apply and export)</td></tr>
             <tr><td><b>Colored border</b></td><td>\uD83D\uDD35 Manual \u00B7 \uD83D\uDFE2 CSV import \u00B7 \uD83D\uDFE0 From preset</td></tr>
             <tr><td><b>State \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Ongoing \u00B7 \uD83D\uDD34 Overlap \u00B7 \u26AB Past date</td></tr>
-            </table>` },
-        { id:'h4', title:t('helpH4'), body: fr ? `
+            </table>`, de:`
+            <p>Die Warteschlange sammelt <b>Pakete</b> von Sperrungen, bevor sie angewendet werden.</p>
+            <table class="wct-help-table">
+            <tr><td><b>\uD83C\uDFAF</b></td><td>Zentriert die Karte auf das zugeh\u00F6rige Segment</td></tr>
+            <tr><td><b>\u25BC/\u25B6</b></td><td>Klappt die Tabelle des Pakets ein/aus</td></tr>
+            <tr><td><b>\u2715</b></td><td>Entfernt das Paket aus der Warteschlange</td></tr>
+            <tr><td><b>\uD83D\uDDD1</b></td><td>Entfernt eine einzelne Sperrungszeile aus dem Paket (wird beim Anwenden und beim Export \u00FCbergangen)</td></tr>
+            <tr><td><b>Farbiger Rand</b></td><td>\uD83D\uDD35 Manuell eingerichtet \u00B7 \uD83D\uDFE2 CSV-Import \u00B7 \uD83D\uDFE0 Aus Vorlage geladen</td></tr>
+            <tr><td><b>Zustand \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Laufend \u00B7 \uD83D\uDD34 \u00DCberschneidung \u00B7 \u26AB Vergangenes Datum</td></tr>
+            </table>` }) },
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`
             <p>Importe un fichier CSV au format <b>WME Advanced Closures</b> directement dans la file d\u2019attente.</p>
             <p>Colonnes attendues\u00A0:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>Le format export\u00E9 par ce script est compatible avec le script WME Advanced Closures original.</p>` : `
+            <p>Le format export\u00E9 par ce script est compatible avec le script WME Advanced Closures original.</p>`, en:`
             <p>Imports a CSV file in <b>WME Advanced Closures</b> format directly into the queue.</p>
             <p>Expected columns:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>The format exported by this script is compatible with the original WME Advanced Closures script.</p>` },
-        { id:'h5', title:t('helpH5'), body: fr ? `
+            <p>The format exported by this script is compatible with the original WME Advanced Closures script.</p>`, de:`
+            <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
+            <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
+            <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>` }) },
+        { id:'h5', title:t('helpH5'), body: _L({ fr:`
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Cliquez \uD83D\uDCBE \u00E0 droite du bouton Valider pour sauvegarder la config actuelle</li>
             <li>Depuis l\u2019onglet Pr\u00E9r\u00E9glages\u00A0: \u21A9\uFE0F pour charger (bascule sur Configurer), \uD83D\uDDD1 pour supprimer</li>
-            </ul>` : `
+            </ul>`, en:`
             <p>Save a configuration (schedule, days, direction\u2026) for reuse.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Click \uD83D\uDCBE next to the Validate button to save the current config</li>
             <li>From the Presets tab: \u21A9\uFE0F to load (switches to Configure), \uD83D\uDDD1 to delete</li>
-            </ul>` },
-        { id:'h6', title:t('helpH6'), body: fr ? `
+            </ul>`, de:`
+            <p>Speichere eine Konfiguration (Zeitplan, Tage, Fahrtrichtung\u2026) zur Wiederverwendung.</p>
+            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <li>Klicke auf \uD83D\uDCBE rechts neben der Schaltfl\u00E4che Best\u00E4tigen, um die aktuelle Konfiguration zu speichern</li>
+            <li>Im Reiter Vorlagen: \u21A9\uFE0F zum Laden (wechselt zu Einrichten), \uD83D\uDDD1 zum L\u00F6schen</li>
+            </ul>` }) },
+        { id:'h6', title:t('helpH6'), body: _L({ fr:`
             <table class="wct-help-table">
             <tr><td><b>Segment non \u00E9ditable</b></td><td>Vous n\u2019avez pas les permissions d\u2019\u00E9dition sur ce segment.</td></tr>
             <tr><td><b>Chevauchement</b></td><td>Une fermeture existe d\u00E9j\u00E0 sur ce segment \u00E0 ces dates. Visible en rouge dans la file.</td></tr>
@@ -1516,7 +1808,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE introuvable</b></td><td>Ouvrez l\u2019onglet \u00C9v\u00E9nements WME et cliquez \u21BB pour recharger la liste.</td></tr>
             <tr><td><b>Intervalle &lt; dur\u00E9e</b></td><td>En mode R\u00E9p\u00E9ter, les occurrences se chevauchent. Augmentez l\u2019intervalle ou r\u00E9duisez la dur\u00E9e.</td></tr>
             <tr><td><b>Changement d\u2019heure (limite)</b></td><td>Les horaires sont interpr\u00E9t\u00E9s dans le <b>fuseau horaire du navigateur</b>. Si vous \u00e9ditez des segments dans un fuseau diff\u00E9rent de celui de votre syst\u00e8me (ex.\u00a0: un \u00e9diteur fran\u00e7ais travaillant sur des segments japonais), les heures saisies seront d\u00e9cal\u00e9es. Dans ce cas, convertissez manuellement les horaires dans votre fuseau local avant saisie.</td></tr>
-            </table>` : `
+            </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Segment not editable</b></td><td>You don\u2019t have edit permissions on this segment.</td></tr>
             <tr><td><b>Overlap</b></td><td>A closure already exists on this segment for these dates. Shown in red in the queue.</td></tr>
@@ -1525,21 +1817,36 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE not found</b></td><td>Open the WME Events tab and click \u21BB to reload the list.</td></tr>
             <tr><td><b>Interval &lt; duration</b></td><td>In Repeat mode, occurrences overlap. Increase interval or reduce duration.</td></tr>
             <tr><td><b>DST / time zone (limit)</b></td><td>Schedules are interpreted in the <b>browser\u2019s time zone</b>. If you are editing segments in a different time zone from your system (e.g. a French editor working on Japanese segments), the entered times will be offset accordingly. In that case, manually convert the times to your local time zone before entering them.</td></tr>
-            </table>` },
-        { id:'h7', title:t('helpH7'), body: fr ? `
+            </table>`, de:`
+            <table class="wct-help-table">
+            <tr><td><b>Segment nicht bearbeitbar</b></td><td>Du hast keine Bearbeitungsrechte f\u00fcr dieses Segment.</td></tr>
+            <tr><td><b>\u00dcberschneidung</b></td><td>F\u00fcr dieses Segment besteht in diesem Zeitraum bereits eine Sperrung. Wird in der Warteschlange rot angezeigt.</td></tr>
+            <tr><td><b>Vergangenes Datum</b></td><td>WME lehnt Sperrungen in der Vergangenheit ab. Die Zeile erscheint grau.</td></tr>
+            <tr><td><b>Mehrere L\u00e4nder</b></td><td>Die Auswahl erstreckt sich \u00fcber mehrere L\u00e4nder \u2014 der Feiertagsfilter ist deaktiviert.</td></tr>
+            <tr><td><b>MTE nicht gefunden</b></td><td>\u00d6ffne den WME-Reiter Ereignisse und klicke auf \u21bb, um die Liste neu zu laden.</td></tr>
+            <tr><td><b>Intervall &lt; Dauer</b></td><td>Im Modus Wiederholen \u00fcberschneiden sich die Termine. Vergr\u00f6\u00dfere das Intervall oder verk\u00fcrze die Dauer.</td></tr>
+            <tr><td><b>Zeitumstellung / Zeitzone (Grenze)</b></td><td>Die Uhrzeiten werden in der <b>Zeitzone des Browsers</b> ausgewertet. Wenn du Segmente in einer anderen Zeitzone als der deines Systems bearbeitest (z. B. ein deutscher Editor, der an japanischen Segmenten arbeitet), sind die eingegebenen Uhrzeiten entsprechend verschoben. Rechne die Zeiten in diesem Fall vor der Eingabe manuell in deine lokale Zeitzone um.</td></tr>
+            </table>` }) },
+        { id:'h7', title:t('helpH7'), body: _L({ fr:`
             <table class="wct-help-table">
             <tr><td><b>Activer l’outil</b></td><td>Active ou désactive WCT. Désactivé, le bouton 🚧 reste visible mais l’overlay ne s’ouvre pas.</td></tr>
             <tr><td><b>Affichage</b></td><td>Choisissez entre <b>Normal</b> (interface standard) et <b>Windows 95</b> (ultra-compact, coins carrés, palette grise classique). Préférence sauvegardée.</td></tr>
             <tr><td><b>Format des dates</b></td><td>Contrôle l’affichage dans la file et les logs.<br><b>JJ/MM/AAAA</b> — Europe (défaut)<br><b>MM/JJ/AAAA</b> — USA<br><b>AAAA-MM-JJ</b> — ISO<br>Détecté via <code>navigator.language</code>, forçable manuellement. Préférence sauvegardée.</td></tr>
             <tr><td><b>Réinitialiser la position</b></td><td>Remet le bouton 🚧 à sa position par défaut sur la carte.</td></tr>
-            </table>` : `
+            </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Enable tool</b></td><td>Enables or disables WCT. When disabled, the 🚧 button remains visible but the overlay does not open.</td></tr>
             <tr><td><b>Display mode</b></td><td>Choose between <b>Normal</b> (standard) and <b>Windows 95</b> (ultra-compact, square corners, classic grey). Preference saved.</td></tr>
             <tr><td><b>Date format</b></td><td>Controls display in the queue and logs.<br><b>DD/MM/YYYY</b> — Europe (default)<br><b>MM/DD/YYYY</b> — USA<br><b>YYYY-MM-DD</b> — ISO<br>Auto-detected via <code>navigator.language</code>, overridable manually. Preference saved.</td></tr>
             <tr><td><b>Reset button position</b></td><td>Moves the 🚧 button back to its default position on the map.</td></tr>
-            </table>` },
-        { id:'h8', title:t('helpH8'), body: fr ? `
+            </table>`, de:`
+            <table class="wct-help-table">
+            <tr><td><b>Werkzeug aktivieren</b></td><td>Aktiviert oder deaktiviert WCT. Ist es deaktiviert, bleibt die Schaltfläche 🚧 sichtbar, das Overlay öffnet sich jedoch nicht.</td></tr>
+            <tr><td><b>Darstellung</b></td><td>Wähle zwischen <b>Normal</b> (Standardoberfläche) und <b>Windows 95</b> (sehr kompakt, eckige Ecken, klassische graue Palette). Die Einstellung wird gespeichert.</td></tr>
+            <tr><td><b>Datumsformat</b></td><td>Steuert die Anzeige in der Warteschlange und in den Protokollen.<br><b>TT/MM/JJJJ</b> — Europa (Standard)<br><b>MM/TT/JJJJ</b> — USA<br><b>JJJJ-MM-TT</b> — ISO<br>Über <code>navigator.language</code> erkannt, manuell überschreibbar. Die Einstellung wird gespeichert.</td></tr>
+            <tr><td><b>Position zurücksetzen</b></td><td>Setzt die Schaltfläche 🚧 auf ihre Standardposition auf der Karte zurück.</td></tr>
+            </table>` }) },
+        { id:'h8', title:t('helpH8'), body: _L({ fr:`
             <p>Superpose un ou plusieurs tracés (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sur la carte WME pour faciliter l'identification des segments à fermer.</p>
             <p><b>Chargement :</b> cliquer sur la zone ou glisser-déposer un fichier. Plusieurs fichiers et formats peuvent être chargés simultanément — les calques se cumulent.</p>
             <table class="wct-help-table">
@@ -1554,7 +1861,7 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Shapefile :</b> fournir un ZIP contenant au minimum <code>.shp</code>, <code>.dbf</code> et <code>.shx</code>. Un fichier <code>.prj</code> est recommandé pour la reprojection automatique (Lambert 93, UTM…). Sans <code>.prj</code>, WGS84 est supposé.</p>
             <p><b>Calque Tracés</b> (barre de sélection) : visible dès qu'un fichier est chargé — coche globale pour afficher/masquer tous les calques.</p>
-            <p><b>Limitation :</b> calque visuel uniquement. Aucune sélection automatique de segments — la sélection reste manuelle dans WME.</p>` : `
+            <p><b>Limitation :</b> calque visuel uniquement. Aucune sélection automatique de segments — la sélection reste manuelle dans WME.</p>`, en:`
             <p>Overlays one or more tracks (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) onto the WME map to help identify segments to close.</p>
             <p><b>Loading:</b> click the drop zone or drag and drop a file. Multiple files and formats can be loaded simultaneously — layers accumulate.</p>
             <table class="wct-help-table">
@@ -1569,8 +1876,23 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> provide a ZIP containing at least <code>.shp</code>, <code>.dbf</code> and <code>.shx</code>. A <code>.prj</code> file is recommended for automatic reprojection (Lambert 93, UTM…). Without <code>.prj</code>, WGS84 is assumed.</p>
             <p><b>Tracks layer</b> (selection bar): visible once a file is loaded — global checkbox to show/hide all layers at once.</p>
-            <p><b>Limitation:</b> visual layer only. No automatic segment selection — selection remains manual in WME.</p>` },
-        { id:'h9', title:t('helpH9'), body: fr ? `
+            <p><b>Limitation:</b> visual layer only. No automatic segment selection — selection remains manual in WME.</p>`, de:`
+            <p>Legt einen oder mehrere Tracks (GPX, KML, KMZ, GeoJSON, Shapefile-ZIP) über die WME-Karte, um die zu sperrenden Segmente leichter zu erkennen.</p>
+            <p><b>Laden:</b> auf die Ablagefläche klicken oder eine Datei per Drag & Drop ablegen. Mehrere Dateien und Formate können gleichzeitig geladen werden — die Ebenen summieren sich.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 Datei</b></td><td>Übergeordnete Zeile: steht für die geladene Datei. Das Häkchen schaltet alle ihre Tracks um. 🗑 entfernt alle Ebenen der Datei.</td></tr>
+            <tr><td><b>↳ Track</b></td><td>Untergeordnete Zeile: ein GPX-Track, ein KML-Placemark, ein GeoJSON-Feature oder eine Shapefile-Geometrie. Häkchen, Farbe und Zentrierung je Track.</td></tr>
+            <tr><td><b>Type</b></td><td>Format der Quelldatei: GPX, KML, KMZ, GeoJSON oder SHP.</td></tr>
+            <tr><td><b>Farbfeld</b></td><td>Anklicken, um die Farbe des Tracks zu ändern — Palette mit 16 Farben.</td></tr>
+            <tr><td><b>pts</b></td><td>Anzahl der gezeichneten Punkte (max. 3.000, bei Bedarf unterabgetastet).</td></tr>
+            <tr><td><b>err</b></td><td>✅ wenn kein Fehler — sonst ⚠️ + Anzahl (für Details mit der Maus darüberfahren).</td></tr>
+            <tr><td><b>🎯</b></td><td>Zentriert die Karte im optimalen Zoom auf die Ausdehnung des Tracks.</td></tr>
+            <tr><td><b>🗑</b></td><td>Entfernt diesen Track (bzw. alle Tracks der Datei in der übergeordneten Zeile).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> ein ZIP bereitstellen, das mindestens <code>.shp</code>, <code>.dbf</code> und <code>.shx</code> enthält. Eine <code>.prj</code>-Datei wird für die automatische Umprojektion empfohlen (Lambert 93, UTM…). Ohne <code>.prj</code> wird WGS84 angenommen.</p>
+            <p><b>Track-Ebene</b> (Auswahlleiste): sichtbar, sobald eine Datei geladen ist — globales Häkchen zum Ein-/Ausblenden aller Ebenen.</p>
+            <p><b>Einschränkung:</b> reine Anzeigeebene. Keine automatische Segmentauswahl — die Auswahl erfolgt weiterhin manuell in WME.</p>` }) },
+        { id:'h9', title:t('helpH9'), body: _L({ fr:`
             <p>Recherche les <b>fermetures déjà existantes</b> chargées dans la vue courante et sélectionne les segments correspondants. Utile pour retrouver toutes les fermetures d'un événement, ou vérifier ce qui est actif sur une période.</p>
             <table class="wct-help-table">
             <tr><td><b>État</b></td><td>Cases à cocher des statuts de fermeture à inclure. <b>Tous</b> coche/décoche l'ensemble. Décocher une case décoche aussi Tous.</td></tr>
@@ -1586,7 +1908,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Nom de l'événement associé. Si l'événement n'est pas chargé en mémoire, seul son <b>identifiant</b> s'affiche (en orange) — ouvrez l'onglet Événements de WME pour charger les noms, puis relancez la recherche.</td></tr>
             <tr><td><b>En-têtes de colonnes</b></td><td>Cliquez pour trier (croissant, puis décroissant au 2e clic).</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limites :</b> seules les fermetures <b>chargées dans la vue courante</b> sont analysées (dézoomez/recadrez pour élargir). Les segments référencés par une fermeture mais non chargés sont ignorés. La <b>suppression</b> de fermetures n'est pas possible (non exposée par le SDK WME).</p>` : `
+            <p style="margin-top:6px"><b>Limites :</b> seules les fermetures <b>chargées dans la vue courante</b> sont analysées (dézoomez/recadrez pour élargir). Les segments référencés par une fermeture mais non chargés sont ignorés. La <b>suppression</b> de fermetures n'est pas possible (non exposée par le SDK WME).</p>`, en:`
             <p>Searches <b>existing closures</b> loaded in the current view and selects the matching segments. Useful to find all closures of an event, or to check what is active over a period.</p>
             <table class="wct-help-table">
             <tr><td><b>Status</b></td><td>Checkboxes for the closure statuses to include. <b>All</b> checks/unchecks everything. Unchecking one also unchecks All.</td></tr>
@@ -1602,7 +1924,23 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Associated event name. If the event is not loaded in memory, only its <b>ID</b> is shown (in orange) — open the WME Events tab to load names, then run the search again.</td></tr>
             <tr><td><b>Column headers</b></td><td>Click to sort (ascending, then descending on 2nd click).</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limits:</b> only closures <b>loaded in the current view</b> are analyzed (zoom out/pan to widen). Segments referenced by a closure but not loaded are ignored. Closure <b>deletion</b> is not possible (not exposed by the WME SDK).</p>` },
+            <p style="margin-top:6px"><b>Limits:</b> only closures <b>loaded in the current view</b> are analyzed (zoom out/pan to widen). Segments referenced by a closure but not loaded are ignored. Closure <b>deletion</b> is not possible (not exposed by the WME SDK).</p>`, de:`
+            <p>Durchsucht die <b>bereits bestehenden Sperrungen</b>, die in der aktuellen Ansicht geladen sind, und wählt die zugehörigen Segmente aus. Nützlich, um alle Sperrungen eines Ereignisses wiederzufinden oder zu prüfen, was in einem Zeitraum aktiv ist.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Status</b></td><td>Kontrollkästchen für die einzubeziehenden Sperrungsstatus. <b>Alle</b> setzt bzw. entfernt alle Häkchen. Wird ein einzelnes Häkchen entfernt, wird auch Alle abgewählt.</td></tr>
+            <tr><td><b>Zeitfenster</b></td><td>Optionale Grenzen für Beginn und Ende der Sperrungen. Eine leere Grenze wird ignoriert. Alle gesetzten Grenzen werden kombiniert (UND).</td></tr>
+            <tr><td><b>Beschreibung enthält</b></td><td>Filtert Sperrungen, deren Bezeichnung den Text enthält (Groß-/Kleinschreibung wird ignoriert).</td></tr>
+            <tr><td><b>UND / ODER</b></td><td>Verknüpfung von Beschreibung und MTE-Ereignis. <b>UND</b>: beide müssen passen. <b>ODER</b>: mindestens eines.</td></tr>
+            <tr><td><b>MTE-Ereignis enthält</b></td><td>Filtert nach dem Namen des MTE-Ereignisses („like“-Suche, Groß-/Kleinschreibung wird ignoriert). Beispiel: „Mans“ findet „24H Le Mans“, „LeMans Classic“…</td></tr>
+            <tr><td><b>Suchen</b></td><td>Startet die Suche. Alle gefundenen Segmente werden auf der Karte ausgewählt.</td></tr>
+            <tr><td><b>Zurücksetzen</b></td><td>Setzt alle Kriterien und Ergebnisse zurück.</td></tr>
+            <tr><td><b>⚙ Zu Einrichten wechseln</b></td><td>Wechselt unter Beibehaltung der Auswahl zum Reiter Einrichten, um direkt Sperrungen anzulegen.</td></tr>
+            <tr><td><b>🎯</b></td><td>Zentriert die Karte auf das Segment, versetzt in den sichtbaren Bereich links neben dem Overlay.</td></tr>
+            <tr><td><b>Beschreibung</b></td><td>Bezeichnung(en) der Sperrung(en) des Segments. Mehrere unterschiedliche Beschreibungen werden untereinander angezeigt.</td></tr>
+            <tr><td><b>MTE</b></td><td>Name des zugehörigen Ereignisses. Ist das Ereignis nicht im Speicher geladen, wird nur seine <b>ID</b> angezeigt (in Orange) — öffne den WME-Reiter Ereignisse, um die Namen zu laden, und starte die Suche erneut.</td></tr>
+            <tr><td><b>Spaltenköpfe</b></td><td>Zum Sortieren anklicken (aufsteigend, beim 2. Klick absteigend).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Grenzen:</b> Es werden nur die <b>in der aktuellen Ansicht geladenen</b> Sperrungen ausgewertet (herauszoomen/schwenken, um den Bereich zu erweitern). Segmente, auf die eine Sperrung verweist, die aber nicht geladen sind, werden übergangen. Das <b>Löschen</b> von Sperrungen ist nicht möglich (vom WME-SDK nicht bereitgestellt).</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -1610,10 +1948,7 @@ const buildHelpHTML = () => {
             <div class="wct-help-body" id="${s.id}" style="${s.open?'':'display:none'}">${s.body}</div>
         </div>`).join('')
     + `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--wct-border);font-size:0.917em;color:var(--wct-text2);text-align:center">
-        ${fr
-            ? `\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fil Discuss</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>`
-            : `\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss thread</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>`
-        }
+        \uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">${_L({fr:'Fil Discuss', en:'Discuss thread', de:'Discuss-Thread'})}</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>
     </div>`;
 };
 
@@ -2036,7 +2371,7 @@ const applyConfig=cfg=>{
 const makeEntry=(segIds,cfg,closures)=>{
     return{segIds,config:cfg,closures,source:'cfg',
         label:cfg.reason||t('defaultClosure'),
-        detail:t('entryDetail',segIds.length,closures.length,DIR_STR[parseInt(cfg.direction)],cfg.starttime)};
+        detail:t('entryDetail',segIds.length,closures.length,dirStr(parseInt(cfg.direction)),cfg.starttime)};
 
 };
 const renderQueue=()=>{
@@ -2568,17 +2903,18 @@ const traceSubsample = (pts, maxPts) => {
 
 // ── Parsers ──────────────────────────────────────────────────────────────────
 
-// Helper bilingue pour les messages d'erreur des parsers
-const _pe = (frStr, enStr) => (_lang === 'fr' ? frStr : enStr);
+// Helper multilingue pour les messages d'erreur des parsers.
+// deStr omis ⇒ repli sur l'anglais (pas de message vide).
+const _pe = (frStr, enStr, deStr) => (_lang === 'fr' ? frStr : _lang === 'de' ? (deStr ?? enStr) : enStr);
 
 // GPX → [{ name, points[], errors[] }]  — un objet par <trk>
 const parseGpx = (filename, xmlText) => {
     const tracks = [];
     try {
         const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-        if(doc.querySelector('parsererror')) return [{ name: filename, points: [], errors: [_pe('XML invalide','Invalid XML')] }];
+        if(doc.querySelector('parsererror')) return [{ name: filename, points: [], errors: [_pe('XML invalide','Invalid XML','Ungültiges XML')] }];
         const trkEls = doc.querySelectorAll('trk');
-        if(trkEls.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucun track <trk> trouvé','No <trk> track found')] }];
+        if(trkEls.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucun track <trk> trouvé','No <trk> track found','Kein <trk>-Track gefunden')] }];
         const total = trkEls.length;
         trkEls.forEach((trk, idx) => {
             const errors = [];
@@ -2590,14 +2926,14 @@ const parseGpx = (filename, xmlText) => {
             trk.querySelectorAll('trkpt').forEach(pt => {
                 const lat = parseFloat(pt.getAttribute('lat'));
                 const lon = parseFloat(pt.getAttribute('lon'));
-                if(isNaN(lat) || isNaN(lon)) errors.push(_pe('Point invalide ignoré','Invalid point ignored'));
+                if(isNaN(lat) || isNaN(lon)) errors.push(_pe('Point invalide ignoré','Invalid point ignored','Ungültiger Punkt ignoriert'));
                 else points.push([lat, lon]);
             });
-            if(points.length === 0) errors.push(_pe('Aucun point de trace','No track points found'));
+            if(points.length === 0) errors.push(_pe('Aucun point de trace','No track points found','Keine Trackpunkte gefunden'));
             tracks.push({ name, points, errors });
         });
     } catch(e) {
-        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing : ','Parse error: ') + e.message] });
+        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing : ','Parse error: ','Parsing-Fehler: ') + e.message] });
     }
     return tracks;
 };
@@ -2608,7 +2944,7 @@ const parseKml = (filename, xmlText) => {
     const tracks = [];
     try {
         const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-        if(doc.querySelector('parsererror')) return [{ name: filename, points: [], errors: [_pe('XML invalide','Invalid XML')] }];
+        if(doc.querySelector('parsererror')) return [{ name: filename, points: [], errors: [_pe('XML invalide','Invalid XML','Ungültiges XML')] }];
 
         // Détection namespace
         const rootEl = doc.documentElement;
@@ -2618,7 +2954,7 @@ const parseKml = (filename, xmlText) => {
         const allPM = Array.from(doc.getElementsByTagNameNS(nsUri, 'Placemark'));
         const linePM = allPM.filter(pm => pm.getElementsByTagNameNS(nsUri, 'LineString').length > 0);
 
-        if(linePM.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucun Placemark LineString trouvé','No LineString Placemark found')] }];
+        if(linePM.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucun Placemark LineString trouvé','No LineString Placemark found','Kein LineString-Placemark gefunden')] }];
 
         const total = linePM.length;
         // Détecter doublons de noms pour suffixage
@@ -2656,11 +2992,11 @@ const parseKml = (filename, xmlText) => {
                     if(!isNaN(lat) && !isNaN(lon)) points.push([lat, lon]);
                 });
             });
-            if(points.length === 0) errors.push(_pe('LineString vide ou coordonnées invalides','Empty LineString or invalid coordinates'));
+            if(points.length === 0) errors.push(_pe('LineString vide ou coordonnées invalides','Empty LineString or invalid coordinates','Leerer LineString oder ungültige Koordinaten'));
             tracks.push({ name, points, errors });
         });
     } catch(e) {
-        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing KML : ','KML parse error: ') + e.message] });
+        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing KML : ','KML parse error: ','KML-Parsing-Fehler: ') + e.message] });
     }
     return tracks;
 };
@@ -2669,17 +3005,17 @@ const parseKml = (filename, xmlText) => {
 // Décompression via fflate (@require CDN)
 const parseKmz = async (filename, arrayBuffer) => {
     try {
-        if(typeof fflate === 'undefined') return [{ name: filename, points: [], errors: [_pe('fflate non disponible','fflate library unavailable')] }];
+        if(typeof fflate === 'undefined') return [{ name: filename, points: [], errors: [_pe('fflate non disponible','fflate library unavailable','fflate-Bibliothek nicht verfügbar')] }];
         const uint8 = new Uint8Array(arrayBuffer);
         const unzipped = fflate.unzipSync(uint8);
         // Chercher le fichier .kml principal (doc.kml ou premier .kml trouvé)
         const kmlKeys = Object.keys(unzipped).filter(k => k.endsWith('.kml'));
         const mainKey = kmlKeys.includes('doc.kml') ? 'doc.kml' : kmlKeys[0];
-        if(!mainKey) return [{ name: filename, points: [], errors: [_pe('Aucun fichier KML dans le KMZ','No KML file found in KMZ')] }];
+        if(!mainKey) return [{ name: filename, points: [], errors: [_pe('Aucun fichier KML dans le KMZ','No KML file found in KMZ','Keine KML-Datei im KMZ gefunden')] }];
         const kmlText = new TextDecoder('utf-8').decode(unzipped[mainKey]);
         return parseKml(filename, kmlText);
     } catch(e) {
-        return [{ name: filename, points: [], errors: [_pe('Erreur décompression KMZ : ','KMZ decompression error: ') + e.message] }];
+        return [{ name: filename, points: [], errors: [_pe('Erreur décompression KMZ : ','KMZ decompression error: ','KMZ-Entpackfehler: ') + e.message] }];
     }
 };
 
@@ -2694,7 +3030,7 @@ const parseGeoJSON = (filename, jsonText) => {
         const lineFeatures = features.filter(f =>
             f.geometry && (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString')
         );
-        if(lineFeatures.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucune géométrie linéaire (LineString/MultiLineString) trouvée','No linear geometry (LineString/MultiLineString) found')] }];
+        if(lineFeatures.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucune géométrie linéaire (LineString/MultiLineString) trouvée','No linear geometry (LineString/MultiLineString) found','Keine Liniengeometrie (LineString/MultiLineString) gefunden')] }];
         const total = lineFeatures.length;
         lineFeatures.forEach((feat, idx) => {
             const errors = [];
@@ -2705,7 +3041,7 @@ const parseGeoJSON = (filename, jsonText) => {
             const points = [];
             const coords = feat.geometry.coordinates;
             if(!Array.isArray(coords)) {
-                errors.push(_pe('Coordonnées absentes ou malformées','Missing or malformed coordinates'));
+                errors.push(_pe('Coordonnées absentes ou malformées','Missing or malformed coordinates','Fehlende oder fehlerhafte Koordinaten'));
             } else if(feat.geometry.type === 'LineString') {
                 coords.forEach(c => {
                     if(!Array.isArray(c) || c.length < 2) return;
@@ -2722,11 +3058,11 @@ const parseGeoJSON = (filename, jsonText) => {
                     });
                 });
             }
-            if(points.length === 0 && errors.length === 0) errors.push(_pe('Coordonnées invalides ou géométrie vide','Invalid coordinates or empty geometry'));
+            if(points.length === 0 && errors.length === 0) errors.push(_pe('Coordonnées invalides ou géométrie vide','Invalid coordinates or empty geometry','Ungültige Koordinaten oder leere Geometrie'));
             tracks.push({ name, points, errors });
         });
     } catch(e) {
-        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing GeoJSON : ','GeoJSON parse error: ') + e.message] });
+        tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing GeoJSON : ','GeoJSON parse error: ','GeoJSON-Parsing-Fehler: ') + e.message] });
     }
     return tracks;
 };
@@ -2814,15 +3150,15 @@ const parseShapefile = async (filename, arrayBuffer) => {
     const errors = [];
     try {
         // 1. Vérifier les librairies
-        if(typeof fflate === 'undefined') return [{ name: baseName, points: [], errors: [_pe('fflate non disponible','fflate library unavailable')], isDataset: true }];
-        if(typeof shp   === 'undefined') return [{ name: baseName, points: [], errors: [_pe('shpjs non disponible','shpjs library unavailable')], isDataset: true }];
-        if(typeof proj4 === 'undefined') return [{ name: baseName, points: [], errors: [_pe('proj4 non disponible','proj4 library unavailable')], isDataset: true }];
+        if(typeof fflate === 'undefined') return [{ name: baseName, points: [], errors: [_pe('fflate non disponible','fflate library unavailable','fflate-Bibliothek nicht verfügbar')], isDataset: true }];
+        if(typeof shp   === 'undefined') return [{ name: baseName, points: [], errors: [_pe('shpjs non disponible','shpjs library unavailable','shpjs-Bibliothek nicht verfügbar')], isDataset: true }];
+        if(typeof proj4 === 'undefined') return [{ name: baseName, points: [], errors: [_pe('proj4 non disponible','proj4 library unavailable','proj4-Bibliothek nicht verfügbar')], isDataset: true }];
 
         // 2. Dézipper + validation des fichiers obligatoires
         const uint8 = new Uint8Array(arrayBuffer);
         let unzipped;
         try { unzipped = fflate.unzipSync(uint8); }
-        catch(e) { return [{ name: baseName, points: [], errors: [_pe('Erreur décompression ZIP : ','ZIP decompression error: ') + e.message], isDataset: true }]; }
+        catch(e) { return [{ name: baseName, points: [], errors: [_pe('Erreur décompression ZIP : ','ZIP decompression error: ','ZIP-Entpackfehler: ') + e.message], isDataset: true }]; }
 
         const keys = Object.keys(unzipped);
         const findExt = (ext) => keys.find(k => k.toLowerCase().endsWith('.' + ext));
@@ -2839,7 +3175,8 @@ const parseShapefile = async (filename, arrayBuffer) => {
             return [{ name: baseName, points: [], errors: [
                 _pe(
                     `Fichiers manquants dans le ZIP : ${missing.join(', ')}. Un shapefile requiert au minimum .shp, .dbf et .shx.`,
-                    `Missing files in ZIP: ${missing.join(', ')}. A shapefile requires at least .shp, .dbf and .shx.`
+                    `Missing files in ZIP: ${missing.join(', ')}. A shapefile requires at least .shp, .dbf and .shx.`,
+                    `Fehlende Dateien im ZIP: ${missing.join(', ')}. Ein Shapefile benötigt mindestens .shp, .dbf und .shx.`
                 )
             ], isDataset: true }];
         }
@@ -2862,15 +3199,16 @@ const parseShapefile = async (filename, arrayBuffer) => {
                     return [{ name: baseName, points: [], errors: [
                         _pe(
                             `Projection EPSG:${code} non reconnue. Demandez un export en WGS84 (EPSG:4326) ou Lambert 93 (EPSG:2154).`,
-                            `Projection EPSG:${code} not recognised. Request an export in WGS84 (EPSG:4326) or Lambert 93 (EPSG:2154).`
+                            `Projection EPSG:${code} not recognised. Request an export in WGS84 (EPSG:4326) or Lambert 93 (EPSG:2154).`,
+                            `Projektion EPSG:${code} nicht erkannt. Fordern Sie einen Export in WGS84 (EPSG:4326) oder Lambert 93 (EPSG:2154) an.`
                         )
                     ], isDataset: true }];
                 } else {
-                    errors.push(_pe('.prj présent mais projection non reconnue — WGS84 supposé (risque de décalage).','.prj found but projection not recognised — WGS84 assumed (possible offset).'));
+                    errors.push(_pe('.prj présent mais projection non reconnue — WGS84 supposé (risque de décalage).','.prj found but projection not recognised — WGS84 assumed (possible offset).','.prj vorhanden, aber Projektion nicht erkannt — WGS84 angenommen (Versatz möglich).'));
                 }
             }
         } else {
-            errors.push(_pe('.prj absent — WGS84 supposé (risque de décalage si autre projection).','.prj missing — WGS84 assumed (possible offset if another projection is used).'));
+            errors.push(_pe('.prj absent — WGS84 supposé (risque de décalage si autre projection).','.prj missing — WGS84 assumed (possible offset if another projection is used).','.prj fehlt — WGS84 angenommen (Versatz möglich, falls eine andere Projektion verwendet wird).'));
         }
 
         // 4. Parser .shp + .dbf via shpjs SANS reprojection interne (prj=false)
@@ -2881,7 +3219,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
             const dbfRows = shp.parseDbf(toAB(unzipped[dbfKey]));
             geojson = shp.combine([shpRows, dbfRows]);
         } catch(e) {
-            return [{ name: baseName, points: [], errors: [_pe('Erreur parsing shapefile : ','Shapefile parse error: ') + e.message], isDataset: true }];
+            return [{ name: baseName, points: [], errors: [_pe('Erreur parsing shapefile : ','Shapefile parse error: ','Shapefile-Parsing-Fehler: ') + e.message], isDataset: true }];
         }
 
         // 5. Filtrer géométries linéaires/surfaciques
@@ -2889,7 +3227,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
             f.geometry && ['LineString','MultiLineString','Polygon','MultiPolygon'].includes(f.geometry.type)
         );
         if(allFeats.length === 0) {
-            return [{ name: baseName, points: [], errors: [_pe('Aucune géométrie linéaire ou surfacique dans ce shapefile.','No linear or surface geometry found in this shapefile.')], isDataset: true }];
+            return [{ name: baseName, points: [], errors: [_pe('Aucune géométrie linéaire ou surfacique dans ce shapefile.','No linear or surface geometry found in this shapefile.','Keine Linien- oder Flächengeometrie in diesem Shapefile.')], isDataset: true }];
         }
 
         // 6. Reprojection manuelle vers WGS84 avec proj4
@@ -2923,7 +3261,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
         });
 
         if(allPoints.length === 0) {
-            return [{ name: baseName, points: [], errors: [_pe('Aucun point valide après reprojection.','No valid points after reprojection.')], isDataset: true }];
+            return [{ name: baseName, points: [], errors: [_pe('Aucun point valide après reprojection.','No valid points after reprojection.','Keine gültigen Punkte nach der Umprojektion.')], isDataset: true }];
         }
 
         // 7. Nom : champ texte le plus probable dans les attributs
@@ -2935,7 +3273,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
         return [{ name: trackName, points: allPoints, errors, isDataset: true, featureCount: allFeats.length, geoFeatures: reprojFeats }];
 
     } catch(e) {
-        return [{ name: baseName, points: [], errors: [_pe('Erreur inattendue : ','Unexpected error: ') + e.message], isDataset: true }];
+        return [{ name: baseName, points: [], errors: [_pe('Erreur inattendue : ','Unexpected error: ','Unerwarteter Fehler: ') + e.message], isDataset: true }];
     }
 };
 
@@ -3042,7 +3380,7 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
             olLayer = _traceBuildOL(trackId, sampled, color);
         }
         if((sampled.length > 0 || (geoFeatures && geoFeatures.length > 0)) && !olLayer)
-            errors.push(_pe('Erreur OpenLayers : layer non créé','OpenLayers error: layer not created'));
+            errors.push(_pe('Erreur OpenLayers : layer non créé','OpenLayers error: layer not created','OpenLayers-Fehler: Layer nicht erstellt'));
         // Pour un dataset SHP : afficher le nombre de features dans le nom
         const displayName = (isDataset && featureCount) ? `${name} — ${featureCount} tronçons` : name;
         _traceTracks.push({
@@ -3652,7 +3990,6 @@ const traceRenderTable = () => {
     if(!container) return;
     if(_traceFiles.length === 0) { container.style.display = 'none'; container.innerHTML = ''; return; }
     container.style.display = '';
-    const fr = (typeof _lang !== 'undefined' && _lang === 'fr');
 
     // Colonnes (11) : chev | chk | nom(×2 colspan) | heure | type | pts | swatch | err | pos | del
     // thead global figé — une seule <table> — repli par masquage des <tr> enfants
@@ -3672,11 +4009,11 @@ const traceRenderTable = () => {
         const fileSwatchStyle = file.color
             ? `background:${file.color};box-shadow:0 0 0 1px rgba(0,0,0,.2)`
             : `background:transparent;border:2px dashed #999`;
-        const fileSwatchTitle = fr ? 'Couleur pour tous les tracés' : 'Color for all tracks';
+        const fileSwatchTitle = t('trkTipFileColor');
 
         // Ligne père
         tbody += `<tr class="wct-trace-file-row" data-fid="${file.fileId}" style="background:var(--wct-bg2,#f5f7fa);border-top:1px solid var(--wct-border)">
-            <td style="width:14px;padding:0 2px;cursor:pointer;text-align:center" class="wct-trace-file-chev" data-fid="${file.fileId}" title="${fr?(isCollapsed?'Déplier':'Replier'):(isCollapsed?'Expand':'Collapse')}"><span style="font-size:10px;color:var(--wct-text2)">${chev}</span></td>
+            <td style="width:14px;padding:0 2px;cursor:pointer;text-align:center" class="wct-trace-file-chev" data-fid="${file.fileId}" title="${isCollapsed?t('trkExpand'):t('trkCollapse')}"><span style="font-size:10px;color:var(--wct-text2)">${chev}</span></td>
             <td style="width:16px"><input type="checkbox" class="wct-trace-file-chk" data-fid="${file.fileId}" ${allVis?'checked':''}></td>
             <td class="wct-gpx-name" colspan="2" title="${escHtml(file.filename)}" style="font-weight:700;padding-left:2px">📄 ${escHtml(file.filename)}</td>
             <td class="wct-gpx-time">${timeStr}</td>
@@ -3685,7 +4022,7 @@ const traceRenderTable = () => {
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
             <td><button class="wct-trace-file-cov wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
-            <td><button class="wct-trace-file-del wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${fr?'Supprimer le fichier':'Remove file'}">🗑</button></td>
+            <td><button class="wct-trace-file-del wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
         // Lignes enfants — masquées si replié
@@ -3700,10 +4037,10 @@ const traceRenderTable = () => {
                 <td class="wct-gpx-time"></td>
                 <td class="wct-trace-col-type" style="color:var(--wct-text2)">${typeLabel}</td>
                 <td style="text-align:right;color:#2e7d32">${okCount>0?okCount:'—'}</td>
-                <td class="wct-gpx-swatch-cell"><span class="wct-gpx-swatch" data-tid="${trk.trackId}" style="background:${trk.color}" title="${fr?'Changer la couleur':'Change color'}"></span></td>
+                <td class="wct-gpx-swatch-cell"><span class="wct-gpx-swatch" data-tid="${trk.trackId}" style="background:${trk.color}" title="${t('trkTipColor')}"></span></td>
                 <td class="wct-gpx-err ${errCount>0?'wct-gpx-has-err':''}" title="${escHtml(errTip)}">${errCount>0?'⚠️ '+errCount:'✅'}</td>
-                <td><button class="wct-trace-trk-pos wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${fr?'Centrer':'Focus'}">🎯</button></td>
-                <td><button class="wct-trace-trk-del wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${fr?'Supprimer':'Remove'}">🗑</button></td>
+                <td><button class="wct-trace-trk-pos wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
+                <td><button class="wct-trace-trk-del wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑</button></td>
             </tr>`;
         });
     });
@@ -3726,13 +4063,13 @@ const traceRenderTable = () => {
             <tr>
                 <th></th>
                 <th></th>
-                <th colspan="2" style="text-align:left">${fr?'Tracé':'Track'}</th>
-                <th title="${fr?'Heure de chargement':'Load time'}">${fr?'Heure':'Time'}</th>
-                <th style="text-align:left" title="${fr?'Format du fichier':'File format'}">Type</th>
-                <th style="text-align:right" title="${fr?'Points tracés (sous-échantillonnés si > 3 000)':'Plotted points (subsampled if > 3,000)'}">pts</th>
-                <th title="${fr?'Couleur':'Color'}">🎨</th>
-                <th title="${fr?'État':'Status'}">⚡</th>
-                <th title="${fr?'Centrer':'Focus'}">📍</th>
+                <th colspan="2" style="text-align:left">${t('trkColTrack')}</th>
+                <th title="${t('trkTipLoadTime')}">${t('trkColTime')}</th>
+                <th style="text-align:left" title="${t('trkTipFormat')}">Type</th>
+                <th style="text-align:right" title="${t('trkTipPts')}">pts</th>
+                <th title="${t('trkTipColorCol')}">🎨</th>
+                <th title="${t('trkTipStatus')}">⚡</th>
+                <th title="${t('trkTipFocus')}">📍</th>
                 <th></th>
             </tr>
         </thead>
@@ -4202,7 +4539,7 @@ const buildQueueCard=(entry,idx)=>{
     if(entry.collapsed===undefined) entry.collapsed=_cardsCollapsedDefault;
     const SRC_COLOR={cfg:'#2196f3',csv:'#43a047',pre:'#f57c00'};
     const color=SRC_COLOR[entry.source]||'#2196f3';
-    const dir=DIR_STR[parseInt(entry.config.direction)];
+    const dir=dirStr(parseInt(entry.config.direction));
     const it=entry.config.ignoretraffic;
     const mteId=entry.config.mteId;
     let mteName=t('noMte');
@@ -4453,7 +4790,7 @@ const buildQueueCard=(entry,idx)=>{
             const dirLabel=entry.config.direction==='1'?'A \u21D2 B':entry.config.direction==='2'?'B \u21D2 A':'Double sens';
             const lines=entry.excludedSegs.map(c=>{
                 const pl=getSegPermalink(c.sid);
-                return `- ${c.name} (id\u00A0: ${c.sid}, ${_lang==='fr'?'sens':'dir'}\u00A0: ${c.segDirLabel})${pl?'\n  '+pl:''}`;
+                return `- ${c.name} (id\u00A0: ${c.sid}, ${t('exclTxtDir')}\u00A0: ${c.segDirLabel})${pl?'\n  '+pl:''}`;
             }).join('\n');
             const txt=
                 t('exclTxtHeader',dirLabel)+'\n'+
@@ -4946,7 +5283,7 @@ const handleCSV=files=>{
                 const cfg={reason:cl.reason,direction:String(dir),ignoretraffic:cl.permanent==='Yes',mteId:cl.eventId||''};
                 const csvEntry={segIds:cl.segIDs,config:cfg,closures:[{start:cl.startDate,end:cl.endDate}],
                     label:cl.reason||'CSV',
-                    detail:DIR_STR[dir]+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16),
+                    detail:dirStr(dir)+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16),
                     source:'csv'};
                 // Vérif compatibilité sens de circulation pour les lots CSV
                 const csvConflicts=getSegDirConflicts(cl.segIDs,dir);
