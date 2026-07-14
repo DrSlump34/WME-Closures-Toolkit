@@ -2,7 +2,7 @@
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.71.02
+// @version      0.71.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -47,7 +47,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.71.02';
+const VERSION     = '0.71.03';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -73,6 +73,7 @@ let csvList    = null;
 let _displayMode = 'normal'; // 'compact' | 'normal'
 let _cardsCollapsedDefault = false; // true = nouvelles cartes de file pliées par défaut
 let _applyAborted = false;  // true si l'utilisateur interrompt l'application en cours
+let _applyRunning = false;  // true pendant applyQueue() — autorise l'interruption par Échap
 // Format d'affichage des dates : 'dmy' (DD/MM/YYYY), 'mdy' (MM/DD/YYYY), 'iso' (YYYY-MM-DD)
 // Détection auto : en-US → mdy, tout le reste → dmy
 let _dateFormat = (navigator.language||'').toLowerCase().startsWith('en-us') ? 'mdy' : 'dmy';
@@ -521,6 +522,16 @@ GM_addStyle(`
     overflow-y: auto;
     padding-bottom: 0.333em;
 }
+/* Progression + Stop ancrés en bas de la zone défilante : le bouton Stop reste
+   atteignable pendant toute l'application, sans avoir à faire défiler le panneau. */
+.wct-progress-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: var(--wct-surface);
+}
+#wct-overlay.wct-compact .wct-progress-dock { background: #c0c0c0; }
+
 /* Pied « Valider » — footer fixe hors défilement, toujours accessible.
    Visible uniquement quand l'onglet Configurer est actif (via :has). */
 .wct-validate-footer {
@@ -1046,7 +1057,7 @@ const t = (key, ...args) => {
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
             btnValidate:'\u2714 Valider et ajouter \u00E0 la file',
-            btnStop:'\u23F9 Stop', btnApply:'\u25B6 Appliquer', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Vider',
+            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6 Appliquer', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Vider',
             // CSV
             dropText:'\uD83D\uDCC4 Cliquer ou glisser un fichier CSV ici',
             dropHint:'Ajout direct en file d\u2019attente',
@@ -1149,6 +1160,7 @@ const t = (key, ...args) => {
             tipDelBatch:'Supprimer ce lot',
             tipEditLabel:'Modifier le libellé de ce lot',
             // Apply terminé
+            applyStopping:'⏳ Arrêt demandé — fin de la fermeture en cours, puis interruption.',
                         applyStopped:(ok,ko)=>`⏹ Interrompu — ${ok} appliqué(s), ${ko} échec(s)`,
 applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} sur ${total} fermeture(s).`,
             // Multi-pays alert
@@ -1277,7 +1289,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             alertDir:'\u26A0\uFE0F For long segments, A \u21D2 B direction may differ per segment.',
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
             btnValidate:'\u2714 Validate and add to queue',
-            btnStop:'\u23F9 Stop', btnApply:'\u25B6 Apply', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Clear',
+            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6 Apply', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Clear',
             dropText:'\uD83D\uDCC4 Click or drag a CSV file here',
             dropHint:'Added directly to queue',
             gpxDropText:'\uD83D\uDDFA Click or drag a file here',
@@ -1375,6 +1387,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipDelBatch:'Remove this batch',
             tipEditLabel:'Edit this batch label',
             // Apply done
+            applyStopping:'⏳ Stop requested — finishing the current closure, then aborting.',
                         applyStopped:(ok,ko)=>`⏹ Stopped — ${ok} applied, ${ko} failed`,
 applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} out of ${total} closure(s).`,
             // Multi-country alert
@@ -1830,7 +1843,9 @@ const checkSelectionCountry=segIds=>{
     return {ok:true,country:countries[0],countries};
 };
 const waitMapLoaded=()=>new Promise(resolve=>{
-    let n=0;const iv=setInterval(()=>{n++;if((!sdk.State.isMapLoading()&&(W?.app?.attributes?.pendingOperations?.length||0)===0)||n>100){clearInterval(iv);resolve();}},100);
+    // _applyAborted coupe l'attente immédiatement : sans cela, un Stop cliqué pendant
+    // le chargement de la carte restait sans effet visible jusqu'à 10 s.
+    let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||(!sdk.State.isMapLoading()&&(W?.app?.attributes?.pendingOperations?.length||0)===0)||n>100){clearInterval(iv);resolve();}},100);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2368,6 +2383,17 @@ const addClosure=(options,okCb,koCb)=>{
         else{okCb&&okCb(v);}
     },r=>koCb&&koCb([r]));
 };
+// Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
+// Le retour visuel est immédiat : sans lui, le clic n'avait aucun effet perceptible
+// avant la fin de la fermeture en cours, et le bouton passait pour inopérant.
+const requestApplyAbort=()=>{
+    if(!_applyRunning||_applyAborted) return;
+    _applyAborted=true;
+    const b=$id('wct-btn-stop');
+    if(b){b.disabled=true;b.classList.add('wct-btn-dis');b.textContent=t('btnStopping');}
+    const lg=$id('wct-apply-log');
+    if(lg){const line=document.createElement('div');line.style.color='#f57c00';line.textContent=t('applyStopping');lg.appendChild(line);lg.scrollTop=lg.scrollHeight;}
+};
 const applyQueue=async()=>{
     _applyAborted=false;
     let total=0,done=0,failed=0;
@@ -2385,7 +2411,9 @@ const applyQueue=async()=>{
     const pbw=$id('wct-pb-wrap'),pbf=$id('wct-pb-fill'),pbt=$id('wct-pb-text');
     const stopBtn=$id('wct-btn-stop');
     if(pbw)pbw.style.display='block';
-    if(stopBtn)stopBtn.style.display='inline-flex';
+    // Réarmer le bouton : il reste grisé et renommé après une interruption précédente
+    if(stopBtn){stopBtn.disabled=false;stopBtn.classList.remove('wct-btn-dis');stopBtn.textContent=t('btnStop');stopBtn.style.display='inline-flex';}
+    _applyRunning=true;
     const upd=n=>{const p=Math.round(n*100/total);if(pbf)pbf.style.width=p+'%';if(pbt)pbt.textContent=`${n}/${total} (${p}%)`;};
     const applyLog=$id('wct-apply-log');
     if(applyLog){
@@ -2402,27 +2430,35 @@ const applyQueue=async()=>{
         applyLog.appendChild(line);
         applyLog.scrollTop=applyLog.scrollHeight;
     };
-    for(const e of queue){
-        if(_applyAborted) break;
-        const dir=parseInt(e.config.direction);
-        const excl=e.excludedRows||new Set();
-        const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
-        for(let closureIdx=0;closureIdx<e.closures.length;closureIdx++){
+    try{
+        for(const e of queue){
             if(_applyAborted) break;
-            const cl=e.closures[closureIdx];
-            // Segments actifs pour cette occurrence (hors lignes supprimées + segments défaillants)
-            const activeSegs=e.segIds.filter(sid=>!excl.has(`${sid}:${closureIdx}`)&&!skip(sid));
-            if(!activeSegs.length) continue;
-            await waitMapLoaded();
-            await new Promise(res=>{
-                addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
-                    ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
-                    (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
-            });
+            const dir=parseInt(e.config.direction);
+            const excl=e.excludedRows||new Set();
+            const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
+            for(let closureIdx=0;closureIdx<e.closures.length;closureIdx++){
+                if(_applyAborted) break;
+                const cl=e.closures[closureIdx];
+                // Segments actifs pour cette occurrence (hors lignes supprimées + segments défaillants)
+                const activeSegs=e.segIds.filter(sid=>!excl.has(`${sid}:${closureIdx}`)&&!skip(sid));
+                if(!activeSegs.length) continue;
+                await waitMapLoaded();
+                // Relire le drapeau : l'attente ci-dessus dure jusqu'à 10 s, et un Stop cliqué
+                // pendant celle-ci laissait partir une fermeture de plus.
+                if(_applyAborted) break;
+                await new Promise(res=>{
+                    addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
+                        ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
+                        (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                });
+            }
         }
+    }finally{
+        // Toujours réarmer, y compris si addClosure lève : sinon le Stop reste grisé pour de bon.
+        _applyRunning=false;
+        if(stopBtn){stopBtn.style.display='none';stopBtn.disabled=false;stopBtn.classList.remove('wct-btn-dis');stopBtn.textContent=t('btnStop');}
     }
-    if(stopBtn)stopBtn.style.display='none';
-    setTimeout(()=>{if(pbw)pbw.style.display='none';},2000);
+    setTimeout(()=>{if(pbw)pbw.style.display='none';if(pbt)pbt.textContent='';},2000);
     showToast(_applyAborted?t('applyStopped',done,failed):t('applyDone',done,failed,total),4000,failed||_applyAborted?'#f57c00':'#43a047');
 };
 const exportCSV=()=>{
@@ -4079,10 +4115,14 @@ const buildOverlay=()=>{
         <hr style="border:none;border-top:1px solid var(--wct-border);margin:6px 0 0"><div id="wct-queue-ul"></div>
         <div id="wct-queue-empty" class="wct-queue-empty">${t('queueEmpty')}</div>
       </div>
-      <div class="wct-pb-wrap" id="wct-pb-wrap"><div class="wct-pb-fill" id="wct-pb-fill"></div></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
-        <div class="wct-pb-text" id="wct-pb-text" style="flex:1"></div>
-        <button id="wct-btn-stop" class="wct-btn wct-btn-danger wct-btn-sm" style="display:none;flex-shrink:0">${t('btnStop')}</button>
+      <!-- Progression + Stop : collés en bas de la zone défilante, sinon le bouton
+           reste sous le pli pendant l'application (petit écran / mode compact). -->
+      <div class="wct-progress-dock">
+        <div class="wct-pb-wrap" id="wct-pb-wrap"><div class="wct-pb-fill" id="wct-pb-fill"></div></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+          <div class="wct-pb-text" id="wct-pb-text" style="flex:1"></div>
+          <button id="wct-btn-stop" type="button" class="wct-btn wct-btn-danger wct-btn-sm" style="display:none;flex-shrink:0">${t('btnStop')}</button>
+        </div>
       </div>
       <div id="wct-preview-section"></div>
     </div>
@@ -4812,7 +4852,10 @@ const connectOverlay=ov=>{
     // Actions
     $id('wct-btn-clear')?.addEventListener('click',()=>{if(!confirm(t('confirmClear')))return;queue=[];renderQueue();$id('wct-preview-section').innerHTML='';});
     $id('wct-btn-apply')?.addEventListener('click',async()=>{if(!confirm(t('confirmApply',queue.length)))return;await applyQueue();});
-    $id('wct-btn-stop')?.addEventListener('click',()=>{ _applyAborted=true; });
+    $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
+    // Échap = secours clavier : atteint l'interruption même si un masque WME (« Enregistrement… »)
+    // recouvre le bouton pendant les sauvegardes en chaîne.
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_applyRunning) requestApplyAbort(); },true);
     $id('wct-btn-export')?.addEventListener('click',exportCSV);
 
     // Drop zone CSV
