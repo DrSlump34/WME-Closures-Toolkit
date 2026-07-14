@@ -2,12 +2,18 @@
 // @name         WME Closures Toolkit
 // @name:fr      WME Closures Toolkit
 // @name:de      WME Closures Toolkit
+// @name:es      WME Closures Toolkit
+// @name:pt-BR   WME Closures Toolkit
+// @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.72.00
+// @version      0.73.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
 // @description:de Wiederkehrende Sperrungen mit Warteschlangenverwaltung — inspiriert von WME Advanced Closures & waze.tech-informatique.fr
+// @description:es Cierres recurrentes avanzados con cola de espera — inspirado en WME Advanced Closures & waze.tech-informatique.fr
+// @description:pt-BR Bloqueios recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
+// @description:pt Cortes de via recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
 // @author       DrSlump34
 // @copyright    DrSlump34 2026
 // @license      MIT
@@ -49,7 +55,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.72.00';
+const VERSION     = '0.73.00';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -81,6 +87,8 @@ let _applyRunning = false;  // true pendant applyQueue() — autorise l'interrup
 // Format d'affichage des dates : 'dmy' (DD/MM/YYYY), 'mdy' (MM/DD/YYYY), 'iso' (YYYY-MM-DD)
 // Détection auto : en-US → mdy, tout le reste → dmy
 let _dateFormat = (navigator.language||'').toLowerCase().startsWith('en-us') ? 'mdy' : 'dmy';
+// Langue : 'auto' = suit WME (défaut), sinon code forcé par l'utilisateur ('fr', 'de', 'pt-BR'…)
+let _langPref = 'auto';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CSS
@@ -952,14 +960,29 @@ GM_addStyle(`
 // ═══════════════════════════════════════════════════════════════════════════
 let _lang = 'en';
 
-const LANGS = ['fr','de'];   // langues traduites ; toute autre locale retombe sur 'en'
+// Langues traduites. L'ordre fixe celui du sélecteur ; le libellé est dans la langue
+// elle-même (un germanophone cherche « Deutsch », pas « Allemand »).
+const LANGS = [
+    { code:'fr',    label:'Français'      },
+    { code:'en',    label:'English'       },
+    { code:'de',    label:'Deutsch'       },
+    { code:'es',    label:'Español'       },
+    { code:'pt-BR', label:'Português (BR)'},
+    { code:'pt-PT', label:'Português (PT)'},
+];
 
+// Langue déduite de WME/navigateur. Le portugais est traité à part : seul « br » distingue
+// le brésilien ; « pt » nu ou « pt-PT » ⇒ portugais européen.
 const detectLang = () => {
     try {
         const l = (W?.userscripts?.state?.locale || document.documentElement.lang || navigator.language || 'en').toLowerCase();
-        return LANGS.find(code => l.startsWith(code)) || 'en';
+        if (l.startsWith('pt')) return l.includes('br') ? 'pt-BR' : 'pt-PT';
+        return LANGS.map(x => x.code).find(code => !code.includes('-') && l.startsWith(code)) || 'en';
     } catch(e) { return 'en'; }
 };
+
+// Langue effective = préférence forcée, ou détection auto si 'auto' (défaut).
+const resolveLang = () => (_langPref !== 'auto' && LANGS.some(x => x.code === _langPref)) ? _langPref : detectLang();
 
 // Sélecteur de variante par langue, avec repli sur l'anglais.
 // Usage : _L({fr:'…', en:'…', de:'…'}) — utilisé pour les gros blocs (aide) et les
@@ -1199,6 +1222,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Cartes de la file pli\u00E9es par d\u00E9faut',
 
+            sbLanguage:'Langue',
+            sbLangAuto: l => `Automatique — WME (${l})`,
             sbDateFormat:'Format des dates',
             sbDateDmy:'JJ/MM/AAAA (Europe, reste du monde)',
             sbDateMdy:'MM/JJ/AAAA (USA)',
@@ -1433,6 +1458,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Queue cards collapsed by default',
 
+            sbLanguage:'Language',
+            sbLangAuto: l => `Automatic — WME (${l})`,
             sbDateFormat:'Date format',
             sbDateDmy:'DD/MM/YYYY (Europe, worldwide)',
             sbDateMdy:'MM/DD/YYYY (USA)',
@@ -1667,6 +1694,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Karten der Warteschlange standardm\u00E4\u00DFig eingeklappt',
 
+            sbLanguage:'Sprache',
+            sbLangAuto: l => `Automatisch — WME (${l})`,
             sbDateFormat:'Datumsformat',
             sbDateDmy:'TT/MM/JJJJ (Europa, weltweit)',
             sbDateMdy:'MM/TT/JJJJ (USA)',
@@ -1683,6 +1712,711 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS4:'Klicke auf <b>\u2714 Best\u00E4tigen und zur Warteschlange</b>',
             helpS5:'Wiederhole dies bei Bedarf f\u00FCr weitere Segmente',
             helpS6:'Klicke auf <b>\u25B6 Anwenden</b>, um die Sperrungen in WME anzulegen',
+        },
+        es: {
+            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabPre:'💾 Preajustes', tabGpx:'🗺 Trazas', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ayuda',
+            // Pestaña Buscar
+            srcSectionTime:'📅 Ventana temporal',
+            srcLblStartAfter:'Inicio después del', srcLblStartBefore:'Inicio antes del',
+            srcLblEndAfter:'Fin después del', srcLblEndBefore:'Fin antes del',
+            srcSectionKeywords:'🔍 Palabras clave',
+            srcLblDesc:'La descripción contiene', srcLblMte:'El evento MTE contiene',
+            srcBtnAnd:'Y', srcBtnOr:'O',
+            srcBtnSearch:'Buscar',
+            srcBtnClear:'Borrar',
+            srcNoResults:'No se ha encontrado ningún segmento con estos criterios.',
+            srcNoClosures:'No hay cierres cargados en la vista actual.',
+            srcResults: n => `${n} segmento(s) encontrado(s)`,
+            srcBtnGoCfg:'⚙ Cambiar a Configurar',
+            srcHint:'Segmentos con cierres cargados en la vista actual.',
+            srcLoading:'Buscando…',
+            srcSectionStatus:'💡 Estado',
+            srcStatusAll:'Todos',
+            srcStatusLabels:{
+                ACTIVE:'Activo',
+                NOT_STARTED:'Pendiente',
+                SUSPENDED:'Suspendido',
+                FINISHED:'Finalizado',
+                FINISHED_EARLY_DUE_TO_DELETION:'Eliminado',
+                FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES:'Solapamiento',
+                UNVERIFIED:'Sin verificar',
+                FAILED:'Error',
+                UNKNOWN:'Desconocido',
+            },
+            srcTipStatus:'Filtrar por estado del cierre. Marca los estados que quieres incluir en los resultados.',
+            srcTipStartAfter:'Fecha de inicio del cierre ≥ esta fecha',
+            srcTipStartBefore:'Fecha de inicio del cierre ≤ esta fecha',
+            srcTipEndAfter:'Fecha de fin del cierre ≥ esta fecha',
+            srcTipEndBefore:'Fecha de fin del cierre ≤ esta fecha',
+            srcTipDesc:'Búsqueda sin distinguir mayúsculas en la descripción del cierre',
+            srcTipMte:'Búsqueda sin distinguir mayúsculas en el nombre del evento MTE asociado',
+            srcTipAndOr:'Y: los dos campos deben coincidir — O: basta con que coincida uno',
+            srcTipAndOrLbl:'entre Descripción y MTE',
+            srcTipSearch:'Buscar en los cierres cargados en la vista actual del mapa',
+            srcTipClear:'Restablecer todos los criterios y los resultados',
+            srcTipGoCfg:'Seleccionar estos segmentos y cambiar a la pestaña Configurar para crear cierres',
+            srcTipCenterRow:'Centrar el mapa en este segmento (compensado según la zona visible)',
+            srcColId:'ID', srcColName:'Nombre', srcColClosures:'Cier.', srcColStatus:'Estado', srcColDesc:'Descripción', srcColMte:'MTE',
+            srcTipColDesc:'Ordenar por descripción',
+            srcTipMteId:'Evento MTE no cargado en memoria — solo está disponible su ID. Abre la pestaña Eventos de WME para cargar los nombres y vuelve a lanzar la búsqueda.',
+            srcTipColId:'Ordenar por ID de segmento',
+            srcTipColName:'Ordenar por nombre de calle',
+            srcTipColClosures:'Ordenar por número de cierres coincidentes',
+            srcTipColStatus:'Ordenar por estado',
+            srcTipColMte:'Ordenar por nombre de evento MTE',
+            gpxLayerCtrl:'Capa Trazas',
+            // Tabla de trazas
+            trkColTrack:'Traza', trkColTime:'Hora',
+            trkTipFileColor:'Color para todas las trazas', trkTipColor:'Cambiar el color', trkTipColorCol:'Color',
+            trkExpand:'Desplegar', trkCollapse:'Plegar',
+            trkTipDelFile:'Eliminar el archivo', trkTipDel:'Eliminar', trkTipFocus:'Centrar',
+            trkTipLoadTime:'Hora de carga', trkTipFormat:'Formato del archivo',
+            trkTipPts:'Puntos trazados (submuestreados si > 3.000)', trkTipStatus:'Estado',
+            sectionPeriod:'📅 Periodo',
+            lblStart:'Inicio', lblEnd:'Fin',
+            lblStartTime:'Hora de inicio', lblDurTime:'Duración h:mm', lblDurDay:'+Días',
+            lblEndTime:'Hora de fin',
+            btnDur:'⏱ Duración', btnEndTime:'⏱ Hora de fin',
+            lblToggleDur:'DUR', lblToggleEnd:'FIN',
+            lblDuration:'Duración',
+            jpnPrefix:'D+',
+            tipToggle:'Modo Duración : introduce una duración (H:MM) — Modo Hora de fin : introduce la hora exacta de fin. Haz clic para cambiar.',
+            tabEachDay:'📆 Cada día', tabRepeat:'🔁 Repetir',
+            days:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],
+            scAll:'Todos', scWth:'Lun–Jue', scWd:'Lun–Vie', scWe:'Sáb–Dom', scNone:'Ninguno',
+            skipHolidays:'Excepto festivos',
+            lblHolidays:'Festivos:',
+            lblNtimes:'¿Cuántas veces?', lblEvery:'Cada',
+            unitDay:'Día(s)', unitHour:'Hora(s)', unitMin:'Minuto(s)',
+            sectionParams:'📝 Parámetros',
+            lblDesc:'Descripción', lblDir:'Sentido',
+            dirBoth:'Ambos sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
+            lblMte:'MTE asociado',
+            lblMteHint:'Abre la pestaña Eventos en WME para cargar los MTE',
+            lblMtePh:'Sin MTE',
+            mteRefresh:'↻',
+            mteRefreshTip:'Recargar los MTE desde la pestaña Eventos de WME',
+            mteNone:'— Sin MTE —',
+            mteEmpty:'Abre la pestaña Eventos de WME y haz clic en ↻',
+            lblNodes:'Cierres en los nodos',
+            nodeNone:'Ninguno (□—□—□—□)', nodeInner:'Nodos interiores (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
+            lblIT:'Ignorar el tráfico',
+            tipIT:'Si se marca, Waze no reabrirá automáticamente el segmento aunque detecte tráfico circulando por él.',
+            tipHolSkip:'No se propondrá ningún cierre en los días festivos — esas ocurrencias se eliminan de la lista.',
+            tipHolOnly:'Los cierres se propondrán SOLO en los días festivos — el resto de ocurrencias se ignoran.',
+            tipHolAdd:'Añade los festivos del periodo además de los días seleccionados (unión).',
+            holidayModeAdd:'+ Festivos',
+            holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
+            alertDir:'⚠️ En tramos largos, el sentido A ⇒ B puede variar según el segmento.',
+            sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
+            btnValidate:'✔ Validar y añadir a la cola',
+            btnStop:'⏹ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Vaciar',
+            dropText:'📄 Haz clic o arrastra aquí un archivo CSV',
+            dropHint:'Se añade directamente a la cola',
+            gpxDropText:'🗺 Haz clic o arrastra aquí un archivo',
+            gpxDropHint:'Formatos admitidos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — las capas se acumulan',
+            // Cobertura
+            covTitle:'Comprobar los segmentos del recorrido no seleccionados',
+            covResult: (pct,n) => n===0 ? `Cobertura: ${pct}% — todos los segmentos recorridos están seleccionados ✅` : `Cobertura: ${pct}% — ${n} segmento(s) recorrido(s) sin seleccionar`,
+            covLegend:'🟣 En magenta discontinuo: segmentos por los que pasa la traza pero que no están seleccionados (pendientes).',
+            covAllOk:'✅ La traza no pasa por ningún segmento olvidado.',
+            covZone: (n,k) => `Zona ${n} — ${k} segmento(s)`,
+            covClear:'Borrar',
+            covNoSel:'Selecciona primero los segmentos del recorrido.',
+            covNoPts:'Este archivo no contiene ningún punto utilizable.',
+            covNoSeg:'No hay segmentos de WME cargados cerca de la traza (desplaza o acerca el mapa al recorrido).',
+            covNoOverlap:'La traza no cruza la zona cargada (desplaza el mapa hasta el recorrido).',
+            covOutside: p => `El ${p}% de la traza está fuera de la zona cargada — desplaza el mapa para comprobarla por completo.`,
+            covFocus:'Centrar en esta zona',
+            noSel:'Ningún segmento seleccionado',
+            hasSel: n => `✅ ${n} segmento(s) seleccionado(s)`,
+            newSel:'Nueva selección — cola conservada.',
+            multiCountry: cc => `⚠️ Varios países: ${cc} — filtro de festivos no disponible.`,
+            toastOk: (n,s,b) => b>0 ? `⚠️ ${n} cierre(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) descartado(s)` : `✅ ${n} cierre(s) añadido(s) para ${s} segmento(s).`,
+            errNone:'❌ No se ha generado ningún cierre.',
+            fillForm:'Rellena el formulario…',
+            closuresN: n => `${n} cierre(s) configurado(s)`,
+            previewHead: n => `${n} cierre(s) a aplicar:`,
+            previewMore: n => `… y ${n} más`,
+            confirmClear:'¿Vaciar la cola?',
+            confirmApply: n => `¿Aplicar ${n} lote(s) en WME?`,
+            confirmDel: n => `¿Eliminar “${n}”?`,
+            colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
+            colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
+            colStartTip:'Fecha/hora de inicio', colEndTip:'Fecha/hora de fin',
+            colStateTip:'🟢 OK  🟠 En curso  🔴 Solapamiento  ⚫ Pasado',
+            stateOk:'OK', stateOn:'En curso', stateOv:'Solapamiento', statePast:'Pasado',
+            stateNull:'Segmento ausente del modelo de datos — edición reciente aún no propagada. Se omitirá al aplicar.',
+            nullSegBadgeTip: n => `${n} segmento(s) ausente(s) del modelo de datos — edición reciente aún no propagada. Añádelos a la cola para ver los detalles.`,
+            stateRecent:'Segmento editado después de la última generación de tiles de Waze — el cierre podría ser rechazado. Espera a la próxima actualización (cada 24 h).',
+            recentSegBadgeTip: n => `${n} segmento(s) editado(s) después de la última generación de tiles — los cierres podrían ser rechazados al aplicar.`,
+            nodeIconNone:'⚪ Ninguno', nodeIconInner:'🟡 Interiores', nodeIconAll:'🔴 Todos',
+            noMte:'No MTE',
+            countBadge: (o,s) => `${o}×${s} seg`,
+            tipCount: (o,s) => `${o} cierre(s) × ${s} segmento(s) — sin contar las filas eliminadas ni los conflictos de sentido. Los solapamientos solo se detectan al aplicar.`,
+            tipDir:'Sentido del cierre',
+            tipITon:'Ignora el tráfico — sin detección', tipIToff:'Detecta el tráfico',
+            tipNodes: n => `Cierres en los nodos: ${n}`,
+            tipMte: n => `MTE asociado: ${n}`,
+            tipPresetLoad:'Cargar', tipPresetDel:'Eliminar',
+            fabNoSeg:'Selecciona segmentos en el mapa',
+            btnCollapse:'Plegar', btnClose:'Cerrar',
+            presetColName:'Nombre', presetColDesc:'Descripción',
+            presetColTime:'Horario', presetColDir:'Sent.',
+            presetNamePh:'Nombre del preajuste…',
+            presetPopupTitle:'💾 Guardar el preajuste',
+            btnSave:'Guardar', btnCancel:'Cancelar',
+            presetErrEmpty:'Introduce un nombre.', presetErrDup:'Ese nombre ya existe.',
+            presetSaved: n => `✅ Preajuste “${n}” guardado.`,
+            holidaysExcl: n => `ℹ️ ${n} festivo(s) excluido(s).`,
+            holidaysNone:'ℹ️ No hay festivos en el periodo.',
+            holidayModeNone:'Festivos: sin filtro',
+            holidayModeSkip:'Excepto festivos',
+            holidayModeOnly:'Solo festivos',
+            holidaysOnly: n => `✅ ${n} ocurrencia(s) en día(s) festivo(s) conservada(s).`,
+            holidaysOnlyNone:'⚠️ No hay festivos en el periodo — la cola quedará vacía.',
+            warnInt: (ev,dur) => `⚠️ Intervalo (${ev} min) < duración (${dur} min): los cierres se solaparán.`,
+            warnOcc: (max,req) => `ℹ️ Solo son posibles ${max} ocurrencia(s) en el periodo (${req} solicitadas).`,
+            warnZero:'⚠️ Intervalo nulo.',
+            applyOk: (r,s) => `✅ ${r} ${s}`,
+            applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            errDateStart:'Fecha de inicio no válida',
+            errDateEnd:'La fecha de fin es anterior a la de inicio',
+            warnDatePast:'La fecha de inicio está en el pasado.',
+            warnDateEnd:'La fecha de fin es anterior a la fecha de inicio.',
+            warnDateMax: n => `El intervalo generaría más de ${n} cierres. Reduce el periodo.`,
+            errRepeat:'Número de repeticiones no válido',
+            errMaxItems: n => `❌ Límite de ${n} cierres alcanzado — revisa el intervalo de fechas o reduce el periodo.`,
+            defaultClosure:'Cierre',
+            selectAll:'Seleccionar todo',
+            tipCenter:'Centrar en este segmento',
+            tipPresetSaveBtn:'Guardar como preajuste',
+            // Segmentos excluidos (conflicto de sentido)
+            exclWarnTitle: n => `${n} segmento(s) excluido(s) — sentido incompatible. No se procesarán. Haz clic para descargar el detalle.`,
+            dirConflictTip:'Sentido incompatible — segmento no procesado',
+            toastNoCompatible: dir => `⚠️ Ningún segmento compatible con el sentido ${dir} — lote no añadido`,
+            exclTxtHeader: dir => `Segmentos excluidos — sentido incompatible con el cierre ${dir}`,
+            exclTxtBatch:'Lote: ',
+            exclTxtFooter1:'Estos segmentos no se han añadido a la cola.',
+            exclTxtFooter2:'Configúralos en otro lote con el sentido adecuado.',
+            exclTxtFilename:'segmentos_excluidos',
+            exclTxtDir:'sentido',
+            // Eliminar fila
+            tipRowDel:'Eliminar esta ocurrencia',
+            // Insignia de la cola
+            queueBadge: n => n===1?'1 lote en cola':`${n} lotes en cola`,
+            // Eliminar lote
+            tipDelBatch:'Eliminar este lote',
+            tipEditLabel:'Editar la etiqueta de este lote',
+            // Aplicación terminada
+            applyStopping:'⏳ Parada solicitada — se termina el cierre en curso y luego se interrumpe.',
+                        applyStopped:(ok,ko)=>`⏹ Interrumpido — ${ok} aplicado(s), ${ko} fallido(s)`,
+applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${total} cierre(s).`,
+            // Alerta varios países
+            multiCountryAlert: cc => `⚠️ Selección en varios países (${cc}).\nNo se puede usar el filtro de festivos.\nDeja seleccionados solo los segmentos de un único país.`,
+            // Registro de importación CSV
+            csvAdded: (ok,ko) => `✅ ${ok} cierre(s) añadido(s) a la cola${ko?', '+ko+' error(es)':''}.`,
+            // Detalle de entrada de la cola
+            entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
+            sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
+            sbToggle:'Activar la herramienta',
+            emojiPickerTip:'Insertar un emoji',
+            sbResetFab:'Restablecer la posición del botón',
+            sbDesc:'El botón 🚧 está siempre visible en el mapa y se puede mover libremente arrastrándolo.<br>Muestra en verde el número de segmentos seleccionados.<br>El panel se puede mover y plegar.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Hilo de Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDisplayMode:'Visualización',
+            sbModeCompact:'Windows 95',
+            sbModeNormal:'Normal',
+            sbCardsCollapsed:'Tarjetas de la cola plegadas por defecto',
+
+            sbLanguage:'Idioma',
+            sbLangAuto: l => `Automático — WME (${l})`,
+            sbDateFormat:'Formato de las fechas',
+            sbDateDmy:'DD/MM/AAAA (Europa, resto del mundo)',
+            sbDateMdy:'MM/DD/AAAA (EE. UU.)',
+            sbDateIso:'AAAA-MM-DD (ISO)',
+            sbDateAuto:'(detectado automáticamente)',
+            helpH1:'🚀 Inicio rápido', helpH2:'⚙️ Configurar un cierre',
+            helpH3:'📋 Cola', helpH4:'📂 Importar CSV',
+            helpH5:'💾 Preajustes', helpH6:'⚠️ Errores frecuentes y límites', helpH7:'🖥️ Barra lateral / Preferencias',
+            helpH8:'🗺 Trazas',
+            helpH9:'🔍 Búsqueda de cierres',
+            helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME',
+            helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
+            helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
+            helpS4:'Haz clic en <b>✔ Validar y añadir a la cola</b>',
+            helpS5:'Repite con otros segmentos si es necesario',
+            helpS6:'Haz clic en <b>▶ Aplicar</b> para crear los cierres en WME',
+        },
+        'pt-BR': {
+            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ajuda',
+            // Aba Buscar
+            srcSectionTime:'📅 Janela de tempo',
+            srcLblStartAfter:'Início depois de', srcLblStartBefore:'Início antes de',
+            srcLblEndAfter:'Fim depois de', srcLblEndBefore:'Fim antes de',
+            srcSectionKeywords:'🔍 Palavras-chave',
+            srcLblDesc:'Descrição contém', srcLblMte:'Evento MTE contém',
+            srcBtnAnd:'E', srcBtnOr:'OU',
+            srcBtnSearch:'Buscar',
+            srcBtnClear:'Limpar',
+            srcNoResults:'Nenhum segmento encontrado com esses critérios.',
+            srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
+            srcResults: n => `${n} segmento(s) encontrado(s)`,
+            srcBtnGoCfg:'⚙ Ir para Configurar',
+            srcHint:'Segmentos com bloqueios carregados na visualização atual.',
+            srcLoading:'Buscando…',
+            srcSectionStatus:'💡 Status',
+            srcStatusAll:'Todos',
+            srcStatusLabels:{
+                ACTIVE:'Ativo',
+                NOT_STARTED:'Pendente',
+                SUSPENDED:'Suspenso',
+                FINISHED:'Encerrado',
+                FINISHED_EARLY_DUE_TO_DELETION:'Excluído',
+                FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES:'Sobreposição',
+                UNVERIFIED:'Não verificado',
+                FAILED:'Falhou',
+                UNKNOWN:'Desconhecido',
+            },
+            srcTipStatus:'Filtra por status do bloqueio. Marque os status a incluir nos resultados.',
+            srcTipStartAfter:'Data de início do bloqueio ≥ esta data',
+            srcTipStartBefore:'Data de início do bloqueio ≤ esta data',
+            srcTipEndAfter:'Data de fim do bloqueio ≥ esta data',
+            srcTipEndBefore:'Data de fim do bloqueio ≤ esta data',
+            srcTipDesc:'Busca na descrição do bloqueio, sem diferenciar maiúsculas de minúsculas',
+            srcTipMte:'Busca no nome do evento MTE associado, sem diferenciar maiúsculas de minúsculas',
+            srcTipAndOr:'E: os dois campos devem corresponder — OU: basta um deles',
+            srcTipAndOrLbl:'entre Descrição e MTE',
+            srcTipSearch:'Busca os bloqueios carregados na visualização atual do mapa',
+            srcTipClear:'Redefine todos os critérios e resultados',
+            srcTipGoCfg:'Seleciona esses segmentos e vai para a aba Configurar para criar bloqueios',
+            srcTipCenterRow:'Centraliza o mapa neste segmento (deslocado para a área visível)',
+            srcColId:'ID', srcColName:'Nome', srcColClosures:'Blq.', srcColStatus:'Status', srcColDesc:'Descrição', srcColMte:'MTE',
+            srcTipColDesc:'Ordenar por descrição',
+            srcTipMteId:'Evento MTE não carregado na memória — somente o ID está disponível. Abra a aba Eventos do WME para carregar os nomes e refaça a busca.',
+            srcTipColId:'Ordenar por ID do segmento',
+            srcTipColName:'Ordenar por nome da via',
+            srcTipColClosures:'Ordenar por número de bloqueios correspondentes',
+            srcTipColStatus:'Ordenar por status',
+            srcTipColMte:'Ordenar por nome do evento MTE',
+            gpxLayerCtrl:'Camada Trajetos',
+            // Tabela de trajetos
+            trkColTrack:'Trajeto', trkColTime:'Hora',
+            trkTipFileColor:'Cor de todos os trajetos', trkTipColor:'Alterar a cor', trkTipColorCol:'Cor',
+            trkExpand:'Expandir', trkCollapse:'Recolher',
+            trkTipDelFile:'Remover arquivo', trkTipDel:'Remover', trkTipFocus:'Focar',
+            trkTipLoadTime:'Hora do carregamento', trkTipFormat:'Formato do arquivo',
+            trkTipPts:'Pontos traçados (subamostrados se > 3.000)', trkTipStatus:'Status',
+            sectionPeriod:'📅 Período',
+            lblStart:'Início', lblEnd:'Fim',
+            lblStartTime:'Hora de início', lblDurTime:'Duração h:mm', lblDurDay:'+Dias',
+            lblEndTime:'Hora de fim',
+            btnDur:'⏱ Duração', btnEndTime:'⏱ Hora de fim',
+            lblToggleDur:'DUR', lblToggleEnd:'FIM',
+            lblDuration:'Duração',
+            jpnPrefix:'D+',
+            tipToggle:'Modo Duração : informe uma duração (H:MM) — Modo Hora de fim : informe a hora exata do fim. Clique para alternar.',
+            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir',
+            days:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+            scAll:'Todos', scWth:'Seg–Qui', scWd:'Seg–Sex', scWe:'Sáb–Dom', scNone:'Nenhum',
+            skipHolidays:'Exceto feriados',
+            lblHolidays:'Feriados:',
+            lblNtimes:'Quantas vezes?', lblEvery:'A cada',
+            unitDay:'Dia(s)', unitHour:'Hora(s)', unitMin:'Minuto(s)',
+            sectionParams:'📝 Parâmetros',
+            lblDesc:'Descrição', lblDir:'Sentido',
+            dirBoth:'Ambos os sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
+            lblMte:'MTE associado',
+            lblMteHint:'Abra a aba Eventos no WME para carregar os MTEs',
+            lblMtePh:'Sem MTE',
+            mteRefresh:'↻',
+            mteRefreshTip:'Recarregar os MTEs da aba Eventos do WME',
+            mteNone:'— Sem MTE —',
+            mteEmpty:'Abra a aba Eventos do WME e clique em ↻',
+            lblNodes:'Bloqueios nos nós',
+            nodeNone:'Nenhum (□—□—□—□)', nodeInner:'Nós internos (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
+            lblIT:'Ignorar o tráfego',
+            tipIT:'Se marcado, o Waze não reabrirá o segmento automaticamente, mesmo que detecte tráfego passando por ele.',
+            tipHolSkip:'Nenhum bloqueio será proposto em feriados — essas ocorrências são removidas da lista.',
+            tipHolOnly:'Os bloqueios serão propostos SOMENTE em feriados — todas as outras ocorrências são ignoradas.',
+            tipHolAdd:'Adiciona os feriados do período aos dias da semana selecionados (união).',
+            holidayModeAdd:'+ Feriados',
+            holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
+            alertDir:'⚠️ Em trechos longos, o sentido A ⇒ B pode variar de um segmento para outro.',
+            sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
+            btnValidate:'✔ Validar e adicionar à fila',
+            btnStop:'⏹ Parar', btnStopping:'⏳ Parando…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Limpar',
+            dropText:'📄 Clique ou arraste um arquivo CSV aqui',
+            dropHint:'Adicionado diretamente à fila',
+            gpxDropText:'🗺 Clique ou arraste um arquivo aqui',
+            gpxDropHint:'Formatos aceitos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
+            // Cobertura
+            covTitle:'Verificar se há segmentos do percurso não selecionados',
+            covResult: (pct,n) => n===0 ? `Cobertura: ${pct}% — todos os segmentos percorridos estão selecionados ✅` : `Cobertura: ${pct}% — ${n} segmento(s) percorrido(s) não selecionado(s)`,
+            covLegend:'🟣 Magenta tracejado: segmentos por onde o trajeto passa mas que não estão selecionados (a tratar).',
+            covAllOk:'✅ O trajeto não passa por nenhum segmento esquecido.',
+            covZone: (n,k) => `Zona ${n} — ${k} segmento(s)`,
+            covClear:'Limpar',
+            covNoSel:'Selecione primeiro os segmentos do percurso.',
+            covNoPts:'Este arquivo não tem pontos utilizáveis.',
+            covNoSeg:'Nenhum segmento do WME carregado perto do trajeto (mova/aproxime o mapa sobre o percurso).',
+            covNoOverlap:'O trajeto não cruza a área carregada (mova o mapa sobre o percurso).',
+            covOutside: p => `${p}% do trajeto está fora da área carregada — mova o mapa para verificar tudo.`,
+            covFocus:'Centralizar nesta zona',
+            noSel:'Nenhum segmento selecionado',
+            hasSel: n => `✅ ${n} segmento(s) selecionado(s)`,
+            newSel:'Nova seleção — fila mantida.',
+            multiCountry: cc => `⚠️ Vários países: ${cc} — filtro de feriados indisponível.`,
+            toastOk: (n,s,b) => b>0 ? `⚠️ ${n} bloqueio(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) ignorado(s)` : `✅ ${n} bloqueio(s) adicionado(s) para ${s} segmento(s).`,
+            errNone:'❌ Nenhum bloqueio gerado.',
+            fillForm:'Preencha o formulário…',
+            closuresN: n => `${n} bloqueio(s) configurado(s)`,
+            previewHead: n => `${n} bloqueio(s) a aplicar:`,
+            previewMore: n => `… e mais ${n}`,
+            confirmClear:'Limpar a fila?',
+            confirmApply: n => `Aplicar ${n} lote(s) no WME?`,
+            confirmDel: n => `Excluir “${n}”?`,
+            colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
+            colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
+            colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
+            colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
+            stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
+            stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado ao aplicar.',
+            nullSegBadgeTip: n => `${n} segmento(s) ausente(s) do modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
+            stateRecent:'Segmento editado após a última geração de tiles do Waze — o bloqueio pode ser recusado ao aplicar. Aguarde a próxima atualização de tiles (a cada 24h).',
+            recentSegBadgeTip: n => `${n} segmento(s) editado(s) após a última geração de tiles — os bloqueios podem ser recusados ao aplicar.`,
+            nodeIconNone:'⚪ Nenhum', nodeIconInner:'🟡 Internos', nodeIconAll:'🔴 Todos',
+            noMte:'Sem MTE',
+            countBadge: (o,s) => `${o}×${s} seg`,
+            tipCount: (o,s) => `${o} bloqueio(s) × ${s} segmento(s) — sem contar as linhas excluídas e os conflitos de sentido. As sobreposições só são detectadas ao aplicar.`,
+            tipDir:'Sentido do bloqueio',
+            tipITon:'Ignora o tráfego — sem detecção', tipIToff:'Detecta o tráfego',
+            tipNodes: n => `Bloqueios nos nós: ${n}`,
+            tipMte: n => `MTE associado: ${n}`,
+            tipPresetLoad:'Carregar', tipPresetDel:'Excluir',
+            fabNoSeg:'Selecione segmentos no mapa',
+            btnCollapse:'Recolher', btnClose:'Fechar',
+            presetColName:'Nome', presetColDesc:'Descrição',
+            presetColTime:'Horário', presetColDir:'Sent.',
+            presetNamePh:'Nome da predefinição…',
+            presetPopupTitle:'💾 Salvar predefinição',
+            btnSave:'Salvar', btnCancel:'Cancelar',
+            presetErrEmpty:'Informe um nome.', presetErrDup:'Esse nome já existe.',
+            presetSaved: n => `✅ Predefinição “${n}” salva.`,
+            holidaysExcl: n => `ℹ️ ${n} feriado(s) excluído(s).`,
+            holidaysNone:'ℹ️ Nenhum feriado no período.',
+            holidayModeNone:'Feriados: sem filtro',
+            holidayModeSkip:'Exceto feriados',
+            holidayModeOnly:'Somente feriados',
+            holidaysOnly: n => `✅ ${n} ocorrência(s) em feriado(s) mantida(s).`,
+            holidaysOnlyNone:'⚠️ Nenhum feriado no período — a fila ficará vazia.',
+            warnInt: (ev,dur) => `⚠️ Intervalo (${ev} min) < duração (${dur} min): os bloqueios vão se sobrepor.`,
+            warnOcc: (max,req) => `ℹ️ Apenas ${max} ocorrência(s) possível(is) no período (${req} solicitada(s)).`,
+            warnZero:'⚠️ Intervalo igual a zero.',
+            applyOk: (r,s) => `✅ ${r} ${s}`,
+            applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            errDateStart:'Data de início inválida',
+            errDateEnd:'Data de fim anterior à data de início',
+            warnDatePast:'A data de início está no passado.',
+            warnDateEnd:'A data de fim é anterior à data de início.',
+            warnDateMax: n => `O período geraria mais de ${n} bloqueios. Reduza o intervalo de datas.`,
+            errRepeat:'Número de repetições inválido',
+            errMaxItems: n => `❌ Limite de ${n} bloqueios atingido — verifique o intervalo de datas ou reduza o período.`,
+            defaultClosure:'Bloqueio',
+            selectAll:'Selecionar tudo',
+            tipCenter:'Centralizar neste segmento',
+            tipPresetSaveBtn:'Salvar como predefinição',
+            // Segmentos excluídos (conflito de sentido)
+            exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para baixar os detalhes.`,
+            dirConflictTip:'Sentido incompatível — segmento ignorado',
+            toastNoCompatible: dir => `⚠️ Nenhum segmento compatível com o sentido ${dir} — lote não adicionado`,
+            exclTxtHeader: dir => `Segmentos excluídos — sentido incompatível com o bloqueio ${dir}`,
+            exclTxtBatch:'Lote: ',
+            exclTxtFooter1:'Esses segmentos não foram adicionados à fila.',
+            exclTxtFooter2:'Configure-os em um lote separado, com o sentido adequado.',
+            exclTxtFilename:'segmentos_excluidos',
+            exclTxtDir:'sent',
+            // Exclusão de linha
+            tipRowDel:'Remover esta ocorrência',
+            // Selo de fila no cabeçalho
+            queueBadge: n => n===1?'1 lote na fila':`${n} lotes na fila`,
+            // Tooltip de exclusão de lote
+            tipDelBatch:'Remover este lote',
+            tipEditLabel:'Editar o rótulo deste lote',
+            // Aplicação concluída
+            applyStopping:'⏳ Parada solicitada — concluindo o bloqueio atual e interrompendo em seguida.',
+                        applyStopped:(ok,ko)=>`⏹ Parado — ${ok} aplicado(s), ${ko} com falha`,
+applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${total} bloqueio(s).`,
+            // Alerta de vários países
+            multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível usar o filtro de feriados.\nDesmarque os segmentos para manter apenas um país.`,
+            // Log de importação CSV
+            csvAdded: (ok,ko) => `✅ ${ok} bloqueio(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            // Detalhe de entrada da fila
+            entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
+            sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
+            sbToggle:'Ativar a ferramenta',
+            emojiPickerTip:'Inserir emoji',
+            sbResetFab:'Redefinir a posição do botão',
+            sbDesc:'O botão 🚧 fica sempre visível no mapa e pode ser reposicionado livremente arrastando com o mouse.<br>Ele mostra em verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fórum Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDisplayMode:'Exibição',
+            sbModeCompact:'Windows 95',
+            sbModeNormal:'Normal',
+            sbCardsCollapsed:'Cartões da fila recolhidos por padrão',
+
+            sbLanguage:'Idioma',
+            sbLangAuto: l => `Automático — WME (${l})`,
+            sbDateFormat:'Formato de data',
+            sbDateDmy:'DD/MM/AAAA (Europa, Brasil)',
+            sbDateMdy:'MM/DD/AAAA (EUA)',
+            sbDateIso:'AAAA-MM-DD (ISO)',
+            sbDateAuto:'(detectado automaticamente)',
+            helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um bloqueio',
+            helpH3:'📋 Fila', helpH4:'📂 Importar CSV',
+            helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
+            helpH8:'🗺 Trajetos',
+            helpH9:'🔍 Busca de bloqueios',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
+            helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
+            helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
+            helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
+            helpS5:'Repita para outros segmentos, se necessário',
+            helpS6:'Clique em <b>▶ Aplicar</b> para criar os bloqueios no WME',
+        },
+        'pt-PT': {
+            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Pesquisar', tabHelp:'❓', tabHelpTitle:'Ajuda',
+            // Search tab
+            srcSectionTime:'📅 Janela temporal',
+            srcLblStartAfter:'Início após', srcLblStartBefore:'Início antes de',
+            srcLblEndAfter:'Fim após', srcLblEndBefore:'Fim antes de',
+            srcSectionKeywords:'🔍 Palavras-chave',
+            srcLblDesc:'Descrição contém', srcLblMte:'Evento MTE contém',
+            srcBtnAnd:'E', srcBtnOr:'OU',
+            srcBtnSearch:'Pesquisar',
+            srcBtnClear:'Limpar',
+            srcNoResults:'Nenhum segmento corresponde a estes critérios.',
+            srcNoClosures:'Nenhum corte carregado na vista atual.',
+            srcResults: n => `${n} segmento(s) encontrado(s)`,
+            srcBtnGoCfg:'⚙ Mudar para Configurar',
+            srcHint:'Segmentos com cortes carregados na vista atual.',
+            srcLoading:'A pesquisar…',
+            srcSectionStatus:'💡 Estado',
+            srcStatusAll:'Todos',
+            srcStatusLabels:{
+                ACTIVE:'Ativo',
+                NOT_STARTED:'Pendente',
+                SUSPENDED:'Suspenso',
+                FINISHED:'Terminado',
+                FINISHED_EARLY_DUE_TO_DELETION:'Eliminado',
+                FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES:'Sobreposição',
+                UNVERIFIED:'Não verificado',
+                FAILED:'Falhou',
+                UNKNOWN:'Desconhecido',
+            },
+            srcTipStatus:'Filtrar por estado do corte. Marque os estados a incluir nos resultados.',
+            srcTipStartAfter:'Data de início do corte ≥ esta data',
+            srcTipStartBefore:'Data de início do corte ≤ esta data',
+            srcTipEndAfter:'Data de fim do corte ≥ esta data',
+            srcTipEndBefore:'Data de fim do corte ≤ esta data',
+            srcTipDesc:'Pesquisa na descrição do corte, sem distinguir maiúsculas de minúsculas',
+            srcTipMte:'Pesquisa no nome do evento MTE associado, sem distinguir maiúsculas de minúsculas',
+            srcTipAndOr:'E: ambos os campos têm de corresponder — OU: pelo menos um tem de corresponder',
+            srcTipAndOrLbl:'entre Descrição e MTE',
+            srcTipSearch:'Pesquisar os cortes carregados na vista atual do mapa',
+            srcTipClear:'Repor todos os critérios e resultados',
+            srcTipGoCfg:'Selecionar estes segmentos e mudar para o separador Configurar para criar cortes',
+            srcTipCenterRow:'Centrar o mapa neste segmento (deslocado para a área visível)',
+            srcColId:'ID', srcColName:'Nome', srcColClosures:'Ct.', srcColStatus:'Estado', srcColDesc:'Descrição', srcColMte:'MTE',
+            srcTipColDesc:'Ordenar por descrição',
+            srcTipMteId:'Evento MTE não carregado em memória — apenas o ID está disponível. Abra o separador Eventos do WME para carregar os nomes e repita a pesquisa.',
+            srcTipColId:'Ordenar por ID de segmento',
+            srcTipColName:'Ordenar por nome da rua',
+            srcTipColClosures:'Ordenar pelo número de cortes correspondentes',
+            srcTipColStatus:'Ordenar por estado',
+            srcTipColMte:'Ordenar por nome do evento MTE',
+            gpxLayerCtrl:'Camada Trajetos',
+            // Tracks table
+            trkColTrack:'Trajeto', trkColTime:'Tempo',
+            trkTipFileColor:'Cor para todos os trajetos', trkTipColor:'Mudar a cor', trkTipColorCol:'Cor',
+            trkExpand:'Expandir', trkCollapse:'Recolher',
+            trkTipDelFile:'Remover ficheiro', trkTipDel:'Remover', trkTipFocus:'Centrar',
+            trkTipLoadTime:'Tempo de carregamento', trkTipFormat:'Formato do ficheiro',
+            trkTipPts:'Pontos traçados (subamostrados se > 3 000)', trkTipStatus:'Estado',
+            sectionPeriod:'📅 Período',
+            lblStart:'Início', lblEnd:'Fim',
+            lblStartTime:'Hora de início', lblDurTime:'Duração h:mm', lblDurDay:'+Dias',
+            lblEndTime:'Hora de fim',
+            btnDur:'⏱ Duração', btnEndTime:'⏱ Hora de fim',
+            lblToggleDur:'DUR', lblToggleEnd:'FIM',
+            lblDuration:'Duração',
+            jpnPrefix:'D+',
+            tipToggle:'Modo Duração: introduza uma duração (H:MM) — Modo Hora de fim: introduza a hora exata de fim. Clique para alternar.',
+            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir',
+            days:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+            scAll:'Todos', scWth:'Seg–Qui', scWd:'Seg–Sex', scWe:'Sáb–Dom', scNone:'Nenhum',
+            skipHolidays:'Exceto feriados',
+            lblHolidays:'Feriados:',
+            lblNtimes:'Quantas vezes?', lblEvery:'A cada',
+            unitDay:'Dia(s)', unitHour:'Hora(s)', unitMin:'Minuto(s)',
+            sectionParams:'📝 Parâmetros',
+            lblDesc:'Descrição', lblDir:'Sentido',
+            dirBoth:'Ambos os sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
+            lblMte:'MTE associado',
+            lblMteHint:'Abra o separador Eventos no WME para carregar os MTE',
+            lblMtePh:'Sem MTE',
+            mteRefresh:'↻',
+            mteRefreshTip:'Recarregar os MTE a partir do separador Eventos do WME',
+            mteNone:'— Sem MTE —',
+            mteEmpty:'Abra o separador Eventos do WME e clique em ↻',
+            lblNodes:'Cortes nos nós',
+            nodeNone:'Nenhum (□—□—□—□)', nodeInner:'Nós interiores (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
+            lblIT:'Ignorar o trânsito',
+            tipIT:'Se estiver marcado, o Waze não reabre automaticamente o segmento, mesmo que detete trânsito a passar.',
+            tipHolSkip:'Não será proposto nenhum corte em feriados — essas ocorrências são removidas da lista.',
+            tipHolOnly:'Os cortes serão propostos APENAS em feriados — todas as outras ocorrências são ignoradas.',
+            tipHolAdd:'Acrescenta os feriados do período aos dias da semana selecionados (união).',
+            holidayModeAdd:'+ Feriados',
+            holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
+            alertDir:'⚠️ Em troços longos, o sentido A ⇒ B pode variar de segmento para segmento.',
+            sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
+            btnValidate:'✔ Validar e adicionar à fila',
+            btnStop:'⏹ Parar', btnStopping:'⏳ A parar…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Limpar',
+            dropText:'📄 Clique ou arraste um ficheiro CSV para aqui',
+            dropHint:'Adicionado diretamente à fila',
+            gpxDropText:'🗺 Clique ou arraste um ficheiro para aqui',
+            gpxDropHint:'Formatos aceites : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
+            // Coverage
+            covTitle:'Verificar os segmentos do percurso que não estão selecionados',
+            covResult: (pct,n) => n===0 ? `Cobertura: ${pct}% — todos os segmentos percorridos estão selecionados ✅` : `Cobertura: ${pct}% — ${n} segmento(s) percorrido(s) não selecionado(s)`,
+            covLegend:'🟣 Magenta tracejado: segmentos por onde o trajeto passa mas que não estão selecionados (a tratar).',
+            covAllOk:'✅ O trajeto não passa por nenhum segmento esquecido.',
+            covZone: (n,k) => `Zona ${n} — ${k} segmento(s)`,
+            covClear:'Limpar',
+            covNoSel:'Selecione primeiro os segmentos do percurso.',
+            covNoPts:'Este ficheiro não tem pontos utilizáveis.',
+            covNoSeg:'Nenhum segmento do WME carregado perto do trajeto (desloque/aproxime o mapa sobre o percurso).',
+            covNoOverlap:'O trajeto não atravessa a área carregada (desloque o mapa sobre o percurso).',
+            covOutside: p => `${p}% do trajeto está fora da área carregada — desloque o mapa para o verificar por completo.`,
+            covFocus:'Centrar nesta zona',
+            noSel:'Nenhum segmento selecionado',
+            hasSel: n => `✅ ${n} segmento(s) selecionado(s)`,
+            newSel:'Nova seleção — fila mantida.',
+            multiCountry: cc => `⚠️ Vários países: ${cc} — filtro de feriados indisponível.`,
+            toastOk: (n,s,b) => b>0 ? `⚠️ ${n} corte(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) ignorado(s)` : `✅ ${n} corte(s) adicionado(s) para ${s} segmento(s).`,
+            errNone:'❌ Nenhum corte gerado.',
+            fillForm:'Preencha o formulário…',
+            closuresN: n => `${n} corte(s) configurado(s)`,
+            previewHead: n => `${n} corte(s) a aplicar:`,
+            previewMore: n => `… e mais ${n}`,
+            confirmClear:'Limpar a fila?',
+            confirmApply: n => `Aplicar ${n} lote(s) no WME?`,
+            confirmDel: n => `Eliminar “${n}”?`,
+            colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
+            colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
+            colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
+            colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
+            stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
+            stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado na aplicação.',
+            nullSegBadgeTip: n => `${n} segmento(s) em falta no modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
+            stateRecent:'Segmento editado após a última compilação de tiles do Waze — o corte pode ser rejeitado na aplicação. Aguarde a próxima atualização de tiles (a cada 24 h).',
+            recentSegBadgeTip: n => `${n} segmento(s) editado(s) após a última compilação de tiles — os cortes podem ser rejeitados na aplicação.`,
+            nodeIconNone:'⚪ Nenhum', nodeIconInner:'🟡 Interiores', nodeIconAll:'🔴 Todos',
+            noMte:'Sem MTE',
+            countBadge: (o,s) => `${o}×${s} seg`,
+            tipCount: (o,s) => `${o} corte(s) × ${s} segmento(s) — excluindo as linhas eliminadas e os conflitos de sentido. As sobreposições só são detetadas na aplicação.`,
+            tipDir:'Sentido do corte',
+            tipITon:'Ignora o trânsito — sem deteção', tipIToff:'Deteta o trânsito',
+            tipNodes: n => `Cortes nos nós: ${n}`,
+            tipMte: n => `MTE associado: ${n}`,
+            tipPresetLoad:'Carregar', tipPresetDel:'Eliminar',
+            fabNoSeg:'Selecione segmentos no mapa',
+            btnCollapse:'Recolher', btnClose:'Fechar',
+            presetColName:'Nome', presetColDesc:'Descrição',
+            presetColTime:'Horário', presetColDir:'Sent.',
+            presetNamePh:'Nome da predefinição…',
+            presetPopupTitle:'💾 Guardar predefinição',
+            btnSave:'Guardar', btnCancel:'Cancelar',
+            presetErrEmpty:'Introduza um nome.', presetErrDup:'Este nome já existe.',
+            presetSaved: n => `✅ Predefinição “${n}” guardada.`,
+            holidaysExcl: n => `ℹ️ ${n} feriado(s) excluído(s).`,
+            holidaysNone:'ℹ️ Nenhum feriado no período.',
+            holidayModeNone:'Feriados: sem filtro',
+            holidayModeSkip:'Exceto feriados',
+            holidayModeOnly:'Apenas feriados',
+            holidaysOnly: n => `✅ ${n} ocorrência(s) em feriado(s) mantida(s).`,
+            holidaysOnlyNone:'⚠️ Nenhum feriado no período — a fila ficará vazia.',
+            warnInt: (ev,dur) => `⚠️ Intervalo (${ev} min) < duração (${dur} min): os cortes vão sobrepor-se.`,
+            warnOcc: (max,req) => `ℹ️ Apenas ${max} ocorrência(s) possível(eis) no período (${req} pedidas).`,
+            warnZero:'⚠️ Intervalo nulo.',
+            applyOk: (r,s) => `✅ ${r} ${s}`,
+            applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            errDateStart:'Data de início inválida',
+            errDateEnd:'Data de fim anterior à data de início',
+            warnDatePast:'A data de início está no passado.',
+            warnDateEnd:'A data de fim é anterior à data de início.',
+            warnDateMax: n => `O intervalo geraria mais de ${n} cortes. Reduza o período.`,
+            errRepeat:'Número de repetições inválido',
+            errMaxItems: n => `❌ Limite de ${n} cortes atingido — verifique o intervalo de datas ou reduza o período.`,
+            defaultClosure:'Corte',
+            selectAll:'Selecionar tudo',
+            tipCenter:'Centrar neste segmento',
+            tipPresetSaveBtn:'Guardar como predefinição',
+            // Excluded segments (direction conflict)
+            exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para transferir os detalhes.`,
+            dirConflictTip:'Sentido incompatível — segmento ignorado',
+            toastNoCompatible: dir => `⚠️ Nenhum segmento compatível com o sentido ${dir} — lote não adicionado`,
+            exclTxtHeader: dir => `Segmentos excluídos — sentido incompatível com o corte ${dir}`,
+            exclTxtBatch:'Lote: ',
+            exclTxtFooter1:'Estes segmentos não foram adicionados à fila.',
+            exclTxtFooter2:'Configure-os num lote separado, com o sentido adequado.',
+            exclTxtFilename:'segmentos_excluidos',
+            exclTxtDir:'sent',
+            // Row delete
+            tipRowDel:'Remover esta ocorrência',
+            // Header badge queue
+            queueBadge: n => n===1?'1 lote na fila':`${n} lotes na fila`,
+            // Batch delete tooltip
+            tipDelBatch:'Remover este lote',
+            tipEditLabel:'Editar a etiqueta deste lote',
+            // Apply done
+            applyStopping:'⏳ Paragem pedida — a terminar o corte em curso e a interromper de seguida.',
+                        applyStopped:(ok,ko)=>`⏹ Parado — ${ok} aplicado(s), ${ko} falhado(s)`,
+applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${total} corte(s).`,
+            // Multi-country alert
+            multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível utilizar o filtro de feriados.\nMantenha selecionados apenas os segmentos de um único país.`,
+            // CSV import log
+            csvAdded: (ok,ko) => `✅ ${ok} corte(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            // Queue entry detail
+            entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
+            sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
+            sbToggle:'Ativar a ferramenta',
+            emojiPickerTip:'Inserir emoji',
+            sbResetFab:'Repor a posição do botão',
+            sbDesc:'O botão 🚧 está sempre visível no mapa e pode ser reposicionado livremente por arrastar e largar.<br>Mostra a verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Tópico de discussão</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDisplayMode:'Apresentação',
+            sbModeCompact:'Windows 95',
+            sbModeNormal:'Normal',
+            sbCardsCollapsed:'Cartões da fila recolhidos por predefinição',
+
+            sbLanguage:'Idioma',
+            sbLangAuto: l => `Automático — WME (${l})`,
+            sbDateFormat:'Formato da data',
+            sbDateDmy:'DD/MM/AAAA (Europa, mundo)',
+            sbDateMdy:'MM/DD/AAAA (EUA)',
+            sbDateIso:'AAAA-MM-DD (ISO)',
+            sbDateAuto:'(detetado automaticamente)',
+            helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um corte',
+            helpH3:'📋 Fila', helpH4:'📂 Importar CSV',
+            helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
+            helpH8:'🗺 Trajetos',
+            helpH9:'🔍 Pesquisa de cortes',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
+            helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
+            helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
+            helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
+            helpS5:'Repita para outros segmentos, se necessário',
+            helpS6:'Clique em <b>▶ Aplicar</b> para criar os cortes no WME',
         }
     };
     const s = D[_lang] || D.en;
@@ -1744,6 +2478,51 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Öffne den Reiter Ereignisse in WME und klicke dann im MTE-Feld auf ↻, um die Liste zu laden.</td></tr>
             <tr><td><b>Knotensperrungen</b></td><td>Keine / Innere Knoten (zwischen Segmenten geteilt) / Alle</td></tr>
             <tr><td><b>Verkehr ignorieren</b></td><td>Wenn aktiviert, gilt die Sperrung unabhängig vom tatsächlichen Verkehr. Waze öffnet das Segment nicht automatisch wieder, selbst wenn Verkehr darauf erkannt wird.</td></tr>
+            </table>`, es:`
+            <table class="wct-help-table">
+            <tr><td><b>Inicio / Fin</b></td><td>Intervalo de fechas en el que se repite el cierre</td></tr>
+            <tr><td><b>Hora de inicio</b></td><td>Hora a la que empieza el cierre cada día. Los cambios de hora se gestionan automáticamente — consulta Límites conocidos.</td></tr>
+            <tr><td><b>⏱ Duración / Hora de fin</b></td><td>Alterna entre duración (p. ej. 08:00) y hora de fin explícita. Si la hora de fin &lt; la de inicio: el cierre se prolonga hasta el día siguiente (indicador D+1)</td></tr>
+            <tr><td><b>+Días</b></td><td>Días adicionales que se suman al cierre. En modo Duración: se añaden a la duración h:mm. En modo Hora de fin: la hora de fin se desplaza esos días.</td></tr>
+            <tr><td><b>Cada día</b></td><td>Selecciona los días activos. Atajos: Todos, Lun–Vie, Sáb–Dom, Ninguno</td></tr>
+            <tr><td><b>Excepto festivos</b></td><td>Excluye automáticamente los festivos del país detectado. Requiere conexión a internet. No disponible con selecciones en varios países.</td></tr>
+            <tr><td><b>Solo festivos</b></td><td>Conserva únicamente las ocurrencias que caen en un día festivo (útil para restricciones anuales de fecha variable). Requiere conexión a internet.</td></tr>
+            <tr><td><b>Repetir</b></td><td>Genera N ocurrencias cada X días/horas/minutos. Se muestra un aviso si el intervalo &lt; la duración.</td></tr>
+            <tr><td><b>Descripción</b></td><td>Texto que se muestra en WME para identificar el cierre. Haz clic en el botón 📌 a la derecha del campo para insertar un emoji (obras, deporte, meteorología…) en la posición del cursor.</td></tr>
+            <tr><td><b>Sentido</b></td><td>Ambos sentidos, A ⇒ B o B ⇒ A. Atención: en tramos largos, el sentido puede variar según el segmento.</td></tr>
+            <tr><td><b>MTE</b></td><td>Abre la pestaña Eventos en WME y haz clic en ↻ en el campo MTE para cargar la lista.</td></tr>
+            <tr><td><b>Cierres en los nodos</b></td><td>Ninguno / Nodos interiores (compartidos entre segmentos) / Todos</td></tr>
+            <tr><td><b>Ignorar el tráfico</b></td><td>Si se marca, el cierre se aplica sin tener en cuenta el tráfico real. Waze no reabrirá automáticamente el segmento aunque detecte tráfico circulando por él.</td></tr>
+            </table>`, 'pt-BR':`
+            <table class="wct-help-table">
+            <tr><td><b>Início / Fim</b></td><td>Intervalo de datas em que o bloqueio será repetido</td></tr>
+            <tr><td><b>Hora de início</b></td><td>Hora em que o bloqueio começa a cada dia. As mudanças de horário de verão são tratadas automaticamente — veja Limites conhecidos.</td></tr>
+            <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim for menor que a de início, o bloqueio segue até o dia seguinte (selo D+1)</td></tr>
+            <tr><td><b>+Dias</b></td><td>Dias adicionais somados ao bloqueio. No modo Duração: somam-se à duração h:mm. No modo Hora de fim: a hora de fim é adiada em tantos dias.</td></tr>
+            <tr><td><b>Cada dia</b></td><td>Selecione os dias da semana ativos. Atalhos: Todos, Seg–Sex, Sáb–Dom, Nenhum</td></tr>
+            <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detectado. Requer internet. Indisponível em seleções com vários países.</td></tr>
+            <tr><td><b>Somente feriados</b></td><td>Mantém apenas as ocorrências que caem em feriado (útil para restrições anuais com datas variáveis). Requer internet.</td></tr>
+            <tr><td><b>Repetir</b></td><td>Gera N ocorrências a cada X dias/horas/minutos. Um aviso é exibido se o intervalo for menor que a duração.</td></tr>
+            <tr><td><b>Descrição</b></td><td>Texto exibido no WME para identificar o bloqueio. Clique no botão 📌 à direita do campo para inserir um emoji (obras, esporte, clima…) na posição do cursor.</td></tr>
+            <tr><td><b>Sentido</b></td><td>Ambos os sentidos, A ⇒ B ou B ⇒ A. Atenção: em trechos longos, o sentido pode variar de um segmento para outro.</td></tr>
+            <tr><td><b>MTE</b></td><td>Abra a aba Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
+            <tr><td><b>Bloqueios nos nós</b></td><td>Nenhum / Nós internos (compartilhados entre segmentos) / Todos</td></tr>
+            <tr><td><b>Ignorar o tráfego</b></td><td>Se marcado, o bloqueio se aplica independentemente do tráfego real. O Waze não reabrirá o segmento automaticamente, mesmo que detecte tráfego passando por ele.</td></tr>
+            </table>`, 'pt-PT':`
+            <table class="wct-help-table">
+            <tr><td><b>Início / Fim</b></td><td>Intervalo de datas no qual o corte é repetido</td></tr>
+            <tr><td><b>Hora de início</b></td><td>Hora a que o corte começa todos os dias. As mudanças de hora são geridas automaticamente — ver Limites conhecidos.</td></tr>
+            <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim &lt; hora de início: o corte prolonga-se até ao dia seguinte (indicador D+1)</td></tr>
+            <tr><td><b>+Dias</b></td><td>Dias suplementares acrescentados ao corte. No modo Duração: somam-se à duração h:mm. No modo Hora de fim: a hora de fim é adiada esse número de dias.</td></tr>
+            <tr><td><b>Cada dia</b></td><td>Selecione os dias da semana ativos. Atalhos: Todos, Seg–Sex, Sáb–Dom, Nenhum</td></tr>
+            <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detetado. Requer ligação à internet. Indisponível em seleções que abranjam vários países.</td></tr>
+            <tr><td><b>Apenas feriados</b></td><td>Mantém apenas as ocorrências que caem num feriado (útil para restrições anuais de data variável). Requer ligação à internet.</td></tr>
+            <tr><td><b>Repetir</b></td><td>Gera N ocorrências a cada X dias/horas/minutos. É apresentado um aviso se o intervalo for menor do que a duração.</td></tr>
+            <tr><td><b>Descrição</b></td><td>Texto apresentado no WME para identificar o corte. Clique no botão 📌 à direita do campo para inserir um emoji (obras, desporto, meteorologia…) na posição do cursor.</td></tr>
+            <tr><td><b>Sentido</b></td><td>Ambos os sentidos, A ⇒ B ou B ⇒ A. Atenção: em troços longos, o sentido pode variar de segmento para segmento.</td></tr>
+            <tr><td><b>MTE</b></td><td>Abra o separador Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
+            <tr><td><b>Cortes nos nós</b></td><td>Nenhum / Nós interiores (partilhados entre segmentos) / Todos</td></tr>
+            <tr><td><b>Ignorar o trânsito</b></td><td>Se estiver marcado, o corte aplica-se independentemente do trânsito real. O Waze não reabre automaticamente o segmento, mesmo que detete trânsito a passar.</td></tr>
             </table>` }) },
         { id:'h3', title:t('helpH3'), body: _L({ fr:`
             <p>La file accumule des <b>lots</b> de fermetures avant application.</p>
@@ -1772,6 +2551,33 @@ const buildHelpHTML = () => {
             <tr><td><b>\uD83D\uDDD1</b></td><td>Entfernt eine einzelne Sperrungszeile aus dem Paket (wird beim Anwenden und beim Export \u00FCbergangen)</td></tr>
             <tr><td><b>Farbiger Rand</b></td><td>\uD83D\uDD35 Manuell eingerichtet \u00B7 \uD83D\uDFE2 CSV-Import \u00B7 \uD83D\uDFE0 Aus Vorlage geladen</td></tr>
             <tr><td><b>Zustand \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Laufend \u00B7 \uD83D\uDD34 \u00DCberschneidung \u00B7 \u26AB Vergangenes Datum</td></tr>
+            </table>`, es:`
+            <p>La cola acumula <b>lotes</b> de cierres antes de aplicarlos.</p>
+            <table class="wct-help-table">
+            <tr><td><b>🎯</b></td><td>Centra el mapa en el segmento correspondiente</td></tr>
+            <tr><td><b>▼/▶</b></td><td>Pliega/despliega la tabla del lote</td></tr>
+            <tr><td><b>✕</b></td><td>Elimina el lote de la cola</td></tr>
+            <tr><td><b>🗑</b></td><td>Elimina una fila de cierre del lote (se excluye de la aplicación y de la exportación)</td></tr>
+            <tr><td><b>Borde de color</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Cargado desde preajuste</td></tr>
+            <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 En curso · 🔴 Solapamiento · ⚫ Fecha pasada</td></tr>
+            </table>`, 'pt-BR':`
+            <p>A fila acumula <b>lotes</b> de bloqueios antes da aplicação.</p>
+            <table class="wct-help-table">
+            <tr><td><b>🎯</b></td><td>Centraliza o mapa no segmento correspondente</td></tr>
+            <tr><td><b>▼/▶</b></td><td>Recolhe/expande a tabela do lote</td></tr>
+            <tr><td><b>✕</b></td><td>Remove o lote da fila</td></tr>
+            <tr><td><b>🗑</b></td><td>Remove uma linha de bloqueio do lote (excluída da aplicação e da exportação)</td></tr>
+            <tr><td><b>Borda colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
+            <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
+            </table>`, 'pt-PT':`
+            <p>A fila acumula <b>lotes</b> de cortes antes da aplicação.</p>
+            <table class="wct-help-table">
+            <tr><td><b>🎯</b></td><td>Centra o mapa no segmento correspondente</td></tr>
+            <tr><td><b>▼/▶</b></td><td>Recolhe/expande a tabela do lote</td></tr>
+            <tr><td><b>✕</b></td><td>Remove o lote da fila</td></tr>
+            <tr><td><b>🗑</b></td><td>Remove uma linha de corte do lote (excluída da aplicação e da exportação)</td></tr>
+            <tr><td><b>Margem colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
+            <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             </table>` }) },
         { id:'h4', title:t('helpH4'), body: _L({ fr:`
             <p>Importe un fichier CSV au format <b>WME Advanced Closures</b> directement dans la file d\u2019attente.</p>
@@ -1782,7 +2588,16 @@ const buildHelpHTML = () => {
             <p>The format exported by this script is compatible with the original WME Advanced Closures script.</p>`, de:`
             <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
             <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>` }) },
+            <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>`, es:`
+            <p>Importa un archivo CSV en formato <b>WME Advanced Closures</b> directamente en la cola.</p>
+            <p>Columnas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
+            <p>El formato exportado por este script es compatible con el script original WME Advanced Closures.</p>`, 'pt-BR':`
+            <p>Importa um arquivo CSV no formato <b>WME Advanced Closures</b> diretamente para a fila.</p>
+            <p>Colunas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
+            <p>O formato exportado por este script é compatível com o script original WME Advanced Closures.</p>`, 'pt-PT':`
+            <p>Importa um ficheiro CSV no formato <b>WME Advanced Closures</b> diretamente para a fila.</p>
+            <p>Colunas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
+            <p>O formato exportado por este script é compatível com o script WME Advanced Closures original.</p>` }) },
         { id:'h5', title:t('helpH5'), body: _L({ fr:`
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
@@ -1798,6 +2613,21 @@ const buildHelpHTML = () => {
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Klicke auf \uD83D\uDCBE rechts neben der Schaltfl\u00E4che Best\u00E4tigen, um die aktuelle Konfiguration zu speichern</li>
             <li>Im Reiter Vorlagen: \u21A9\uFE0F zum Laden (wechselt zu Einrichten), \uD83D\uDDD1 zum L\u00F6schen</li>
+            </ul>`, es:`
+            <p>Guarda una configuración (horarios, días, sentido…) para reutilizarla.</p>
+            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <li>Haz clic en 💾 junto al botón Validar para guardar la configuración actual</li>
+            <li>Desde la pestaña Preajustes: ↩️ para cargar (cambia a Configurar), 🗑 para eliminar</li>
+            </ul>`, 'pt-BR':`
+            <p>Salve uma configuração (horários, dias, sentido…) para reutilizá-la.</p>
+            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <li>Clique em 💾 ao lado do botão Validar para salvar a configuração atual</li>
+            <li>Na aba Predefinições: ↩️ para carregar (vai para Configurar), 🗑 para excluir</li>
+            </ul>`, 'pt-PT':`
+            <p>Guarde uma configuração (horário, dias, sentido…) para a reutilizar.</p>
+            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <li>Clique em 💾 ao lado do botão Validar para guardar a configuração atual</li>
+            <li>No separador Predefinições: ↩️ para carregar (muda para Configurar), 🗑 para eliminar</li>
             </ul>` }) },
         { id:'h6', title:t('helpH6'), body: _L({ fr:`
             <table class="wct-help-table">
@@ -1826,6 +2656,33 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE nicht gefunden</b></td><td>\u00d6ffne den WME-Reiter Ereignisse und klicke auf \u21bb, um die Liste neu zu laden.</td></tr>
             <tr><td><b>Intervall &lt; Dauer</b></td><td>Im Modus Wiederholen \u00fcberschneiden sich die Termine. Vergr\u00f6\u00dfere das Intervall oder verk\u00fcrze die Dauer.</td></tr>
             <tr><td><b>Zeitumstellung / Zeitzone (Grenze)</b></td><td>Die Uhrzeiten werden in der <b>Zeitzone des Browsers</b> ausgewertet. Wenn du Segmente in einer anderen Zeitzone als der deines Systems bearbeitest (z. B. ein deutscher Editor, der an japanischen Segmenten arbeitet), sind die eingegebenen Uhrzeiten entsprechend verschoben. Rechne die Zeiten in diesem Fall vor der Eingabe manuell in deine lokale Zeitzone um.</td></tr>
+            </table>`, es:`
+            <table class="wct-help-table">
+            <tr><td><b>Segmento no editable</b></td><td>No tienes permisos de edición sobre este segmento.</td></tr>
+            <tr><td><b>Solapamiento</b></td><td>Ya existe un cierre en este segmento para esas fechas. Se muestra en rojo en la cola.</td></tr>
+            <tr><td><b>Fecha pasada</b></td><td>WME rechaza los cierres en el pasado. La fila aparece en gris.</td></tr>
+            <tr><td><b>Varios países</b></td><td>La selección abarca varios países — filtro de festivos desactivado.</td></tr>
+            <tr><td><b>MTE no encontrado</b></td><td>Abre la pestaña Eventos de WME y haz clic en ↻ para recargar la lista.</td></tr>
+            <tr><td><b>Intervalo &lt; duración</b></td><td>En modo Repetir, las ocurrencias se solapan. Aumenta el intervalo o reduce la duración.</td></tr>
+            <tr><td><b>Cambio de hora / zona horaria (límite)</b></td><td>Los horarios se interpretan en la <b>zona horaria del navegador</b>. Si editas segmentos situados en una zona horaria distinta a la de tu sistema (p. ej. un editor español trabajando sobre segmentos japoneses), las horas introducidas quedarán desfasadas. En ese caso, convierte manualmente los horarios a tu zona horaria local antes de introducirlos.</td></tr>
+            </table>`, 'pt-BR':`
+            <table class="wct-help-table">
+            <tr><td><b>Segmento não editável</b></td><td>Você não tem permissão de edição neste segmento.</td></tr>
+            <tr><td><b>Sobreposição</b></td><td>Já existe um bloqueio neste segmento nessas datas. Aparece em vermelho na fila.</td></tr>
+            <tr><td><b>Data passada</b></td><td>O WME recusa bloqueios no passado. A linha aparece em cinza.</td></tr>
+            <tr><td><b>Vários países</b></td><td>A seleção abrange vários países — filtro de feriados desativado.</td></tr>
+            <tr><td><b>MTE não encontrado</b></td><td>Abra a aba Eventos do WME e clique em ↻ para recarregar a lista.</td></tr>
+            <tr><td><b>Intervalo &lt; duração</b></td><td>No modo Repetir, as ocorrências se sobrepõem. Aumente o intervalo ou reduza a duração.</td></tr>
+            <tr><td><b>Horário de verão / fuso (limite)</b></td><td>Os horários são interpretados no <b>fuso horário do navegador</b>. Se você editar segmentos em um fuso diferente do seu sistema (ex.: um editor brasileiro trabalhando em segmentos japoneses), as horas informadas ficarão deslocadas. Nesse caso, converta manualmente os horários para o seu fuso local antes de digitá-los.</td></tr>
+            </table>`, 'pt-PT':`
+            <table class="wct-help-table">
+            <tr><td><b>Segmento não editável</b></td><td>Não tem permissões de edição neste segmento.</td></tr>
+            <tr><td><b>Sobreposição</b></td><td>Já existe um corte neste segmento para estas datas. Aparece a vermelho na fila.</td></tr>
+            <tr><td><b>Data passada</b></td><td>O WME recusa cortes no passado. Aparece a cinzento.</td></tr>
+            <tr><td><b>Vários países</b></td><td>A seleção abrange vários países — filtro de feriados desativado.</td></tr>
+            <tr><td><b>MTE não encontrado</b></td><td>Abra o separador Eventos do WME e clique em ↻ para recarregar a lista.</td></tr>
+            <tr><td><b>Intervalo &lt; duração</b></td><td>No modo Repetir, as ocorrências sobrepõem-se. Aumente o intervalo ou reduza a duração.</td></tr>
+            <tr><td><b>Mudança de hora / fuso horário (limite)</b></td><td>Os horários são interpretados no <b>fuso horário do navegador</b>. Se estiver a editar segmentos num fuso horário diferente do do seu sistema (por exemplo, um editor português a trabalhar em segmentos japoneses), as horas introduzidas ficarão desfasadas. Nesse caso, converta manualmente as horas para o seu fuso horário local antes de as introduzir.</td></tr>
             </table>` }) },
         { id:'h7', title:t('helpH7'), body: _L({ fr:`
             <table class="wct-help-table">
@@ -1845,6 +2702,24 @@ const buildHelpHTML = () => {
             <tr><td><b>Darstellung</b></td><td>Wähle zwischen <b>Normal</b> (Standardoberfläche) und <b>Windows 95</b> (sehr kompakt, eckige Ecken, klassische graue Palette). Die Einstellung wird gespeichert.</td></tr>
             <tr><td><b>Datumsformat</b></td><td>Steuert die Anzeige in der Warteschlange und in den Protokollen.<br><b>TT/MM/JJJJ</b> — Europa (Standard)<br><b>MM/TT/JJJJ</b> — USA<br><b>JJJJ-MM-TT</b> — ISO<br>Über <code>navigator.language</code> erkannt, manuell überschreibbar. Die Einstellung wird gespeichert.</td></tr>
             <tr><td><b>Position zurücksetzen</b></td><td>Setzt die Schaltfläche 🚧 auf ihre Standardposition auf der Karte zurück.</td></tr>
+            </table>`, es:`
+            <table class="wct-help-table">
+            <tr><td><b>Activar la herramienta</b></td><td>Activa o desactiva WCT. Si está desactivada, el botón 🚧 sigue visible pero el panel no se abre.</td></tr>
+            <tr><td><b>Visualización</b></td><td>Elige entre <b>Normal</b> (interfaz estándar) y <b>Windows 95</b> (ultracompacta, esquinas rectas, paleta gris clásica). La preferencia se guarda.</td></tr>
+            <tr><td><b>Formato de las fechas</b></td><td>Controla la visualización en la cola y en los registros.<br><b>DD/MM/AAAA</b> — Europa (por defecto)<br><b>MM/DD/AAAA</b> — EE. UU.<br><b>AAAA-MM-DD</b> — ISO<br>Se detecta mediante <code>navigator.language</code> y se puede forzar manualmente. La preferencia se guarda.</td></tr>
+            <tr><td><b>Restablecer la posición del botón</b></td><td>Devuelve el botón 🚧 a su posición por defecto en el mapa.</td></tr>
+            </table>`, 'pt-BR':`
+            <table class="wct-help-table">
+            <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Desativado, o botão 🚧 continua visível, mas o painel não abre.</td></tr>
+            <tr><td><b>Modo de exibição</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinza clássico). A preferência é salva.</td></tr>
+            <tr><td><b>Formato de data</b></td><td>Controla a exibição na fila e nos logs.<br><b>DD/MM/AAAA</b> — Europa, Brasil (padrão)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detectado automaticamente via <code>navigator.language</code>, com possibilidade de forçar manualmente. A preferência é salva.</td></tr>
+            <tr><td><b>Redefinir a posição do botão</b></td><td>Devolve o botão 🚧 à sua posição padrão no mapa.</td></tr>
+            </table>`, 'pt-PT':`
+            <table class="wct-help-table">
+            <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Quando está desativado, o botão 🚧 permanece visível no mapa, mas o painel não abre.</td></tr>
+            <tr><td><b>Modo de apresentação</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinzento clássico). A preferência é guardada.</td></tr>
+            <tr><td><b>Formato da data</b></td><td>Controla a apresentação na fila e nos registos.<br><b>DD/MM/AAAA</b> — Europa (predefinição)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detetado automaticamente através de <code>navigator.language</code>, podendo ser forçado manualmente. A preferência é guardada.</td></tr>
+            <tr><td><b>Repor a posição do botão</b></td><td>Repõe o botão 🚧 na sua posição predefinida no mapa.</td></tr>
             </table>` }) },
         { id:'h8', title:t('helpH8'), body: _L({ fr:`
             <p>Superpose un ou plusieurs tracés (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sur la carte WME pour faciliter l'identification des segments à fermer.</p>
@@ -1891,7 +2766,52 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> ein ZIP bereitstellen, das mindestens <code>.shp</code>, <code>.dbf</code> und <code>.shx</code> enthält. Eine <code>.prj</code>-Datei wird für die automatische Umprojektion empfohlen (Lambert 93, UTM…). Ohne <code>.prj</code> wird WGS84 angenommen.</p>
             <p><b>Track-Ebene</b> (Auswahlleiste): sichtbar, sobald eine Datei geladen ist — globales Häkchen zum Ein-/Ausblenden aller Ebenen.</p>
-            <p><b>Einschränkung:</b> reine Anzeigeebene. Keine automatische Segmentauswahl — die Auswahl erfolgt weiterhin manuell in WME.</p>` }) },
+            <p><b>Einschränkung:</b> reine Anzeigeebene. Keine automatische Segmentauswahl — die Auswahl erfolgt weiterhin manuell in WME.</p>`, es:`
+            <p>Superpone una o varias trazas (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sobre el mapa de WME para facilitar la identificación de los segmentos a cerrar.</p>
+            <p><b>Carga:</b> haz clic en la zona o arrastra y suelta un archivo. Se pueden cargar varios archivos y formatos a la vez — las capas se acumulan.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 Archivo</b></td><td>Fila principal: representa el archivo cargado. La casilla activa o desactiva todas sus trazas. 🗑 elimina todas las capas del archivo.</td></tr>
+            <tr><td><b>↳ Traza</b></td><td>Fila secundaria: un track GPX, un Placemark KML, una Feature GeoJSON o una geometría Shapefile. Casilla, color y centrado individuales por traza.</td></tr>
+            <tr><td><b>Tipo</b></td><td>Formato del archivo de origen: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
+            <tr><td><b>Muestra de color</b></td><td>Haz clic para cambiar el color de la traza — paleta de 16 colores.</td></tr>
+            <tr><td><b>pts</b></td><td>Número de puntos trazados (máx. 3.000, submuestreados si es necesario).</td></tr>
+            <tr><td><b>err</b></td><td>✅ si no hay errores — ⚠️ + número en caso contrario (pasa el ratón por encima para ver el detalle).</td></tr>
+            <tr><td><b>🎯</b></td><td>Centra el mapa en la extensión de la traza con el zoom óptimo.</td></tr>
+            <tr><td><b>🗑</b></td><td>Elimina esta traza (o todas las trazas del archivo en la fila principal).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> proporciona un ZIP que contenga como mínimo <code>.shp</code>, <code>.dbf</code> y <code>.shx</code>. Se recomienda incluir un archivo <code>.prj</code> para la reproyección automática (Lambert 93, UTM…). Sin <code>.prj</code>, se asume WGS84.</p>
+            <p><b>Capa Trazas</b> (barra de selección): visible en cuanto se carga un archivo — casilla global para mostrar u ocultar todas las capas.</p>
+            <p><b>Limitación:</b> es solo una capa visual. No hay selección automática de segmentos — la selección sigue siendo manual en WME.</p>`, 'pt-BR':`
+            <p>Sobrepõe um ou mais trajetos (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) ao mapa do WME para facilitar a identificação dos segmentos a bloquear.</p>
+            <p><b>Carregamento:</b> clique na área ou arraste e solte um arquivo. Vários arquivos e formatos podem ser carregados ao mesmo tempo — as camadas se acumulam.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 Arquivo</b></td><td>Linha pai: representa o arquivo carregado. A caixa de seleção liga/desliga todos os seus trajetos. 🗑 remove todas as camadas do arquivo.</td></tr>
+            <tr><td><b>↳ Trajeto</b></td><td>Linha filha: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de seleção, cor e foco individuais por trajeto.</td></tr>
+            <tr><td><b>Type</b></td><td>Formato do arquivo de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
+            <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3.000, subamostrados se necessário).</td></tr>
+            <tr><td><b>err</b></td><td>✅ se não houver erro — ⚠️ + quantidade caso contrário (passe o mouse para ver os detalhes).</td></tr>
+            <tr><td><b>🎯</b></td><td>Centraliza o mapa na extensão do trajeto, no zoom ideal.</td></tr>
+            <tr><td><b>🗑</b></td><td>Remove este trajeto (ou todos os trajetos do arquivo, na linha pai).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP contendo no mínimo <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Um arquivo <code>.prj</code> é recomendado para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, presume-se WGS84.</p>
+            <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um arquivo é carregado — caixa de seleção global para exibir/ocultar todas as camadas de uma vez.</p>
+            <p><b>Limitação:</b> camada apenas visual. Nenhuma seleção automática de segmentos — a seleção continua manual no WME.</p>`, 'pt-PT':`
+            <p>Sobrepõe um ou vários trajetos (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) ao mapa do WME para ajudar a identificar os segmentos a cortar.</p>
+            <p><b>Carregamento:</b> clique na zona de largada ou arraste e largue um ficheiro. É possível carregar vários ficheiros e formatos em simultâneo — as camadas acumulam-se.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 Ficheiro</b></td><td>Linha principal: representa o ficheiro carregado. A caixa de verificação ativa/desativa todos os seus trajetos. 🗑 remove todas as camadas do ficheiro.</td></tr>
+            <tr><td><b>↳ Trajeto</b></td><td>Linha secundária: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de verificação, cor e centragem individuais para cada trajeto.</td></tr>
+            <tr><td><b>Type</b></td><td>Formato do ficheiro de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
+            <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3 000, subamostrados se necessário).</td></tr>
+            <tr><td><b>err</b></td><td>✅ se não houver erros — caso contrário ⚠️ + número (passe o rato por cima para ver os detalhes).</td></tr>
+            <tr><td><b>🎯</b></td><td>Centra o mapa na extensão do trajeto, no zoom ideal.</td></tr>
+            <tr><td><b>🗑</b></td><td>Remove este trajeto (ou todos os trajetos do ficheiro, na linha principal).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP que contenha, no mínimo, <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Recomenda-se um ficheiro <code>.prj</code> para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, assume-se WGS84.</p>
+            <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um ficheiro é carregado — caixa de verificação global para mostrar/ocultar todas as camadas de uma só vez.</p>
+            <p><b>Limitação:</b> apenas camada visual. Sem seleção automática de segmentos — a seleção continua a ser manual no WME.</p>` }) },
         { id:'h9', title:t('helpH9'), body: _L({ fr:`
             <p>Recherche les <b>fermetures déjà existantes</b> chargées dans la vue courante et sélectionne les segments correspondants. Utile pour retrouver toutes les fermetures d'un événement, ou vérifier ce qui est actif sur une période.</p>
             <table class="wct-help-table">
@@ -1940,7 +2860,55 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Name des zugehörigen Ereignisses. Ist das Ereignis nicht im Speicher geladen, wird nur seine <b>ID</b> angezeigt (in Orange) — öffne den WME-Reiter Ereignisse, um die Namen zu laden, und starte die Suche erneut.</td></tr>
             <tr><td><b>Spaltenköpfe</b></td><td>Zum Sortieren anklicken (aufsteigend, beim 2. Klick absteigend).</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Grenzen:</b> Es werden nur die <b>in der aktuellen Ansicht geladenen</b> Sperrungen ausgewertet (herauszoomen/schwenken, um den Bereich zu erweitern). Segmente, auf die eine Sperrung verweist, die aber nicht geladen sind, werden übergangen. Das <b>Löschen</b> von Sperrungen ist nicht möglich (vom WME-SDK nicht bereitgestellt).</p>` }) },
+            <p style="margin-top:6px"><b>Grenzen:</b> Es werden nur die <b>in der aktuellen Ansicht geladenen</b> Sperrungen ausgewertet (herauszoomen/schwenken, um den Bereich zu erweitern). Segmente, auf die eine Sperrung verweist, die aber nicht geladen sind, werden übergangen. Das <b>Löschen</b> von Sperrungen ist nicht möglich (vom WME-SDK nicht bereitgestellt).</p>`, es:`
+            <p>Busca los <b>cierres ya existentes</b> cargados en la vista actual y selecciona los segmentos correspondientes. Útil para localizar todos los cierres de un evento o comprobar qué está activo durante un periodo.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Estado</b></td><td>Casillas de los estados de cierre que se incluyen. <b>Todos</b> marca o desmarca el conjunto. Al desmarcar una casilla, también se desmarca Todos.</td></tr>
+            <tr><td><b>Ventana temporal</b></td><td>Límites opcionales sobre la fecha de inicio y de fin de los cierres. Un límite vacío se ignora. Todos los límites indicados se acumulan (Y).</td></tr>
+            <tr><td><b>La descripción contiene</b></td><td>Filtra los cierres cuya descripción contiene el texto (sin distinguir mayúsculas).</td></tr>
+            <tr><td><b>Y / O</b></td><td>Combinación entre Descripción y evento MTE. <b>Y</b>: ambos deben coincidir. <b>O</b>: basta con uno.</td></tr>
+            <tr><td><b>El evento MTE contiene</b></td><td>Filtra por nombre de evento MTE (búsqueda tipo «like», sin distinguir mayúsculas). Ej.: «Mans» devuelve «24H Le Mans», «LeMans Classic»…</td></tr>
+            <tr><td><b>Buscar</b></td><td>Lanza la búsqueda. Todos los segmentos encontrados quedan seleccionados en el mapa.</td></tr>
+            <tr><td><b>Borrar</b></td><td>Restablece todos los criterios y los resultados.</td></tr>
+            <tr><td><b>⚙ Cambiar a Configurar</b></td><td>Cambia a la pestaña Configurar conservando la selección, para encadenar la creación de cierres.</td></tr>
+            <tr><td><b>🎯</b></td><td>Centra el mapa en el segmento, colocado en la zona visible a la izquierda del panel.</td></tr>
+            <tr><td><b>Descripción</b></td><td>Descripción o descripciones de los cierres del segmento. Varias descripciones distintas se muestran una debajo de otra.</td></tr>
+            <tr><td><b>MTE</b></td><td>Nombre del evento asociado. Si el evento no está cargado en memoria, solo se muestra su <b>ID</b> (en naranja) — abre la pestaña Eventos de WME para cargar los nombres y vuelve a lanzar la búsqueda.</td></tr>
+            <tr><td><b>Encabezados de columna</b></td><td>Haz clic para ordenar (ascendente y, al segundo clic, descendente).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Límites:</b> solo se analizan los cierres <b>cargados en la vista actual</b> (aleja el zoom o desplaza el mapa para ampliarla). Los segmentos referenciados por un cierre pero no cargados se ignoran. <b>No es posible eliminar</b> cierres (el SDK de WME no lo permite).</p>`, 'pt-BR':`
+            <p>Busca os <b>bloqueios já existentes</b> carregados na visualização atual e seleciona os segmentos correspondentes. Útil para reencontrar todos os bloqueios de um evento ou verificar o que está ativo em um período.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Status</b></td><td>Caixas de seleção dos status de bloqueio a incluir. <b>Todos</b> marca/desmarca tudo. Desmarcar uma caixa também desmarca Todos.</td></tr>
+            <tr><td><b>Janela de tempo</b></td><td>Limites opcionais para as datas de início e de fim dos bloqueios. Um limite vazio é ignorado. Todos os limites informados são combinados (E).</td></tr>
+            <tr><td><b>Descrição contém</b></td><td>Filtra os bloqueios cujo rótulo contém o texto (sem diferenciar maiúsculas de minúsculas).</td></tr>
+            <tr><td><b>E / OU</b></td><td>Combinação entre Descrição e evento MTE. <b>E</b>: os dois devem corresponder. <b>OU</b>: basta um deles.</td></tr>
+            <tr><td><b>Evento MTE contém</b></td><td>Filtra pelo nome do evento MTE (busca do tipo "like", sem diferenciar maiúsculas de minúsculas). Ex.: "Mans" encontra "24H Le Mans", "LeMans Classic"…</td></tr>
+            <tr><td><b>Buscar</b></td><td>Executa a busca. Todos os segmentos encontrados são selecionados no mapa.</td></tr>
+            <tr><td><b>Limpar</b></td><td>Redefine todos os critérios e resultados.</td></tr>
+            <tr><td><b>⚙ Ir para Configurar</b></td><td>Vai para a aba Configurar mantendo a seleção, para já criar bloqueios em seguida.</td></tr>
+            <tr><td><b>🎯</b></td><td>Centraliza o mapa no segmento, posicionado na área visível à esquerda do painel.</td></tr>
+            <tr><td><b>Descrição</b></td><td>Rótulo(s) do(s) bloqueio(s) do segmento. Várias descrições distintas são exibidas uma abaixo da outra.</td></tr>
+            <tr><td><b>MTE</b></td><td>Nome do evento associado. Se o evento não estiver carregado na memória, apenas o <b>ID</b> é exibido (em laranja) — abra a aba Eventos do WME para carregar os nomes e refaça a busca.</td></tr>
+            <tr><td><b>Cabeçalhos de coluna</b></td><td>Clique para ordenar (crescente e, no 2º clique, decrescente).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Limites:</b> somente os bloqueios <b>carregados na visualização atual</b> são analisados (afaste o zoom/mova o mapa para ampliar). Segmentos referenciados por um bloqueio mas não carregados são ignorados. A <b>exclusão</b> de bloqueios não é possível (não exposta pelo SDK do WME).</p>`, 'pt-PT':`
+            <p>Pesquisa os <b>cortes já existentes</b> carregados na vista atual e seleciona os segmentos correspondentes. Útil para encontrar todos os cortes de um evento ou para verificar o que está ativo num determinado período.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Estado</b></td><td>Caixas de verificação dos estados de corte a incluir. <b>Todos</b> marca/desmarca tudo. Desmarcar uma caixa desmarca também Todos.</td></tr>
+            <tr><td><b>Janela temporal</b></td><td>Limites opcionais para as datas de início e de fim dos cortes. Um limite vazio é ignorado. Todos os limites definidos são combinados (E).</td></tr>
+            <tr><td><b>Descrição contém</b></td><td>Filtra os cortes cuja designação contém o texto (sem distinguir maiúsculas de minúsculas).</td></tr>
+            <tr><td><b>E / OU</b></td><td>Combinação entre Descrição e evento MTE. <b>E</b>: ambos têm de corresponder. <b>OU</b>: pelo menos um.</td></tr>
+            <tr><td><b>Evento MTE contém</b></td><td>Filtra pelo nome do evento MTE (pesquisa do tipo «like», sem distinguir maiúsculas de minúsculas). Ex.: «Mans» encontra «24H Le Mans», «LeMans Classic»…</td></tr>
+            <tr><td><b>Pesquisar</b></td><td>Executa a pesquisa. Todos os segmentos encontrados são selecionados no mapa.</td></tr>
+            <tr><td><b>Limpar</b></td><td>Repõe todos os critérios e resultados.</td></tr>
+            <tr><td><b>⚙ Mudar para Configurar</b></td><td>Muda para o separador Configurar mantendo a seleção, para criar cortes de seguida.</td></tr>
+            <tr><td><b>🎯</b></td><td>Centra o mapa no segmento, posicionado na área visível à esquerda do painel.</td></tr>
+            <tr><td><b>Descrição</b></td><td>Designação(ões) do(s) corte(s) do segmento. Várias descrições distintas são apresentadas umas por baixo das outras.</td></tr>
+            <tr><td><b>MTE</b></td><td>Nome do evento associado. Se o evento não estiver carregado em memória, apenas é apresentado o seu <b>ID</b> (a laranja) — abra o separador Eventos do WME para carregar os nomes e repita a pesquisa.</td></tr>
+            <tr><td><b>Cabeçalhos das colunas</b></td><td>Clique para ordenar (ascendente e, no 2.º clique, descendente).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Limites:</b> apenas são analisados os cortes <b>carregados na vista atual</b> (afaste o zoom/desloque o mapa para alargar). Os segmentos referenciados por um corte mas não carregados são ignorados. A <b>eliminação</b> de cortes não é possível (não é disponibilizada pelo SDK do WME).</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -1948,7 +2916,7 @@ const buildHelpHTML = () => {
             <div class="wct-help-body" id="${s.id}" style="${s.open?'':'display:none'}">${s.body}</div>
         </div>`).join('')
     + `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--wct-border);font-size:0.917em;color:var(--wct-text2);text-align:center">
-        \uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">${_L({fr:'Fil Discuss', en:'Discuss thread', de:'Discuss-Thread'})}</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>
+        \uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">${_L({fr:'Fil Discuss', en:'Discuss thread', de:'Discuss-Thread', es:'Hilo Discuss', 'pt-BR':'Tópico Discuss', 'pt-PT':'Tópico Discuss'})}</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>
     </div>`;
 };
 
@@ -2186,8 +3154,8 @@ const waitMapLoaded=()=>new Promise(resolve=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
-const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault});}catch(e){}};
-const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;}}catch(e){}};
+const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault,langPref:_langPref});}catch(e){}};
+const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;if(d.langPref==='auto'||LANGS.some(x=>x.code===d.langPref))_langPref=d.langPref;}}catch(e){}};
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
@@ -4813,7 +5781,14 @@ const buildQueueCard=(entry,idx)=>{
 };
 
 
+// Les écouteurs posés sur `document` (et non sur l'overlay) survivraient à la destruction
+// de l'overlay lors d'un changement de langue et s'empileraient à chaque bascule. On les
+// rattache à un AbortController renouvelé ici : la construction suivante détache les précédents.
+let _ovAbort = null;
 const connectOverlay=ov=>{
+    _ovAbort?.abort();
+    _ovAbort = new AbortController();
+    const sig = _ovAbort.signal;
     makeDraggable(ov,$id('wct-hdr'));
     $id('wct-btn-collapse')?.addEventListener('click',()=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
@@ -4824,7 +5799,7 @@ const connectOverlay=ov=>{
     // Fermer la palette couleur GPX si clic ailleurs
     document.addEventListener('click', () => {
         document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
-    });
+    }, {signal:sig});
 
     // Contrôle calque GPX dans la strip
     const gpxLbl=$id('wct-gpx-layer-lbl');
@@ -4945,7 +5920,7 @@ const connectOverlay=ov=>{
         document.addEventListener('click',e=>{
             if(!emojiPicker.contains(e.target)&&e.target!==emojiBtn)
                 emojiPicker.style.display='none';
-        });
+        }, {signal:sig});
     }
 
     // Badge J+N sur l'heure de fin (dynamique selon +Jours et heure de fin vs heure de début)
@@ -5192,7 +6167,7 @@ const connectOverlay=ov=>{
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
     // Échap = secours clavier : atteint l'interruption même si un masque WME (« Enregistrement… »)
     // recouvre le bouton pendant les sauvegardes en chaîne.
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_applyRunning) requestApplyAbort(); },true);
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_applyRunning) requestApplyAbort(); },{capture:true,signal:sig});
     $id('wct-btn-export')?.addEventListener('click',exportCSV);
 
     // Drop zone CSV
@@ -5467,8 +6442,72 @@ const applyDisplayMode=(mode)=>{
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  LANGUE — bascule à chaud
+// ═══════════════════════════════════════════════════════════════════════════
+// Tout le HTML de l'overlay est traduit au moment de sa construction : changer de langue
+// impose donc de le reconstruire. Ce qui vit dans des variables (file d'attente, préréglages)
+// ou dans des couches OpenLayers (tracés) survit ; ce qui vit dans le DOM (formulaire en cours,
+// position du panneau, onglet actif, état ouvert/replié) est relu avant destruction et restauré.
+const setLang=pref=>{
+    _langPref = (pref==='auto'||LANGS.some(x=>x.code===pref)) ? pref : 'auto';
+    save();
+    const next=resolveLang();
+    if(next===_lang){ renderSidebar(); return; }   // ex. 'auto' qui retombe sur la langue courante
+    _lang=next;
+
+    const old=$id('wct-overlay');
+    const wasOpen=old?.classList.contains('open');
+    const wasCollapsed=collapsed;
+    const cfg=old?readConfig():null;
+    const tab=old?.querySelector('.wct-main-tab.on')?.dataset.tab||'cfg';
+    const pos=old?{left:old.style.left,top:old.style.top,right:old.style.right,bottom:old.style.bottom}:null;
+    old?.remove();
+
+    const ov=buildOverlay();
+    connectOverlay(ov);
+    if(pos){ov.style.left=pos.left;ov.style.top=pos.top;ov.style.right=pos.right;ov.style.bottom=pos.bottom;}
+    applyDisplayMode(_displayMode);
+    if(cfg)applyConfig(cfg);
+    if(tab!=='cfg')ov.querySelector(`.wct-main-tab[data-tab="${tab}"]`)?.click();
+    if(wasCollapsed){collapsed=true;ov.classList.add('collapsed');const b=$id('wct-btn-collapse');if(b)b.textContent='□';}
+    if(wasOpen)ov.classList.add('open');
+
+    // Ré-alimenter tout ce qui n'est rendu qu'à la demande
+    reloadPresets(); renderPresetsTable(); renderQueue();
+    traceRenderTable(); traceUpdateStripCtrl();
+    updateFab(); updateCountryInfo();
+    renderSidebar();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  SIDEBAR (onglet Scripts — simple toggle)
 // ═══════════════════════════════════════════════════════════════════════════
+let _sbPane=null;   // pane WME de la sidebar, conservé pour la re-rendre au changement de langue
+
+const renderSidebar=()=>{
+    if(!_sbPane) return;
+    _sbPane.innerHTML=buildSidebar();
+    connectSidebar();
+};
+
+const connectSidebar=()=>{
+    $id('wct-enable-toggle')?.addEventListener('change',e=>{
+        enabled=e.target.checked;save();
+        const wrap=$id('wct-fab-wrap');if(wrap)wrap.style.opacity=enabled?'1':'0.4';
+        if(!enabled)$id('wct-overlay')?.classList.remove('open');
+    });
+    document.querySelectorAll('input[name="wct-display"]').forEach(r=>{
+        r.addEventListener('change',e=>{ if(e.target.checked) applyDisplayMode(e.target.value); });
+    });
+    document.querySelectorAll('input[name="wct-dateformat"]').forEach(r=>{
+        r.addEventListener('change',e=>{ if(e.target.checked){ _dateFormat=e.target.value; save(); renderQueue(); } });
+    });
+    $id('wct-cards-collapsed')?.addEventListener('change',e=>{
+        _cardsCollapsedDefault=e.target.checked; save();
+    });
+    $id('wct-lang-select')?.addEventListener('change',e=>setLang(e.target.value));
+};
+
 const buildSidebar=()=>`
 <div id="wct-sidebar">
     <h2>&#x1F6A7; WME Closures Toolkit <span style="font-size:11px;font-weight:400;color:var(--wct-grey)">v${VERSION}</span></h2>
@@ -5494,6 +6533,13 @@ const buildSidebar=()=>`
 
     </div>
     <div style="margin-top:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--wct-blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">&#x1F310; ${t('sbLanguage')}</div>
+        <select id="wct-lang-select" class="wct-input" style="width:100%;font-size:12px">
+            <option value="auto" ${_langPref==='auto'?'selected':''}>${t('sbLangAuto',LANGS.find(x=>x.code===detectLang())?.label||'English')}</option>
+            ${LANGS.map(l=>`<option value="${l.code}" ${_langPref===l.code?'selected':''}>${l.label}</option>`).join('')}
+        </select>
+    </div>
+    <div style="margin-top:14px">
         <div style="font-size:11px;font-weight:700;color:var(--wct-blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">&#x1F4C5; ${t('sbDateFormat')}</div>
         <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin-bottom:4px">
             <input type="radio" name="wct-dateformat" value="dmy" ${_dateFormat==='dmy'?'checked':''}> ${t('sbDateDmy')}
@@ -5517,30 +6563,18 @@ const buildSidebar=()=>`
 // ===========================================================================
 const init=async()=>{
     sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME});
-    _lang=detectLang();
-    load();
+    load();                 // charge _langPref…
+    _lang=resolveLang();    // …qui décide si on suit WME ou une langue forcée
 
     // Sidebar
     try {
         const res=await sdk.Sidebar.registerScriptTab();
-        const tabLabel=res.tabLabel, tabPane=res.tabPane;
+        const tabLabel=res.tabLabel;
+        _sbPane=res.tabPane;
         tabLabel.innerHTML='<span title="WME Closures Toolkit" style="font-size:16px">&#x1F6A7;</span>';
-        tabPane.innerHTML=buildSidebar();
+        _sbPane.innerHTML=buildSidebar();
         await new Promise(r=>setTimeout(r,200));
-        $id('wct-enable-toggle')?.addEventListener('change',e=>{
-            enabled=e.target.checked;save();
-            const wrap=$id('wct-fab-wrap');if(wrap)wrap.style.opacity=enabled?'1':'0.4';
-            if(!enabled)$id('wct-overlay')?.classList.remove('open');
-        });
-        document.querySelectorAll('input[name="wct-display"]').forEach(r=>{
-            r.addEventListener('change',e=>{ if(e.target.checked) applyDisplayMode(e.target.value); });
-        });
-        document.querySelectorAll('input[name="wct-dateformat"]').forEach(r=>{
-            r.addEventListener('change',e=>{ if(e.target.checked){ _dateFormat=e.target.value; save(); renderQueue(); } });
-        });
-        $id('wct-cards-collapsed')?.addEventListener('change',e=>{
-            _cardsCollapsedDefault=e.target.checked; save();
-        });
+        connectSidebar();
     } catch(e) { log('Sidebar: '+e.message); }
 
     // Overlay
