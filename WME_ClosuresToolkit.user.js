@@ -4673,8 +4673,12 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
         const displayName = (isDataset && featureCount) ? `${name} — ${featureCount} tronçons` : name;
         // Découpe automatique en lots si la trace dépasse une vue (bbox > seuil) : au-delà,
         // elle ne tient pas en mémoire d'un bloc et doit être traitée lot par lot.
+        // ⚠️ Exclu : un shapefile MULTI-features (réseau) — ses points sont la concaténation
+        // de tronçons non ordonnés géographiquement, le découpage séquentiel n'aurait aucun sens
+        // (ex. « grand lyon » : 2463 tronçons → 1388 lots incohérents). Le mode lots est pour
+        // les ITINÉRAIRES linéaires (GPX/KML/KMZ/GeoJSON, ou shapefile mono-tracé).
         let lots = null;
-        if(sampled.length >= 2){
+        if(sampled.length >= 2 && !(isDataset && featureCount > 1)){
             const bb = _covBBox(sampled);
             const mLon = Math.cos((bb.minLat+bb.maxLat)/2*Math.PI/180)*111320;
             const wKm = ((bb.maxLon-bb.minLon)*mLon)/1000, hKm = ((bb.maxLat-bb.minLat)*110540)/1000;
