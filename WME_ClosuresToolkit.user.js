@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.73.01
+// @version      0.74.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -55,7 +55,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.73.01';
+const VERSION     = '0.74.00';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -1211,6 +1211,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             csvAdded: (ok,ko) => `\u2705 ${ok} fermeture(s) ajout\u00e9e(s) \u00e0 la file${ko?', '+ko+' erreur(s)':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L'import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
             csvImportCancelled:'Import annulé.',
+            sweepTitle:'Sélectionner les segments du tracé (balaie la carte)',
+            sweepProgress: (done,total,n) => `Balayage… ${done}/${total} — ${n} segment(s)`,
+            sweepDone: n => `✅ ${n} segment(s) sélectionné(s) le long du tracé.`,
+            sweepStopped: n => `⏹ Interrompu — ${n} segment(s) sélectionné(s).`,
+            sweepConfirm: (a,km) => `Ce tracé fait ~${km} km (${a} déplacements de carte). Le balayage peut prendre un moment et déplacera la vue. Continuer ?`,
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1450,6 +1455,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvAdded: (ok,ko) => `\u2705 ${ok} closure(s) added to queue${ko?', '+ko+' error(s)':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ This file contains ${seg} segments across ${rows} rows. Importing large volumes can slow the browser down, and WME will only close segments loaded in the current view. Continue?`,
             csvImportCancelled:'Import cancelled.',
+            sweepTitle:'Select track segments (pans the map)',
+            sweepProgress: (done,total,n) => `Sweeping… ${done}/${total} — ${n} segment(s)`,
+            sweepDone: n => `✅ ${n} segment(s) selected along the track.`,
+            sweepStopped: n => `⏹ Stopped — ${n} segment(s) selected.`,
+            sweepConfirm: (a,km) => `This track is ~${km} km (${a} map moves). The sweep may take a while and will move the view. Continue?`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1688,6 +1698,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvAdded: (ok,ko) => `\u2705 ${ok} Sperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Fehler':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ Diese Datei enthält ${seg} Segmente in ${rows} Zeilen. Der Import großer Mengen kann den Browser verlangsamen, und WME schließt nur Segmente, die in der aktuellen Ansicht geladen sind. Fortfahren?`,
             csvImportCancelled:'Import abgebrochen.',
+            sweepTitle:'Segmente des Tracks auswählen (verschiebt die Karte)',
+            sweepProgress: (done,total,n) => `Abtastung… ${done}/${total} — ${n} Segment(e)`,
+            sweepDone: n => `✅ ${n} Segment(e) entlang des Tracks ausgewählt.`,
+            sweepStopped: n => `⏹ Abgebrochen — ${n} Segment(e) ausgewählt.`,
+            sweepConfirm: (a,km) => `Dieser Track ist ~${km} km lang (${a} Kartenbewegungen). Die Abtastung kann etwas dauern und verschiebt die Ansicht. Fortfahren?`,
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -1925,6 +1940,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             csvAdded: (ok,ko) => `✅ ${ok} cierre(s) añadido(s) a la cola${ko?', '+ko+' error(es)':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este archivo contiene ${seg} segmentos en ${rows} filas. Importar grandes volúmenes puede ralentizar el navegador, y WME solo cerrará los segmentos cargados en la vista actual. ¿Continuar?`,
             csvImportCancelled:'Importación cancelada.',
+            sweepTitle:'Seleccionar los segmentos de la traza (desplaza el mapa)',
+            sweepProgress: (done,total,n) => `Barriendo… ${done}/${total} — ${n} segmento(s)`,
+            sweepDone: n => `✅ ${n} segmento(s) seleccionado(s) a lo largo de la traza.`,
+            sweepStopped: n => `⏹ Interrumpido — ${n} segmento(s) seleccionado(s).`,
+            sweepConfirm: (a,km) => `Esta traza mide ~${km} km (${a} movimientos de mapa). El barrido puede tardar y moverá la vista. ¿Continuar?`,
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2162,6 +2182,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             csvAdded: (ok,ko) => `✅ ${ok} bloqueio(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este arquivo contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode deixar o navegador lento, e o WME só vai bloquear os segmentos carregados na visualização atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
+            sweepTitle:'Selecionar os segmentos do trajeto (move o mapa)',
+            sweepProgress: (done,total,n) => `Varrendo… ${done}/${total} — ${n} segmento(s)`,
+            sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
+            sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
+            sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai mover a visualização. Continuar?`,
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2399,6 +2424,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             csvAdded: (ok,ko) => `✅ ${ok} corte(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este ficheiro contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode tornar o navegador lento, e o WME só vai cortar os segmentos carregados na vista atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
+            sweepTitle:'Selecionar os segmentos do trajeto (desloca o mapa)',
+            sweepProgress: (done,total,n) => `A varrer… ${done}/${total} — ${n} segmento(s)`,
+            sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
+            sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
+            sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai deslocar a vista. Continuar?`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -4786,6 +4816,75 @@ const _covFocusGap = (zone) => {
     } catch(e){ console.error('WCT coverage focus:', e); }
 };
 
+// ── Briques de matching tracé→segments, réutilisées par la couverture ET le balayage ──
+// Construit l'index géométrique d'une liste de candidats : arêtes à plat (avec offset
+// cumulé), grille spatiale, et longueur polyligne par segment.
+const _covBuildIndex = (candList) => {
+    const edges = [];
+    const segPolyLen = {};
+    for(const c of candList){
+        let cum = 0;
+        for(const e of c.edges){
+            const lat0 = e[0][0]*Math.PI/180, mLon = Math.cos(lat0)*111320;
+            const len = Math.hypot((e[1][1]-e[0][1])*mLon, (e[1][0]-e[0][0])*110540);
+            edges.push({ a:e[0], b:e[1], id:c.id, cum, L:len });
+            cum += len;
+        }
+        segPolyLen[c.id] = cum;
+    }
+    const cellDeg = 0.0006; // ~40 m : garantit le voisinage 3×3 ≥ snap en lat et lon (France)
+    const grid = new Map();
+    for(let idx=0; idx<edges.length; idx++){
+        const e = edges[idx];
+        const iMin=Math.floor(Math.min(e.a[0],e.b[0])/cellDeg), iMax=Math.floor(Math.max(e.a[0],e.b[0])/cellDeg);
+        const jMin=Math.floor(Math.min(e.a[1],e.b[1])/cellDeg), jMax=Math.floor(Math.max(e.a[1],e.b[1])/cellDeg);
+        for(let i=iMin;i<=iMax;i++) for(let j=jMin;j<=jMax;j++){
+            const k=i+'|'+j; let arr=grid.get(k); if(!arr){ arr=[]; grid.set(k,arr); } arr.push(idx);
+        }
+    }
+    return { edges, grid, segPolyLen, cellDeg };
+};
+
+// Accumulateur vide : compteurs de points et étendue longée, cumulés sur un ou plusieurs
+// appels (le balayage accumule à travers les tronçons ; la couverture fait un seul appel).
+const _covNewAcc = () => ({ cnt:{}, spanMin:{}, spanMax:{}, segLen:{} });
+
+// Rattache chaque point au segment le plus proche (≤ snap) via la grille, et met à jour
+// l'accumulateur (nombre de points + étendue min/max le long du segment).
+const _covAccumulate = (evalPts, index, acc) => {
+    const { edges, grid, cellDeg, segPolyLen } = index;
+    for(const id in segPolyLen){ if(acc.segLen[id] === undefined) acc.segLen[id] = segPolyLen[id]; }
+    for(let i=0;i<evalPts.length;i++){
+        const p = evalPts[i];
+        const ci=Math.floor(p[0]/cellDeg), cj=Math.floor(p[1]/cellDeg);
+        let dmin = Infinity, best = null, bestT = 0;
+        for(let di=-1; di<=1; di++) for(let dj=-1; dj<=1; dj++){
+            const arr = grid.get((ci+di)+'|'+(cj+dj));
+            if(!arr) continue;
+            for(let a2=0;a2<arr.length;a2++){
+                const e = edges[arr[a2]];
+                const pr = _covProjEdge(p, e.a, e.b);
+                if(pr.dist < dmin){ dmin = pr.dist; best = e; bestT = pr.tt; }
+            }
+        }
+        if(dmin <= COVERAGE_SNAP_M && best){
+            const id = best.id;
+            const d = best.cum + bestT * best.L; // distance le long du segment
+            acc.cnt[id] = (acc.cnt[id]||0) + 1;
+            if(acc.spanMin[id] === undefined || d < acc.spanMin[id]) acc.spanMin[id] = d;
+            if(acc.spanMax[id] === undefined || d > acc.spanMax[id]) acc.spanMax[id] = d;
+        }
+    }
+};
+
+// Segment "emprunté" = ≥ MIN_PTS points ET étendue couverte ≥ SPAN_FRAC de sa longueur.
+const _covFinalizeUsed = (acc) => Object.keys(acc.cnt).filter(id => {
+    if(acc.cnt[id] < COVERAGE_MIN_PTS) return false;
+    const len = acc.segLen[id] || 0;
+    const span = acc.spanMax[id] - acc.spanMin[id];
+    return len > 0 && (span / len) >= COVERAGE_SPAN_FRAC;
+}).map(Number);
+
 // Cœur : segments empruntés par le tracé mais non sélectionnés.
 // Retourne { pct, zones:[{segs}], uncov:[seg], nUncov, outsideFrac } ou { error }.
 const traceCoverage = (fileId) => {
@@ -4817,63 +4916,11 @@ const traceCoverage = (fileId) => {
     let evalPts = _covDensify(inZone, COVERAGE_DENSIFY_M);
     if(evalPts.length > COVERAGE_MAX_EVAL) evalPts = traceSubsample(evalPts, COVERAGE_MAX_EVAL);
 
-    // Arêtes à plat (id + offset cumulé dans le segment + longueur) + longueur polyligne
-    const edges = [];
-    const segPolyLen = {};
-    for(const c of cand){
-        let cum = 0;
-        for(const e of c.edges){
-            const lat0 = e[0][0]*Math.PI/180, mLon = Math.cos(lat0)*111320;
-            const len = Math.hypot((e[1][1]-e[0][1])*mLon, (e[1][0]-e[0][0])*110540);
-            edges.push({ a:e[0], b:e[1], id:c.id, cum, L:len });
-            cum += len;
-        }
-        segPolyLen[c.id] = cum;
-    }
-    const cellDeg = 0.0006; // ~40 m : garantit le voisinage 3×3 ≥ snap en lat et lon (France)
-    const grid = new Map();
-    for(let idx=0; idx<edges.length; idx++){
-        const e = edges[idx];
-        const iMin=Math.floor(Math.min(e.a[0],e.b[0])/cellDeg), iMax=Math.floor(Math.max(e.a[0],e.b[0])/cellDeg);
-        const jMin=Math.floor(Math.min(e.a[1],e.b[1])/cellDeg), jMax=Math.floor(Math.max(e.a[1],e.b[1])/cellDeg);
-        for(let i=iMin;i<=iMax;i++) for(let j=jMin;j<=jMax;j++){
-            const k=i+'|'+j; let arr=grid.get(k); if(!arr){ arr=[]; grid.set(k,arr); } arr.push(idx);
-        }
-    }
-
-    // Rattachement : chaque point → segment le plus proche (≤ snap), via grille.
-    // On mémorise aussi l'étendue couverte (min/max le long du segment) pour distinguer
-    // un segment réellement longé d'un simple accrochage de carrefour.
-    const cnt = {}, spanMin = {}, spanMax = {};
-    for(let i=0;i<evalPts.length;i++){
-        const p = evalPts[i];
-        const ci=Math.floor(p[0]/cellDeg), cj=Math.floor(p[1]/cellDeg);
-        let dmin = Infinity, best = null, bestT = 0;
-        for(let di=-1; di<=1; di++) for(let dj=-1; dj<=1; dj++){
-            const arr = grid.get((ci+di)+'|'+(cj+dj));
-            if(!arr) continue;
-            for(let a2=0;a2<arr.length;a2++){
-                const e = edges[arr[a2]];
-                const pr = _covProjEdge(p, e.a, e.b);
-                if(pr.dist < dmin){ dmin = pr.dist; best = e; bestT = pr.tt; }
-            }
-        }
-        if(dmin <= COVERAGE_SNAP_M && best){
-            const id = best.id;
-            const d = best.cum + bestT * best.L; // distance le long du segment
-            cnt[id] = (cnt[id]||0) + 1;
-            if(spanMin[id] === undefined || d < spanMin[id]) spanMin[id] = d;
-            if(spanMax[id] === undefined || d > spanMax[id]) spanMax[id] = d;
-        }
-    }
-
-    // Segment "emprunté" = ≥ MIN_PTS points ET étendue couverte ≥ SPAN_FRAC de sa longueur
-    const usedIds = Object.keys(cnt).filter(id => {
-        if(cnt[id] < COVERAGE_MIN_PTS) return false;
-        const len = segPolyLen[id] || 0;
-        const span = (spanMax[id] - spanMin[id]);
-        return len > 0 && (span / len) >= COVERAGE_SPAN_FRAC;
-    }).map(Number);
+    // Rattachement points→segments via les briques mutualisées (un seul appel ici)
+    const index = _covBuildIndex(cand);
+    const acc = _covNewAcc();
+    _covAccumulate(evalPts, index, acc);
+    const usedIds = _covFinalizeUsed(acc);
     const coveredIds   = usedIds.filter(id => selSet.has(id));
     const uncoveredIds = usedIds.filter(id => !selSet.has(id));
 
@@ -4941,6 +4988,106 @@ const traceUpdateCoverageBtns = () => {
 };
 
 // Strip globale
+// ═══════════════════════════════════════════════════════════════════════════
+//  BALAYAGE : sélectionner les segments d'un tracé en déplaçant la carte
+// ═══════════════════════════════════════════════════════════════════════════
+// WME ne garde en mémoire que ce qui est chargé autour de la vue — MAIS il retient
+// les objets SÉLECTIONNÉS même hors écran (vérifié en live jusqu'à ~5 km). On exploite
+// ça : on longe le tracé par tronçons, on matche les segments locaux, et on re-sélectionne
+// le cumul à chaque étape — ce qui maintient en mémoire les segments déjà captés.
+const SWEEP_STEP_M    = 250;  // longueur de tracé traitée par tronçon
+const SWEEP_ZOOM      = 17;   // zoom de chargement pendant le balayage
+const SWEEP_SETTLE_MS = 350;  // délai après recentrage avant d'attendre le chargement
+const SWEEP_WARN_ANCHORS = 60;// au-delà de ce nombre de sauts, on demande confirmation
+
+let _sweepRunning = false, _sweepAborted = false;
+const requestSweepAbort = () => { if(_sweepRunning) _sweepAborted = true; };
+const _sweepSleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Découpe le tracé en tronçons d'environ stepM mètres → [[i0,i1], ...]
+const _sweepSlices = (pts, stepM) => {
+    const slices = [];
+    let i0 = 0, acc = 0;
+    for(let i=1;i<pts.length;i++){
+        const a=pts[i-1], b=pts[i];
+        const lat0=a[0]*Math.PI/180, mLon=Math.cos(lat0)*111320;
+        acc += Math.hypot((b[1]-a[1])*mLon, (b[0]-a[0])*110540);
+        if(acc >= stepM){ slices.push([i0, i]); i0 = i; acc = 0; }
+    }
+    if(i0 < pts.length-1) slices.push([i0, pts.length-1]);
+    return slices;
+};
+const _trackLenM = (pts) => {
+    let L=0;
+    for(let i=1;i<pts.length;i++){ const a=pts[i-1],b=pts[i];
+        const lat0=a[0]*Math.PI/180, mLon=Math.cos(lat0)*111320;
+        L += Math.hypot((b[1]-a[1])*mLon, (b[0]-a[0])*110540); }
+    return L;
+};
+
+const _sweepPanel = () => document.getElementById('wct-coverage-result');
+const _sweepShowText = (html) => { const p=_sweepPanel(); if(p){ p.style.display='block'; p.innerHTML=html; } };
+const _sweepShowProgress = (done, total, nSel) => {
+    const p = _sweepPanel(); if(!p) return;
+    p.style.display = 'block';
+    const pct = total ? Math.round(done*100/total) : 0;
+    p.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <b style="flex:1">${escHtml(t('sweepProgress', done, total, nSel))}</b>
+        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
+      </div>
+      <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
+    p.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
+};
+
+// Balaie tous les tracés d'un fichier et sélectionne les segments empruntés.
+const traceSweepSelect = async (fileId) => {
+    if(_sweepRunning) return;
+    let pts = [];
+    _traceTracks.filter(tk => tk.fileId === fileId).forEach(tk => { if(tk.sampledPts?.length) pts = pts.concat(tk.sampledPts); });
+    if(pts.length < 2){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('covNoPts'))}</span>`); return; }
+
+    const slices = _sweepSlices(pts, SWEEP_STEP_M);
+    if(slices.length > SWEEP_WARN_ANCHORS && !confirm(t('sweepConfirm', slices.length, (_trackLenM(pts)/1000).toFixed(1)))) return;
+
+    _sweepRunning = true; _sweepAborted = false;
+    _covClearGaps();
+    const savedCenter = sdk.Map.getMapCenter();
+    const savedZoom   = sdk.Map.getZoomLevel();
+    _sweepShowProgress(0, slices.length, 0);
+
+    const acc = _covNewAcc();
+    let selIds = [];
+    try {
+        for(let k=0;k<slices.length;k++){
+            if(_sweepAborted) break;
+            const slice = pts.slice(slices[k][0], slices[k][1]+1);
+            const mid = slice[Math.floor(slice.length/2)];
+            sdk.Map.setMapCenter({lonLat:{lon:mid[1], lat:mid[0]}, zoomLevel:SWEEP_ZOOM});
+            await _sweepSleep(SWEEP_SETTLE_MS);
+            await waitMapLoaded();
+            await _sweepSleep(120);
+            if(_sweepAborted) break;
+            const cand = _covCandidateSegments(_covBBox(slice), 0.0008);
+            if(cand.length){
+                const index = _covBuildIndex(cand);
+                _covAccumulate(_covDensify(slice, COVERAGE_DENSIFY_M), index, acc);
+                selIds = _covFinalizeUsed(acc);
+                // Re-sélectionner le cumul : garde en mémoire les segments déjà captés (hors vue)
+                try { sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection: '+e.message); }
+            }
+            _sweepShowProgress(k+1, slices.length, selIds.length);
+        }
+    } catch(e){ log('sweep error: '+e.message); }
+
+    // Rendre la carte de départ (la sélection persiste indépendamment de la vue)
+    try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
+    const aborted = _sweepAborted;
+    _sweepRunning = false;
+    const color = aborted ? '#f57c00' : 'var(--wct-green,#2e7d32)';
+    _sweepShowText(`<div style="color:${color};font-weight:600">${escHtml(t(aborted?'sweepStopped':'sweepDone', selIds.length))}</div>`);
+    updateFab(); updateCountryInfo();
+};
+
 const traceUpdateStripCtrl = () => {
     const ctrl = document.getElementById('wct-gpx-layer-ctrl');
     const chk  = document.getElementById('wct-gpx-layer-chk');
@@ -5001,7 +5148,7 @@ const traceRenderTable = () => {
             <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td><button class="wct-trace-file-cov wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
             <td><button class="wct-trace-file-del wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
@@ -5035,7 +5182,7 @@ const traceRenderTable = () => {
             <col style="width:48px">
             <col style="width:32px">
             <col style="width:18px">
-            <col style="width:24px">
+            <col style="width:46px">
             <col style="width:22px">
             <col style="width:22px">
         </colgroup>
@@ -5098,6 +5245,10 @@ const traceRenderTable = () => {
     // Vérification de couverture (niveau fichier)
     container.querySelectorAll('.wct-trace-file-cov').forEach(btn => {
         btn.addEventListener('click', e => { e.stopPropagation(); traceRunCoverage(e.currentTarget.dataset.fid); });
+    });
+    // Balayage : sélectionner les segments du tracé (niveau fichier)
+    container.querySelectorAll('.wct-trace-file-sel').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); traceSweepSelect(e.currentTarget.dataset.fid); });
     });
     // Suppression track
     container.querySelectorAll('.wct-trace-trk-del').forEach(btn => {
@@ -6179,7 +6330,7 @@ const connectOverlay=ov=>{
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
     // Échap = secours clavier : atteint l'interruption même si un masque WME (« Enregistrement… »)
     // recouvre le bouton pendant les sauvegardes en chaîne.
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_applyRunning) requestApplyAbort(); },{capture:true,signal:sig});
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(_applyRunning) requestApplyAbort(); if(_sweepRunning) requestSweepAbort(); } },{capture:true,signal:sig});
     $id('wct-btn-export')?.addEventListener('click',exportCSV);
 
     // Drop zone CSV
