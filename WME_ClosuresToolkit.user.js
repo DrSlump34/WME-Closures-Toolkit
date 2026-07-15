@@ -6951,13 +6951,28 @@ const doInjectFab=()=>{
     });
 };
 
-// Garantit que le FAB reste le 4e bouton du container natif.
-// Si WME (re)crée le container après le boot, on le (re)docke automatiquement.
+// Garantit que le FAB reste le DERNIER bouton du container natif. WME recrée certains
+// boutons à leur clic (ex. « partager la position ») et les ré-ajoute EN FIN, ce qui
+// faisait passer le FAB en avant-dernière position. On le remet donc toujours en fin —
+// appendChild d'un élément déjà présent le déplace, sans le dupliquer.
+let _fabObserver=null, _fabObservedCont=null;
 const ensureFabDocked=()=>{
     const wrap=$id('wct-fab-wrap');
     if(!wrap) return;
     const cont=_findOverlayContainer();
-    if(cont && wrap.parentElement!==cont) cont.appendChild(wrap);
+    if(!cont) return;
+    if(cont.lastElementChild!==wrap) cont.appendChild(wrap);
+    // Réactivité immédiate : observer les ajouts de boutons dans le container courant.
+    // (Le re-append remet lastElementChild===wrap → la condition redevient fausse, pas de boucle.)
+    if(_fabObservedCont!==cont){
+        _fabObserver?.disconnect();
+        _fabObserver=new MutationObserver(()=>{
+            const w=$id('wct-fab-wrap'), c=_findOverlayContainer();
+            if(w && c && c.lastElementChild!==w) c.appendChild(w);
+        });
+        _fabObserver.observe(cont,{childList:true});
+        _fabObservedCont=cont;
+    }
 };
 
 const injectFab=()=>{
