@@ -6343,7 +6343,7 @@ const connectOverlay=ov=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
     });
-    $id('wct-btn-close')?.addEventListener('click',()=>ov.classList.remove('open'));
+    $id('wct-btn-close')?.addEventListener('click',()=>{ ov.classList.remove('open'); restoreClosuresLayer(); });
 
     // Fermer la palette couleur GPX si clic ailleurs
     document.addEventListener('click', () => {
@@ -6862,6 +6862,27 @@ const handleCSV=files=>{
 const _findOverlayContainer=()=>document.querySelector('.overlay-buttons-container.top')
                              ||document.querySelector('.overlay-buttons-container');
 
+// ── Calque « Fermetures » de WME ─────────────────────────────────────────────
+// La détection de chevauchement (getExistingClosures) et l'affichage des fermetures
+// existantes n'ont de données QUE si le calque WME « Fermetures » est actif. Ni
+// setVisibility ni l'API SDK ne déclenchent le chargement : seul un clic sur la
+// case du sélecteur de calques (#layer-switcher-item_closures) le fait — même
+// mécanisme que le calque Lieux dans WME POI Event Updater.
+// On l'active à l'ouverture de l'overlay ; s'il était éteint, on le restaure à la
+// fermeture ; s'il était déjà allumé, on n'y touche pas.
+let _closuresLayerForced = false;
+const _closuresCheckbox = () => document.querySelector('#layer-switcher-item_closures');
+const ensureClosuresLayer = () => {
+    const cb = _closuresCheckbox();
+    if(cb && !cb.checked){ cb.click(); _closuresLayerForced = true; }
+};
+const restoreClosuresLayer = () => {
+    if(!_closuresLayerForced) return;
+    const cb = _closuresCheckbox();
+    if(cb && cb.checked) cb.click();
+    _closuresLayerForced = false;
+};
+
 const doInjectFab=()=>{
     if($id('wct-fab-btn')) return;
 
@@ -6906,6 +6927,7 @@ const doInjectFab=()=>{
         const ov=$id('wct-overlay');
         const isOpen=ov.classList.contains('open');
         if(!isOpen){
+            ensureClosuresLayer();   // activer le calque Fermetures (détection de chevauchement)
             const sel=getSelection();
             const hasSeg=sel.ids.length>0&&sel.objectType==='segment';
             if(!hasSeg){
@@ -6915,6 +6937,8 @@ const doInjectFab=()=>{
                 refreshMTE(); refreshSmallPreview();
             }
             renderQueue();
+        } else {
+            restoreClosuresLayer();  // rendre le calque à son état d'avant l'ouverture
         }
         ov.classList.toggle('open',!isOpen);
     });
@@ -7073,7 +7097,7 @@ const connectSidebar=()=>{
     $id('wct-enable-toggle')?.addEventListener('change',e=>{
         enabled=e.target.checked;save();
         const wrap=$id('wct-fab-wrap');if(wrap)wrap.style.opacity=enabled?'1':'0.4';
-        if(!enabled)$id('wct-overlay')?.classList.remove('open');
+        if(!enabled){$id('wct-overlay')?.classList.remove('open'); restoreClosuresLayer();}
     });
     document.querySelectorAll('input[name="wct-display"]').forEach(r=>{
         r.addEventListener('change',e=>{ if(e.target.checked) applyDisplayMode(e.target.value); });
