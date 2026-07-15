@@ -1244,6 +1244,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotNone:'Aucun segment capté dans ce lot.',
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
+            lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
+            lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
+            lotPermaCopy:'Copiez ce permalien :',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1508,6 +1511,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotNone:'No segment captured in this batch.',
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
+            lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
+            lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
+            lotPermaCopy:'Copy this permalink:',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1771,6 +1777,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotNone:'Kein Segment in diesem Paket erfasst.',
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
+            lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
+            lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
+            lotPermaCopy:'Diesen Permalink kopieren:',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -2033,6 +2042,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotNone:'Ningún segmento captado en este lote.',
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
+            lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
+            lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
+            lotPermaCopy:'Copia este permalink:',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2295,6 +2307,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
+            lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
+            lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
+            lotPermaCopy:'Copie este permalink:',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2557,6 +2572,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
+            lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
+            lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
+            lotPermaCopy:'Copie este permalink:',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -5434,12 +5452,32 @@ const _lotSelect = async (trackId, lotIdx) => {
         if(!ids.length){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return; }
         sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
         _currentLot = { trackId, lotIdx };
+        lot.segIds = ids;            // mémoriser : débloque le bouton permalien du lot
+        traceRenderTable();          // rafraîchir la ligne du lot (affiche 🔗)
         _lotFocus(lot); // zoom auto pour voir tout le lot
         // Basculer sur Configurer pour régler la fermeture
         document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
         _sweepShowText(`<div style="color:var(--wct-green,#2e7d32);font-weight:600">${escHtml(t('lotSelected', ids.length))}</div>`);
         updateFab(); updateCountryInfo();
     } catch(e){ _sweepRunning = false; log('lotSelect error: '+e.message); }
+};
+
+// Permalien WME d'un lot (segments captés + vue cadrée). Copié dans le presse-papiers.
+// Proposé seulement une fois le lot parcouru (lot.segIds présent) : un lot tient dans une
+// vue, donc l'ouverture du permalien resélectionne l'intégralité de ses segments (testé).
+const _lotPermalink = (lot) => {
+    if(!lot?.segIds?.length) return;
+    const b=lot.bbox, cLon=(b.minLon+b.maxLon)/2, cLat=(b.minLat+b.maxLat)/2;
+    const dLon=Math.max(b.maxLon-b.minLon,0.001), dLat=Math.max(b.maxLat-b.minLat,0.001);
+    const {freeWidth,mapH}=_getMapFreeZone();
+    const zoom=Math.max(15,Math.min(17,Math.floor(Math.min(
+        Math.log2((Math.max(freeWidth,200)*360)/(dLon*256)),
+        Math.log2((Math.max(mapH,200)*360)/(dLat*256))))));
+    const env=new URLSearchParams(location.search).get('env')||'row';
+    const url=`https://www.waze.com/editor?env=${env}&lat=${cLat}&lon=${cLon}&zoomLevel=${zoom}&segments=${lot.segIds.join(',')}`;
+    const ok=()=>showToast(t('lotPermaCopied',lot.segIds.length),3000,'#43a047');
+    if(navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(ok,()=>prompt(t('lotPermaCopy'),url));
+    else prompt(t('lotPermaCopy'),url);
 };
 
 const traceUpdateStripCtrl = () => {
@@ -5537,7 +5575,7 @@ const traceRenderTable = () => {
                         <td></td>
                         <td></td>
                         <td style="white-space:nowrap"><button class="wct-trace-lot-show wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotShowTitle')}">👁</button><button class="wct-trace-lot-sel wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotSelTitle')}">🧲</button></td>
-                        <td></td>
+                        <td>${lot.segIds&&lot.segIds.length?`<button class="wct-trace-lot-perma wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotPermaTitle')}">🔗</button>`:''}</td>
                     </tr>`;
                 });
             }
@@ -5628,6 +5666,14 @@ const traceRenderTable = () => {
             const trk = _traceTracks.find(tk => tk.trackId === e.currentTarget.dataset.tid);
             const lot = trk?.lots?.[parseInt(e.currentTarget.dataset.lot,10)-1];
             if(lot) _lotFocus(lot);
+        });
+    });
+    // Permalien d'un lot (copié dans le presse-papiers)
+    container.querySelectorAll('.wct-trace-lot-perma').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation();
+            const trk = _traceTracks.find(tk => tk.trackId === e.currentTarget.dataset.tid);
+            const lot = trk?.lots?.[parseInt(e.currentTarget.dataset.lot,10)-1];
+            if(lot) _lotPermalink(lot);
         });
     });
     // Sélectionner les segments d'un lot (→ bascule Configurer)
