@@ -1231,6 +1231,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotsWhyMoving:'La carte se déplace pour charger les segments de chaque lot. Ne touchez pas à la carte pendant l’opération.',
             lotsDone: (added,seg) => `✅ ${added} lot(s) ajoutés à la file (${seg} segment(s)). Onglet Configurer pour vérifier et appliquer.`,
             lotsStopped: (added,seg) => `⏹ Interrompu — ${added} lot(s) déjà dans la file (${seg} segment(s)).`,
+            applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
+            applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
+            applyLotNext:'▶ Continuer (lot suivant)',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1482,6 +1485,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'The map moves to load each batch’s segments. Don’t touch the map during the operation.',
             lotsDone: (added,seg) => `✅ ${added} batch(es) added to the queue (${seg} segment(s)). See the Configure tab to review and apply.`,
             lotsStopped: (added,seg) => `⏹ Stopped — ${added} batch(es) already in the queue (${seg} segment(s)).`,
+            applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
+            applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
+            applyLotNext:'▶ Continue (next batch)',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1732,6 +1738,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'Die Karte bewegt sich, um die Segmente jedes Pakets zu laden. Bewegen Sie die Karte währenddessen nicht.',
             lotsDone: (added,seg) => `✅ ${added} Paket(e) zur Warteschlange hinzugefügt (${seg} Segment(e)). Reiter Einrichten zum Prüfen und Anwenden.`,
             lotsStopped: (added,seg) => `⏹ Abgebrochen — ${added} Paket(e) bereits in der Warteschlange (${seg} Segment(e)).`,
+            applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
+            applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
+            applyLotNext:'▶ Weiter (nächstes Paket)',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -1981,6 +1990,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotsWhyMoving:'El mapa se mueve para cargar los segmentos de cada lote. No toques el mapa durante la operación.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) añadidos a la cola (${seg} segmento(s)). Ve a la pestaña Configurar para revisar y aplicar.`,
             lotsStopped: (added,seg) => `⏹ Interrumpido — ${added} lote(s) ya en la cola (${seg} segmento(s)).`,
+            applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
+            applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
+            applyLotNext:'▶ Continuar (siguiente lote)',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2230,6 +2242,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsWhyMoving:'O mapa se move para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja a aba Configurar para revisar e aplicar.`,
             lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
+            applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
+            applyLotNext:'▶ Continuar (próximo lote)',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2479,6 +2494,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsWhyMoving:'O mapa desloca-se para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja o separador Configurar para rever e aplicar.`,
             lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
+            applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
+            applyLotNext:'▶ Continuar (lote seguinte)',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -3789,6 +3807,24 @@ const requestApplyAbort=()=>{
     const lg=$id('wct-apply-log');
     if(lg){const line=document.createElement('div');line.style.color='#f57c00';line.textContent=t('applyStopping');lg.appendChild(line);lg.scrollTop=lg.scrollHeight;}
 };
+// Pause assistée entre deux lots : affiche « lot k/N appliqué » + bouton Continuer
+// dans le log, et attend le clic. Résout false si l'utilisateur a cliqué Stop entre-temps.
+const _applyLotPause = (lotNo, total) => new Promise(resolve => {
+    const log = $id('wct-apply-log');
+    if(!log){ resolve(true); return; }
+    const box = document.createElement('div');
+    box.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 6px;background:rgba(142,36,170,.12);border-left:3px solid #8e24aa;border-radius:3px';
+    const txt = document.createElement('span');
+    txt.style.cssText = 'flex:1;color:#8e24aa;font-weight:600;font-size:0.917em';
+    txt.textContent = t('applyLotDone', lotNo, total);
+    const btn = document.createElement('button');
+    btn.className = 'wct-btn wct-btn-primary wct-btn-sm';
+    btn.textContent = t('applyLotNext');
+    box.appendChild(txt); box.appendChild(btn);
+    log.appendChild(box); log.scrollTop = log.scrollHeight;
+    const chk = setInterval(() => { if(_applyAborted){ clearInterval(chk); box.remove(); resolve(false); } }, 200);
+    btn.addEventListener('click', () => { clearInterval(chk); box.remove(); resolve(true); });
+});
 const applyQueue=async()=>{
     _applyAborted=false;
     let total=0,done=0,failed=0;
@@ -3825,9 +3861,24 @@ const applyQueue=async()=>{
         applyLog.appendChild(line);
         applyLog.scrollTop=applyLog.scrollHeight;
     };
+    // Lots issus du mode balayage : recadrage de la carte + pause assistée entre chaque.
+    let lotNo=0;
+    const totalLots=queue.filter(e=>e.source==='sweep'&&e.lotBbox).length;
     try{
         for(const e of queue){
             if(_applyAborted) break;
+            const isLot=e.source==='sweep'&&e.lotBbox;
+            // Recadrer sur le lot pour recharger ses segments avant de les fermer
+            if(isLot){
+                lotNo++;
+                logApply(t('applyLotFocus',lotNo,totalLots),'#8e24aa');
+                const b=e.lotBbox;
+                try{sdk.Map.setMapCenter({lonLat:{lon:(b.minLon+b.maxLon)/2,lat:(b.minLat+b.maxLat)/2},zoomLevel:SWEEP_ZOOM});}catch(err){}
+                await _sweepSleep(SWEEP_SETTLE_MS);
+                await waitMapLoaded();
+                await _sweepSleep(150);
+                if(_applyAborted) break;
+            }
             const dir=parseInt(e.config.direction);
             const excl=e.excludedRows||new Set();
             const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
@@ -3846,6 +3897,11 @@ const applyQueue=async()=>{
                         ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
                         (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                 });
+            }
+            // Pause assistée entre les lots (sauf après le dernier)
+            if(isLot && lotNo<totalLots && !_applyAborted){
+                const cont=await _applyLotPause(lotNo,totalLots);
+                if(!cont) break;
             }
         }
     }finally{
