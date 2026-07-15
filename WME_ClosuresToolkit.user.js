@@ -1234,6 +1234,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
             applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
             applyLotNext:'▶ Continuer (lot suivant)',
+            lotRowLabel: (i,n) => `Lot ${i}/${n}`,
+            lotStatusTodo:'à traiter',
+            lotStatusDone:'configuré',
+            lotShowTitle:'Afficher ce lot sur la carte',
+            lotSelTitle:'Sélectionner les segments de ce lot (puis configurer la fermeture)',
+            lotSelecting: (i,n) => `Lot ${i}/${n} : chargement des segments…`,
+            lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
+            lotNone:'Aucun segment capté dans ce lot.',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1488,6 +1496,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
             applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
             applyLotNext:'▶ Continue (next batch)',
+            lotRowLabel: (i,n) => `Batch ${i}/${n}`,
+            lotStatusTodo:'to do',
+            lotStatusDone:'configured',
+            lotShowTitle:'Show this batch on the map',
+            lotSelTitle:'Select this batch’s segments (then configure the closure)',
+            lotSelecting: (i,n) => `Batch ${i}/${n}: loading segments…`,
+            lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
+            lotNone:'No segment captured in this batch.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1741,6 +1757,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
             applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
             applyLotNext:'▶ Weiter (nächstes Paket)',
+            lotRowLabel: (i,n) => `Paket ${i}/${n}`,
+            lotStatusTodo:'offen',
+            lotStatusDone:'konfiguriert',
+            lotShowTitle:'Dieses Paket auf der Karte anzeigen',
+            lotSelTitle:'Segmente dieses Pakets auswählen (dann Sperrung einrichten)',
+            lotSelecting: (i,n) => `Paket ${i}/${n}: Segmente werden geladen…`,
+            lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
+            lotNone:'Kein Segment in diesem Paket erfasst.',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -1993,6 +2017,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
             applyLotNext:'▶ Continuar (siguiente lote)',
+            lotRowLabel: (i,n) => `Lote ${i}/${n}`,
+            lotStatusTodo:'pendiente',
+            lotStatusDone:'configurado',
+            lotShowTitle:'Mostrar este lote en el mapa',
+            lotSelTitle:'Seleccionar los segmentos de este lote (luego configurar el cierre)',
+            lotSelecting: (i,n) => `Lote ${i}/${n}: cargando segmentos…`,
+            lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
+            lotNone:'Ningún segmento captado en este lote.',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2245,6 +2277,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
             applyLotNext:'▶ Continuar (próximo lote)',
+            lotRowLabel: (i,n) => `Lote ${i}/${n}`,
+            lotStatusTodo:'pendente',
+            lotStatusDone:'configurado',
+            lotShowTitle:'Mostrar este lote no mapa',
+            lotSelTitle:'Selecionar os segmentos deste lote (depois configurar o bloqueio)',
+            lotSelecting: (i,n) => `Lote ${i}/${n}: carregando segmentos…`,
+            lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
+            lotNone:'Nenhum segmento captado neste lote.',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2497,6 +2537,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
             applyLotNext:'▶ Continuar (lote seguinte)',
+            lotRowLabel: (i,n) => `Lote ${i}/${n}`,
+            lotStatusTodo:'pendente',
+            lotStatusDone:'configurado',
+            lotShowTitle:'Mostrar este lote no mapa',
+            lotSelTitle:'Selecionar os segmentos deste lote (depois configurar o corte)',
+            lotSelecting: (i,n) => `Lote ${i}/${n}: a carregar segmentos…`,
+            lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
+            lotNone:'Nenhum segmento captado neste lote.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -4499,10 +4547,21 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
             errors.push(_pe('Erreur OpenLayers : layer non créé','OpenLayers error: layer not created','OpenLayers-Fehler: Layer nicht erstellt'));
         // Pour un dataset SHP : afficher le nombre de features dans le nom
         const displayName = (isDataset && featureCount) ? `${name} — ${featureCount} tronçons` : name;
+        // Découpe automatique en lots si la trace dépasse une vue (bbox > seuil) : au-delà,
+        // elle ne tient pas en mémoire d'un bloc et doit être traitée lot par lot.
+        let lots = null;
+        if(sampled.length >= 2){
+            const bb = _covBBox(sampled);
+            const mLon = Math.cos((bb.minLat+bb.maxLat)/2*Math.PI/180)*111320;
+            const wKm = ((bb.maxLon-bb.minLon)*mLon)/1000, hKm = ((bb.maxLat-bb.minLat)*110540)/1000;
+            if(wKm > SWEEP_LOT_KM || hKm > SWEEP_LOT_KM){
+                lots = _sweepLots(sampled).map((L,i) => ({ idx:i+1, pts:L.pts, bbox:L.bbox, status:'todo' }));
+            }
+        }
         _traceTracks.push({
             trackId, fileId, name: displayName, type,
             sampledPts: sampled, total: points.length, sampled: sampled.length,
-            color, olLayer, errors, visible: true,
+            color, olLayer, errors, visible: true, lots,
             geoFeatures: geoFeatures || null  // conservé pour recolor
         });
     });
@@ -5318,6 +5377,51 @@ const traceGenerateLots = async (fileId) => {
     updateFab(); updateCountryInfo();
 };
 
+// Lot en cours de traitement : {trackId, lotIdx}. Mémorisé quand on sélectionne un
+// lot, lu par le bouton Valider (pont Tracés → Configurer → file).
+let _currentLot = null;
+
+// Cadre la carte sur la bbox d'un lot (zoom d'englobement) — bouton « Afficher ».
+const _lotFocus = (lot) => {
+    const b = lot.bbox;
+    const dLon = Math.max(b.maxLon-b.minLon, 0.0008), dLat = Math.max(b.maxLat-b.minLat, 0.0008);
+    const mapDiv = W.map?.div || document.getElementById('map');
+    const mapW = mapDiv ? mapDiv.offsetWidth : 800, mapH = mapDiv ? mapDiv.offsetHeight : 600;
+    const zoom = Math.max(13, Math.min(18, Math.floor(Math.min(
+        Math.log2((mapW*360)/(dLon*256)), Math.log2((mapH*360)/(dLat*256)))) - 1));
+    try{ sdk.Map.setMapCenter({lonLat:{lon:(b.minLon+b.maxLon)/2, lat:(b.minLat+b.maxLat)/2}, zoomLevel:zoom}); }catch(e){}
+};
+
+// Sélectionne les segments d'un lot : recadre à zoom 16 (le lot tient dans la vue →
+// tous ses segments chargés), matche, sélectionne, puis bascule vers Configurer.
+const _lotSelect = async (trackId, lotIdx) => {
+    if(_sweepRunning) return;
+    const trk = _traceTracks.find(tk => tk.trackId === trackId);
+    const lot = trk?.lots?.[lotIdx-1];
+    if(!lot) return;
+    _sweepRunning = true; _sweepAborted = false;
+    _sweepShowText(escHtml(t('lotSelecting', lotIdx, trk.lots.length)));
+    try {
+        sdk.Map.setMapCenter({lonLat:{lon:(lot.bbox.minLon+lot.bbox.maxLon)/2, lat:(lot.bbox.minLat+lot.bbox.maxLat)/2}, zoomLevel:SWEEP_ZOOM});
+        await _sweepSleep(SWEEP_SETTLE_MS);
+        await waitMapLoaded();
+        await _sweepSleep(150);
+        const cand = _covCandidateSegments(_covBBox(lot.pts), 0.0008);
+        const acc = _covNewAcc();
+        if(cand.length){ const index = _covBuildIndex(cand); _covAccumulate(_covDensify(lot.pts, COVERAGE_DENSIFY_M), index, acc); }
+        const ids = _covFinalizeUsed(acc);
+        _sweepRunning = false;
+        if(!ids.length){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return; }
+        sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
+        _currentLot = { trackId, lotIdx };
+        _lotFocus(lot); // zoom auto pour voir tout le lot
+        // Basculer sur Configurer pour régler la fermeture
+        document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
+        _sweepShowText(`<div style="color:var(--wct-green,#2e7d32);font-weight:600">${escHtml(t('lotSelected', ids.length))}</div>`);
+        updateFab(); updateCountryInfo();
+    } catch(e){ _sweepRunning = false; log('lotSelect error: '+e.message); }
+};
+
 const traceUpdateStripCtrl = () => {
     const ctrl = document.getElementById('wct-gpx-layer-ctrl');
     const chk  = document.getElementById('wct-gpx-layer-chk');
@@ -5378,7 +5482,7 @@ const traceRenderTable = () => {
             <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-lots wct-ico" data-fid="${file.fileId}" title="${t('lotsBtnTitle')}">📦</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
             <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
@@ -5399,6 +5503,24 @@ const traceRenderTable = () => {
                 <td><button class="wct-trace-trk-pos wct-ico" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
                 <td><button class="wct-trace-trk-del wct-ico" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑</button></td>
             </tr>`;
+            // Lignes de lot : trace trop longue découpée automatiquement
+            if(trk.lots && trk.lots.length){
+                trk.lots.forEach(lot => {
+                    const done = lot.status === 'configured';
+                    tbody += `<tr class="wct-trace-lot-row" data-tid="${trk.trackId}" data-lot="${lot.idx}" data-fid="${file.fileId}" style="${isCollapsed?'display:none':''}${done?'opacity:.75':''}">
+                        <td></td>
+                        <td style="text-align:center">${done?'✅':'⬜'}</td>
+                        <td class="wct-gpx-name" colspan="2" style="padding-left:2.4em;font-size:0.9em" title="${t('lotShowTitle')}">📦 ${escHtml(t('lotRowLabel', lot.idx, trk.lots.length))}</td>
+                        <td class="wct-gpx-time"></td>
+                        <td class="wct-trace-col-type" style="color:var(--wct-text2);font-size:0.8em">${done?t('lotStatusDone'):t('lotStatusTodo')}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="white-space:nowrap"><button class="wct-trace-lot-show wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotShowTitle')}">👁</button><button class="wct-trace-lot-sel wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotSelTitle')}">🧲</button></td>
+                        <td></td>
+                    </tr>`;
+                });
+            }
         });
     });
 
@@ -5412,7 +5534,7 @@ const traceRenderTable = () => {
             <col style="width:48px">
             <col style="width:32px">
             <col style="width:18px">
-            <col style="width:76px">
+            <col style="width:52px">
             <col style="width:28px">
             <col style="width:22px">
         </colgroup>
@@ -5480,9 +5602,19 @@ const traceRenderTable = () => {
     container.querySelectorAll('.wct-trace-file-sel').forEach(btn => {
         btn.addEventListener('click', e => { e.stopPropagation(); traceSweepSelect(e.currentTarget.dataset.fid); });
     });
-    // Mode lots : découper un long tracé en lots de fermeture (niveau fichier)
-    container.querySelectorAll('.wct-trace-file-lots').forEach(btn => {
-        btn.addEventListener('click', e => { e.stopPropagation(); traceGenerateLots(e.currentTarget.dataset.fid); });
+    // Afficher un lot (cadrer la carte dessus)
+    container.querySelectorAll('.wct-trace-lot-show').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation();
+            const trk = _traceTracks.find(tk => tk.trackId === e.currentTarget.dataset.tid);
+            const lot = trk?.lots?.[parseInt(e.currentTarget.dataset.lot,10)-1];
+            if(lot) _lotFocus(lot);
+        });
+    });
+    // Sélectionner les segments d'un lot (→ bascule Configurer)
+    container.querySelectorAll('.wct-trace-lot-sel').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation();
+            _lotSelect(e.currentTarget.dataset.tid, parseInt(e.currentTarget.dataset.lot,10));
+        });
     });
     // Suppression track
     container.querySelectorAll('.wct-trace-trk-del').forEach(btn => {
