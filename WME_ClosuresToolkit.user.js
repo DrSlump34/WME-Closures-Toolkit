@@ -5553,10 +5553,10 @@ const traceRenderTable = () => {
             <col style="width:44px">
             <col style="width:48px">
             <col style="width:32px">
-            <col style="width:18px">
+            <col style="width:20px">
+            <col style="width:20px">
             <col style="width:52px">
             <col style="width:28px">
-            <col style="width:22px">
         </colgroup>
         <thead style="position:sticky;top:0;z-index:2;background:var(--wct-bg)">
             <tr>
@@ -5568,7 +5568,7 @@ const traceRenderTable = () => {
                 <th style="text-align:right" title="${t('trkTipPts')}">pts</th>
                 <th title="${t('trkTipColorCol')}">🎨</th>
                 <th title="${t('trkTipStatus')}">⚡</th>
-                <th title="${t('trkTipFocus')}">📍</th>
+                <th></th>
                 <th></th>
             </tr>
         </thead>
@@ -6589,6 +6589,13 @@ const connectOverlay=ov=>{
     };
     $id('wct-rangestart')?.addEventListener('blur',validateDates);
     $id('wct-rangeend')?.addEventListener('blur',validateDates);
+    // Si l'on repousse la date de début au-delà de la date de fin (clic dans le calendrier
+    // ou sortie du champ), la date de fin se cale automatiquement dessus : jamais de plage
+    // inversée. (Comparaison lexicographique OK : les inputs date sont au format AAAA-MM-JJ.)
+    $id('wct-rangestart')?.addEventListener('change',()=>{
+        const s=$id('wct-rangestart'),e=$id('wct-rangeend');
+        if(s&&e&&s.value&&e.value&&s.value>e.value){ e.value=s.value; validateDates(); refreshSmallPreview(); }
+    });
     // Validation répéter en temps réel
     const validateRepeat=()=>{
         const warn=$id('wct-rep-warn');if(!warn)return;
