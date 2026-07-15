@@ -1247,6 +1247,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
             lotPermaCopy:'Copiez ce permalien :',
+            lotCsvTitle:'Exporter en CSV les lots configurés de cette trace (format WME Advanced Closures)',
+            lotCsvNone:'Aucun lot configuré à exporter pour cette trace.',
+            lotCsvDone: n => `📥 ${n} lot(s) exporté(s) en CSV.`,
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1514,6 +1517,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
             lotPermaCopy:'Copy this permalink:',
+            lotCsvTitle:'Export this track’s configured batches to CSV (WME Advanced Closures format)',
+            lotCsvNone:'No configured batch to export for this track.',
+            lotCsvDone: n => `📥 ${n} batch(es) exported to CSV.`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1780,6 +1786,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
             lotPermaCopy:'Diesen Permalink kopieren:',
+            lotCsvTitle:'Konfigurierte Pakete dieses Tracks als CSV exportieren (Format WME Advanced Closures)',
+            lotCsvNone:'Kein konfiguriertes Paket zum Exportieren für diesen Track.',
+            lotCsvDone: n => `📥 ${n} Paket(e) als CSV exportiert.`,
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -2045,6 +2054,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
             lotPermaCopy:'Copia este permalink:',
+            lotCsvTitle:'Exportar a CSV los lotes configurados de esta traza (formato WME Advanced Closures)',
+            lotCsvNone:'Ningún lote configurado para exportar en esta traza.',
+            lotCsvDone: n => `📥 ${n} lote(s) exportado(s) a CSV.`,
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2310,6 +2322,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
             lotPermaCopy:'Copie este permalink:',
+            lotCsvTitle:'Exportar em CSV os lotes configurados deste trajeto (formato WME Advanced Closures)',
+            lotCsvNone:'Nenhum lote configurado para exportar neste trajeto.',
+            lotCsvDone: n => `📥 ${n} lote(s) exportado(s) em CSV.`,
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2575,6 +2590,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
             lotPermaCopy:'Copie este permalink:',
+            lotCsvTitle:'Exportar em CSV os lotes configurados deste trajeto (formato WME Advanced Closures)',
+            lotCsvNone:'Nenhum lote configurado para exportar neste trajeto.',
+            lotCsvDone: n => `📥 ${n} lote(s) exportado(s) em CSV.`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -3990,11 +4008,11 @@ const applyQueue=async()=>{
     setTimeout(()=>{if(pbw)pbw.style.display='none';if(pbt)pbt.textContent='';},2000);
     showToast(_applyAborted?t('applyStopped',done,failed):t('applyDone',done,failed,total),4000,failed||_applyAborted?'#f57c00':'#43a047');
 };
-const exportCSV=()=>{
-    if(!queue.length)return;
+// Génère un CSV au format WME Advanced Closures à partir d'un jeu d'entrées de file.
+const _queueToCSV=(entries)=>{
     const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
     let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)\n';
-    queue.forEach(e=>{
+    entries.forEach(e=>{
         const dir=DIR_CSV[parseInt(e.config.direction)],it=e.config.ignoretraffic?'Yes':'No';
         e.closures.forEach(cl=>{
             const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
@@ -4002,7 +4020,16 @@ const exportCSV=()=>{
             csv+=`add,"${e.config.reason}","${cs}","${ce}","${dir}",${it},"${e.segIds.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
         });
     });
-    download(csv,`closures_${todayStr()}.csv`);
+    return csv;
+};
+const exportCSV=()=>{ if(!queue.length)return; download(_queueToCSV(queue),`closures_${todayStr()}.csv`); };
+// Export CSV des lots configurés d'une trace donnée (entrées 'sweep' de ce fichier).
+const exportLotsCSV=(fileId)=>{
+    const lots=queue.filter(e=>e.source==='sweep'&&e.fileId===fileId);
+    if(!lots.length){ showToast(t('lotCsvNone'),3000,'#f57c00'); return; }
+    const fname=(_traceFiles.find(f=>f.fileId===fileId)?.filename||'lots').replace(/\.[^.]+$/,'');
+    download(_queueToCSV(lots),`${fname}_lots_${todayStr()}.csv`);
+    showToast(t('lotCsvDone',lots.length),3000,'#43a047');
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5540,7 +5567,7 @@ const traceRenderTable = () => {
             <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">📥</button></td>
             <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
@@ -5593,7 +5620,7 @@ const traceRenderTable = () => {
             <col style="width:32px">
             <col style="width:20px">
             <col style="width:20px">
-            <col style="width:52px">
+            <col style="width:74px">
             <col style="width:28px">
         </colgroup>
         <thead style="position:sticky;top:0;z-index:2;background:var(--wct-bg)">
@@ -5659,6 +5686,10 @@ const traceRenderTable = () => {
     // Balayage : sélectionner les segments du tracé (niveau fichier)
     container.querySelectorAll('.wct-trace-file-sel').forEach(btn => {
         btn.addEventListener('click', e => { e.stopPropagation(); traceSweepSelect(e.currentTarget.dataset.fid); });
+    });
+    // Export CSV (WME Advanced Closures) des lots configurés de cette trace
+    container.querySelectorAll('.wct-trace-file-csv').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); exportLotsCSV(e.currentTarget.dataset.fid); });
     });
     // Afficher un lot (cadrer la carte dessus)
     container.querySelectorAll('.wct-trace-lot-show').forEach(btn => {
@@ -6722,6 +6753,7 @@ const connectOverlay=ov=>{
         if(_lotCtx){
             entry.source='sweep';
             entry.lotBbox=_lotCtx.lot.bbox;
+            entry.fileId=_lotCtx.trk.fileId;   // rattache le lot à sa trace (export CSV par trace)
             entry.label=`📦 ${cfg.reason||t('defaultClosure')} · ${t('lotRowLabel',_lotCtx.lot.idx,_lotCtx.trk.lots.length)}`;
         }
         if(dirConflicts.length) entry.excludedSegs=dirConflicts;
