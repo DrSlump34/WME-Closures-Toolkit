@@ -1250,6 +1250,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotCsvTitle:'Exporter en CSV les lots configurés de cette trace (format WME Advanced Closures)',
             lotCsvNone:'Aucun lot configuré à exporter pour cette trace.',
             lotCsvDone: n => `📥 ${n} lot(s) exporté(s) en CSV.`,
+            shpNetworkNote:'⚠️ Shapefile de réseau (nombreux tronçons) : non découpé en lots. Utilisez la sélection globale du tracé.',
+            shpNetworkHelp:'Un shapefile de réseau (nombreux tronçons non ordonnés, ex. la voirie d’une ville) n’est pas découpé en lots — ses tronçons ne forment pas un itinéraire continu. Il reste affichable et sélectionnable globalement (🧲 de la trace).',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1521,6 +1523,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotCsvTitle:'Export this track’s configured batches to CSV (WME Advanced Closures format)',
             lotCsvNone:'No configured batch to export for this track.',
             lotCsvDone: n => `📥 ${n} batch(es) exported to CSV.`,
+            shpNetworkNote:'⚠️ Network shapefile (many segments): not split into batches. Use the whole-track selection.',
+            shpNetworkHelp:'A network shapefile (many unordered segments, e.g. a city’s road network) is not split into batches — its segments don’t form a continuous route. It stays displayable and selectable as a whole (the track’s 🧲).',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1791,6 +1795,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotCsvTitle:'Konfigurierte Pakete dieses Tracks als CSV exportieren (Format WME Advanced Closures)',
             lotCsvNone:'Kein konfiguriertes Paket zum Exportieren für diesen Track.',
             lotCsvDone: n => `📥 ${n} Paket(e) als CSV exportiert.`,
+            shpNetworkNote:'⚠️ Netzwerk-Shapefile (viele Abschnitte): nicht in Pakete aufgeteilt. Nutzen Sie die Gesamtauswahl des Tracks.',
+            shpNetworkHelp:'Ein Netzwerk-Shapefile (viele ungeordnete Abschnitte, z. B. das Straßennetz einer Stadt) wird nicht in Pakete aufgeteilt — seine Abschnitte bilden keine durchgehende Route. Es bleibt als Ganzes anzeigbar und auswählbar (🧲 des Tracks).',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -2060,6 +2066,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotCsvTitle:'Exportar a CSV los lotes configurados de esta traza (formato WME Advanced Closures)',
             lotCsvNone:'Ningún lote configurado para exportar en esta traza.',
             lotCsvDone: n => `📥 ${n} lote(s) exportado(s) a CSV.`,
+            shpNetworkNote:'⚠️ Shapefile de red (muchos tramos): no se divide en lotes. Usa la selección global de la traza.',
+            shpNetworkHelp:'Un shapefile de red (muchos tramos sin orden, p. ej. el viario de una ciudad) no se divide en lotes: sus tramos no forman un itinerario continuo. Sigue siendo visible y seleccionable en bloque (🧲 de la traza).',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2329,6 +2337,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotCsvTitle:'Exportar em CSV os lotes configurados deste trajeto (formato WME Advanced Closures)',
             lotCsvNone:'Nenhum lote configurado para exportar neste trajeto.',
             lotCsvDone: n => `📥 ${n} lote(s) exportado(s) em CSV.`,
+            shpNetworkNote:'⚠️ Shapefile de rede (muitos trechos): não é dividido em lotes. Use a seleção global do trajeto.',
+            shpNetworkHelp:'Um shapefile de rede (muitos trechos sem ordem, ex.: o viário de uma cidade) não é dividido em lotes: seus trechos não formam um itinerário contínuo. Continua visível e selecionável em bloco (🧲 do trajeto).',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2598,6 +2608,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotCsvTitle:'Exportar em CSV os lotes configurados deste trajeto (formato WME Advanced Closures)',
             lotCsvNone:'Nenhum lote configurado para exportar neste trajeto.',
             lotCsvDone: n => `📥 ${n} lote(s) exportado(s) em CSV.`,
+            shpNetworkNote:'⚠️ Shapefile de rede (muitos troços): não é dividido em lotes. Use a seleção global do trajeto.',
+            shpNetworkHelp:'Um shapefile de rede (muitos troços sem ordem, ex.: a rede viária de uma cidade) não é dividido em lotes: os seus troços não formam um itinerário contínuo. Continua visível e selecionável em bloco (🧲 do trajeto).',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -3181,7 +3193,7 @@ const buildHelpHTML = () => {
             <tr><td><b>▶ Aplicar</b></td><td>Cria os cortes: o mapa volta a centrar-se em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
             <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
-            <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) },
+            <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) + `<p style="margin-top:6px;color:var(--wct-text2);font-style:italic">${t('shpNetworkHelp')}</p>` },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -4654,6 +4666,7 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
     const datetime = new Date();
     _traceFiles.push({ fileId, filename, type, datetime, color: null, collapsed: false });
 
+    let _hasNetworkShp = false;
     parsedTracks.forEach(({ name, points, errors, isDataset, featureCount, geoFeatures }) => {
         const trackId  = _traceNewId('trk');
         const color    = _traceNextColor();
@@ -4686,6 +4699,7 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
                 lots = _sweepLots(sampled).map((L,i) => ({ idx:i+1, pts:L.pts, bbox:L.bbox, status:'todo' }));
             }
         }
+        if(isDataset && featureCount > 1) _hasNetworkShp = true;
         _traceTracks.push({
             trackId, fileId, name: displayName, type,
             sampledPts: sampled, total: points.length, sampled: sampled.length,
@@ -4696,6 +4710,8 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
 
     traceRenderTable();
     traceUpdateStripCtrl();
+    // Shapefile de réseau : expliquer au chargement pourquoi il n'a pas de lots
+    if(_hasNetworkShp) showToast(t('shpNetworkNote'), 5500, '#f57c00');
 };
 
 // Entrées publiques par format
