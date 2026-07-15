@@ -1276,6 +1276,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpH5:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', helpH6:'\u26A0\uFE0F Erreurs fr\u00E9quentes & limites', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Pr\u00E9f\u00E9rences',
             helpH8:'\uD83D\uDDFA Trac\u00e9s',
             helpH9:'\uD83D\uDD0D Recherche de fermetures',
+            helpH10:'📦 Longs tracés : le mode lots',
             helpS1:'<b>S\u00E9lectionnez</b> un ou plusieurs segments sur la carte WME',
             helpS2:'Cliquez sur le bouton \uD83D\uDEA7 visible sur la carte (d\u00E9pla\u00E7able par glisser-d\u00E9poser)',
             helpS3:'Dans l\u2019onglet <b>\u2699 Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
@@ -1544,6 +1545,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH5:'\uD83D\uDCBE Presets', helpH6:'\u26A0\uFE0F Common errors & limits', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Preferences',
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Closure search',
+            helpH10:'📦 Long tracks: batch mode',
             helpS1:'<b>Select</b> one or more segments on the WME map',
             helpS2:'Click the \uD83D\uDEA7 button visible on the map (drag and drop to reposition)',
             helpS3:'In the <b>\u2699 Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
@@ -1813,6 +1815,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH5:'\uD83D\uDCBE Vorlagen', helpH6:'\u26A0\uFE0F H\u00E4ufige Fehler & Grenzen', helpH7:'\uD83D\uDDA5\uFE0F Seitenleiste / Einstellungen',
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Sperrungssuche',
+            helpH10:'📦 Lange Tracks: Paket-Modus',
             helpS1:'<b>W\u00E4hle</b> ein oder mehrere Segmente auf der WME-Karte aus',
             helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
             helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
@@ -2081,6 +2084,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpH5:'💾 Preajustes', helpH6:'⚠️ Errores frecuentes y límites', helpH7:'🖥️ Barra lateral / Preferencias',
             helpH8:'🗺 Trazas',
             helpH9:'🔍 Búsqueda de cierres',
+            helpH10:'📦 Trazas largas: modo por lotes',
             helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME',
             helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
             helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
@@ -2349,6 +2353,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Busca de bloqueios',
+            helpH10:'📦 Trajetos longos: modo em lotes',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
             helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
@@ -2617,6 +2622,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Pesquisa de cortes',
+            helpH10:'📦 Trajetos longos: modo por lotes',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
             helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
@@ -3115,6 +3121,67 @@ const buildHelpHTML = () => {
             <tr><td><b>Cabeçalhos das colunas</b></td><td>Clique para ordenar (ascendente e, no 2.º clique, descendente).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Limites:</b> apenas são analisados os cortes <b>carregados na vista atual</b> (afaste o zoom/desloque o mapa para alargar). Os segmentos referenciados por um corte mas não carregados são ignorados. A <b>eliminação</b> de cortes não é possível (não é disponibilizada pelo SDK do WME).</p>` }) },
+        { id:'h10', title:t('helpH10'), body: _L({ fr:`
+            <p>Une trace qui dépasse une vue (~4,5 km) est automatiquement <b>découpée en lots</b>, affichés en sous-lignes sous la trace. On les traite un par un :</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Sélectionne les segments du lot — la carte se déplace pour tout charger (c'est normal) — puis bascule sur <b>Configurer</b>.</td></tr>
+            <tr><td><b>Valider</b></td><td>Ajoute le lot à la file, le marque <b>✅ configuré</b>, revient aux Tracés et pointe le lot suivant.</td></tr>
+            <tr><td><b>👁</b></td><td>Recadre la carte sur le lot.</td></tr>
+            <tr><td><b>🔗</b></td><td>Après sélection : copie un permalien pour retrouver la sélection du lot.</td></tr>
+            <tr><td><b>▶ Appliquer</b></td><td>Pose les fermetures : la carte se recadre sur chaque lot, avec une pause « Continuer » entre les lots.</td></tr>
+            <tr><td><b>📥</b></td><td>Exporte les lots configurés de la trace en CSV (format WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">Le calque <b>Fermetures</b> de WME est activé automatiquement à l'ouverture du panneau (pour détecter les chevauchements) et remis dans son état d'origine à la fermeture. Une trace courte, qui tient dans une vue, n'est pas découpée : le 🧲 de la trace la sélectionne d'un seul coup.</p>`, en:`
+            <p>A track that exceeds one view (~4.5 km) is automatically <b>split into batches</b>, shown as sub-rows under the track. You handle them one by one:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Selects the batch's segments — the map moves to load everything (this is normal) — then switches to <b>Configure</b>.</td></tr>
+            <tr><td><b>Validate</b></td><td>Adds the batch to the queue, marks it <b>✅ configured</b>, returns to Tracks and points to the next batch.</td></tr>
+            <tr><td><b>👁</b></td><td>Centers the map on the batch.</td></tr>
+            <tr><td><b>🔗</b></td><td>After selection: copies a permalink to restore the batch selection.</td></tr>
+            <tr><td><b>▶ Apply</b></td><td>Creates the closures: the map re-centers on each batch, pausing on “Continue” between batches.</td></tr>
+            <tr><td><b>📥</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
+            </table>
+            <p style="margin-top:6px">WME's <b>Closures</b> layer is enabled automatically when the panel opens (to detect overlaps) and restored to its original state on close. A short track that fits in one view is not split: the track's 🧲 selects it all at once.</p>`, de:`
+            <p>Ein Track, der über eine Ansicht hinausgeht (~4,5 km), wird automatisch <b>in Pakete aufgeteilt</b>, die als Unterzeilen unter dem Track erscheinen. Man bearbeitet sie einzeln:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Wählt die Segmente des Pakets aus — die Karte bewegt sich, um alles zu laden (das ist normal) — und wechselt dann zu <b>Einrichten</b>.</td></tr>
+            <tr><td><b>Bestätigen</b></td><td>Fügt das Paket zur Warteschlange hinzu, markiert es als <b>✅ konfiguriert</b>, kehrt zu Tracks zurück und zeigt auf das nächste Paket.</td></tr>
+            <tr><td><b>👁</b></td><td>Zentriert die Karte auf das Paket.</td></tr>
+            <tr><td><b>🔗</b></td><td>Nach der Auswahl: kopiert einen Permalink, um die Auswahl des Pakets wiederherzustellen.</td></tr>
+            <tr><td><b>▶ Anwenden</b></td><td>Erstellt die Sperrungen: die Karte zentriert sich auf jedes Paket, mit einer Pause „Weiter“ zwischen den Paketen.</td></tr>
+            <tr><td><b>📥</b></td><td>Exportiert die konfigurierten Pakete des Tracks als CSV (Format WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">Der Kartenlayer <b>Sperrungen</b> von WME wird beim Öffnen des Panels automatisch aktiviert (zur Erkennung von Überschneidungen) und beim Schließen zurückgesetzt. Ein kurzer Track, der in eine Ansicht passt, wird nicht aufgeteilt: das 🧲 des Tracks wählt ihn auf einmal aus.</p>`, es:`
+            <p>Una traza que supera una vista (~4,5 km) se <b>divide automáticamente en lotes</b>, mostrados como subfilas bajo la traza. Se tratan uno a uno:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Selecciona los segmentos del lote — el mapa se desplaza para cargarlo todo (es normal) — y luego cambia a <b>Configurar</b>.</td></tr>
+            <tr><td><b>Validar</b></td><td>Añade el lote a la cola, lo marca <b>✅ configurado</b>, vuelve a Trazas y apunta al siguiente lote.</td></tr>
+            <tr><td><b>👁</b></td><td>Centra el mapa en el lote.</td></tr>
+            <tr><td><b>🔗</b></td><td>Tras la selección: copia un permalink para recuperar la selección del lote.</td></tr>
+            <tr><td><b>▶ Aplicar</b></td><td>Crea los cierres: el mapa se recentra en cada lote, con una pausa «Continuar» entre lotes.</td></tr>
+            <tr><td><b>📥</b></td><td>Exporta los lotes configurados de la traza a CSV (formato WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">La capa <b>Cierres</b> de WME se activa automáticamente al abrir el panel (para detectar solapamientos) y se restaura a su estado original al cerrar. Una traza corta que cabe en una vista no se divide: el 🧲 de la traza la selecciona de una vez.</p>`, 'pt-BR':`
+            <p>Um trajeto que ultrapassa uma visualização (~4,5 km) é <b>dividido automaticamente em lotes</b>, mostrados como sublinhas sob o trajeto. Você trata um por um:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Seleciona os segmentos do lote — o mapa se move para carregar tudo (é normal) — e depois muda para <b>Configurar</b>.</td></tr>
+            <tr><td><b>Validar</b></td><td>Adiciona o lote à fila, marca como <b>✅ configurado</b>, volta para Trajetos e aponta o próximo lote.</td></tr>
+            <tr><td><b>👁</b></td><td>Centraliza o mapa no lote.</td></tr>
+            <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
+            <tr><td><b>▶ Aplicar</b></td><td>Cria os bloqueios: o mapa recentraliza em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
+            <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">A camada <b>Bloqueios</b> do WME é ativada automaticamente ao abrir o painel (para detectar sobreposições) e restaurada ao estado original ao fechar. Um trajeto curto que cabe em uma visualização não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>`, 'pt-PT':`
+            <p>Um trajeto que ultrapassa uma vista (~4,5 km) é <b>dividido automaticamente em lotes</b>, apresentados como sublinhas sob o trajeto. Trata-se um a um:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Seleciona os segmentos do lote — o mapa desloca-se para carregar tudo (é normal) — e depois muda para <b>Configurar</b>.</td></tr>
+            <tr><td><b>Validar</b></td><td>Adiciona o lote à fila, marca-o como <b>✅ configurado</b>, volta aos Trajetos e aponta o lote seguinte.</td></tr>
+            <tr><td><b>👁</b></td><td>Centra o mapa no lote.</td></tr>
+            <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
+            <tr><td><b>▶ Aplicar</b></td><td>Cria os cortes: o mapa volta a centrar-se em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
+            <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
