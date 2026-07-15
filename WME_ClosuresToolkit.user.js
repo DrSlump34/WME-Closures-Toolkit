@@ -5172,8 +5172,9 @@ const traceUpdateCoverageBtns = () => {
 // les objets SÉLECTIONNÉS même hors écran (vérifié en live jusqu'à ~5 km). On exploite
 // ça : on longe le tracé par tronçons, on matche les segments locaux, et on re-sélectionne
 // le cumul à chaque étape — ce qui maintient en mémoire les segments déjà captés.
-const SWEEP_STEP_M    = 250;  // longueur de tracé traitée par tronçon
-const SWEEP_ZOOM      = 17;   // zoom de chargement pendant le balayage
+const SWEEP_STEP_M    = 1000; // longueur de tracé traitée par tronçon (balayage trace courte)
+const SWEEP_ZOOM      = 15;   // zoom de chargement : mesuré, WME charge bien les segments
+                             // sur ~7,4×5,7 km à z15 (4× z16) ; z14 sous-échantillonne, à éviter
 const SWEEP_SETTLE_MS = 350;  // délai après recentrage avant d'attendre le chargement
 const SWEEP_WARN_ANCHORS = 60;// au-delà de ce nombre de sauts, on demande confirmation
 
@@ -5271,7 +5272,8 @@ const traceSweepSelect = async (fileId) => {
 // WME n'expose qu'une vue à la fois (~3×2 km à zoom 16, mesuré). Un long tracé est
 // donc découpé en LOTS dont la bbox tient dans une vue : chacun devient une entrée de
 // file autonome, applicable en une fois une fois la carte recadrée dessus (brique 2).
-const SWEEP_LOT_KM = 2.5; // bbox maximale d'un lot (marge sous une vue zoom 16)
+const SWEEP_LOT_KM = 4.5; // bbox maximale d'un lot : tient dans une vue zoom 15 (~7,4×5,7 km
+                          // mesuré) avec marge pour charger les segments accrochés aux bords
 
 // Découpe les points en lots dont la bbox reste sous SWEEP_LOT_KM → [{pts, bbox}]
 const _sweepLots = (pts) => {
