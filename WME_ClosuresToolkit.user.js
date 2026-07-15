@@ -524,13 +524,16 @@ GM_addStyle(`
     color: #fff;
     font-size: 0.917em;
     padding: 0.583em 1.167em;
-    border-radius: 50px;
-    white-space: nowrap;
+    border-radius: 14px;
+    white-space: normal;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
     z-index: 200;
     opacity: 0;
     pointer-events: none;
     transition: opacity .25s;
-    max-width: 90%;
+    max-width: 88%;
+    width: max-content;
     text-align: center;
 }
 #wct-toast.show { opacity: 1; pointer-events: auto; }
@@ -5336,17 +5339,22 @@ const _trackLenM = (pts) => {
 };
 
 const _sweepPanel = () => document.getElementById('wct-coverage-result');
-const _sweepShowText = (html) => { const p=_sweepPanel(); if(p){ p.style.display='block'; p.innerHTML=html; } };
+// La progression du balayage s'affiche dans un pied FIXE (#wct-sweep-footer), hors du
+// défilement du tableau des tracés : avancement + Stop restent visibles même sur un
+// fichier à nombreux lots. Les messages/bilan statiques restent dans coverage-result.
+const _sweepFooter = () => document.getElementById('wct-sweep-footer');
+const _sweepHideFooter = () => { const f=_sweepFooter(); if(f){ f.style.display='none'; f.innerHTML=''; } };
+const _sweepShowText = (html) => { _sweepHideFooter(); const p=_sweepPanel(); if(p){ p.style.display='block'; p.innerHTML=html; } };
 const _sweepShowProgress = (done, total, nSel) => {
-    const p = _sweepPanel(); if(!p) return;
-    p.style.display = 'block';
+    const f = _sweepFooter(); if(!f) return;
+    f.style.display = 'block';
     const pct = total ? Math.round(done*100/total) : 0;
-    p.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+    f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
         <b style="flex:1">${escHtml(t('sweepProgress', done, total, nSel))}</b>
         <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
       </div>
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
-    p.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
+    f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
 };
 
 // Balaie tous les tracés d'un fichier et sélectionne les segments empruntés.
@@ -5437,16 +5445,16 @@ const _sweepLots = (pts) => {
 };
 
 const _sweepShowLotProgress = (done, total, added, seg) => {
-    const p = _sweepPanel(); if(!p) return;
-    p.style.display = 'block';
+    const f = _sweepFooter(); if(!f) return;
+    f.style.display = 'block';
     const pct = total ? Math.round(done*100/total) : 0;
-    p.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+    f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
         <b style="flex:1">${escHtml(t('lotsProgress', done, total, added, seg))}</b>
         <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
       </div>
       <div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:4px">${escHtml(t('lotsWhyMoving'))}</div>
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
-    p.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
+    f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
 };
 
 // Découpe le tracé en lots et crée une entrée de file par lot, avec la config
@@ -6144,6 +6152,8 @@ const buildOverlay=()=>{
       </div>
       <div id="wct-preview-section"></div>
     </div>
+    <!-- Progression du balayage : pied FIXE (hors défilement du tableau des tracés) -->
+    <div id="wct-sweep-footer" style="display:none;margin:0 10px 4px;padding:5px 7px;border:1px solid var(--wct-border);border-radius:var(--wct-radius);background:var(--wct-bg)"></div>
     <!-- Log application -->
     <div id="wct-apply-log" class="wct-log" style="display:none;margin:0 10px 4px"></div>
     <!-- Pied fixe : Valider (hors défilement, visible seulement sur l'onglet Configurer via :has) -->
