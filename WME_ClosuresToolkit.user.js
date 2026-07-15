@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.74.01
+// @version      0.75.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -55,7 +55,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.74.01';
+const VERSION     = '0.75.00';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -1224,6 +1224,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sweepDone: n => `✅ ${n} segment(s) sélectionné(s) le long du tracé.`,
             sweepStopped: n => `⏹ Interrompu — ${n} segment(s) sélectionné(s).`,
             sweepConfirm: (a,km) => `Ce tracé fait ~${km} km (${a} déplacements de carte). Le balayage peut prendre un moment et déplacera la vue. Continuer ?`,
+            lotsBtnTitle:'Découper un long tracé en lots de fermeture (déplace la carte)',
+            lotsNeedConfig:'⚠️ Réglez d’abord la fermeture dans l’onglet Configurer (période, horaires, sens…), puis relancez.',
+            lotsConfirm: n => `Ce tracé sera découpé en ${n} lot(s). La carte va se déplacer automatiquement pour charger chaque zone — c’est normal, et ça peut prendre un moment. Générer les fermetures dans la file ?`,
+            lotsProgress: (done,total,added,seg) => `Découpage en lots… ${done}/${total} — ${added} lot(s), ${seg} segment(s)`,
+            lotsWhyMoving:'La carte se déplace pour charger les segments de chaque lot. Ne touchez pas à la carte pendant l’opération.',
+            lotsDone: (added,seg) => `✅ ${added} lot(s) ajoutés à la file (${seg} segment(s)). Onglet Configurer pour vérifier et appliquer.`,
+            lotsStopped: (added,seg) => `⏹ Interrompu — ${added} lot(s) déjà dans la file (${seg} segment(s)).`,
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1468,6 +1475,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepDone: n => `✅ ${n} segment(s) selected along the track.`,
             sweepStopped: n => `⏹ Stopped — ${n} segment(s) selected.`,
             sweepConfirm: (a,km) => `This track is ~${km} km (${a} map moves). The sweep may take a while and will move the view. Continue?`,
+            lotsBtnTitle:'Split a long track into closure batches (moves the map)',
+            lotsNeedConfig:'⚠️ First set up the closure in the Configure tab (period, times, direction…), then try again.',
+            lotsConfirm: n => `This track will be split into ${n} batch(es). The map will move automatically to load each area — this is normal and may take a while. Generate the closures in the queue?`,
+            lotsProgress: (done,total,added,seg) => `Splitting into batches… ${done}/${total} — ${added} batch(es), ${seg} segment(s)`,
+            lotsWhyMoving:'The map moves to load each batch’s segments. Don’t touch the map during the operation.',
+            lotsDone: (added,seg) => `✅ ${added} batch(es) added to the queue (${seg} segment(s)). See the Configure tab to review and apply.`,
+            lotsStopped: (added,seg) => `⏹ Stopped — ${added} batch(es) already in the queue (${seg} segment(s)).`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1711,6 +1725,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepDone: n => `✅ ${n} Segment(e) entlang des Tracks ausgewählt.`,
             sweepStopped: n => `⏹ Abgebrochen — ${n} Segment(e) ausgewählt.`,
             sweepConfirm: (a,km) => `Dieser Track ist ~${km} km lang (${a} Kartenbewegungen). Die Abtastung kann etwas dauern und verschiebt die Ansicht. Fortfahren?`,
+            lotsBtnTitle:'Langen Track in Sperr-Pakete aufteilen (verschiebt die Karte)',
+            lotsNeedConfig:'⚠️ Richten Sie zuerst die Sperrung im Reiter Einrichten ein (Zeitraum, Uhrzeiten, Richtung…), dann erneut versuchen.',
+            lotsConfirm: n => `Dieser Track wird in ${n} Paket(e) aufgeteilt. Die Karte bewegt sich automatisch, um jeden Bereich zu laden — das ist normal und kann etwas dauern. Die Sperrungen in der Warteschlange erzeugen?`,
+            lotsProgress: (done,total,added,seg) => `Aufteilung in Pakete… ${done}/${total} — ${added} Paket(e), ${seg} Segment(e)`,
+            lotsWhyMoving:'Die Karte bewegt sich, um die Segmente jedes Pakets zu laden. Bewegen Sie die Karte währenddessen nicht.',
+            lotsDone: (added,seg) => `✅ ${added} Paket(e) zur Warteschlange hinzugefügt (${seg} Segment(e)). Reiter Einrichten zum Prüfen und Anwenden.`,
+            lotsStopped: (added,seg) => `⏹ Abgebrochen — ${added} Paket(e) bereits in der Warteschlange (${seg} Segment(e)).`,
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -1953,6 +1974,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sweepDone: n => `✅ ${n} segmento(s) seleccionado(s) a lo largo de la traza.`,
             sweepStopped: n => `⏹ Interrumpido — ${n} segmento(s) seleccionado(s).`,
             sweepConfirm: (a,km) => `Esta traza mide ~${km} km (${a} movimientos de mapa). El barrido puede tardar y moverá la vista. ¿Continuar?`,
+            lotsBtnTitle:'Dividir una traza larga en lotes de cierre (desplaza el mapa)',
+            lotsNeedConfig:'⚠️ Configura primero el cierre en la pestaña Configurar (periodo, horas, sentido…), luego vuelve a intentarlo.',
+            lotsConfirm: n => `Esta traza se dividirá en ${n} lote(s). El mapa se moverá automáticamente para cargar cada zona — es normal y puede tardar un poco. ¿Generar los cierres en la cola?`,
+            lotsProgress: (done,total,added,seg) => `Dividiendo en lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
+            lotsWhyMoving:'El mapa se mueve para cargar los segmentos de cada lote. No toques el mapa durante la operación.',
+            lotsDone: (added,seg) => `✅ ${added} lote(s) añadidos a la cola (${seg} segmento(s)). Ve a la pestaña Configurar para revisar y aplicar.`,
+            lotsStopped: (added,seg) => `⏹ Interrumpido — ${added} lote(s) ya en la cola (${seg} segmento(s)).`,
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2195,6 +2223,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
             sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
             sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai mover a visualização. Continuar?`,
+            lotsBtnTitle:'Dividir um trajeto longo em lotes de bloqueio (move o mapa)',
+            lotsNeedConfig:'⚠️ Configure primeiro o bloqueio na aba Configurar (período, horários, sentido…), depois tente de novo.',
+            lotsConfirm: n => `Este trajeto será dividido em ${n} lote(s). O mapa vai se mover automaticamente para carregar cada área — é normal e pode demorar um pouco. Gerar os bloqueios na fila?`,
+            lotsProgress: (done,total,added,seg) => `Dividindo em lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
+            lotsWhyMoving:'O mapa se move para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
+            lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja a aba Configurar para revisar e aplicar.`,
+            lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2437,6 +2472,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
             sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
             sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai deslocar a vista. Continuar?`,
+            lotsBtnTitle:'Dividir um trajeto longo em lotes de corte (desloca o mapa)',
+            lotsNeedConfig:'⚠️ Configure primeiro o corte no separador Configurar (período, horas, sentido…), depois tente novamente.',
+            lotsConfirm: n => `Este trajeto será dividido em ${n} lote(s). O mapa vai deslocar-se automaticamente para carregar cada área — é normal e pode demorar um pouco. Gerar os cortes na fila?`,
+            lotsProgress: (done,total,added,seg) => `A dividir em lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
+            lotsWhyMoving:'O mapa desloca-se para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
+            lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja o separador Configurar para rever e aplicar.`,
+            lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -5096,6 +5138,130 @@ const traceSweepSelect = async (fileId) => {
     updateFab(); updateCountryInfo();
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  MODE LOTS : tracé trop long pour tenir en mémoire → découpe en lots
+// ═══════════════════════════════════════════════════════════════════════════
+// WME n'expose qu'une vue à la fois (~3×2 km à zoom 16, mesuré). Un long tracé est
+// donc découpé en LOTS dont la bbox tient dans une vue : chacun devient une entrée de
+// file autonome, applicable en une fois une fois la carte recadrée dessus (brique 2).
+const SWEEP_LOT_KM = 2.5; // bbox maximale d'un lot (marge sous une vue zoom 16)
+
+// Découpe les points en lots dont la bbox reste sous SWEEP_LOT_KM → [{pts, bbox}]
+const _sweepLots = (pts) => {
+    const lots = [];
+    const mLat = 110540;
+    let cur = [pts[0]], minLat=pts[0][0], maxLat=pts[0][0], minLon=pts[0][1], maxLon=pts[0][1];
+    const kmOf = (a,b,c,d) => {
+        const mLon = Math.cos(((a+b)/2)*Math.PI/180)*111320;
+        return { w:((d-c)*mLon)/1000, h:((b-a)*mLat)/1000 };
+    };
+    for(let i=1;i<pts.length;i++){
+        const p = pts[i];
+        const nMinLat=Math.min(minLat,p[0]), nMaxLat=Math.max(maxLat,p[0]);
+        const nMinLon=Math.min(minLon,p[1]), nMaxLon=Math.max(maxLon,p[1]);
+        const {w,h} = kmOf(nMinLat,nMaxLat,nMinLon,nMaxLon);
+        if((w>SWEEP_LOT_KM || h>SWEEP_LOT_KM) && cur.length>=2){
+            lots.push({ pts:cur, bbox:{minLat,maxLat,minLon,maxLon} });
+            // Nouveau lot amorcé sur le dernier segment (continuité du tracé)
+            cur = [pts[i-1], p];
+            minLat=Math.min(pts[i-1][0],p[0]); maxLat=Math.max(pts[i-1][0],p[0]);
+            minLon=Math.min(pts[i-1][1],p[1]); maxLon=Math.max(pts[i-1][1],p[1]);
+        } else {
+            cur.push(p);
+            minLat=nMinLat; maxLat=nMaxLat; minLon=nMinLon; maxLon=nMaxLon;
+        }
+    }
+    if(cur.length>=2) lots.push({ pts:cur, bbox:{minLat,maxLat,minLon,maxLon} });
+    return lots;
+};
+
+const _sweepShowLotProgress = (done, total, added, seg) => {
+    const p = _sweepPanel(); if(!p) return;
+    p.style.display = 'block';
+    const pct = total ? Math.round(done*100/total) : 0;
+    p.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+        <b style="flex:1">${escHtml(t('lotsProgress', done, total, added, seg))}</b>
+        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
+      </div>
+      <div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:4px">${escHtml(t('lotsWhyMoving'))}</div>
+      <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
+    p.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
+};
+
+// Découpe le tracé en lots et crée une entrée de file par lot, avec la config
+// courante de l'onglet Configurer. La carte se déplace lot par lot pour charger
+// les segments à capter. N'applique RIEN (les fermetures sont posées en brique 2).
+const traceGenerateLots = async (fileId) => {
+    if(_sweepRunning) return;
+    // 1) La config doit être réglée dans l'onglet Configurer (période/horaires…)
+    const rc = await buildClosureList();
+    if(rc.error || !rc.list.length){
+        _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotsNeedConfig'))}</span>`);
+        // Amener l'utilisateur au bon endroit
+        document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
+        return;
+    }
+    const cfg = readConfig();
+
+    // 2) Points du tracé → lots
+    let pts = [];
+    _traceTracks.filter(tk => tk.fileId === fileId).forEach(tk => { if(tk.sampledPts?.length) pts = pts.concat(tk.sampledPts); });
+    if(pts.length < 2){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('covNoPts'))}</span>`); return; }
+    const lots = _sweepLots(pts);
+    if(!confirm(t('lotsConfirm', lots.length))) return;
+
+    // 3) Balayage lot par lot : un recadrage par lot suffit (le lot tient dans la vue)
+    _sweepRunning = true; _sweepAborted = false;
+    _covClearGaps();
+    const savedCenter = sdk.Map.getMapCenter();
+    const savedZoom   = sdk.Map.getZoomLevel();
+    _sweepShowLotProgress(0, lots.length, 0, 0);
+
+    let added = 0, totalSeg = 0;
+    try {
+        for(let k=0;k<lots.length;k++){
+            if(_sweepAborted) break;
+            const lot = lots[k];
+            sdk.Map.setMapCenter({lonLat:{lon:(lot.bbox.minLon+lot.bbox.maxLon)/2, lat:(lot.bbox.minLat+lot.bbox.maxLat)/2}, zoomLevel:SWEEP_ZOOM});
+            await _sweepSleep(SWEEP_SETTLE_MS);
+            await waitMapLoaded();
+            await _sweepSleep(120);
+            if(_sweepAborted) break;
+            // Matcher les segments empruntés dans ce lot
+            const cand = _covCandidateSegments(_covBBox(lot.pts), 0.0008);
+            const acc = _covNewAcc();
+            if(cand.length){
+                const index = _covBuildIndex(cand);
+                _covAccumulate(_covDensify(lot.pts, COVERAGE_DENSIFY_M), index, acc);
+            }
+            const lotSegIds = _covFinalizeUsed(acc);
+            if(lotSegIds.length){
+                const dirConflicts = getSegDirConflicts(lotSegIds, parseInt(cfg.direction));
+                const validIds = lotSegIds.filter(id => !dirConflicts.find(c => c.sid === Number(id)));
+                if(validIds.length){
+                    const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:added+1, label:`📦 ${cfg.reason||t('defaultClosure')} · #${added+1}`};
+                    if(dirConflicts.length) entry.excludedSegs = dirConflicts;
+                    // Les segments viennent d'être chargés (carte centrée) → sains à cet instant
+                    entry.nullSegs = new Set(); entry.recentSegs = new Set();
+                    queue.push(entry);
+                    added++; totalSeg += validIds.length;
+                    renderQueue();
+                }
+            }
+            _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
+        }
+    } catch(e){ log('lots error: '+e.message); }
+
+    // 4) Rendre la vue de départ + bilan
+    try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
+    const aborted = _sweepAborted;
+    _sweepRunning = false;
+    const color = aborted ? '#f57c00' : 'var(--wct-green,#2e7d32)';
+    _sweepShowText(`<div style="color:${color};font-weight:600">${escHtml(t(aborted?'lotsStopped':'lotsDone', added, totalSeg))}</div>`);
+    showToast(t(aborted?'lotsStopped':'lotsDone', added, totalSeg), 4000, aborted?'#f57c00':'#43a047');
+    updateFab(); updateCountryInfo();
+};
+
 const traceUpdateStripCtrl = () => {
     const ctrl = document.getElementById('wct-gpx-layer-ctrl');
     const chk  = document.getElementById('wct-gpx-layer-chk');
@@ -5156,7 +5322,7 @@ const traceRenderTable = () => {
             <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-lots wct-ico" data-fid="${file.fileId}" title="${t('lotsBtnTitle')}">📦</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
             <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
@@ -5190,7 +5356,7 @@ const traceRenderTable = () => {
             <col style="width:48px">
             <col style="width:32px">
             <col style="width:18px">
-            <col style="width:52px">
+            <col style="width:76px">
             <col style="width:28px">
             <col style="width:22px">
         </colgroup>
@@ -5257,6 +5423,10 @@ const traceRenderTable = () => {
     // Balayage : sélectionner les segments du tracé (niveau fichier)
     container.querySelectorAll('.wct-trace-file-sel').forEach(btn => {
         btn.addEventListener('click', e => { e.stopPropagation(); traceSweepSelect(e.currentTarget.dataset.fid); });
+    });
+    // Mode lots : découper un long tracé en lots de fermeture (niveau fichier)
+    container.querySelectorAll('.wct-trace-file-lots').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); traceGenerateLots(e.currentTarget.dataset.fid); });
     });
     // Suppression track
     container.querySelectorAll('.wct-trace-trk-del').forEach(btn => {
@@ -5676,7 +5846,7 @@ const buildQueueCard=(entry,idx)=>{
     // État plié/déplié mémorisé sur l'entrée (persistant entre les re-render).
     // Premier affichage : suit la préférence "cartes pliées par défaut".
     if(entry.collapsed===undefined) entry.collapsed=_cardsCollapsedDefault;
-    const SRC_COLOR={cfg:'#2196f3',csv:'#43a047',pre:'#f57c00'};
+    const SRC_COLOR={cfg:'#2196f3',csv:'#43a047',pre:'#f57c00',sweep:'#8e24aa'};
     const color=SRC_COLOR[entry.source]||'#2196f3';
     const dir=dirStr(parseInt(entry.config.direction));
     const it=entry.config.ignoretraffic;
