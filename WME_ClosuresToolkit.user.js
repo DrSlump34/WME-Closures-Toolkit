@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.73.00
+// @version      0.73.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -55,7 +55,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.73.00';
+const VERSION     = '0.73.01';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -1209,6 +1209,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             multiCountryAlert: cc => `\u26A0\uFE0F S\u00e9lection multi-pays (${cc}).\nImpossible d\u2019utiliser le filtre jours f\u00e9ri\u00e9s.\nD\u00e9s\u00e9lectionnez les segments d\u2019un seul pays.`,
             // CSV import log
             csvAdded: (ok,ko) => `\u2705 ${ok} fermeture(s) ajout\u00e9e(s) \u00e0 la file${ko?', '+ko+' erreur(s)':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L'import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
+            csvImportCancelled:'Import annulé.',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1446,6 +1448,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `\u26A0\uFE0F Multi-country selection (${cc}).\nCannot use public holiday filter.\nDeselect segments from one country only.`,
             // CSV import log
             csvAdded: (ok,ko) => `\u2705 ${ok} closure(s) added to queue${ko?', '+ko+' error(s)':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ This file contains ${seg} segments across ${rows} rows. Importing large volumes can slow the browser down, and WME will only close segments loaded in the current view. Continue?`,
+            csvImportCancelled:'Import cancelled.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1682,6 +1686,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `\u26A0\uFE0F Auswahl \u00FCber mehrere L\u00E4nder (${cc}).\nDer Feiertagsfilter kann nicht verwendet werden.\nW\u00E4hle Segmente aus nur einem Land ab.`,
             // CSV-Importprotokoll
             csvAdded: (ok,ko) => `\u2705 ${ok} Sperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Fehler':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ Diese Datei enthält ${seg} Segmente in ${rows} Zeilen. Der Import großer Mengen kann den Browser verlangsamen, und WME schließt nur Segmente, die in der aktuellen Ansicht geladen sind. Fortfahren?`,
+            csvImportCancelled:'Import abgebrochen.',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -1917,6 +1923,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             multiCountryAlert: cc => `⚠️ Selección en varios países (${cc}).\nNo se puede usar el filtro de festivos.\nDeja seleccionados solo los segmentos de un único país.`,
             // Registro de importación CSV
             csvAdded: (ok,ko) => `✅ ${ok} cierre(s) añadido(s) a la cola${ko?', '+ko+' error(es)':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ Este archivo contiene ${seg} segmentos en ${rows} filas. Importar grandes volúmenes puede ralentizar el navegador, y WME solo cerrará los segmentos cargados en la vista actual. ¿Continuar?`,
+            csvImportCancelled:'Importación cancelada.',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2152,6 +2160,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível usar o filtro de feriados.\nDesmarque os segmentos para manter apenas um país.`,
             // Log de importação CSV
             csvAdded: (ok,ko) => `✅ ${ok} bloqueio(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ Este arquivo contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode deixar o navegador lento, e o WME só vai bloquear os segmentos carregados na visualização atual. Continuar?`,
+            csvImportCancelled:'Importação cancelada.',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2387,6 +2397,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível utilizar o filtro de feriados.\nMantenha selecionados apenas os segmentos de um único país.`,
             // CSV import log
             csvAdded: (ok,ko) => `✅ ${ok} corte(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ Este ficheiro contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode tornar o navegador lento, e o WME só vai cortar os segmentos carregados na vista atual. Continuar?`,
+            csvImportCancelled:'Importação cancelada.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -6210,6 +6222,11 @@ const connectOverlay=ov=>{
     renderPresetsTable();refreshMTE();refreshSmallPreview();renderQueue();
 };
 
+// Au-delà de ce total de segments cumulés, l'import CSV demande confirmation : le
+// parsing + la détection de conflits de sens sont synchrones (thread principal), donc
+// un très gros fichier peut figer l'onglet. Seuil volontairement haut : ~1000 segments
+// par import est un usage courant (fermetures de marché hebdomadaires) à ne pas gêner.
+const CSV_WARN_SEGMENTS=2500;
 const CSV_RE=[/.*/,/.*/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
     /(^A to B$)|(^B to A$)|(^TWO WAY$)/,/(Yes)|(No)/,/^(\d+(;|$))+/,
     /(lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*))|(lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*))/,/^\d+$/,/.*/];
@@ -6250,6 +6267,13 @@ const handleCSV=files=>{
             if(logEl) logEl.style.display='block';
             const items=parseCSV(e.target.result);
             if(!items){if(logEl)logEl.innerHTML='❌ CSV invalide.';return;}
+            // Garde-fou volume : avertir avant d'ajouter un très gros lot (freeze possible).
+            const valid=items.filter(it=>it.closure.isValid);
+            const totalSeg=valid.reduce((s,it)=>s+it.closure.segIDs.length,0);
+            if(totalSeg>CSV_WARN_SEGMENTS && !confirm(t('csvBigConfirm',totalSeg,valid.length))){
+                if(logEl)logEl.innerHTML=t('csvImportCancelled');
+                return;
+            }
             let added=0,errors=0;
             items.forEach(it=>{
                 if(!it.closure.isValid){errors++;return;}
