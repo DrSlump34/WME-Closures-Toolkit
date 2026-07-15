@@ -1242,6 +1242,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotSelecting: (i,n) => `Lot ${i}/${n} : chargement des segments…`,
             lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
             lotNone:'Aucun segment capté dans ce lot.',
+            lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
+            lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             // Détail entrée file
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} fermeture(s) \u00b7 ${dir} \u00b7 ${time}`,
             // Sidebar
@@ -1504,6 +1506,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelecting: (i,n) => `Batch ${i}/${n}: loading segments…`,
             lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
             lotNone:'No segment captured in this batch.',
+            lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
+            lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg \u00b7 ${cl} closure(s) \u00b7 ${dir} \u00b7 ${time}`,
             sbHint:'Select segments on the map, then click the \uD83D\uDEA7 button on the map to open the tool.',
@@ -1765,6 +1769,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelecting: (i,n) => `Paket ${i}/${n}: Segmente werden geladen…`,
             lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
             lotNone:'Kein Segment in diesem Paket erfasst.',
+            lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
+            lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             // Detail eines Warteschlangeneintrags
             entryDetail: (segs,cl,dir,time) => `${segs} Seg \u00B7 ${cl} Sperrung(en) \u00B7 ${dir} \u00B7 ${time}`,
             sbHint:'W\u00E4hle Segmente auf der Karte aus und klicke dann auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte, um das Werkzeug zu \u00F6ffnen.',
@@ -2025,6 +2031,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotSelecting: (i,n) => `Lote ${i}/${n}: cargando segmentos…`,
             lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
             lotNone:'Ningún segmento captado en este lote.',
+            lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
+            lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             // Detalle de entrada de la cola
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} cierre(s) · ${dir} · ${time}`,
             sbHint:'Selecciona segmentos en el mapa y haz clic en el botón 🚧 del mapa para abrir la herramienta.',
@@ -2285,6 +2293,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotSelecting: (i,n) => `Lote ${i}/${n}: carregando segmentos…`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
+            lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             // Detalhe de entrada da fila
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} bloqueio(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 sobre o mapa para abrir a ferramenta.',
@@ -2545,6 +2555,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotSelecting: (i,n) => `Lote ${i}/${n}: a carregar segmentos…`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
+            lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             // Queue entry detail
             entryDetail: (segs,cl,dir,time) => `${segs} seg · ${cl} corte(s) · ${dir} · ${time}`,
             sbHint:'Selecione segmentos no mapa e clique no botão 🚧 do mapa para abrir a ferramenta.',
@@ -6643,6 +6655,14 @@ const connectOverlay=ov=>{
             return;
         }
         const entry={...makeEntry(validIds,cfg,rc.list),source:'cfg'};
+        // Pont Tracés → Configurer → file : si la sélection vient d'un lot, l'entrée
+        // porte la bbox du lot (pour le recadrage à l'application) et devient 'sweep'.
+        const _lotCtx=(()=>{ if(!_currentLot) return null; const trk=_traceTracks.find(t=>t.trackId===_currentLot.trackId); const lot=trk?.lots?.[_currentLot.lotIdx-1]; return (trk&&lot)?{trk,lot}:null; })();
+        if(_lotCtx){
+            entry.source='sweep';
+            entry.lotBbox=_lotCtx.lot.bbox;
+            entry.label=`📦 ${cfg.reason||t('defaultClosure')} · ${t('lotRowLabel',_lotCtx.lot.idx,_lotCtx.trk.lots.length)}`;
+        }
         if(dirConflicts.length) entry.excludedSegs=dirConflicts;
         // Détecter les segments absents du data model (ex. modif récente non propagée)
         entry.nullSegs=new Set(validIds.map(Number).filter(id=>getSegById(id)===null));
@@ -6662,6 +6682,16 @@ const connectOverlay=ov=>{
         const goodSegs=validIds.length-badSegs;
         const toastColor=goodSegs===0?'#e53935':badSegs>0?'#f57c00':'#43a047';
         showToast(t('toastOk',rc.list.length,goodSegs,badSegs),3000,toastColor);
+        // Lot validé : le marquer configuré, revenir aux Tracés, pointer le lot suivant
+        if(_lotCtx){
+            _lotCtx.lot.status='configured';
+            _currentLot=null;
+            traceRenderTable();
+            document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="gpx"]')?.click();
+            const next=_lotCtx.trk.lots.find(l=>l.status==='todo');
+            if(next){ _lotFocus(next); showToast(t('lotNextHint',next.idx,_lotCtx.trk.lots.length),3500,'#8e24aa'); }
+            else showToast(t('lotsAllDone'),4000,'#43a047');
+        }
     });
 
     // Popup preset
