@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.74.00
+// @version      0.74.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -55,7 +55,7 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.74.00';
+const VERSION     = '0.74.01';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -265,6 +265,14 @@ GM_addStyle(`
 .wct-btn-sm { padding: 0.333em 0.75em; font-size: 0.833em; }
 .wct-btn-full { width: 100%; justify-content: center; margin-top: 4px; }
 .wct-btn-dis { opacity: .4; cursor: not-allowed; pointer-events: none; }
+/* Boutons-icône (tableau des tracés) : pas de bulle, emoji lisible */
+.wct-ico { background: transparent; border: none; border-radius: 0; box-shadow: none;
+    padding: 1px 3px; margin: 0; cursor: pointer; font-size: 1.35em; line-height: 1;
+    vertical-align: middle; transition: transform .1s; }
+.wct-ico:hover { transform: scale(1.18); filter: none; background: transparent; }
+.wct-ico:active { transform: scale(.9); }
+#wct-overlay.wct-compact .wct-ico { background: transparent; border: none; }
+#wct-overlay.wct-compact .wct-ico:hover { background: transparent; }
 .wct-btn-row { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
 
 /* Form */
@@ -5148,8 +5156,8 @@ const traceRenderTable = () => {
             <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
-            <td><button class="wct-trace-file-del wct-btn wct-btn-sm" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button></td>
+            <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
 
         // Lignes enfants — masquées si replié
@@ -5166,8 +5174,8 @@ const traceRenderTable = () => {
                 <td style="text-align:right;color:#2e7d32">${okCount>0?okCount:'—'}</td>
                 <td class="wct-gpx-swatch-cell"><span class="wct-gpx-swatch" data-tid="${trk.trackId}" style="background:${trk.color}" title="${t('trkTipColor')}"></span></td>
                 <td class="wct-gpx-err ${errCount>0?'wct-gpx-has-err':''}" title="${escHtml(errTip)}">${errCount>0?'⚠️ '+errCount:'✅'}</td>
-                <td><button class="wct-trace-trk-pos wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
-                <td><button class="wct-trace-trk-del wct-btn wct-btn-sm" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑</button></td>
+                <td><button class="wct-trace-trk-pos wct-ico" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
+                <td><button class="wct-trace-trk-del wct-ico" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑</button></td>
             </tr>`;
         });
     });
@@ -5182,8 +5190,8 @@ const traceRenderTable = () => {
             <col style="width:48px">
             <col style="width:32px">
             <col style="width:18px">
-            <col style="width:46px">
-            <col style="width:22px">
+            <col style="width:52px">
+            <col style="width:28px">
             <col style="width:22px">
         </colgroup>
         <thead style="position:sticky;top:0;z-index:2;background:var(--wct-bg)">
