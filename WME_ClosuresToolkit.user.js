@@ -5395,15 +5395,21 @@ const traceGenerateLots = async (fileId) => {
 // lot, lu par le bouton Valider (pont Tracés → Configurer → file).
 let _currentLot = null;
 
-// Cadre la carte sur la bbox d'un lot (zoom d'englobement) — bouton « Afficher ».
+// Cadre la carte sur la bbox d'un lot, DANS la zone libre (hors overlay) et sans
+// descendre sous le zoom 15 : en dessous, WME décharge segments ET fermetures — ce qui
+// rendait le lot invisible sous le panneau et cassait la détection de chevauchement.
 const _lotFocus = (lot) => {
     const b = lot.bbox;
-    const dLon = Math.max(b.maxLon-b.minLon, 0.0008), dLat = Math.max(b.maxLat-b.minLat, 0.0008);
-    const mapDiv = W.map?.div || document.getElementById('map');
-    const mapW = mapDiv ? mapDiv.offsetWidth : 800, mapH = mapDiv ? mapDiv.offsetHeight : 600;
-    const zoom = Math.max(13, Math.min(18, Math.floor(Math.min(
-        Math.log2((mapW*360)/(dLon*256)), Math.log2((mapH*360)/(dLat*256)))) - 1));
-    try{ sdk.Map.setMapCenter({lonLat:{lon:(b.minLon+b.maxLon)/2, lat:(b.minLat+b.maxLat)/2}, zoomLevel:zoom}); }catch(e){}
+    const cLon = (b.minLon+b.maxLon)/2, cLat = (b.minLat+b.maxLat)/2;
+    const dLon = Math.max(b.maxLon-b.minLon, 0.001), dLat = Math.max(b.maxLat-b.minLat, 0.001);
+    const { freeWidth, mapH } = _getMapFreeZone();      // largeur utile = hors overlay
+    const w = Math.max(freeWidth, 200), h = Math.max(mapH, 200);
+    const zoom = Math.max(15, Math.min(17, Math.floor(Math.min(
+        Math.log2((w*360)/(dLon*256)), Math.log2((h*360)/(dLat*256))))));
+    try{
+        sdk.Map.setMapCenter({lonLat:{lon:cLon, lat:cLat}, zoomLevel:zoom});
+        setTimeout(() => _shiftCenterToFreeZone(cLon, cLat), 160); // décale dans la zone visible
+    }catch(e){}
 };
 
 // Sélectionne les segments d'un lot : recadre à zoom 16 (le lot tient dans la vue →
