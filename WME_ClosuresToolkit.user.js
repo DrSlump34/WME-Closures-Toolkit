@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.78.02
+// @version      0.79.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1136,6 +1136,15 @@ const t = (key, ...args) => {
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} fermeture(s) de virage export\u00E9e(s).`,
             srcNothingFound:'Rien \u00E0 exporter : lance d\u2019abord une recherche.',
             srcViewOnly:'\u2139 La recherche ne voit que ce qui est charg\u00E9 dans la VUE COURANTE. Un export d\u00E9crit donc cette vue, pas une zone enti\u00E8re.',
+            // Source (partenaire) d'une fermeture
+            lblSource:'Source (partenaire)', srcSelNone:'Aucune',
+            tipSource:'Attribuer la fermeture \u00E0 un partenaire, comme le fait le formulaire natif de WME. La liste d\u00E9pend de la zone affich\u00E9e. Laisser \u00AB Aucune \u00BB pour une fermeture d\u2019\u00E9diteur.',
+            srcSelTurn:'Sans objet pour une fermeture de virage : la Source est un champ de fermeture de segment.',
+            srcSelOff_flag:'Indisponible : ton compte n\u2019a pas le statut partenaire (c\u2019est WME qui l\u2019accorde, pas WCT).',
+            srcSelOff_feature:'Indisponible : WME a d\u00E9sactiv\u00E9 l\u2019API des partenaires sur ce serveur.',
+            srcSelOff_api:'Indisponible : la liste des partenaires n\u2019a pas pu \u00EAtre charg\u00E9e.',
+            srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
+            srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
             srcNoClosures:'Aucune fermeture charg\u00E9e dans la vue courante.',
             srcResults: n => `${n} segment(s) trouv\u00E9(s)`,
             srcBtnGoCfg:'\u2699 Basculer vers Configurer',
@@ -1494,6 +1503,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} turn closure(s) exported.`,
             srcNothingFound:'Nothing to export: run a search first.',
             srcViewOnly:'\u2139 The search only sees what is loaded in the CURRENT VIEW. An export therefore describes that view, not a whole area.',
+            // Closure source (partner)
+            lblSource:'Source (partner)', srcSelNone:'None',
+            tipSource:'Attribute the closure to a partner, exactly as WME\u2019s native form does. The list depends on the area in view. Leave "None" for an editor closure.',
+            srcSelTurn:'Not applicable to a turn closure: Source is a segment-closure field.',
+            srcSelOff_flag:'Unavailable: your account does not have partner status (WME grants it, not WCT).',
+            srcSelOff_feature:'Unavailable: WME has disabled the partners API on this server.',
+            srcSelOff_api:'Unavailable: the partner list could not be loaded.',
+            srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
+            srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
             srcNoClosures:'No closures loaded in the current view.',
             srcResults: n => `${n} segment(s) found`,
             srcBtnGoCfg:'\u2699 Switch to Configure',
@@ -1838,6 +1856,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} Abbiegersperrung(en) exportiert.`,
             srcNothingFound:'Nichts zu exportieren: starte zuerst eine Suche.',
             srcViewOnly:'\u2139 Die Suche sieht nur, was in der AKTUELLEN ANSICHT geladen ist. Ein Export beschreibt daher diese Ansicht, kein ganzes Gebiet.',
+            // Quelle (Partner) einer Sperrung
+            lblSource:'Quelle (Partner)', srcSelNone:'Keine',
+            tipSource:'Die Sperrung einem Partner zuschreiben, genau wie das native WME-Formular. Die Liste h\u00E4ngt vom angezeigten Gebiet ab. F\u00FCr eine Editor-Sperrung \u00ABKeine\u00BB lassen.',
+            srcSelTurn:'F\u00FCr eine Abbiegersperrung ohne Bedeutung: die Quelle ist ein Feld der Segmentsperrung.',
+            srcSelOff_flag:'Nicht verf\u00FCgbar: dein Konto hat keinen Partnerstatus (den vergibt WME, nicht WCT).',
+            srcSelOff_feature:'Nicht verf\u00FCgbar: WME hat die Partner-API auf diesem Server deaktiviert.',
+            srcSelOff_api:'Nicht verf\u00FCgbar: die Partnerliste konnte nicht geladen werden.',
+            srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
+            srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
             srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
             srcResults: n => `${n} Segment(e) gefunden`,
             srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
@@ -2181,6 +2208,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} cierre(s) de giro exportado(s).`,
             srcNothingFound:'Nada que exportar: lanza primero una b\u00FAsqueda.',
             srcViewOnly:'\u2139 La b\u00FAsqueda solo ve lo que est\u00E1 cargado en la VISTA ACTUAL. Una exportaci\u00F3n describe por tanto esa vista, no una zona entera.',
+            // Fuente (socio) de un cierre
+            lblSource:'Fuente (socio)', srcSelNone:'Ninguna',
+            tipSource:'Atribuir el cierre a un socio, igual que hace el formulario nativo de WME. La lista depende de la zona mostrada. Deja \u00ABNinguna\u00BB para un cierre de editor.',
+            srcSelTurn:'No aplicable a un cierre de giro: la Fuente es un campo del cierre de segmento.',
+            srcSelOff_flag:'No disponible: tu cuenta no tiene estado de socio (lo concede WME, no WCT).',
+            srcSelOff_feature:'No disponible: WME ha desactivado la API de socios en este servidor.',
+            srcSelOff_api:'No disponible: no se ha podido cargar la lista de socios.',
+            srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
+            srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
             srcNoClosures:'No hay cierres cargados en la vista actual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Cambiar a Configurar',
@@ -2524,6 +2560,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} bloqueio(s) de convers\u00E3o exportado(s).`,
             srcNothingFound:'Nada para exportar: fa\u00E7a uma pesquisa primeiro.',
             srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISUALIZA\u00C7\u00C3O ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa visualiza\u00E7\u00E3o, n\u00E3o uma \u00E1rea inteira.',
+            // Fonte (parceiro) de um bloqueio
+            lblSource:'Fonte (parceiro)', srcSelNone:'Nenhuma',
+            tipSource:'Atribuir o bloqueio a um parceiro, igual ao formul\u00E1rio nativo do WME. A lista depende da \u00E1rea exibida. Deixe \u00ABNenhuma\u00BB para um bloqueio de editor.',
+            srcSelTurn:'N\u00E3o se aplica a um bloqueio de convers\u00E3o: a Fonte \u00E9 um campo do bloqueio de segmento.',
+            srcSelOff_flag:'Indispon\u00EDvel: sua conta n\u00E3o tem status de parceiro (quem concede \u00E9 o WME, n\u00E3o o WCT).',
+            srcSelOff_feature:'Indispon\u00EDvel: o WME desativou a API de parceiros neste servidor.',
+            srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
+            srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
+            srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Ir para Configurar',
@@ -2867,6 +2912,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} corte(s) de viragem exportado(s).`,
             srcNothingFound:'Nada para exportar: faz primeiro uma pesquisa.',
             srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISTA ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa vista, n\u00E3o uma \u00E1rea inteira.',
+            // Fonte (parceiro) de um corte
+            lblSource:'Fonte (parceiro)', srcSelNone:'Nenhuma',
+            tipSource:'Atribuir o corte a um parceiro, tal como faz o formul\u00E1rio nativo do WME. A lista depende da \u00E1rea apresentada. Deixa \u00ABNenhuma\u00BB para um corte de editor.',
+            srcSelTurn:'N\u00E3o se aplica a um corte de viragem: a Fonte \u00E9 um campo do corte de segmento.',
+            srcSelOff_flag:'Indispon\u00EDvel: a tua conta n\u00E3o tem estatuto de parceiro (\u00E9 o WME que o concede, n\u00E3o o WCT).',
+            srcSelOff_feature:'Indispon\u00EDvel: o WME desativou a API de parceiros neste servidor.',
+            srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
+            srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
+            srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             srcNoClosures:'Nenhum corte carregado na vista atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Mudar para Configurar',
@@ -4232,6 +4286,9 @@ const readConfig=()=>({
     reason:$id('wct-reason')?.value||'',
     direction:$id('wct-direction')?.value||'3',ignoretraffic:$id('wct-ignoretraffic')?.checked||false,
     mteId:$id('wct-mtesel')?.value||'',
+    // Source : jamais lue si la capacité est tombée — sinon une valeur restée dans le DOM
+    // pourrait repartir alors que le sélecteur est grisé.
+    partnerId:(_srcCap.ok && !_currentTurns) ? ($id('wct-sourcesel')?.value||'') : '',
     holidayMode:($id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none'),
     days:[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c?.classList.contains('on')||false;}),
     activeTab:document.querySelector('#wct-body .wct-pane.on')?.id||'wct-tab-each',
@@ -4428,6 +4485,9 @@ const renderTurnBanner = () => {
             el.classList.toggle('wct-na', !!_currentTurns);
             if (_currentTurns) el.title = t('tnNotApplicable'); else el.removeAttribute('title');
         });
+    // La Source est un champ de fermeture de SEGMENT : renderSourceSel gère seul son
+    // grisage, en tenant compte à la fois de la cible et de la capacité.
+    renderSourceSel();
     if (!_currentTurns) return;
     const el = make('div');
     el.id = 'wct-tn-banner';
@@ -4474,6 +4534,133 @@ const updateActionBtns=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  MTE
 // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+//  SOURCE (PARTENAIRE) D'UNE FERMETURE
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️⚠️ SEULE PARTIE DE WCT QUI SORT DU SDK. Le SDK n'expose la Source NI EN
+// ECRITURE NI EN LECTURE (verifie en live : une fermeture qui porte un provider
+// cote modele ressort du SDK sans le champ). On passe donc par le modele interne
+// de WME, non documente et susceptible de changer sans preavis.
+//
+// Anatomie, relevee sur des fermetures partenaires reelles (Le Mans, Nice) :
+//   provider     : "Métropole Nice Cote d'Azur"        <- nom affiche
+//   attributions : [{ partnerId:"19997508962", idInProvider:null, feedId:null,
+//                     credit:"<nom>", contributionTime:<ms>,
+//                     channel:"WME_PARTNER_EDITOR", userChannel:"PARTNER" }]
+//
+// Ecriture VERIFIEE EN PRODUCTION le 2026-07-16 : addClosure du SDK, puis patch de
+// provider/attributions sur l'objet du modele AVANT save(). Le serveur retient tout,
+// a l'identique de ce que produit le formulaire natif. NB : c'est le CLIENT qui
+// dicte channel/userChannel — d'ou la regle : on reproduit exactement ce que fait le
+// formulaire natif, on n'invente rien.
+//
+// La liste des partenaires est servie PAR EMPRISE (bbox) : les partenaires de Nice
+// ne sont pas ceux du Mans. Elle n'est nulle part dans W — seul cet appel la donne.
+const PARTNERS_URL = env => `/${env}-Descartes/app/Partners`;
+const PARTNER_CHANNEL = 'WME_PARTNER_EDITOR';
+const PARTNER_USER_CHANNEL = 'PARTNER';
+
+// Capacite : {ok:bool, reason:'flag'|'feature'|'api'|'schema'|null}
+// Le PREMIER verrou qui tombe desactive la Source, avec sa cause. Tout le reste de
+// WCT continue de fonctionner : une fermeture ne doit JAMAIS partir avec une source
+// a moitie posee.
+let _srcCap = {ok:false, reason:'init', checked:false};
+const _wmeEnv = () => {
+    try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || (W?.Config?.server?.baseUrl?.match(/\/(\w+)-Descartes/)||[])[1] || 'row'; }
+    catch(e){ return 'row'; }
+};
+// Le schema du modele porte-t-il encore la Source ? Si WME renomme ou retire ces
+// champs, on le detecte ICI plutot qu'en silence a l'ecriture.
+const _srcSchemaOk = () => {
+    try{
+        const objs = Object.values(W.model?.roadClosures?.objects || {});
+        if(!objs.length) return true;   // rien a controler dans cette vue : on ne conclut pas
+        // Il suffit qu'UNE fermeture porte la forme attendue : les fermetures d'editeur
+        // ont provider:null, celles de partenaire une chaine — mais la CLE doit exister.
+        return objs.some(o => o.attributes && ('provider' in o.attributes) && ('attributions' in o.attributes));
+    }catch(e){ return false; }
+};
+const probeSourceCap = async () => {
+    _srcCap = {ok:false, reason:null, checked:true};
+    try{
+        if(W?.loginManager?.user?.attributes?.partnerUser !== true){ _srcCap.reason='flag'; return _srcCap; }
+        let cfg=null;
+        try{ cfg = await (await fetch(`/${_wmeEnv()}-Descartes/app/info/config`,{credentials:'include'})).json(); }catch(e){}
+        const ff = {...(cfg?.featureFlags||{}), ...(cfg?.frontendFeatureFlags||{})};
+        if(ff.GetPartnersAPI !== true){ _srcCap.reason='feature'; return _srcCap; }
+        if(!_srcSchemaOk()){ _srcCap.reason='schema'; return _srcCap; }
+        _srcCap.ok=true;
+    }catch(e){ _srcCap.reason='schema'; log('probeSourceCap: '+e.message); }
+    return _srcCap;
+};
+
+// Liste des partenaires de l'emprise courante. Cache court : la vue bouge souvent,
+// mais on ne veut pas rappeler l'API a chaque pan de 10 m.
+let _partners = [];              // [{id,name}]
+let _partnersBboxKey = null;
+const _bboxKey = b => b.map(x=>x.toFixed(3)).join(',');
+const loadPartners = async () => {
+    if(!_srcCap.ok) return [];
+    let b;
+    try{
+        const e = sdk.Map.getMapExtent();               // [minLon,minLat,maxLon,maxLat]
+        b = Array.isArray(e) ? e : [e.left,e.bottom,e.right,e.top];
+    }catch(err){ return _partners; }
+    const key=_bboxKey(b);
+    if(key===_partnersBboxKey) return _partners;        // meme emprise : rien a refaire
+    try{
+        const r = await fetch(`${PARTNERS_URL(_wmeEnv())}?bbox=${b.join(',')}`,{credentials:'include'});
+        if(!r.ok){ _srcCap={ok:false,reason:'api',checked:true}; renderSourceSel(); return []; }
+        const j = await r.json();
+        const list = j?.partnersList?.objects;
+        if(!Array.isArray(list)){ _srcCap={ok:false,reason:'api',checked:true}; renderSourceSel(); return []; }
+        _partners = list.filter(p=>p&&p.id&&p.name).map(p=>({id:String(p.id), name:String(p.name)}))
+                        .sort((a,b2)=>a.name.localeCompare(b2.name));
+        _partnersBboxKey = key;
+    }catch(e){ log('loadPartners: '+e.message); _srcCap={ok:false,reason:'api',checked:true}; renderSourceSel(); return []; }
+    return _partners;
+};
+
+// Rend le selecteur de Source (ou son message d'indisponibilite).
+const renderSourceSel = () => {
+    const wrap=$id('wct-source-wrap'); if(!wrap) return;
+    const sel=$id('wct-sourcesel'); if(!sel) return;
+    const prev=sel.value;
+    // Sans objet pour un virage : la Source est un champ de fermeture de SEGMENT.
+    const turnTarget = !!_currentTurns;
+    const dispo = _srcCap.ok && !turnTarget;
+    wrap.classList.toggle('wct-na', !dispo);
+    const why = turnTarget ? t('srcSelTurn')
+              : _srcCap.ok ? ''
+              : t('srcSelOff_'+(_srcCap.reason||'schema'));
+    wrap.title = dispo ? t('tipSource') : why;
+    const hint=$id('wct-source-hint');
+    if(hint){ hint.textContent = dispo ? '' : why; hint.style.display = dispo ? 'none' : 'block'; }
+    sel.disabled = !dispo;
+    sel.innerHTML = `<option value="">${escHtml(t('srcSelNone'))}</option>` +
+        _partners.map(p=>`<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`).join('');
+    if(prev && _partners.some(p=>p.id===prev)) sel.value=prev;
+};
+
+// Pose la Source sur les fermetures FRAICHEMENT creees (diff avant/apres addClosure).
+// Reproduit a l'identique ce que produit le formulaire natif.
+const _applyProviderTo = (nouvellesCles, partnerId) => {
+    const p=_partners.find(x=>x.id===String(partnerId));
+    if(!p) return 0;
+    let n=0;
+    for(const k of nouvellesCles){
+        const o=W.model?.roadClosures?.objects?.[k];
+        if(!o?.attributes) continue;
+        o.attributes.provider = p.name;
+        o.attributes.attributions = [{
+            partnerId: p.id, idInProvider: null, feedId: null, credit: p.name,
+            contributionTime: Date.now(), channel: PARTNER_CHANNEL, userChannel: PARTNER_USER_CHANNEL,
+        }];
+        n++;
+    }
+    return n;
+};
+
 const refreshMTE=()=>{
     const sel=$id('wct-mtesel');
     if(!sel) return;
@@ -5022,7 +5209,10 @@ const showPreview=()=>{
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const addClosure=(options,okCb,koCb)=>{
-    const{segments,reason,direction,startDate,endDate,permanent,eventId}=options;
+    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId}=options;
+    // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
+    // le diff est donc le seul moyen de retrouver les nôtres pour y poser la Source.
+    const _clesAvant = partnerId ? new Set(Object.keys(W?.model?.roadClosures?.objects||{})) : null;
     // startDate/endDate sont des Date locaux (depuis buildClosureList) ou des chaînes UTC (depuis CSV import)
     // Dans les deux cas, new Date() produit le bon timestamp absolu.
     const sd=new Date(startDate),ed=new Date(endDate);
@@ -5055,6 +5245,23 @@ const addClosure=(options,okCb,koCb)=>{
         }catch(e){loopErrors.push(`seg ${sid}: ${e.message}`);}
     }
     if(loopErrors.length>0){log('addClosure errors: '+loopErrors.join(' | '));}
+    // ─── SOURCE (partenaire) : poser provider/attributions AVANT save() ───
+    // Hors SDK. Si quoi que ce soit cloche ici, on ANNULE tout plutôt que d'envoyer des
+    // fermetures sans la source demandée : l'utilisateur a explicitement choisi un
+    // partenaire, une pose silencieusement incomplète serait une fausse attribution.
+    if(partnerId){
+        let pose=0;
+        try{
+            const nouvelles=Object.keys(W?.model?.roadClosures?.objects||{}).filter(k=>!_clesAvant.has(k));
+            pose=_applyProviderTo(nouvelles, partnerId);
+            if(pose!==nouvelles.length) throw new Error(`source posée sur ${pose}/${nouvelles.length} fermeture(s)`);
+        }catch(e){
+            log('addClosure/source: '+e.message);
+            try{ sdk.Editing.undoAll(); }catch(err){}
+            koCb&&koCb([t('srcApplyFail')]);
+            return;
+        }
+    }
     sdk.Editing.save().then(v=>{
         const er=document.querySelector('.error-list');
         if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg]);}
@@ -5226,7 +5433,7 @@ const applyQueue=async()=>{
                 // pendant celle-ci laissait partir une fermeture de plus.
                 if(_applyAborted) break;
                 await new Promise(res=>{
-                    addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
+                    addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null},
                         ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'#43a047');res();},
                         (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                 });
@@ -7255,6 +7462,11 @@ const buildOverlay=()=>{
                 <button id="wct-mte-refresh" class="wct-btn wct-btn-neutral wct-btn-sm" title="${t('mteRefreshTip')}" style="flex-shrink:0;font-size:14px;padding:4px 8px">${t('mteRefresh')}</button>
               </div>
             </div>
+            <div id="wct-source-wrap" style="margin-bottom:4px">
+              <label class="wct-label" title="${t('tipSource')}">${t('lblSource')}</label>
+              <select id="wct-sourcesel" class="wct-select"><option value="">${t('srcSelNone')}</option></select>
+              <div id="wct-source-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px"></div>
+            </div>
             <div id="wct-nodes-wrap" style="margin-bottom:4px"><label class="wct-label">${t('lblNodes')}</label>
               <select id="wct-nodesel" class="wct-select">
                 <option value="1">${t('nodeNone')}</option>
@@ -8767,6 +8979,19 @@ const init=async()=>{
 
     // FAB
     injectFab();
+
+    // Source (partenaire) : sonder la capacité UNE fois, puis charger la liste de
+    // l'emprise. Tout est asynchrone et sans blocage — si ça échoue, le sélecteur reste
+    // grisé avec sa cause et le reste de WCT n'en sait rien.
+    probeSourceCap().then(cap=>{
+        log('Source partenaire : '+(cap.ok?'disponible':'indisponible ('+cap.reason+')'));
+        renderSourceSel();
+        if(cap.ok) loadPartners().then(renderSourceSel);
+    });
+    // La liste dépend de l'emprise : la recharger quand la carte a fini de bouger.
+    try{ sdk.Events.on({eventName:'wme-map-move-end',eventHandler:()=>{
+        if(_srcCap.ok) loadPartners().then(renderSourceSel);
+    }}); }catch(e){ log('map-move-end non disponible: '+e.message); }
 
     // Selection listeners (+ on garantit que le FAB reste docké au container natif)
     // onSel tourne aussi en polling 500 ms : ne redessiner l'onglet Virages que si la
