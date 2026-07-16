@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.79.00
+// @version      0.80.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -688,6 +688,10 @@ GM_addStyle(`
 .wct-src-center:hover { transform:scale(1.2); }
 .wct-src-name { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; }
 .wct-src-desc-cell { max-width:180px; }
+.wct-src-prov-cell { max-width:120px; }
+.wct-src-prov-item { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; color:#6a1b9a; }
+.wct-src-prov-none { color:var(--wct-text2); }
+#wct-overlay.wct-compact .wct-src-prov-item { color:#000080; }
 .wct-src-desc-item { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wct-src-desc-item + .wct-src-desc-item { margin-top:2px; padding-top:2px; border-top:1px dotted var(--wct-border); }
 .wct-src-mte-cell { max-width:110px; }
@@ -1145,6 +1149,13 @@ const t = (key, ...args) => {
             srcSelOff_api:'Indisponible : la liste des partenaires n\u2019a pas pu \u00EAtre charg\u00E9e.',
             srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
             srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
+            // Recherche : filtre par partenaire
+            srcSectionPartner:'\uD83C\uDFF7 Source (partenaire)',
+            srcTipPartner:'Filtrer sur le partenaire \u00E0 qui la fermeture est attribu\u00E9e. La liste ne contient que les partenaires PR\u00C9SENTS dans les fermetures charg\u00E9es \u2014 elle ne peut donc pas proposer un choix qui ne rendrait rien.',
+            srcPartnerAll:'Tous', srcPartnerNone:'Aucun (fermeture d\u2019\u00E9diteur)',
+            srcPartnerEmpty:'Aucune fermeture avec partenaire dans cette vue.',
+            srcColProv:'Source', srcTipColProv:'Trier par partenaire',
+            srcProvNoneTip:'Fermeture d\u2019\u00E9diteur : pas de partenaire attribu\u00E9.',
             srcNoClosures:'Aucune fermeture charg\u00E9e dans la vue courante.',
             srcResults: n => `${n} segment(s) trouv\u00E9(s)`,
             srcBtnGoCfg:'\u2699 Basculer vers Configurer',
@@ -1512,6 +1523,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSelOff_api:'Unavailable: the partner list could not be loaded.',
             srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
             srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
+            // Search: partner filter
+            srcSectionPartner:'\uD83C\uDFF7 Source (partner)',
+            srcTipPartner:'Filter on the partner the closure is attributed to. The list only holds partners PRESENT in the loaded closures \u2014 so it cannot offer a choice that would return nothing.',
+            srcPartnerAll:'All', srcPartnerNone:'None (editor closure)',
+            srcPartnerEmpty:'No closure with a partner in this view.',
+            srcColProv:'Source', srcTipColProv:'Sort by partner',
+            srcProvNoneTip:'Editor closure: no partner attributed.',
             srcNoClosures:'No closures loaded in the current view.',
             srcResults: n => `${n} segment(s) found`,
             srcBtnGoCfg:'\u2699 Switch to Configure',
@@ -1865,6 +1883,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'Nicht verf\u00FCgbar: die Partnerliste konnte nicht geladen werden.',
             srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
             srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
+            // Suche: Partnerfilter
+            srcSectionPartner:'\uD83C\uDFF7 Quelle (Partner)',
+            srcTipPartner:'Nach dem Partner filtern, dem die Sperrung zugeschrieben ist. Die Liste enth\u00E4lt nur Partner, die in den geladenen Sperrungen VORKOMMEN \u2014 sie kann also keine Auswahl anbieten, die nichts liefert.',
+            srcPartnerAll:'Alle', srcPartnerNone:'Keiner (Editor-Sperrung)',
+            srcPartnerEmpty:'Keine Sperrung mit Partner in dieser Ansicht.',
+            srcColProv:'Quelle', srcTipColProv:'Nach Partner sortieren',
+            srcProvNoneTip:'Editor-Sperrung: kein Partner zugeschrieben.',
             srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
             srcResults: n => `${n} Segment(e) gefunden`,
             srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
@@ -2217,6 +2242,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'No disponible: no se ha podido cargar la lista de socios.',
             srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
             srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
+            // Busqueda: filtro por socio
+            srcSectionPartner:'\uD83C\uDFF7 Fuente (socio)',
+            srcTipPartner:'Filtrar por el socio al que se atribuye el cierre. La lista solo contiene los socios PRESENTES en los cierres cargados, as\u00ED que no puede ofrecer una opci\u00F3n que no devuelva nada.',
+            srcPartnerAll:'Todos', srcPartnerNone:'Ninguno (cierre de editor)',
+            srcPartnerEmpty:'No hay ning\u00FAn cierre con socio en esta vista.',
+            srcColProv:'Fuente', srcTipColProv:'Ordenar por socio',
+            srcProvNoneTip:'Cierre de editor: sin socio atribuido.',
             srcNoClosures:'No hay cierres cargados en la vista actual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Cambiar a Configurar',
@@ -2569,6 +2601,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
+            // Pesquisa: filtro por parceiro
+            srcSectionPartner:'\uD83C\uDFF7 Fonte (parceiro)',
+            srcTipPartner:'Filtrar pelo parceiro a quem o bloqueio \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos bloqueios carregados \u2014 portanto n\u00E3o pode oferecer uma escolha que n\u00E3o retorne nada.',
+            srcPartnerAll:'Todos', srcPartnerNone:'Nenhum (bloqueio de editor)',
+            srcPartnerEmpty:'Nenhum bloqueio com parceiro nesta visualiza\u00E7\u00E3o.',
+            srcColProv:'Fonte', srcTipColProv:'Ordenar por parceiro',
+            srcProvNoneTip:'Bloqueio de editor: sem parceiro atribu\u00EDdo.',
             srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Ir para Configurar',
@@ -2921,6 +2960,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
+            // Pesquisa: filtro por parceiro
+            srcSectionPartner:'\uD83C\uDFF7 Fonte (parceiro)',
+            srcTipPartner:'Filtrar pelo parceiro a quem o corte \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos cortes carregados \u2014 por isso n\u00E3o pode oferecer uma escolha que n\u00E3o devolva nada.',
+            srcPartnerAll:'Todos', srcPartnerNone:'Nenhum (corte de editor)',
+            srcPartnerEmpty:'Nenhum corte com parceiro nesta vista.',
+            srcColProv:'Fonte', srcTipColProv:'Ordenar por parceiro',
+            srcProvNoneTip:'Corte de editor: sem parceiro atribu\u00EDdo.',
             srcNoClosures:'Nenhum corte carregado na vista atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Mudar para Configurar',
@@ -4747,6 +4793,9 @@ const _srcReadFilters=()=>{
         descKw     : ($id('wct-src-desc')?.value||'').trim().toLowerCase(),
         mteKw      : ($id('wct-src-mte')?.value||'').trim().toLowerCase(),
         useAnd     : $id('wct-src-and')?.classList.contains('on'),
+        // Filtre partenaire : '' tous · '__none__' éditeur · nom exact. Appliqué à part
+        // du bloc desc/MTE (ET implicite), car c'est un critère d'identité, pas un mot-clé.
+        partner    : $id('wct-src-partner')?.value||'',
     };
 };
 // Cache des noms MTE (lookup SDK coûteux). {name, resolved} ; resolved=false ⇒ MTE non chargé.
@@ -4783,6 +4832,58 @@ const _srcMatch=(cl,F,mteField)=>{
         else{ if(F.descKw||F.mteKw){ if(!(descMatch||mteMatch))return false; } }
     }
     return true;
+};
+
+// ─── SOURCE (partenaire) CÔTÉ RECHERCHE ────────────────────────────────────
+// Le SDK masque `provider` : il faut le relire dans le modèle interne. Le repo est
+// indexé PAR ID (vérifié), donc le recoupement SDK↔modèle est direct.
+// ⚠️ LIRE la source ne demande AUCUN privilège — contrairement au sélecteur de
+// Configurer, qui a besoin du flag partenaire et de l'API. Le filtre de recherche est
+// donc offert à TOUT éditeur, et sa liste est bâtie sur les partenaires RÉELLEMENT
+// présents dans les fermetures chargées : pas d'API, et jamais un choix qui ne
+// rendrait rien.
+const SRC_PARTNER_NONE = '__none__';
+const _providerOf = (id, kind) => {
+    try{
+        const repo = kind==='turn' ? W?.model?.turnClosures : W?.model?.roadClosures;
+        const a = repo?.objects?.[String(id)]?.attributes;
+        if(!a) return null;
+        const p = a.provider;
+        return (typeof p === 'string' && p.trim()) ? p : null;
+    }catch(e){ return null; }
+};
+// Partenaires distincts présents dans la vue (segments + virages).
+const _partnersInView = () => {
+    const set=new Set();
+    try{
+        for(const repo of [W?.model?.roadClosures, W?.model?.turnClosures]){
+            for(const o of Object.values(repo?.objects||{})){
+                const p=o?.attributes?.provider;
+                if(typeof p==='string' && p.trim()) set.add(p);
+            }
+        }
+    }catch(e){}
+    return [...set].sort((a,b)=>a.localeCompare(b));
+};
+const refreshSrcPartnerFilter = () => {
+    const sel=$id('wct-src-partner'); if(!sel) return;
+    const prev=sel.value;
+    const noms=_partnersInView();
+    sel.innerHTML = `<option value="">${escHtml(t('srcPartnerAll'))}</option>`
+        + `<option value="${SRC_PARTNER_NONE}">${escHtml(t('srcPartnerNone'))}</option>`
+        + noms.map(n=>`<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+    if(prev && [...sel.options].some(o=>o.value===prev)) sel.value=prev;
+    const hint=$id('wct-src-partner-hint');
+    if(hint){
+        hint.style.display = noms.length ? 'none' : 'block';
+        hint.textContent = noms.length ? '' : t('srcPartnerEmpty');
+    }
+};
+// Le filtre passe-t-il ? `want` = '' (tous) | '__none__' (éditeur) | nom de partenaire.
+const _srcPartnerMatch = (provider, want) => {
+    if(!want) return true;
+    if(want===SRC_PARTNER_NONE) return provider===null;
+    return provider===want;
 };
 
 // Résultats retenus, pour l'export « de ce qu'on trouve » (≠ export de la file).
@@ -4830,17 +4931,20 @@ const runSearch=()=>{
 const _srcBlockSegments=(resEl,F)=>{
     let all=[];
     try{ all=sdk.DataModel.RoadClosures.getAll(); }catch(e){}
-    const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId'));
+    const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId')
+        && _srcPartnerMatch(_providerOf(cl.id,'seg'), F.partner));
 
     const bySegId=new Map();
     matched.forEach(cl=>{
         const sid=cl.segmentId;
         if(!bySegId.has(sid)){
             if(!getSegById(sid)) return; // segment absent du data model (hors vue) → ignorer
-            bySegId.set(sid,{closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set()});
+            bySegId.set(sid,{closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set(),providers:new Set()});
         }
         const entry=bySegId.get(sid);
         entry.closures.push(cl);
+        const prov=_providerOf(cl.id,'seg');
+        if(prov) entry.providers.add(prov);
         if(cl.trafficEventId){
             const m=_srcGetMte(cl.trafficEventId);
             if(!entry.mtes.has(m.name)) entry.mtes.set(m.name,m.resolved);
@@ -4863,6 +4967,7 @@ const _srcBlockSegments=(resEl,F)=>{
         count:entry.closures.length,
         statuses:[...entry.statuses].sort(),
         descriptions:[...entry.descriptions].sort(),
+        providers:[...entry.providers].sort(),
         mtes:[...entry.mtes.entries()].map(([label,resolved])=>({label,resolved})).sort((a,b)=>a.label.localeCompare(b.label)),
     }));
 
@@ -4873,6 +4978,7 @@ const _srcBlockSegments=(resEl,F)=>{
         {key:'count',  tip:t('srcTipColClosures'),  label:t('srcColClosures'), center:true},
         {key:'status', tip:t('srcTipColStatus'),    label:t('srcColStatus')},
         {key:'desc',   tip:t('srcTipColDesc'),      label:t('srcColDesc')},
+        {key:'prov',   tip:t('srcTipColProv'),      label:t('srcColProv')},
         {key:'mte',    tip:t('srcTipColMte'),       label:t('srcColMte')},
     ];
     const table=make('table');
@@ -4887,6 +4993,7 @@ const _srcBlockSegments=(resEl,F)=>{
             else if(sortKey==='count') { va=a.count; vb=b.count; }
             else if(sortKey==='status'){ va=a.statuses[0]||''; vb=b.statuses[0]||''; }
             else if(sortKey==='desc')  { va=(a.descriptions[0]||'').toLowerCase(); vb=(b.descriptions[0]||'').toLowerCase(); }
+            else if(sortKey==='prov')  { va=(a.providers[0]||'').toLowerCase(); vb=(b.providers[0]||'').toLowerCase(); }
             else if(sortKey==='mte')   { va=(a.mtes[0]?.label||'').toLowerCase(); vb=(b.mtes[0]?.label||'').toLowerCase(); }
             if(va<vb) return -sortDir; if(va>vb) return sortDir; return 0;
         });
@@ -4914,6 +5021,10 @@ const _srcBlockSegments=(resEl,F)=>{
             const descHtml=row.descriptions.length
                 ? row.descriptions.map(d=>`<div class="wct-src-desc-item" title="${escHtml(d)}">${escHtml(d)}</div>`).join('')
                 : '—';
+            // Pas de provider = fermeture d'éditeur (channel WME_COMMUNITY), pas une donnée manquante.
+            const provHtml=row.providers.length
+                ? row.providers.map(p=>`<div class="wct-src-prov-item" title="${escHtml(p)}">${escHtml(p)}</div>`).join('')
+                : `<span class="wct-src-prov-none" title="${escHtml(t('srcProvNoneTip'))}">—</span>`;
             const mteHtml=row.mtes.length
                 ? row.mtes.map(m=>m.resolved
                     ? `<div class="wct-src-mte-item" title="${escHtml(m.label)}">${escHtml(m.label)}</div>`
@@ -4929,6 +5040,7 @@ const _srcBlockSegments=(resEl,F)=>{
                 <td style="text-align:center">${row.count}</td>
                 <td>${statusBadges||'—'}</td>
                 <td><div class="wct-src-desc-cell">${descHtml}</div></td>
+                <td><div class="wct-src-prov-cell">${provHtml}</div></td>
                 <td><div class="wct-src-mte-cell">${mteHtml}</div></td>`;
             tr.querySelector('.wct-src-center').addEventListener('click',e=>{
                 e.stopPropagation();
@@ -4960,7 +5072,13 @@ const _srcBlockSegments=(resEl,F)=>{
 const _srcBlockTurns=(resEl,F)=>{
     let all=[];
     try{ all=sdk.DataModel.TurnClosures.getAll(); }catch(e){}
-    const matched=all.filter(cl=>_srcMatch(cl,F,'majorTrafficEventId'));
+    // ⚠️ Le repo W.model.turnClosures existe, mais aucune fermeture de virage avec source
+    // n'a pu être observée : on ne sait pas si elles portent `provider`. _providerOf rend
+    // null si le champ est absent — le filtre « Aucun » les prendra donc, et un filtre par
+    // partenaire ne les rendra pas. Comportement prudent et cohérent, à revoir le jour où
+    // une vraie fermeture de virage partenaire sera rencontrée.
+    const matched=all.filter(cl=>_srcMatch(cl,F,'majorTrafficEventId')
+        && _srcPartnerMatch(_providerOf(cl.id,'turn'), F.partner));
 
     // Regroupement par VIRAGE, c.-à-d. par couple (from,to) : l'objet TurnClosure ne
     // porte pas de turnId, seulement fromSegmentId / toSegmentId.
@@ -7576,6 +7694,12 @@ const buildOverlay=()=>{
           <input id="wct-src-mte" class="wct-input" type="text" placeholder="…" style="width:100%" title="${t('srcTipMte')}">
         </div>
 
+        <div class="wct-src-section" title="${t('srcTipPartner')}">${t('srcSectionPartner')}</div>
+        <select id="wct-src-partner" class="wct-select" title="${t('srcTipPartner')}">
+          <option value="">${t('srcPartnerAll')}</option>
+        </select>
+        <div id="wct-src-partner-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px"></div>
+
         <div class="wct-btn-row" style="margin-top:8px">
           <button id="wct-src-run"   class="wct-btn wct-btn-primary" style="flex:3;justify-content:center" title="${t('srcTipSearch')}">${t('srcBtnSearch')}</button>
           <button id="wct-src-clear" class="wct-btn wct-btn-neutral" style="flex:1;justify-content:center" title="${t('srcTipClear')}">${t('srcBtnClear')}</button>
@@ -8067,6 +8191,9 @@ const connectOverlay=ov=>{
             $id('wct-pane-'+tab.dataset.tab)?.classList.add('on');
             if(tab.dataset.tab==='pre') renderPresetsTable();
             if(tab.dataset.tab==='turn') renderTurnsPane();
+            // La liste du filtre partenaire est bâtie sur les fermetures chargées :
+            // la rafraîchir à l'ouverture de l'onglet, la vue a pu bouger depuis.
+            if(tab.dataset.tab==='src') refreshSrcPartnerFilter();
         });
     });
 
@@ -8261,6 +8388,8 @@ const connectOverlay=ov=>{
         if(cbAll){cbAll.checked=true;cbAll.dispatchEvent(new Event('change'));}
         // Remettre les deux cibles (état par défaut : on cherche les deux)
         ['wct-src-tgt-seg','wct-src-tgt-turn'].forEach(id=>{const el=$id(id);if(el)el.checked=true;});
+        const pSel=$id('wct-src-partner'); if(pSel) pSel.value='';
+        refreshSrcPartnerFilter();
         const res=$id('wct-src-results');if(res)res.innerHTML='';
         // Les cercles décrivent un résultat qui n'existe plus.
         _srcClearRings(); _srcFoundSegs=null; _srcFoundTurns=null;
@@ -8989,8 +9118,11 @@ const init=async()=>{
         if(cap.ok) loadPartners().then(renderSourceSel);
     });
     // La liste dépend de l'emprise : la recharger quand la carte a fini de bouger.
+    // Le filtre de RECHERCHE, lui, se rebâtit sur les fermetures chargées — il ne
+    // dépend ni du flag partenaire ni de l'API, donc il se rafraîchit toujours.
     try{ sdk.Events.on({eventName:'wme-map-move-end',eventHandler:()=>{
         if(_srcCap.ok) loadPartners().then(renderSourceSel);
+        if($id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter();
     }}); }catch(e){ log('map-move-end non disponible: '+e.message); }
 
     // Selection listeners (+ on garantit que le FAB reste docké au container natif)
