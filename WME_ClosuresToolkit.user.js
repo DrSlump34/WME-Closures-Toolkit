@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.78.00
+// @version      0.78.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -7820,7 +7820,17 @@ const connectOverlay=ov=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
     });
-    $id('wct-btn-close')?.addEventListener('click',()=>{ ov.classList.remove('open'); restoreClosuresLayer(); });
+    $id('wct-btn-close')?.addEventListener('click',()=>{
+        ov.classList.remove('open');
+        restoreClosuresLayer();
+        // Les cercles décrivent un résultat de recherche qui n'est plus affiché : les
+        // laisser sur la carte après fermeture, c'est laisser un dessin orphelin que
+        // l'utilisateur ne peut plus effacer (le bouton Effacer est dans le panneau).
+        _srcClearRings();
+        // Filet : si quoi que ce soit a fait disparaître le FAB, le remettre — sinon
+        // l'utilisateur perd tout accès au script et doit recharger WME.
+        ensureFab();
+    });
 
     // Fermer la palette couleur GPX si clic ailleurs
     document.addEventListener('click', () => {
@@ -8480,6 +8490,17 @@ const doInjectFab=()=>{
 // faisait passer le FAB en avant-dernière position. On le remet donc toujours en fin —
 // appendChild d'un élément déjà présent le déplace, sans le dupliquer.
 let _fabObserver=null, _fabObservedCont=null;
+// Filet de sécurité : le FAB est le SEUL accès au script. ensureFabDocked se contentait
+// de re-docker un wrap existant et abandonnait s'il avait disparu (`if(!wrap) return`) —
+// or injectFab() n'était appelé qu'une fois, à l'init. Résultat : si WME détruisait le
+// conteneur (il recrée ses boutons natifs à divers moments), le FAB ne revenait JAMAIS et
+// il fallait recharger WME. ensureFab() le reconstruit au lieu de renoncer.
+const ensureFab=()=>{
+    if(!$id('wct-fab-wrap')){
+        try{ doInjectFab(); log('FAB reconstruit (disparu du DOM)'); }catch(e){ log('ensureFab: '+e.message); }
+    }
+    ensureFabDocked();
+};
 const ensureFabDocked=()=>{
     const wrap=$id('wct-fab-wrap');
     if(!wrap) return;
@@ -8649,7 +8670,8 @@ const connectSidebar=()=>{
     $id('wct-enable-toggle')?.addEventListener('change',e=>{
         enabled=e.target.checked;save();
         const wrap=$id('wct-fab-wrap');if(wrap)wrap.style.opacity=enabled?'1':'0.4';
-        if(!enabled){$id('wct-overlay')?.classList.remove('open'); restoreClosuresLayer();}
+        // Script désactivé : ne rien laisser de WCT sur la carte, cercles compris.
+        if(!enabled){$id('wct-overlay')?.classList.remove('open'); restoreClosuresLayer(); _srcClearRings();}
     });
     document.querySelectorAll('input[name="wct-display"]').forEach(r=>{
         r.addEventListener('change',e=>{ if(e.target.checked) applyDisplayMode(e.target.value); });
@@ -8746,7 +8768,14 @@ const init=async()=>{
     // sélection a VRAIMENT changé, sinon on écraserait les cases cochées 2×/seconde.
     let _lastSelSig=null;
     const onSel=()=>{
-        updateFab();updateCountryInfo();ensureFabDocked();
+        // ⚠️ Chaque étape est isolée. Avant, une exception dans updateFab() empêchait
+        // ensureFab() de s'exécuter — et comme onSel est le SEUL endroit qui re-dock le
+        // FAB, une seule erreur suffisait à le faire disparaître DÉFINITIVEMENT, 2×/s.
+        // Le FAB étant l'unique accès au script, il passe en premier et rien ne doit
+        // pouvoir le priver de son tour.
+        try{ ensureFab(); }catch(e){ log('onSel/ensureFab: '+e.message); }
+        try{ updateFab(); }catch(e){ log('onSel/updateFab: '+e.message); }
+        try{ updateCountryInfo(); }catch(e){ log('onSel/updateCountryInfo: '+e.message); }
         try{
             const s=getSelection();
             const sig=s.objectType+':'+s.ids.join(',');
@@ -8754,7 +8783,7 @@ const init=async()=>{
                 _lastSelSig=sig;
                 if($id('wct-pane-turn')?.classList.contains('on')) renderTurnsPane();
             }
-        }catch(e){}
+        }catch(e){ log('onSel/turnsPane: '+e.message); }
     };
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
     try{W.selectionManager.events.register('selectionchanged',null,onSel);}catch(e){}
