@@ -1,5 +1,7 @@
 # Anciennes versions déjà archivées sur le disque — pas besoin de les suivre dans Git
 Archives/
+# Jeux d'essai (tracés partenaires) — conservés en local, jamais publiés
+Exemples/
 # Fichiers système
 Thumbs.db
 desktop.ini
