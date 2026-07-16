@@ -1005,6 +1005,25 @@ const t = (key, ...args) => {
         fr: {
             // Onglets
             tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCC2 CSV',
+            // Virages (turn closures)
+            tabTurn:'\uD83D\uDD00 Virages',
+            turnStraight:'tout droit', turnSlightRight:'droite l\u00E9g\u00E8re', turnRight:'\u00E0 droite',
+            turnUturn:'demi-tour', turnLeft:'\u00E0 gauche', turnSlightLeft:'gauche l\u00E9g\u00E8re',
+            tnNoSel:'S\u00E9lectionne un segment sur la carte pour voir ses virages.',
+            tnMultiSel:'S\u00E9lectionne un seul segment \u00E0 la fois.',
+            tnSegLabel: n => `Segment s\u00E9lectionn\u00E9 : ${n}`,
+            tnExtremity:'Extr\u00E9mit\u00E9', tnNodeA:'N\u0153ud A', tnNodeB:'N\u0153ud B',
+            tnNotEditable:'\u26A0 virages non \u00E9ditables \u00E0 ce n\u0153ud',
+            tnTurnsFrom:'Virages depuis ce segment', tnAll:'Tout', tnNone:'Aucun',
+            tnAllowed:'autoris\u00E9', tnForbidden:'interdit',
+            tnNoTurns:'Aucun virage \u00E0 cette extr\u00E9mit\u00E9.',
+            tnCount: n => `${n} virage(s) s\u00E9lectionn\u00E9(s)`,
+            tnSend:'\uD83E\uDDF2 Envoyer vers Configurer',
+            tnSent: n => `\uD83D\uDD00 ${n} virage(s) envoy\u00E9(s) vers Configurer.`,
+            tnBanner: n => `\uD83D\uDD00 Cible : ${n} virage(s)`,
+            tnBannerClear:'Revenir \u00E0 une fermeture de segments',
+            tnNoneSelected:'Coche au moins un virage.',
+            tnEntryDetail: (nt,nc,st) => `${nt} virage(s) \u00B7 ${nc} fermeture(s) \u00B7 ${st}`,
             tabPre:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', tabGpx:'\uD83D\uDDFA Trac\u00e9s', tabSrc:'\uD83D\uDD0D Recherche', tabHelp:'\u2753', tabHelpTitle:'Aide',
             // Onglet Recherche
             srcSectionTime:'\uD83D\uDCC5 Fen\u00EAtre temporelle',
@@ -1291,6 +1310,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
         },
         en: {
             tabCfg:'\u2699 Configure', tabCsv:'\uD83D\uDCC2 CSV',
+            // Turn closures
+            tabTurn:'\uD83D\uDD00 Turns',
+            turnStraight:'straight', turnSlightRight:'slight right', turnRight:'right',
+            turnUturn:'U-turn', turnLeft:'left', turnSlightLeft:'slight left',
+            tnNoSel:'Select a segment on the map to see its turns.',
+            tnMultiSel:'Select a single segment at a time.',
+            tnSegLabel: n => `Selected segment: ${n}`,
+            tnExtremity:'Extremity', tnNodeA:'Node A', tnNodeB:'Node B',
+            tnNotEditable:'\u26A0 turns not editable at this node',
+            tnTurnsFrom:'Turns from this segment', tnAll:'All', tnNone:'None',
+            tnAllowed:'allowed', tnForbidden:'restricted',
+            tnNoTurns:'No turn at this extremity.',
+            tnCount: n => `${n} turn(s) selected`,
+            tnSend:'\uD83E\uDDF2 Send to Configure',
+            tnSent: n => `\uD83D\uDD00 ${n} turn(s) sent to Configure.`,
+            tnBanner: n => `\uD83D\uDD00 Target: ${n} turn(s)`,
+            tnBannerClear:'Back to a segment closure',
+            tnNoneSelected:'Check at least one turn.',
+            tnEntryDetail: (nt,nc,st) => `${nt} turn(s) \u00B7 ${nc} closure(s) \u00B7 ${st}`,
             tabPre:'\uD83D\uDCBE Presets', tabGpx:'\uD83D\uDDFA Tracks', tabSrc:'\uD83D\uDD0D Search', tabHelp:'\u2753', tabHelpTitle:'Help',
             // Search tab
             srcSectionTime:'\uD83D\uDCC5 Time window',
@@ -1563,6 +1601,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
         de: {
             // Reiter
             tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCC2 CSV',
+            // Abbiegersperrungen
+            tabTurn:'\uD83D\uDD00 Abbieger',
+            turnStraight:'geradeaus', turnSlightRight:'leicht rechts', turnRight:'rechts',
+            turnUturn:'Wenden', turnLeft:'links', turnSlightLeft:'leicht links',
+            tnNoSel:'W\u00E4hle ein Segment auf der Karte, um seine Abbieger zu sehen.',
+            tnMultiSel:'W\u00E4hle jeweils nur ein Segment.',
+            tnSegLabel: n => `Gew\u00E4hltes Segment: ${n}`,
+            tnExtremity:'Ende', tnNodeA:'Knoten A', tnNodeB:'Knoten B',
+            tnNotEditable:'\u26A0 Abbieger an diesem Knoten nicht bearbeitbar',
+            tnTurnsFrom:'Abbieger von diesem Segment', tnAll:'Alle', tnNone:'Keine',
+            tnAllowed:'erlaubt', tnForbidden:'gesperrt',
+            tnNoTurns:'Kein Abbieger an diesem Ende.',
+            tnCount: n => `${n} Abbieger gew\u00E4hlt`,
+            tnSend:'\uD83E\uDDF2 An Einrichten senden',
+            tnSent: n => `\uD83D\uDD00 ${n} Abbieger an Einrichten gesendet.`,
+            tnBanner: n => `\uD83D\uDD00 Ziel: ${n} Abbieger`,
+            tnBannerClear:'Zur\u00FCck zu einer Segmentsperrung',
+            tnNoneSelected:'Kreuze mindestens einen Abbieger an.',
+            tnEntryDetail: (nt,nc,st) => `${nt} Abbieger \u00B7 ${nc} Sperrung(en) \u00B7 ${st}`,
             tabPre:'\uD83D\uDCBE Vorlagen', tabGpx:'\uD83D\uDDFA Tracks', tabSrc:'\uD83D\uDD0D Suche', tabHelp:'\u2753', tabHelpTitle:'Hilfe',
             // Reiter Suche
             srcSectionTime:'\uD83D\uDCC5 Zeitfenster',
@@ -1834,6 +1891,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
         },
         es: {
             tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            // Cierres de giro
+            tabTurn:'\uD83D\uDD00 Giros',
+            turnStraight:'recto', turnSlightRight:'ligera derecha', turnRight:'derecha',
+            turnUturn:'cambio de sentido', turnLeft:'izquierda', turnSlightLeft:'ligera izquierda',
+            tnNoSel:'Selecciona un segmento en el mapa para ver sus giros.',
+            tnMultiSel:'Selecciona un solo segmento a la vez.',
+            tnSegLabel: n => `Segmento seleccionado: ${n}`,
+            tnExtremity:'Extremo', tnNodeA:'Nodo A', tnNodeB:'Nodo B',
+            tnNotEditable:'\u26A0 giros no editables en este nodo',
+            tnTurnsFrom:'Giros desde este segmento', tnAll:'Todos', tnNone:'Ninguno',
+            tnAllowed:'permitido', tnForbidden:'restringido',
+            tnNoTurns:'No hay giros en este extremo.',
+            tnCount: n => `${n} giro(s) seleccionado(s)`,
+            tnSend:'\uD83E\uDDF2 Enviar a Configurar',
+            tnSent: n => `\uD83D\uDD00 ${n} giro(s) enviado(s) a Configurar.`,
+            tnBanner: n => `\uD83D\uDD00 Objetivo: ${n} giro(s)`,
+            tnBannerClear:'Volver a un cierre de segmentos',
+            tnNoneSelected:'Marca al menos un giro.',
+            tnEntryDetail: (nt,nc,st) => `${nt} giro(s) \u00B7 ${nc} cierre(s) \u00B7 ${st}`,
             tabPre:'💾 Preajustes', tabGpx:'🗺 Trazas', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ayuda',
             // Pestaña Buscar
             srcSectionTime:'📅 Ventana temporal',
@@ -2105,6 +2181,25 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
         },
         'pt-BR': {
             tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            // Bloqueios de conversao
+            tabTurn:'\uD83D\uDD00 Convers\u00F5es',
+            turnStraight:'em frente', turnSlightRight:'leve \u00E0 direita', turnRight:'\u00E0 direita',
+            turnUturn:'retorno', turnLeft:'\u00E0 esquerda', turnSlightLeft:'leve \u00E0 esquerda',
+            tnNoSel:'Selecione um segmento no mapa para ver suas convers\u00F5es.',
+            tnMultiSel:'Selecione um \u00FAnico segmento por vez.',
+            tnSegLabel: n => `Segmento selecionado: ${n}`,
+            tnExtremity:'Extremidade', tnNodeA:'N\u00F3 A', tnNodeB:'N\u00F3 B',
+            tnNotEditable:'\u26A0 convers\u00F5es n\u00E3o edit\u00E1veis neste n\u00F3',
+            tnTurnsFrom:'Convers\u00F5es a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
+            tnAllowed:'permitida', tnForbidden:'restrita',
+            tnNoTurns:'Nenhuma convers\u00E3o nesta extremidade.',
+            tnCount: n => `${n} convers\u00E3o(\u00F5es) selecionada(s)`,
+            tnSend:'\uD83E\uDDF2 Enviar para Configurar',
+            tnSent: n => `\uD83D\uDD00 ${n} convers\u00E3o(\u00F5es) enviada(s) para Configurar.`,
+            tnBanner: n => `\uD83D\uDD00 Alvo: ${n} convers\u00E3o(\u00F5es)`,
+            tnBannerClear:'Voltar a um bloqueio de segmentos',
+            tnNoneSelected:'Marque pelo menos uma convers\u00E3o.',
+            tnEntryDetail: (nt,nc,st) => `${nt} convers\u00E3o(\u00F5es) \u00B7 ${nc} bloqueio(s) \u00B7 ${st}`,
             tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ajuda',
             // Aba Buscar
             srcSectionTime:'📅 Janela de tempo',
@@ -2376,6 +2471,25 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
         },
         'pt-PT': {
             tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            // Cortes de viragem
+            tabTurn:'\uD83D\uDD00 Viragens',
+            turnStraight:'em frente', turnSlightRight:'ligeira \u00E0 direita', turnRight:'\u00E0 direita',
+            turnUturn:'invers\u00E3o de marcha', turnLeft:'\u00E0 esquerda', turnSlightLeft:'ligeira \u00E0 esquerda',
+            tnNoSel:'Seleciona um segmento no mapa para veres as suas viragens.',
+            tnMultiSel:'Seleciona apenas um segmento de cada vez.',
+            tnSegLabel: n => `Segmento selecionado: ${n}`,
+            tnExtremity:'Extremidade', tnNodeA:'N\u00F3 A', tnNodeB:'N\u00F3 B',
+            tnNotEditable:'\u26A0 viragens n\u00E3o edit\u00E1veis neste n\u00F3',
+            tnTurnsFrom:'Viragens a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
+            tnAllowed:'permitida', tnForbidden:'restrita',
+            tnNoTurns:'Nenhuma viragem nesta extremidade.',
+            tnCount: n => `${n} viragem(ns) selecionada(s)`,
+            tnSend:'\uD83E\uDDF2 Enviar para Configurar',
+            tnSent: n => `\uD83D\uDD00 ${n} viragem(ns) enviada(s) para Configurar.`,
+            tnBanner: n => `\uD83D\uDD00 Alvo: ${n} viragem(ns)`,
+            tnBannerClear:'Voltar a um corte de segmentos',
+            tnNoneSelected:'Marca pelo menos uma viragem.',
+            tnEntryDetail: (nt,nc,st) => `${nt} viragem(ns) \u00B7 ${nc} corte(s) \u00B7 ${st}`,
             tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Pesquisar', tabHelp:'❓', tabHelpTitle:'Ajuda',
             // Search tab
             srcSectionTime:'📅 Janela temporal',
@@ -3342,6 +3456,58 @@ const getSegDirConflicts=(segIds,requestedDir)=>{
         }
     }
     return conflicts;
+};
+
+// ─── VIRAGES (turn closures) ────────────────────────────────────────────────
+// Cap en degres du point a vers le point b (coords [lon,lat]).
+const _bearing=(a,b)=>{
+    const toR=d=>d*Math.PI/180;
+    const y=Math.sin(toR(b[0]-a[0]))*Math.cos(toR(b[1]));
+    const x=Math.cos(toR(a[1]))*Math.sin(toR(b[1]))-Math.sin(toR(a[1]))*Math.cos(toR(b[1]))*Math.cos(toR(b[0]-a[0]));
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
+};
+// Extremite d'un segment cote noeud nid : {at:point sur le noeud, nxt:point voisin}.
+const _segEndAt=(sid,nid)=>{
+    const s=getSegById(sid); const c=s?.geometry?.coordinates;
+    if(!s||!Array.isArray(c)||c.length<2) return null;
+    return Number(s.fromNodeId)===Number(nid) ? {at:c[0],nxt:c[1]} : {at:c[c.length-1],nxt:c[c.length-2]};
+};
+// Secteurs de classification d'un virage, par delta de cap (degres).
+const TURN_SECTORS=[
+    {max:22.5 , arrow:'↑', key:'turnStraight'},
+    {max:67.5 , arrow:'↗', key:'turnSlightRight'},
+    {max:157.5, arrow:'↱', key:'turnRight'},
+    {max:202.5, arrow:'↩', key:'turnUturn'},
+    {max:292.5, arrow:'↰', key:'turnLeft'},
+    {max:337.5, arrow:'↖', key:'turnSlightLeft'},
+    {max:360  , arrow:'↑', key:'turnStraight'},
+];
+// Geometrie d'un virage : {delta, arrow, key}. null si geometrie indisponible.
+// NB : turn.instructionOpCode du SDK vaut null en pratique (c'est l'instruction de
+// guidage vocal, absente tant que Waze n'annonce rien) - verifie en live. L'angle
+// calcule est donc le SEUL moyen de distinguer deux virages vers la meme rue.
+const getTurnGeom=(nodeId,turn)=>{
+    try{
+        if(turn.isUTurn||Number(turn.toSegmentId)===Number(turn.fromSegmentId))
+            return {delta:180, arrow:'↩', key:'turnUturn'};
+        const eIn=_segEndAt(turn.fromSegmentId,nodeId), eOut=_segEndAt(turn.toSegmentId,nodeId);
+        if(!eIn||!eOut) return null;
+        const inB=_bearing(eIn.nxt,eIn.at);          // cap d'ARRIVEE au noeud
+        const outB=_bearing(eOut.at,eOut.nxt);       // cap de SORTIE du noeud
+        const delta=(outB-inB+360)%360;
+        const sec=TURN_SECTORS.find(s=>delta<s.max)||TURN_SECTORS[0];
+        return {delta:Math.round(delta), arrow:sec.arrow, key:sec.key};
+    }catch(e){ return null; }
+};
+// Virages partant du segment segId par le noeud nodeId.
+const getTurnsAtNode=(segId,nodeId)=>{
+    try{
+        return sdk.DataModel.Turns.getTurnsThroughNode({nodeId:Number(nodeId)})
+            .filter(tn=>Number(tn.fromSegmentId)===Number(segId));
+    }catch(e){ return []; }
+};
+const canEditTurnsAt=(nodeId)=>{
+    try{ return sdk.DataModel.Turns.canEditTurnsThroughNode({nodeId:Number(nodeId)}); }catch(e){ return false; }
 };
 
 // ─── Construit le permalink WME d'un segment ───────────────────────────────
