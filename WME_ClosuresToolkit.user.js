@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.76.03
+// @version      0.76.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1059,6 +1059,7 @@ const t = (key, ...args) => {
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
             btnCsvTurn:'\u2B07 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
             csvNoTurns:'Aucune fermeture de virage \u00E0 exporter.',
+            csvNothing:'Plus rien \u00E0 exporter : toutes les lignes ont \u00E9t\u00E9 supprim\u00E9es.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} ligne(s) de virage export\u00E9e(s) au format WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lot(s) de virages \u00E9cart\u00E9(s) de l\u2019export : le format Advanced Closures est propre aux segments.`,
             tgtSeg:'Fermeture de segments', tgtTurn:'Fermeture de virages',
@@ -1374,6 +1375,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
             btnCsvTurn:'\u2B07 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
             csvNoTurns:'No turn closure to export.',
+            csvNothing:'Nothing left to export: all rows have been deleted.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} turn row(s) exported in the WCT format.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} turn batch(es) left out of the export: the Advanced Closures format is segment-only.`,
             tgtSeg:'Segment closure', tgtTurn:'Turn closure',
@@ -1675,6 +1677,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
             btnCsvTurn:'\u2B07 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
             csvNoTurns:'Keine Abbiegersperrung zum Exportieren.',
+            csvNothing:'Nichts mehr zu exportieren: alle Zeilen wurden gel\u00F6scht.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} Abbieger-Zeile(n) im WCT-Format exportiert.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} Abbieger-Paket(e) vom Export ausgenommen: das Advanced-Closures-Format gilt nur f\u00FCr Segmente.`,
             tgtSeg:'Segmentsperrung', tgtTurn:'Abbiegersperrung',
@@ -1975,6 +1978,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
             btnCsvTurn:'\u2B07 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
             csvNoTurns:'No hay ning\u00FAn cierre de giro que exportar.',
+            csvNothing:'Ya no hay nada que exportar: se han eliminado todas las l\u00EDneas.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} l\u00EDnea(s) de giro exportada(s) en formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de giros excluido(s) de la exportaci\u00F3n: el formato Advanced Closures es solo para segmentos.`,
             tgtSeg:'Cierre de segmentos', tgtTurn:'Cierre de giros',
@@ -2275,6 +2279,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
             btnCsvTurn:'\u2B07 CSV Convers\u00F5es', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum bloqueio de convers\u00E3o para exportar.',
+            csvNothing:'N\u00E3o h\u00E1 mais nada para exportar: todas as linhas foram exclu\u00EDdas.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de convers\u00E3o exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de convers\u00F5es exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Bloqueio de segmentos', tgtTurn:'Bloqueio de convers\u00F5es',
@@ -2575,6 +2580,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
             btnCsvTurn:'\u2B07 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum corte de viragem para exportar.',
+            csvNothing:'J\u00E1 n\u00E3o h\u00E1 nada para exportar: todas as linhas foram eliminadas.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de viragem exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de viragens exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Corte de segmentos', tgtTurn:'Corte de viragens',
@@ -4068,10 +4074,11 @@ const renderQueue=()=>{
 const updateActionBtns=()=>{
     const has=queue.length>0;
     ['wct-btn-apply','wct-btn-clear'].forEach(id=>$id(id)?.classList.toggle('wct-btn-dis',!has));
-    // Les deux exports ne s'allument que si la file contient de quoi les alimenter :
-    // les formats sont disjoints (AC = segments only, WCT = virages).
-    const hasSeg =queue.some(e=>e.source!=='turn');
-    const hasTurn=queue.some(e=>e.source==='turn'&&e.turnIds?.length);
+    // Les deux exports ne s'allument que s'il reste VRAIMENT quelque chose a exporter :
+    // formats disjoints (AC = segments only, WCT = virages), et lignes supprimees a la
+    // main deduites — sinon le bouton restait actif et produisait un fichier vide.
+    const hasSeg =queue.some(e=>e.source!=='turn'&&_entryLiveRows(e)>0);
+    const hasTurn=queue.some(e=>e.source==='turn'&&e.turnIds?.length&&_entryLiveRows(e)>0);
     $id('wct-btn-export')?.classList.toggle('wct-btn-dis',!hasSeg);
     $id('wct-btn-export-turn')?.classList.toggle('wct-btn-dis',!hasTurn);
 };
@@ -4597,16 +4604,34 @@ const applyQueue=async()=>{
     setTimeout(()=>{if(pbw)pbw.style.display='none';if(pbt)pbt.textContent='';},2000);
     showToast(_applyAborted?t('applyStopped',done,failed):t('applyDone',done,failed,total),4000,failed||_applyAborted?'#f57c00':'#43a047');
 };
+// Nombre de lignes REELLEMENT exportables d'une entree : cibles x occurrences, hors
+// lignes supprimees a la main. Une entree dont tout a ete supprime ne doit plus rien
+// produire — et si plus rien n'est exportable, le bouton s'eteint.
+// NB : on ne retire QUE les suppressions explicites (excludedRows). Les segments
+// signales nullSegs/recentSegs restent exportes : ce sont des avertissements, pas des
+// decisions de l'utilisateur, et ils seront reevalues a l'import.
+const _entryLiveRows=(e)=>{
+    const excl=e.excludedRows||new Set();
+    const ids=(e.source==='turn'&&e.turnIds?.length)?e.turnIds:e.segIds;
+    let n=0;
+    ids.forEach(id=>e.closures.forEach((_,ci)=>{ if(!excl.has(`${id}:${ci}`)) n++; }));
+    return n;
+};
 // Génère un CSV au format WME Advanced Closures à partir d'un jeu d'entrées de file.
 const _queueToCSV=(entries)=>{
     const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
     let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)\n';
     entries.forEach(e=>{
         const dir=DIR_CSV[parseInt(e.config.direction)],it=e.config.ignoretraffic?'Yes':'No';
-        e.closures.forEach(cl=>{
+        const excl=e.excludedRows||new Set();
+        e.closures.forEach((cl,ci)=>{
+            // Une ligne CSV = une occurrence x l'ensemble de ses segments encore actifs.
+            // Meme calcul que applyQueue : ce qu'on exporte doit etre ce qu'on appliquerait.
+            const activeSegs=e.segIds.filter(sid=>!excl.has(`${sid}:${ci}`));
+            if(!activeSegs.length) return;   // occurrence entierement supprimee : pas de ligne
             const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
             const ce=cl.end instanceof Date?dateToUTCStr(cl.end):cl.end;
-            csv+=`add,"${e.config.reason}","${cs}","${ce}","${dir}",${it},"${e.segIds.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
+            csv+=`add,"${e.config.reason}","${cs}","${ce}","${dir}",${it},"${activeSegs.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
         });
     });
     return csv;
@@ -4616,12 +4641,14 @@ const exportCSV=()=>{
     // Le format WME Advanced Closures est SEGMENT-only : sa colonne cle est
     // « segment IDs ». Il n'a aucune notion de virage, et une entree virage y
     // produirait une ligne a colonne segments VIDE — un CSV silencieusement
-    // corrompu. On les ecarte donc, et on le dit, en attendant un format dedie.
-    const segEntries=queue.filter(e=>e.source!=='turn');
-    const skipped=queue.length-segEntries.length;
-    if(!segEntries.length){ showToast(t('csvTurnOnly'),4000,'#f57c00'); return; }
+    // corrompu. On les ecarte donc, et on le dit.
+    const turnCount=queue.filter(e=>e.source==='turn').length;
+    // Ne garder que ce qui reste REELLEMENT a exporter : un lot dont toutes les lignes
+    // ont ete supprimees a la main ne doit pas produire de fichier fantome.
+    const segEntries=queue.filter(e=>e.source!=='turn'&&_entryLiveRows(e)>0);
+    if(!segEntries.length){ showToast(turnCount?t('csvTurnOnly'):t('csvNothing'),4000,'#f57c00'); return; }
     download(_queueToCSV(segEntries),`closures_${todayStr()}.csv`);
-    if(skipped) showToast(t('csvTurnSkipped',skipped),4500,'#f57c00');
+    if(turnCount) showToast(t('csvTurnSkipped',turnCount),4500,'#f57c00');
 };
 // ─── CSV VIRAGES (format WCT) ───────────────────────────────────────────────
 // Le format WME Advanced Closures est segment-only : il n'a aucune colonne capable
@@ -4663,7 +4690,7 @@ const _turnsToCSV=(entries)=>{
     return {csv,rows};
 };
 const exportTurnsCSV=()=>{
-    const turnEntries=queue.filter(e=>e.source==='turn'&&e.turnIds?.length);
+    const turnEntries=queue.filter(e=>e.source==='turn'&&e.turnIds?.length&&_entryLiveRows(e)>0);
     if(!turnEntries.length){ showToast(t('csvNoTurns'),3000,'#f57c00'); return; }
     const {csv,rows}=_turnsToCSV(turnEntries);
     if(!rows){ showToast(t('csvNoTurns'),3000,'#f57c00'); return; }
@@ -7076,6 +7103,9 @@ const buildQueueCard=(entry,idx)=>{
                     queue.splice(idx,1);renderQueue();
                 } else {
                     renderTable();
+                    // renderTable ne repasse pas par renderQueue : sans ca, les boutons
+                    // d'export restaient actifs alors qu'il n'y avait plus rien a exporter.
+                    updateActionBtns();
                 }
             });
             tbody.appendChild(tr);
