@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.76.01
+// @version      0.76.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -715,6 +715,8 @@ GM_addStyle(`
 .wct-tn-flag.ok  { background:#e8f5e9; color:#2e7d32; }
 .wct-tn-flag.ko  { background:#ffebee; color:#b71c1c; }
 .wct-tn-flag.na  { background:#f5f5f5; color:#9e9e9e; }
+/* Reglage sans objet pour la cible courante : visible mais neutralise. */
+.wct-na { opacity:.42; pointer-events:none; filter:grayscale(1); }
 .wct-tn-row.off  { opacity:.55; cursor:not-allowed; }
 .wct-tn-row.off input { cursor:not-allowed; }
 .wct-tn-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; flex-wrap:wrap; }
@@ -1052,6 +1054,11 @@ const t = (key, ...args) => {
             tnAllowed:'autoris\u00E9', tnForbidden:'interdit',
             tnNoTurns:'Aucun virage \u00E0 cette extr\u00E9mit\u00E9.',
             tnNotClosable:'non fermable', tnNotClosableTip:'Ce virage n\u2019existe pas dans le mod\u00E8le de donn\u00E9es de WME (cas courant des demi-tours) : le SDK refuse de le fermer.',
+            colTurn:'Virage', colTurnTip:'Extr\u00E9mit\u00E9 et direction du virage ferm\u00E9',
+            csvTurnOnly:'\u26A0\uFE0F La file ne contient que des fermetures de virage : le format WME Advanced Closures ne sait pas les repr\u00E9senter. Rien \u00E0 exporter.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} lot(s) de virages \u00E9cart\u00E9(s) de l\u2019export : le format Advanced Closures est propre aux segments.`,
+            tgtSeg:'Fermeture de segments', tgtTurn:'Fermeture de virages',
+            tnNotApplicable:'Sans objet pour une fermeture de virage.',
             tnCount: n => `${n} virage(s) s\u00E9lectionn\u00E9(s)`,
             tnSend:'\uD83E\uDDF2 Envoyer vers Configurer',
             tnSent: n => `\uD83D\uDD00 ${n} virage(s) envoy\u00E9(s) vers Configurer.`,
@@ -1358,6 +1365,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnAllowed:'allowed', tnForbidden:'restricted',
             tnNoTurns:'No turn at this extremity.',
             tnNotClosable:'not closable', tnNotClosableTip:'This turn does not exist in the WME data model (typically U-turns): the SDK refuses to close it.',
+            colTurn:'Turn', colTurnTip:'Extremity and direction of the closed turn',
+            csvTurnOnly:'\u26A0\uFE0F The queue only holds turn closures: the WME Advanced Closures format cannot represent them. Nothing to export.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} turn batch(es) left out of the export: the Advanced Closures format is segment-only.`,
+            tgtSeg:'Segment closure', tgtTurn:'Turn closure',
+            tnNotApplicable:'Not applicable to a turn closure.',
             tnCount: n => `${n} turn(s) selected`,
             tnSend:'\uD83E\uDDF2 Send to Configure',
             tnSent: n => `\uD83D\uDD00 ${n} turn(s) sent to Configure.`,
@@ -1650,6 +1662,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnAllowed:'erlaubt', tnForbidden:'gesperrt',
             tnNoTurns:'Kein Abbieger an diesem Ende.',
             tnNotClosable:'nicht sperrbar', tnNotClosableTip:'Dieser Abbieger existiert nicht im WME-Datenmodell (typisch bei Wendem\u00F6glichkeiten): das SDK lehnt die Sperrung ab.',
+            colTurn:'Abbieger', colTurnTip:'Ende und Richtung des gesperrten Abbiegers',
+            csvTurnOnly:'\u26A0\uFE0F Die Warteschlange enth\u00E4lt nur Abbiegersperrungen: das Format WME Advanced Closures kann sie nicht abbilden. Nichts zu exportieren.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} Abbieger-Paket(e) vom Export ausgenommen: das Advanced-Closures-Format gilt nur f\u00FCr Segmente.`,
+            tgtSeg:'Segmentsperrung', tgtTurn:'Abbiegersperrung',
+            tnNotApplicable:'F\u00FCr eine Abbiegersperrung ohne Bedeutung.',
             tnCount: n => `${n} Abbieger gew\u00E4hlt`,
             tnSend:'\uD83E\uDDF2 An Einrichten senden',
             tnSent: n => `\uD83D\uDD00 ${n} Abbieger an Einrichten gesendet.`,
@@ -1941,6 +1958,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnAllowed:'permitido', tnForbidden:'restringido',
             tnNoTurns:'No hay giros en este extremo.',
             tnNotClosable:'no cerrable', tnNotClosableTip:'Este giro no existe en el modelo de datos de WME (t\u00EDpico en los cambios de sentido): el SDK se niega a cerrarlo.',
+            colTurn:'Giro', colTurnTip:'Extremo y direcci\u00F3n del giro cerrado',
+            csvTurnOnly:'\u26A0\uFE0F La cola solo contiene cierres de giro: el formato WME Advanced Closures no puede representarlos. Nada que exportar.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de giros excluido(s) de la exportaci\u00F3n: el formato Advanced Closures es solo para segmentos.`,
+            tgtSeg:'Cierre de segmentos', tgtTurn:'Cierre de giros',
+            tnNotApplicable:'No aplicable a un cierre de giro.',
             tnCount: n => `${n} giro(s) seleccionado(s)`,
             tnSend:'\uD83E\uDDF2 Enviar a Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} giro(s) enviado(s) a Configurar.`,
@@ -2232,6 +2254,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma convers\u00E3o nesta extremidade.',
             tnNotClosable:'n\u00E3o bloque\u00E1vel', tnNotClosableTip:'Esta convers\u00E3o n\u00E3o existe no modelo de dados do WME (t\u00EDpico dos retornos): o SDK se recusa a bloque\u00E1-la.',
+            colTurn:'Convers\u00E3o', colTurnTip:'Extremidade e dire\u00E7\u00E3o da convers\u00E3o bloqueada',
+            csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas bloqueios de convers\u00E3o: o formato WME Advanced Closures n\u00E3o sabe represent\u00E1-los. Nada a exportar.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de convers\u00F5es exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
+            tgtSeg:'Bloqueio de segmentos', tgtTurn:'Bloqueio de convers\u00F5es',
+            tnNotApplicable:'N\u00E3o se aplica a um bloqueio de convers\u00E3o.',
             tnCount: n => `${n} convers\u00E3o(\u00F5es) selecionada(s)`,
             tnSend:'\uD83E\uDDF2 Enviar para Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} convers\u00E3o(\u00F5es) enviada(s) para Configurar.`,
@@ -2523,6 +2550,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma viragem nesta extremidade.',
             tnNotClosable:'n\u00E3o cort\u00E1vel', tnNotClosableTip:'Esta viragem n\u00E3o existe no modelo de dados do WME (t\u00EDpico das invers\u00F5es de marcha): o SDK recusa cort\u00E1-la.',
+            colTurn:'Viragem', colTurnTip:'Extremidade e dire\u00E7\u00E3o da viragem cortada',
+            csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas cortes de viragem: o formato WME Advanced Closures n\u00E3o os sabe representar. Nada a exportar.',
+            csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de viragens exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
+            tgtSeg:'Corte de segmentos', tgtTurn:'Corte de viragens',
+            tnNotApplicable:'N\u00E3o se aplica a um corte de viragem.',
             tnCount: n => `${n} viragem(ns) selecionada(s)`,
             tnSend:'\uD83E\uDDF2 Enviar para Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} viragem(ns) enviada(s) para Configurar.`,
@@ -3558,6 +3590,22 @@ const canEditTurnsAt=(nodeId)=>{
 const isTurnClosable=(turn)=>{
     try{ return !!sdk.DataModel.Turns.getById({turnId:turn.id}); }catch(e){ return false; }
 };
+// Fermetures de virage deja posees, pour un virage donne.
+// L'objet TurnClosure ne porte PAS de turnId : le recoupement se fait donc sur le
+// couple (fromSegmentId, toSegmentId), qui identifie le virage de facon unique a un noeud.
+const getExistingTurnClosures=(fromSegId,toSegId)=>{
+    try{
+        return sdk.DataModel.TurnClosures.getAll().filter(c=>
+            Number(c.fromSegmentId)===Number(fromSegId) && Number(c.toSegmentId)===Number(toSegId));
+    }catch(e){ return []; }
+};
+// « A » = extremite fromNode du segment, « B » = extremite toNode. Meme convention
+// que le sens A⇒B des fermetures de segment, pour ne pas creer un second vocabulaire.
+const turnEndLabel=(segId,nodeId)=>{
+    const seg=getSegById(segId);
+    if(!seg) return '?';
+    return Number(seg.fromNodeId)===Number(nodeId) ? t('tnNodeA') : t('tnNodeB');
+};
 
 // ─── Construit le permalink WME d'un segment ───────────────────────────────
 const getSegPermalink=(sid)=>{
@@ -3934,7 +3982,10 @@ const connectTurnsPane = (seg) => {
         const rows = _turnRows(seg.id, _turnNodeId).filter(r => _turnChecked.has(r.tn.id));
         _currentTurns = {
             segId: seg.id, nodeId: _turnNodeId,
-            turns: rows.map(r => ({ id: r.tn.id, to: r.to, arrow: r.geom ? r.geom.arrow : '•' })),
+            // toSegId est indispensable au recoupement avec les fermetures existantes :
+            // l'objet TurnClosure ne porte PAS de turnId, seulement fromSegmentId/toSegmentId.
+            turns: rows.map(r => ({ id: r.tn.id, to: r.to, toSegId: r.tn.toSegmentId,
+                arrow: r.geom ? r.geom.arrow : '•', dirKey: r.geom ? r.geom.key : null })),
         };
         renderTurnBanner();
         document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
@@ -3948,8 +3999,17 @@ const renderTurnBanner = () => {
     const pane = $id('wct-pane-cfg');
     if (!pane) return;
     $id('wct-tn-banner')?.remove();
-    const dirWrap = $id('wct-direction')?.closest('div');
-    if (dirWrap) dirWrap.style.display = _currentTurns ? 'none' : '';
+    // Ce qui n'a pas de sens pour un virage est GRISE, pas masque : l'utilisateur voit que
+    // le reglage existe mais ne s'applique pas ici, au lieu de le chercher.
+    //  - Sens A/B : un virage porte deja le sien (fromSegmentFwd) ;
+    //  - Noeuds fermes : notion propre au segment, absente de TurnClosures.addClosure ;
+    //  - Alerte de sens : sans objet, elle parle des segments.
+    [ $id('wct-direction')?.closest('div'), $id('wct-nodes-wrap'), $id('wct-alert-dir') ]
+        .forEach(el => {
+            if (!el) return;
+            el.classList.toggle('wct-na', !!_currentTurns);
+            if (_currentTurns) el.title = t('tnNotApplicable'); else el.removeAttribute('title');
+        });
     if (!_currentTurns) return;
     const el = make('div');
     el.id = 'wct-tn-banner';
@@ -4232,6 +4292,10 @@ const runSearch=()=>{
 //  SMALL PREVIEW
 // ═══════════════════════════════════════════════════════════════════════════
 const PREVIEW_MAX_ROWS=200; // plafond d'affichage des occurrences en live preview
+// Icone de cible : distingue d'un coup d'oeil une fermeture de SEGMENT d'une
+// fermeture de VIRAGE. Utilisee partout ou l'utilisateur lit ce qui va etre ferme
+// (apercu live, file d'attente, log d'application).
+const TARGET_ICON={seg:'\uD83D\uDEE3\uFE0F', turn:'\uD83D\uDD00'};
 const refreshSmallPreview=async()=>{
     const el=$id('wct-small-prev');if(!el)return;
     const rc=await buildClosureList();
@@ -4241,12 +4305,17 @@ const refreshSmallPreview=async()=>{
     // Métadonnées communes à toutes les occurrences (config globale), façon AC
     const reason=($id('wct-reason')?.value||'').trim();
     const dir=$id('wct-direction')?.value||'3';
-    const dirIcon=dir==='1'?'\u21D2':dir==='2'?'\u21D0':'\u21C4';
+    // Cible virages : le sens A/B est sans objet, on affiche les fleches des virages vises.
+    const _isTurn=!!_currentTurns;
+    const _icon=_isTurn?TARGET_ICON.turn:TARGET_ICON.seg;
+    const dirIcon=_isTurn
+        ? _currentTurns.turns.map(x=>x.arrow).join('')
+        : (dir==='1'?'\u21D2':dir==='2'?'\u21D0':'\u21C4');
     const shown=rc.list.slice(0,PREVIEW_MAX_ROWS);
     const rows=shown.map(cl=>{
         const s=formatDateDisplay(cl.start), e=formatDateDisplay(cl.end);
         const pre=reason?`${reason}: `:'';
-        return `<div class="wct-prev-row">${pre}${s} \u2192 ${e} (${dirIcon})</div>`;
+        return `<div class="wct-prev-row">${_icon} ${pre}${s} \u2192 ${e} (${dirIcon})</div>`;
     }).join('');
     const more=n>PREVIEW_MAX_ROWS?`<div class="wct-prev-more">${t('previewMore',n-PREVIEW_MAX_ROWS)}</div>`:'';
     el.innerHTML=`<div class="wct-prev-head">${t('previewHead',n)}</div>${rows}${more}`;
@@ -4459,8 +4528,8 @@ const applyQueue=async()=>{
                     if(_applyAborted) break;
                     await new Promise(res=>{
                         addTurnClosure({turnIds:ids,reason:e.config.reason,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
-                            ()=>{done+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
-                            (errs)=>{failed+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                            ()=>{done+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'#43a047');res();},
+                            (errs)=>{failed+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                     });
                 }
                 continue;
@@ -4480,8 +4549,8 @@ const applyQueue=async()=>{
                 if(_applyAborted) break;
                 await new Promise(res=>{
                     addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
-                        ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
-                        (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                        ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'#43a047');res();},
+                        (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                 });
             }
             // Pause assistée entre les lots (sauf après le dernier)
@@ -4512,7 +4581,18 @@ const _queueToCSV=(entries)=>{
     });
     return csv;
 };
-const exportCSV=()=>{ if(!queue.length)return; download(_queueToCSV(queue),`closures_${todayStr()}.csv`); };
+const exportCSV=()=>{
+    if(!queue.length)return;
+    // Le format WME Advanced Closures est SEGMENT-only : sa colonne cle est
+    // « segment IDs ». Il n'a aucune notion de virage, et une entree virage y
+    // produirait une ligne a colonne segments VIDE — un CSV silencieusement
+    // corrompu. On les ecarte donc, et on le dit, en attendant un format dedie.
+    const segEntries=queue.filter(e=>e.source!=='turn');
+    const skipped=queue.length-segEntries.length;
+    if(!segEntries.length){ showToast(t('csvTurnOnly'),4000,'#f57c00'); return; }
+    download(_queueToCSV(segEntries),`closures_${todayStr()}.csv`);
+    if(skipped) showToast(t('csvTurnSkipped',skipped),4500,'#f57c00');
+};
 // Export CSV des lots configurés d'une trace donnée (entrées 'sweep' de ce fichier).
 const exportLotsCSV=(fileId)=>{
     const lots=queue.filter(e=>e.source==='sweep'&&e.fileId===fileId);
@@ -6428,14 +6508,14 @@ const buildOverlay=()=>{
                 <button id="wct-mte-refresh" class="wct-btn wct-btn-neutral wct-btn-sm" title="${t('mteRefreshTip')}" style="flex-shrink:0;font-size:14px;padding:4px 8px">${t('mteRefresh')}</button>
               </div>
             </div>
-            <div style="margin-bottom:4px"><label class="wct-label">${t('lblNodes')}</label>
+            <div id="wct-nodes-wrap" style="margin-bottom:4px"><label class="wct-label">${t('lblNodes')}</label>
               <select id="wct-nodesel" class="wct-select">
                 <option value="1">${t('nodeNone')}</option>
                 <option value="2">${t('nodeInner')}</option>
                 <option value="3">${t('nodeAll')}</option>
               </select></div>
             <label class="wct-check" title="${t('tipIT')}"><input id="wct-ignoretraffic" type="checkbox"> ${t('lblIT')}</label>
-            <div class="wct-alert" style="margin-top:8px">${t('alertDir')}</div>
+            <div id="wct-alert-dir" class="wct-alert" style="margin-top:8px">${t('alertDir')}</div>
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
@@ -6694,6 +6774,7 @@ const buildQueueCard=(entry,idx)=>{
     hdr.style.cssText='display:flex;align-items:center;gap:5px;padding:6px 8px;background:var(--wct-bg);';
     hdr.innerHTML=`
         <span class="wct-qcard-chevron" style="font-size:12px;color:var(--wct-text2);cursor:pointer;flex-shrink:0;width:14px">&#x25BC;</span>
+        <span class="wct-qcard-tgt" title="${escHtml(isTurnEntry?t('tgtTurn'):t('tgtSeg'))}" style="flex-shrink:0;font-size:13px">${isTurnEntry?TARGET_ICON.turn:TARGET_ICON.seg}</span>
         <span class="wct-qcard-label" style="flex:1;font-size:1em;font-weight:700;color:var(--wct-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.label)}</span>
         <button class="wct-qcard-edit" title="${t('tipEditLabel')}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;color:var(--wct-text2);opacity:.7">&#x270F;&#xFE0F;</button>
         <span class="wct-badge ${countBadgeClass}" title="${t('tipCount',nbOcc,nbSeg)}">${t('countBadge',nbOcc,nbSeg)}</span>
@@ -6753,7 +6834,12 @@ const buildQueueCard=(entry,idx)=>{
     const COLS=[
         {key:'del',   label:'',        title:'',                          w:'28px',  sortable:false},
         {key:'id',    label:t('colId'), title:t('colIdTip'), w:'110px', sortable:true},
-        {key:'name',  label:t('colName'), title:t('colNameTip'), w:'90px', sortable:true},
+        // Pour un virage, la colonne « Rue » porte l'extremite + la direction du virage :
+        // le nom de la rue de destination seul ne suffit pas a identifier un virage (un meme
+        // noeud offre souvent deux virages vers la MEME rue — cas rencontre en test).
+        isTurnEntry
+          ? {key:'name', label:t('colTurn'), title:t('colTurnTip'), w:'120px', sortable:true}
+          : {key:'name',  label:t('colName'), title:t('colNameTip'), w:'90px', sortable:true},
         {key:'start', label:t('colStart'), title:t('colStartTip'), w:'72px', sortable:true},
         {key:'end',   label:t('colEnd'), title:t('colEndTip'), w:'72px', sortable:true},
         {key:'state', label:t('colState'), title:t('colStateTip'), w:'36px', sortable:true},
@@ -6761,6 +6847,45 @@ const buildQueueCard=(entry,idx)=>{
 
     const buildRows=()=>{
         const now=new Date();
+        // ─── Lignes VIRAGES ───
+        // segIds est vide pour une entree virage : sans cette branche, le tableau des
+        // occurrences ne produisait aucune ligne et le corps de carte restait vide.
+        if(isTurnEntry){
+            const endLbl=turnEndLabel(entry.turnSegId,entry.turnNodeId);
+            let rowsT=[];
+            (entry.turnMeta||[]).forEach(tm=>{
+                const exist=getExistingTurnClosures(entry.turnSegId,tm.toSegId);
+                entry.closures.forEach((cl,closureIdx)=>{
+                    const rowKey=`${tm.id}:${closureIdx}`;
+                    if(entry.excludedRows.has(rowKey)) return;
+                    const s=cl.start instanceof Date ? cl.start : new Date(cl.start.replace(' ','T')+'Z');
+                    const e=cl.end   instanceof Date ? cl.end   : new Date(cl.end.replace(' ','T')+'Z');
+                    const overlap=exist.some(c=>dateTimeOverlaps({startDate:s,endDate:e},{startDate:new Date(c.startDate),endDate:new Date(c.endDate)}));
+                    let stateIcon='&#x1F7E2;',stateTip=t('stateOk'),stateBg='',stateVal=0;
+                    if(overlap){stateIcon='&#x1F534;';stateTip=t('stateOv');stateBg='#fff0f0';stateVal=3;}
+                    else if(e<now){stateIcon='&#x26AB;';stateTip=t('statePast');stateBg='#fafafa';stateVal=1;}
+                    else if(s<now){stateIcon='&#x1F7E0;';stateTip=t('stateOn');stateBg='#fff8e1';stateVal=2;}
+                    rowsT.push({sid:entry.turnSegId, cl, closureIdx, rowKey, s, e,
+                        stateIcon, stateTip, stateBg, stateVal, isDirConflict:false,
+                        name:`${endLbl} · ${tm.arrow} ${tm.to}`});
+                });
+            });
+            if(sortCol){
+                rowsT.sort((a,b)=>{
+                    let va,vb;
+                    if(sortCol==='id'){va=a.sid;vb=b.sid;}
+                    else if(sortCol==='name'){va=a.name;vb=b.name;}
+                    else if(sortCol==='start'){va=a.s;vb=b.s;}
+                    else if(sortCol==='end'){va=a.e;vb=b.e;}
+                    else if(sortCol==='state'){va=a.stateVal;vb=b.stateVal;}
+                    else return 0;
+                    if(va<vb)return sortAsc?-1:1;
+                    if(va>vb)return sortAsc?1:-1;
+                    return 0;
+                });
+            }
+            return rowsT;
+        }
         const existCl=getExistingClosures(entry.segIds);
         // Calculer les conflits directionnels une seule fois pour ce lot
         const dirConflictIds=new Set(
@@ -6865,8 +6990,10 @@ const buildQueueCard=(entry,idx)=>{
                 e.stopPropagation();
                 const key=e.target.dataset.key;
                 entry.excludedRows.add(key);
-                // Si toutes les lignes sont supprimées, retirer le lot entier
-                const totalRows=entry.segIds.length*entry.closures.length;
+                // Si toutes les lignes sont supprimées, retirer le lot entier.
+                // Pour un virage, l'unité est le virage : segIds est vide, et le total
+                // serait 0 — donc la 1re suppression aurait efface l'entree entiere.
+                const totalRows=(isTurnEntry?entry.turnIds.length:entry.segIds.length)*entry.closures.length;
                 if(entry.excludedRows.size>=totalRows){
                     queue.splice(idx,1);renderQueue();
                 } else {
