@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.76.00
+// @version      0.76.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -714,6 +714,9 @@ GM_addStyle(`
 .wct-tn-flag { font-size:0.75em; font-weight:600; padding:1px 5px; border-radius:3px; flex-shrink:0; }
 .wct-tn-flag.ok  { background:#e8f5e9; color:#2e7d32; }
 .wct-tn-flag.ko  { background:#ffebee; color:#b71c1c; }
+.wct-tn-flag.na  { background:#f5f5f5; color:#9e9e9e; }
+.wct-tn-row.off  { opacity:.55; cursor:not-allowed; }
+.wct-tn-row.off input { cursor:not-allowed; }
 .wct-tn-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; flex-wrap:wrap; }
 #wct-overlay.wct-compact .wct-tn-list,
 #wct-overlay.wct-compact .wct-tn-flag { border-radius:0; }
@@ -1048,6 +1051,7 @@ const t = (key, ...args) => {
             tnTurnsFrom:'Virages depuis ce segment', tnAll:'Tout', tnNone:'Aucun',
             tnAllowed:'autoris\u00E9', tnForbidden:'interdit',
             tnNoTurns:'Aucun virage \u00E0 cette extr\u00E9mit\u00E9.',
+            tnNotClosable:'non fermable', tnNotClosableTip:'Ce virage n\u2019existe pas dans le mod\u00E8le de donn\u00E9es de WME (cas courant des demi-tours) : le SDK refuse de le fermer.',
             tnCount: n => `${n} virage(s) s\u00E9lectionn\u00E9(s)`,
             tnSend:'\uD83E\uDDF2 Envoyer vers Configurer',
             tnSent: n => `\uD83D\uDD00 ${n} virage(s) envoy\u00E9(s) vers Configurer.`,
@@ -1353,6 +1357,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnTurnsFrom:'Turns from this segment', tnAll:'All', tnNone:'None',
             tnAllowed:'allowed', tnForbidden:'restricted',
             tnNoTurns:'No turn at this extremity.',
+            tnNotClosable:'not closable', tnNotClosableTip:'This turn does not exist in the WME data model (typically U-turns): the SDK refuses to close it.',
             tnCount: n => `${n} turn(s) selected`,
             tnSend:'\uD83E\uDDF2 Send to Configure',
             tnSent: n => `\uD83D\uDD00 ${n} turn(s) sent to Configure.`,
@@ -1644,6 +1649,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnTurnsFrom:'Abbieger von diesem Segment', tnAll:'Alle', tnNone:'Keine',
             tnAllowed:'erlaubt', tnForbidden:'gesperrt',
             tnNoTurns:'Kein Abbieger an diesem Ende.',
+            tnNotClosable:'nicht sperrbar', tnNotClosableTip:'Dieser Abbieger existiert nicht im WME-Datenmodell (typisch bei Wendem\u00F6glichkeiten): das SDK lehnt die Sperrung ab.',
             tnCount: n => `${n} Abbieger gew\u00E4hlt`,
             tnSend:'\uD83E\uDDF2 An Einrichten senden',
             tnSent: n => `\uD83D\uDD00 ${n} Abbieger an Einrichten gesendet.`,
@@ -1934,6 +1940,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnTurnsFrom:'Giros desde este segmento', tnAll:'Todos', tnNone:'Ninguno',
             tnAllowed:'permitido', tnForbidden:'restringido',
             tnNoTurns:'No hay giros en este extremo.',
+            tnNotClosable:'no cerrable', tnNotClosableTip:'Este giro no existe en el modelo de datos de WME (t\u00EDpico en los cambios de sentido): el SDK se niega a cerrarlo.',
             tnCount: n => `${n} giro(s) seleccionado(s)`,
             tnSend:'\uD83E\uDDF2 Enviar a Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} giro(s) enviado(s) a Configurar.`,
@@ -2224,6 +2231,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnTurnsFrom:'Convers\u00F5es a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma convers\u00E3o nesta extremidade.',
+            tnNotClosable:'n\u00E3o bloque\u00E1vel', tnNotClosableTip:'Esta convers\u00E3o n\u00E3o existe no modelo de dados do WME (t\u00EDpico dos retornos): o SDK se recusa a bloque\u00E1-la.',
             tnCount: n => `${n} convers\u00E3o(\u00F5es) selecionada(s)`,
             tnSend:'\uD83E\uDDF2 Enviar para Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} convers\u00E3o(\u00F5es) enviada(s) para Configurar.`,
@@ -2514,6 +2522,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnTurnsFrom:'Viragens a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma viragem nesta extremidade.',
+            tnNotClosable:'n\u00E3o cort\u00E1vel', tnNotClosableTip:'Esta viragem n\u00E3o existe no modelo de dados do WME (t\u00EDpico das invers\u00F5es de marcha): o SDK recusa cort\u00E1-la.',
             tnCount: n => `${n} viragem(ns) selecionada(s)`,
             tnSend:'\uD83E\uDDF2 Enviar para Configurar',
             tnSent: n => `\uD83D\uDD00 ${n} viragem(ns) enviada(s) para Configurar.`,
@@ -3540,6 +3549,15 @@ const getTurnsAtNode=(segId,nodeId)=>{
 const canEditTurnsAt=(nodeId)=>{
     try{ return sdk.DataModel.Turns.canEditTurnsThroughNode({nodeId:Number(nodeId)}); }catch(e){ return false; }
 };
+// Un virage fermable doit exister dans le data model.
+// ⚠️ VERIFIE EN LIVE : getTurnsThroughNode renvoie AUSSI des virages fantomes —
+// typiquement les demi-tours d'un segment sur lui-meme — que getById ne trouve pas
+// et que TurnClosures.addClosure rejette (« DataModelNotFoundError: turn with id
+// ... not found in data model »). On teste donc la presence reelle plutot que de
+// se fier a isUTurn, qui n'est qu'un symptome.
+const isTurnClosable=(turn)=>{
+    try{ return !!sdk.DataModel.Turns.getById({turnId:turn.id}); }catch(e){ return false; }
+};
 
 // ─── Construit le permalink WME d'un segment ───────────────────────────────
 const getSegPermalink=(sid)=>{
@@ -3836,7 +3854,7 @@ const _turnSoleSeg = () => {
 
 // Liste enrichie des virages a l'extremite courante, triee par angle.
 const _turnRows = (segId, nodeId) => getTurnsAtNode(segId, nodeId)
-    .map(tn => ({ tn, geom: getTurnGeom(nodeId, tn), to: getSegName(tn.toSegmentId) }))
+    .map(tn => ({ tn, geom: getTurnGeom(nodeId, tn), to: getSegName(tn.toSegmentId), closable: isTurnClosable(tn) }))
     .sort((a, b) => (a.geom?.delta ?? 999) - (b.geom?.delta ?? 999));
 
 const renderTurnsPane = () => {
@@ -3874,12 +3892,14 @@ const renderTurnsPane = () => {
         </span>
       </div>
       ${rows.length ? `<div class="wct-tn-list">${rows.map(r => `
-        <label class="wct-tn-row">
-          <input type="checkbox" class="wct-tn-cb" value="${escHtml(r.tn.id)}"${_turnChecked.has(r.tn.id) ? ' checked' : ''}>
+        <label class="wct-tn-row${r.closable ? '' : ' off'}"${r.closable ? '' : ` title="${escHtml(t('tnNotClosableTip'))}"`}>
+          <input type="checkbox" class="wct-tn-cb" value="${escHtml(r.tn.id)}"${_turnChecked.has(r.tn.id) ? ' checked' : ''}${r.closable ? '' : ' disabled'}>
           <span class="wct-tn-arrow">${r.geom ? r.geom.arrow : '•'}</span>
           <span class="wct-tn-to" title="${escHtml(r.to)}">${escHtml(r.to)}</span>
           <span class="wct-tn-deg">${r.geom ? escHtml(t(r.geom.key)) + ' · ' + r.geom.delta + '°' : ''}</span>
-          <span class="wct-tn-flag ${r.tn.isAllowed ? 'ok' : 'ko'}">${escHtml(r.tn.isAllowed ? t('tnAllowed') : t('tnForbidden'))}</span>
+          ${r.closable
+            ? `<span class="wct-tn-flag ${r.tn.isAllowed ? 'ok' : 'ko'}">${escHtml(r.tn.isAllowed ? t('tnAllowed') : t('tnForbidden'))}</span>`
+            : `<span class="wct-tn-flag na">${escHtml(t('tnNotClosable'))}</span>`}
         </label>`).join('')}</div>`
       : `<div class="wct-tn-hint">${escHtml(t('tnNoTurns'))}</div>`}
       <div class="wct-tn-foot">
@@ -3900,7 +3920,9 @@ const connectTurnsPane = (seg) => {
     document.querySelectorAll('#wct-turn-body .wct-tn-cb').forEach(cb =>
         cb.addEventListener('change', () => { cb.checked ? _turnChecked.add(cb.value) : _turnChecked.delete(cb.value); sync(); }));
     $id('wct-tn-all')?.addEventListener('click', () => {
-        document.querySelectorAll('#wct-turn-body .wct-tn-cb').forEach(cb => { cb.checked = true; _turnChecked.add(cb.value); });
+        // Ne cocher que le fermable : les virages fantomes (getById KO) feraient
+        // echouer l'application entiere.
+        document.querySelectorAll('#wct-turn-body .wct-tn-cb:not([disabled])').forEach(cb => { cb.checked = true; _turnChecked.add(cb.value); });
         sync();
     });
     $id('wct-tn-none')?.addEventListener('click', () => {
@@ -4300,13 +4322,20 @@ const addClosure=(options,okCb,koCb)=>{
 //  - aucun sens a resoudre : un virage porte deja le sien (fromSegmentFwd) ;
 //  - aucune notion de noeud ferme : sans objet pour un virage.
 // Le decalage DST est traite comme dans addClosure (valueOf() - tzOffset).
+// ⚠️ PIEGE VERIFIE EN LIVE : contrairement a RoadClosures qui accepte
+// trafficEventId:null, TurnClosures REJETTE majorTrafficEventId:null
+// (« ValidationError: Invalid arguments: majorTrafficEventId cannot be null »).
+// Le parametre est optionnel : il faut l'OMETTRE, pas le passer a null. Sans ca,
+// chaque virage echouait, save() n'avait plus rien a sauver et remontait un
+// « InvalidStateError: Save is disabled » qui masquait la vraie cause.
 const addTurnClosure=(options,okCb,koCb)=>{
     const{turnIds,reason,startDate,endDate,permanent,eventId}=options;
     const sd=new Date(startDate),ed=new Date(endDate);
     const sdoff=sd.getTimezoneOffset()*60000;
     const edoff=ed.getTimezoneOffset()*60000;
     const args={description:reason,endDate:ed.valueOf()-edoff,isPermanent:!!permanent,
-        startDate:sd.valueOf()-sdoff,turnId:'',majorTrafficEventId:eventId||null};
+        startDate:sd.valueOf()-sdoff,turnId:''};
+    if(eventId) args.majorTrafficEventId=eventId;   // ne JAMAIS poser la cle a null
     const loopErrors=[];
     for(const tid of turnIds){
         args.turnId=String(tid);
