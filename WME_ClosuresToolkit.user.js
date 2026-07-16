@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.76.04
+// @version      0.77.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -702,6 +702,8 @@ GM_addStyle(`
 .wct-tn-ends { display:flex; flex-wrap:wrap; gap:4px 14px; margin-bottom:4px; }
 .wct-tn-end { display:flex; align-items:center; gap:4px; font-size:0.917em; cursor:pointer; }
 .wct-tn-end input { margin:0; cursor:pointer; }
+.wct-tn-end.off { opacity:.45; cursor:not-allowed; text-decoration:line-through; }
+.wct-tn-end.off input { cursor:not-allowed; }
 .wct-tn-warn { color:var(--wct-orange); font-size:0.833em; margin:2px 0 6px; }
 .wct-tn-list { border:1px solid var(--wct-border); border-radius:var(--wct-radius); max-height:190px; overflow-y:auto; }
 .wct-tn-row { display:flex; align-items:center; gap:6px; padding:4px 6px; border-bottom:1px solid var(--wct-border); font-size:0.917em; }
@@ -1060,6 +1062,31 @@ const t = (key, ...args) => {
             btnCsvTurn:'\u2B07 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
             csvNoTurns:'Aucune fermeture de virage \u00E0 exporter.',
             csvNothing:'Plus rien \u00E0 exporter : toutes les lignes ont \u00E9t\u00E9 supprim\u00E9es.',
+            // Infobulles des onglets et boutons
+            tipTabCfg:'R\u00E9gler une fermeture : p\u00E9riode, horaires, r\u00E9currence, motif.',
+            tipTabTurn:'Fermer des virages plut\u00F4t que des segments : choisir une extr\u00E9mit\u00E9 du segment s\u00E9lectionn\u00E9, puis les virages.',
+            tipTabCsv:'Importer des fermetures depuis un fichier CSV (format WME Advanced Closures).',
+            tipTabGpx:'Charger un trac\u00E9 (GPX, KML, KMZ, GeoJSON, Shapefile) et s\u00E9lectionner automatiquement les segments qu\u2019il suit.',
+            tipTabPre:'Enregistrer et rappeler des configurations de fermeture types.',
+            tipTabSrc:'Rechercher les fermetures existantes de la vue : par \u00E9tat, dates, motif ou \u00E9v\u00E9nement MTE.',
+            tipTabEach:'Une fermeture par jour, aux m\u00EAmes horaires.',
+            tipTabRepeat:'Plusieurs fermetures par jour, r\u00E9p\u00E9t\u00E9es \u00E0 intervalle r\u00E9gulier.',
+            tipBtnValidate:'Cr\u00E9er les occurrences \u00E0 partir de ce r\u00E9glage et les ajouter \u00E0 la file. Rien n\u2019est \u00E9crit sur la carte \u00E0 ce stade.',
+            tipBtnApply:'\u00C9crire toutes les fermetures de la file sur la carte. Action r\u00E9elle et sauvegard\u00E9e.',
+            tipBtnClear:'Vider la file, le journal et la progression. N\u2019efface aucune fermeture d\u00E9j\u00E0 appliqu\u00E9e.',
+            tipBtnStop:'Interrompre l\u2019application en cours. Les fermetures d\u00E9j\u00E0 \u00E9crites restent en place. Raccourci : \u00C9chap.',
+            tipSweepStop:'Interrompre le balayage en cours.',
+            tipTnAll:'Cocher tous les virages fermables de cette extr\u00E9mit\u00E9.',
+            tipTnNone:'D\u00E9cocher tous les virages.',
+            tipTnSend:'Envoyer les virages coch\u00E9s vers Configurer pour y r\u00E9gler dates et r\u00E9currence.',
+            tipPresetConfirm:'Enregistrer le r\u00E9glage courant sous ce nom.',
+            tipPresetCancel:'Fermer sans enregistrer.',
+            // Extremites sans virage fermable
+            tnOrphan:'\u26A0 Aucune extr\u00E9mit\u00E9 de ce segment ne permet de fermer un virage.',
+            tnOrphanHint:'Ses deux extr\u00E9mit\u00E9s sont des impasses, ou ne d\u00E9bouchent que sur des demi-tours, absents du mod\u00E8le de donn\u00E9es de WME.',
+            tnEndTip: (nid,n) => `N\u0153ud ${nid} \u00B7 ${n} virage(s) fermable(s)`,
+            tnEndDead: lbl => `\u26A0 ${lbl} ne d\u00E9bouche sur aucun virage fermable : extr\u00E9mit\u00E9 d\u00E9sactiv\u00E9e.`,
+            tnEndDeadTip:'Impasse, ou seulement des demi-tours : rien n\u2019est fermable \u00E0 cette extr\u00E9mit\u00E9.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} ligne(s) de virage export\u00E9e(s) au format WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lot(s) de virages \u00E9cart\u00E9(s) de l\u2019export : le format Advanced Closures est propre aux segments.`,
             tgtSeg:'Fermeture de segments', tgtTurn:'Fermeture de virages',
@@ -1348,6 +1375,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpH8:'\uD83D\uDDFA Trac\u00e9s',
             helpH9:'\uD83D\uDD0D Recherche de fermetures',
             helpH10:'📦 Longs tracés : le mode lots',
+            helpH11:'\uD83D\uDD00 Fermer des virages', helpH12:'\u2B07 Les deux exports CSV',
             helpS1:'<b>S\u00E9lectionnez</b> un ou plusieurs segments sur la carte WME',
             helpS2:'Cliquez sur le bouton \uD83D\uDEA7 visible sur la carte (d\u00E9pla\u00E7able par glisser-d\u00E9poser)',
             helpS3:'Dans l\u2019onglet <b>\u2699 Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
@@ -1376,6 +1404,31 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             btnCsvTurn:'\u2B07 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
             csvNoTurns:'No turn closure to export.',
             csvNothing:'Nothing left to export: all rows have been deleted.',
+            // Tab and button tooltips
+            tipTabCfg:'Set up a closure: period, times, recurrence, reason.',
+            tipTabTurn:'Close turns rather than segments: pick an extremity of the selected segment, then the turns.',
+            tipTabCsv:'Import closures from a CSV file (WME Advanced Closures format).',
+            tipTabGpx:'Load a track (GPX, KML, KMZ, GeoJSON, Shapefile) and automatically select the segments it follows.',
+            tipTabPre:'Save and recall typical closure setups.',
+            tipTabSrc:'Search the existing closures in view: by status, dates, reason or MTE event.',
+            tipTabEach:'One closure per day, at the same times.',
+            tipTabRepeat:'Several closures a day, repeated at a regular interval.',
+            tipBtnValidate:'Build the occurrences from this setup and add them to the queue. Nothing is written to the map yet.',
+            tipBtnApply:'Write every closure in the queue to the map. Real, saved action.',
+            tipBtnClear:'Empty the queue, the log and the progress bar. Does not remove any closure already applied.',
+            tipBtnStop:'Interrupt the ongoing application. Closures already written stay in place. Shortcut: Esc.',
+            tipSweepStop:'Interrupt the ongoing sweep.',
+            tipTnAll:'Check every closable turn at this extremity.',
+            tipTnNone:'Uncheck every turn.',
+            tipTnSend:'Send the checked turns to Configure to set dates and recurrence there.',
+            tipPresetConfirm:'Save the current setup under this name.',
+            tipPresetCancel:'Close without saving.',
+            // Extremities with no closable turn
+            tnOrphan:'\u26A0 Neither extremity of this segment allows a turn to be closed.',
+            tnOrphanHint:'Both ends are dead ends, or only lead to U-turns, which are absent from the WME data model.',
+            tnEndTip: (nid,n) => `Node ${nid} \u00B7 ${n} closable turn(s)`,
+            tnEndDead: lbl => `\u26A0 ${lbl} leads to no closable turn: extremity disabled.`,
+            tnEndDeadTip:'Dead end, or U-turns only: nothing is closable at this extremity.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} turn row(s) exported in the WCT format.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} turn batch(es) left out of the export: the Advanced Closures format is segment-only.`,
             tgtSeg:'Segment closure', tgtTurn:'Turn closure',
@@ -1649,6 +1702,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Closure search',
             helpH10:'📦 Long tracks: batch mode',
+            helpH11:'\uD83D\uDD00 Closing turns', helpH12:'\u2B07 The two CSV exports',
             helpS1:'<b>Select</b> one or more segments on the WME map',
             helpS2:'Click the \uD83D\uDEA7 button visible on the map (drag and drop to reposition)',
             helpS3:'In the <b>\u2699 Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
@@ -1678,6 +1732,31 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCsvTurn:'\u2B07 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
             csvNoTurns:'Keine Abbiegersperrung zum Exportieren.',
             csvNothing:'Nichts mehr zu exportieren: alle Zeilen wurden gel\u00F6scht.',
+            // Tooltips der Reiter und Schaltflaechen
+            tipTabCfg:'Eine Sperrung einrichten: Zeitraum, Uhrzeiten, Wiederholung, Grund.',
+            tipTabTurn:'Abbieger statt Segmente sperren: ein Ende des gew\u00E4hlten Segments w\u00E4hlen, dann die Abbieger.',
+            tipTabCsv:'Sperrungen aus einer CSV-Datei importieren (Format WME Advanced Closures).',
+            tipTabGpx:'Einen Track laden (GPX, KML, KMZ, GeoJSON, Shapefile) und die Segmente entlang davon automatisch ausw\u00E4hlen.',
+            tipTabPre:'Typische Sperrungs-Einstellungen speichern und wieder aufrufen.',
+            tipTabSrc:'Vorhandene Sperrungen der Ansicht durchsuchen: nach Status, Datum, Grund oder MTE-Ereignis.',
+            tipTabEach:'Eine Sperrung pro Tag, zu denselben Uhrzeiten.',
+            tipTabRepeat:'Mehrere Sperrungen pro Tag, in regelm\u00E4\u00DFigem Abstand wiederholt.',
+            tipBtnValidate:'Die Termine aus dieser Einstellung erzeugen und zur Warteschlange hinzuf\u00FCgen. Es wird noch nichts auf die Karte geschrieben.',
+            tipBtnApply:'Alle Sperrungen der Warteschlange auf die Karte schreiben. Echte, gespeicherte Aktion.',
+            tipBtnClear:'Warteschlange, Protokoll und Fortschritt leeren. Bereits angewendete Sperrungen bleiben bestehen.',
+            tipBtnStop:'Laufende Anwendung abbrechen. Bereits geschriebene Sperrungen bleiben. Tastenk\u00FCrzel: Esc.',
+            tipSweepStop:'Laufenden Durchlauf abbrechen.',
+            tipTnAll:'Alle sperrbaren Abbieger an diesem Ende ankreuzen.',
+            tipTnNone:'Alle Abbieger abw\u00E4hlen.',
+            tipTnSend:'Die angekreuzten Abbieger an Einrichten senden, um dort Datum und Wiederholung festzulegen.',
+            tipPresetConfirm:'Aktuelle Einstellung unter diesem Namen speichern.',
+            tipPresetCancel:'Schlie\u00DFen ohne zu speichern.',
+            // Enden ohne sperrbaren Abbieger
+            tnOrphan:'\u26A0 An keinem Ende dieses Segments l\u00E4sst sich ein Abbieger sperren.',
+            tnOrphanHint:'Beide Enden sind Sackgassen oder f\u00FChren nur zu Wendem\u00F6glichkeiten, die im WME-Datenmodell fehlen.',
+            tnEndTip: (nid,n) => `Knoten ${nid} \u00B7 ${n} sperrbare(r) Abbieger`,
+            tnEndDead: lbl => `\u26A0 ${lbl} f\u00FChrt zu keinem sperrbaren Abbieger: Ende deaktiviert.`,
+            tnEndDeadTip:'Sackgasse oder nur Wendem\u00F6glichkeiten: an diesem Ende ist nichts sperrbar.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} Abbieger-Zeile(n) im WCT-Format exportiert.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} Abbieger-Paket(e) vom Export ausgenommen: das Advanced-Closures-Format gilt nur f\u00FCr Segmente.`,
             tgtSeg:'Segmentsperrung', tgtTurn:'Abbiegersperrung',
@@ -1951,6 +2030,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Sperrungssuche',
             helpH10:'📦 Lange Tracks: Paket-Modus',
+            helpH11:'\uD83D\uDD00 Abbieger sperren', helpH12:'\u2B07 Die zwei CSV-Exporte',
             helpS1:'<b>W\u00E4hle</b> ein oder mehrere Segmente auf der WME-Karte aus',
             helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
             helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
@@ -1979,6 +2059,31 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCsvTurn:'\u2B07 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
             csvNoTurns:'No hay ning\u00FAn cierre de giro que exportar.',
             csvNothing:'Ya no hay nada que exportar: se han eliminado todas las l\u00EDneas.',
+            // Descripciones de pestanas y botones
+            tipTabCfg:'Configurar un cierre: periodo, horarios, recurrencia, motivo.',
+            tipTabTurn:'Cerrar giros en lugar de segmentos: elige un extremo del segmento seleccionado y luego los giros.',
+            tipTabCsv:'Importar cierres desde un archivo CSV (formato WME Advanced Closures).',
+            tipTabGpx:'Cargar una traza (GPX, KML, KMZ, GeoJSON, Shapefile) y seleccionar autom\u00E1ticamente los segmentos que recorre.',
+            tipTabPre:'Guardar y recuperar configuraciones de cierre habituales.',
+            tipTabSrc:'Buscar los cierres existentes de la vista: por estado, fechas, motivo o evento MTE.',
+            tipTabEach:'Un cierre al d\u00EDa, a las mismas horas.',
+            tipTabRepeat:'Varios cierres al d\u00EDa, repetidos a intervalos regulares.',
+            tipBtnValidate:'Crear las ocurrencias a partir de esta configuraci\u00F3n y a\u00F1adirlas a la cola. Todav\u00EDa no se escribe nada en el mapa.',
+            tipBtnApply:'Escribir en el mapa todos los cierres de la cola. Acci\u00F3n real y guardada.',
+            tipBtnClear:'Vaciar la cola, el registro y el progreso. No borra ning\u00FAn cierre ya aplicado.',
+            tipBtnStop:'Interrumpir la aplicaci\u00F3n en curso. Los cierres ya escritos se mantienen. Atajo: Esc.',
+            tipSweepStop:'Interrumpir el barrido en curso.',
+            tipTnAll:'Marcar todos los giros cerrables de este extremo.',
+            tipTnNone:'Desmarcar todos los giros.',
+            tipTnSend:'Enviar los giros marcados a Configurar para ajustar all\u00ED fechas y recurrencia.',
+            tipPresetConfirm:'Guardar la configuraci\u00F3n actual con este nombre.',
+            tipPresetCancel:'Cerrar sin guardar.',
+            // Extremos sin giro cerrable
+            tnOrphan:'\u26A0 Ning\u00FAn extremo de este segmento permite cerrar un giro.',
+            tnOrphanHint:'Sus dos extremos son callejones sin salida, o solo llevan a cambios de sentido, ausentes del modelo de datos de WME.',
+            tnEndTip: (nid,n) => `Nodo ${nid} \u00B7 ${n} giro(s) cerrable(s)`,
+            tnEndDead: lbl => `\u26A0 ${lbl} no lleva a ning\u00FAn giro cerrable: extremo desactivado.`,
+            tnEndDeadTip:'Callej\u00F3n sin salida, o solo cambios de sentido: aqu\u00ED no hay nada cerrable.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} l\u00EDnea(s) de giro exportada(s) en formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de giros excluido(s) de la exportaci\u00F3n: el formato Advanced Closures es solo para segmentos.`,
             tgtSeg:'Cierre de segmentos', tgtTurn:'Cierre de giros',
@@ -2252,6 +2357,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpH8:'🗺 Trazas',
             helpH9:'🔍 Búsqueda de cierres',
             helpH10:'📦 Trazas largas: modo por lotes',
+            helpH11:'\uD83D\uDD00 Cerrar giros', helpH12:'\u2B07 Las dos exportaciones CSV',
             helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME',
             helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
             helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
@@ -2280,6 +2386,31 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             btnCsvTurn:'\u2B07 CSV Convers\u00F5es', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum bloqueio de convers\u00E3o para exportar.',
             csvNothing:'N\u00E3o h\u00E1 mais nada para exportar: todas as linhas foram exclu\u00EDdas.',
+            // Dicas das abas e botoes
+            tipTabCfg:'Configurar um bloqueio: per\u00EDodo, hor\u00E1rios, recorr\u00EAncia, motivo.',
+            tipTabTurn:'Bloquear convers\u00F5es em vez de segmentos: escolha uma extremidade do segmento selecionado e depois as convers\u00F5es.',
+            tipTabCsv:'Importar bloqueios de um arquivo CSV (formato WME Advanced Closures).',
+            tipTabGpx:'Carregar um trajeto (GPX, KML, KMZ, GeoJSON, Shapefile) e selecionar automaticamente os segmentos que ele percorre.',
+            tipTabPre:'Salvar e recuperar configura\u00E7\u00F5es de bloqueio t\u00EDpicas.',
+            tipTabSrc:'Pesquisar os bloqueios existentes da visualiza\u00E7\u00E3o: por status, datas, motivo ou evento MTE.',
+            tipTabEach:'Um bloqueio por dia, nos mesmos hor\u00E1rios.',
+            tipTabRepeat:'V\u00E1rios bloqueios por dia, repetidos em intervalos regulares.',
+            tipBtnValidate:'Criar as ocorr\u00EAncias a partir desta configura\u00E7\u00E3o e adicion\u00E1-las \u00E0 fila. Nada \u00E9 gravado no mapa ainda.',
+            tipBtnApply:'Gravar no mapa todos os bloqueios da fila. A\u00E7\u00E3o real e salva.',
+            tipBtnClear:'Esvaziar a fila, o registro e o progresso. N\u00E3o apaga nenhum bloqueio j\u00E1 aplicado.',
+            tipBtnStop:'Interromper a aplica\u00E7\u00E3o em curso. Os bloqueios j\u00E1 gravados permanecem. Atalho: Esc.',
+            tipSweepStop:'Interromper a varredura em curso.',
+            tipTnAll:'Marcar todas as convers\u00F5es bloque\u00E1veis desta extremidade.',
+            tipTnNone:'Desmarcar todas as convers\u00F5es.',
+            tipTnSend:'Enviar as convers\u00F5es marcadas para Configurar e ajustar l\u00E1 datas e recorr\u00EAncia.',
+            tipPresetConfirm:'Salvar a configura\u00E7\u00E3o atual com este nome.',
+            tipPresetCancel:'Fechar sem salvar.',
+            // Extremidades sem conversao bloqueavel
+            tnOrphan:'\u26A0 Nenhuma extremidade deste segmento permite bloquear uma convers\u00E3o.',
+            tnOrphanHint:'As duas pontas s\u00E3o sem sa\u00EDda, ou s\u00F3 levam a retornos, ausentes do modelo de dados do WME.',
+            tnEndTip: (nid,n) => `N\u00F3 ${nid} \u00B7 ${n} convers\u00E3o(\u00F5es) bloque\u00E1vel(is)`,
+            tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma convers\u00E3o bloque\u00E1vel: extremidade desativada.`,
+            tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 retornos: nada \u00E9 bloque\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de convers\u00E3o exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de convers\u00F5es exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Bloqueio de segmentos', tgtTurn:'Bloqueio de convers\u00F5es',
@@ -2553,6 +2684,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Busca de bloqueios',
             helpH10:'📦 Trajetos longos: modo em lotes',
+            helpH11:'\uD83D\uDD00 Bloquear convers\u00F5es', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
             helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
@@ -2581,6 +2713,31 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             btnCsvTurn:'\u2B07 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum corte de viragem para exportar.',
             csvNothing:'J\u00E1 n\u00E3o h\u00E1 nada para exportar: todas as linhas foram eliminadas.',
+            // Dicas dos separadores e botoes
+            tipTabCfg:'Configurar um corte: per\u00EDodo, hor\u00E1rios, recorr\u00EAncia, motivo.',
+            tipTabTurn:'Cortar viragens em vez de segmentos: escolhe uma extremidade do segmento selecionado e depois as viragens.',
+            tipTabCsv:'Importar cortes de um ficheiro CSV (formato WME Advanced Closures).',
+            tipTabGpx:'Carregar um trajeto (GPX, KML, KMZ, GeoJSON, Shapefile) e selecionar automaticamente os segmentos que percorre.',
+            tipTabPre:'Guardar e recuperar configura\u00E7\u00F5es de corte t\u00EDpicas.',
+            tipTabSrc:'Pesquisar os cortes existentes da vista: por estado, datas, motivo ou evento MTE.',
+            tipTabEach:'Um corte por dia, aos mesmos hor\u00E1rios.',
+            tipTabRepeat:'V\u00E1rios cortes por dia, repetidos em intervalos regulares.',
+            tipBtnValidate:'Criar as ocorr\u00EAncias a partir desta configura\u00E7\u00E3o e adicion\u00E1-las \u00E0 fila. Ainda n\u00E3o \u00E9 gravado nada no mapa.',
+            tipBtnApply:'Gravar no mapa todos os cortes da fila. A\u00E7\u00E3o real e guardada.',
+            tipBtnClear:'Esvaziar a fila, o registo e o progresso. N\u00E3o apaga nenhum corte j\u00E1 aplicado.',
+            tipBtnStop:'Interromper a aplica\u00E7\u00E3o em curso. Os cortes j\u00E1 gravados mant\u00EAm-se. Atalho: Esc.',
+            tipSweepStop:'Interromper a varredura em curso.',
+            tipTnAll:'Marcar todas as viragens cort\u00E1veis desta extremidade.',
+            tipTnNone:'Desmarcar todas as viragens.',
+            tipTnSend:'Enviar as viragens marcadas para Configurar e ajustar l\u00E1 datas e recorr\u00EAncia.',
+            tipPresetConfirm:'Guardar a configura\u00E7\u00E3o atual com este nome.',
+            tipPresetCancel:'Fechar sem guardar.',
+            // Extremidades sem viragem cortavel
+            tnOrphan:'\u26A0 Nenhuma extremidade deste segmento permite cortar uma viragem.',
+            tnOrphanHint:'As duas pontas s\u00E3o sem sa\u00EDda, ou s\u00F3 levam a invers\u00F5es de marcha, ausentes do modelo de dados do WME.',
+            tnEndTip: (nid,n) => `N\u00F3 ${nid} \u00B7 ${n} viragem(ns) cort\u00E1vel(eis)`,
+            tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma viragem cort\u00E1vel: extremidade desativada.`,
+            tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 invers\u00F5es de marcha: nada \u00E9 cort\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de viragem exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de viragens exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Corte de segmentos', tgtTurn:'Corte de viragens',
@@ -2854,6 +3011,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Pesquisa de cortes',
             helpH10:'📦 Trajetos longos: modo por lotes',
+            helpH11:'\uD83D\uDD00 Cortar viragens', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
             helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
@@ -3413,6 +3571,110 @@ const buildHelpHTML = () => {
             <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) + `<p style="margin-top:6px;color:var(--wct-text2);font-style:italic">${t('shpNetworkHelp')}</p>` },
+        { id:'h11', title:t('helpH11'), body: _L({ fr:`
+            <p>Un tourne-à-gauche interdit toutes les nuits pendant trois semaines se règle comme une fermeture de segment : même récurrence, mêmes jours fériés, même file.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Sélectionnez <b>un seul segment</b> sur la carte, puis ouvrez l'onglet <b>🔀 Virages</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Choisissez l'<b>extrémité</b> (nœud A ou B). Le nombre entre parenthèses indique les virages fermables. Une extrémité sans virage fermable — impasse — est barrée et désactivée.</td></tr>
+            <tr><td><b>3.</b></td><td>Cochez les virages. Chaque ligne montre la <b>flèche</b>, la rue de destination, l'<b>angle en degrés</b> et l'état.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Envoyer vers Configurer</b> : réglez dates, horaires et récurrence comme d'habitude, puis <b>Valider</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Pourquoi l'angle&nbsp;?</b> Un même nœud offre souvent <b>deux virages vers la même rue</b>. Le nom de destination seul ne permet pas de les distinguer : c'est l'angle qui les sépare.</p>
+            <p style="margin-top:6px"><b>Virages «&nbsp;non fermables&nbsp;»</b> : WME liste des virages qui n'existent pas dans son modèle de données — typiquement les <b>demi-tours</b>. Ils apparaissent grisés : ce n'est pas un bug de WCT, le SDK refuse de les fermer.</p>
+            <p style="margin-top:6px">Dans Configurer, ce qui n'a pas de sens pour un virage est <b>grisé</b> : le sens A/B (un virage porte déjà le sien) et les nœuds fermés.</p>`, en:`
+            <p>A left turn banned every night for three weeks is set up like a segment closure: same recurrence, same holidays, same queue.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Select <b>a single segment</b> on the map, then open the <b>🔀 Turns</b> tab.</td></tr>
+            <tr><td><b>2.</b></td><td>Pick the <b>extremity</b> (node A or B). The number in brackets is the count of closable turns. An extremity with none — a dead end — is struck through and disabled.</td></tr>
+            <tr><td><b>3.</b></td><td>Check the turns. Each row shows the <b>arrow</b>, the destination street, the <b>angle in degrees</b> and the status.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Send to Configure</b>: set dates, times and recurrence as usual, then <b>Validate</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Why the angle?</b> One node often offers <b>two turns into the same street</b>. The destination name alone cannot tell them apart: the angle does.</p>
+            <p style="margin-top:6px"><b>"Not closable" turns</b>: WME lists turns that do not exist in its data model — typically <b>U-turns</b>. They show greyed out: this is not a WCT bug, the SDK refuses to close them.</p>
+            <p style="margin-top:6px">In Configure, anything meaningless for a turn is <b>greyed out</b>: the A/B direction (a turn already carries its own) and closed nodes.</p>`, de:`
+            <p>Ein Linksabbiegeverbot, das drei Wochen lang jede Nacht gilt, wird wie eine Segmentsperrung eingerichtet: gleiche Wiederholung, gleiche Feiertage, gleiche Warteschlange.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Wähle <b>ein einziges Segment</b> auf der Karte und öffne den Reiter <b>🔀 Abbieger</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Wähle das <b>Ende</b> (Knoten A oder B). Die Zahl in Klammern nennt die sperrbaren Abbieger. Ein Ende ohne solche — eine Sackgasse — ist durchgestrichen und deaktiviert.</td></tr>
+            <tr><td><b>3.</b></td><td>Kreuze die Abbieger an. Jede Zeile zeigt den <b>Pfeil</b>, die Zielstraße, den <b>Winkel in Grad</b> und den Status.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 An Einrichten senden</b>: Datum, Uhrzeiten und Wiederholung wie gewohnt festlegen, dann <b>Bestätigen</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Warum der Winkel?</b> Ein Knoten bietet oft <b>zwei Abbieger in dieselbe Straße</b>. Der Zielname allein unterscheidet sie nicht — der Winkel schon.</p>
+            <p style="margin-top:6px"><b>«Nicht sperrbare» Abbieger</b>: WME listet Abbieger, die es in seinem Datenmodell gar nicht gibt — typisch die <b>Wendemöglichkeiten</b>. Sie erscheinen ausgegraut: kein Fehler von WCT, das SDK lehnt ihre Sperrung ab.</p>
+            <p style="margin-top:6px">In Einrichten wird alles ausgegraut, was für einen Abbieger ohne Bedeutung ist: die Richtung A/B (ein Abbieger trägt seine eigene) und gesperrte Knoten.</p>`, es:`
+            <p>Un giro a la izquierda prohibido todas las noches durante tres semanas se configura como un cierre de segmento: misma recurrencia, mismos festivos, misma cola.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Selecciona <b>un solo segmento</b> en el mapa y abre la pestaña <b>🔀 Giros</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Elige el <b>extremo</b> (nodo A o B). El número entre paréntesis indica los giros cerrables. Un extremo sin ninguno — un callejón sin salida — aparece tachado y desactivado.</td></tr>
+            <tr><td><b>3.</b></td><td>Marca los giros. Cada línea muestra la <b>flecha</b>, la calle de destino, el <b>ángulo en grados</b> y el estado.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Enviar a Configurar</b>: ajusta fechas, horarios y recurrencia como siempre, y luego <b>Validar</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>¿Por qué el ángulo?</b> Un mismo nodo ofrece a menudo <b>dos giros hacia la misma calle</b>. El nombre de destino por sí solo no los distingue: el ángulo sí.</p>
+            <p style="margin-top:6px"><b>Giros «no cerrables»</b>: WME lista giros que no existen en su modelo de datos — normalmente los <b>cambios de sentido</b>. Aparecen atenuados: no es un fallo de WCT, el SDK se niega a cerrarlos.</p>
+            <p style="margin-top:6px">En Configurar se atenúa todo lo que no tiene sentido para un giro: el sentido A/B (un giro ya lleva el suyo) y los nodos cerrados.</p>`, 'pt-BR':`
+            <p>Uma conversão à esquerda proibida todas as noites durante três semanas se configura como um bloqueio de segmento: mesma recorrência, mesmos feriados, mesma fila.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Selecione <b>um único segmento</b> no mapa e abra a aba <b>🔀 Conversões</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Escolha a <b>extremidade</b> (nó A ou B). O número entre parênteses indica as conversões bloqueáveis. Uma extremidade sem nenhuma — sem saída — fica riscada e desativada.</td></tr>
+            <tr><td><b>3.</b></td><td>Marque as conversões. Cada linha mostra a <b>seta</b>, a rua de destino, o <b>ângulo em graus</b> e o status.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Enviar para Configurar</b>: ajuste datas, horários e recorrência como sempre e depois <b>Validar</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Por que o ângulo?</b> Um mesmo nó costuma oferecer <b>duas conversões para a mesma rua</b>. O nome do destino sozinho não as distingue: o ângulo sim.</p>
+            <p style="margin-top:6px"><b>Conversões «não bloqueáveis»</b>: o WME lista conversões que não existem no seu modelo de dados — tipicamente os <b>retornos</b>. Aparecem esmaecidas: não é um bug do WCT, o SDK se recusa a bloqueá-las.</p>
+            <p style="margin-top:6px">Em Configurar, tudo o que não faz sentido para uma conversão fica <b>esmaecido</b>: o sentido A/B (uma conversão já carrega o seu) e os nós bloqueados.</p>`, 'pt-PT':`
+            <p>Uma viragem à esquerda proibida todas as noites durante três semanas configura-se como um corte de segmento: mesma recorrência, mesmos feriados, mesma fila.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Seleciona <b>um único segmento</b> no mapa e abre o separador <b>🔀 Viragens</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Escolhe a <b>extremidade</b> (nó A ou B). O número entre parênteses indica as viragens cortáveis. Uma extremidade sem nenhuma — sem saída — fica riscada e desativada.</td></tr>
+            <tr><td><b>3.</b></td><td>Marca as viragens. Cada linha mostra a <b>seta</b>, a rua de destino, o <b>ângulo em graus</b> e o estado.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Enviar para Configurar</b>: ajusta datas, horários e recorrência como sempre e depois <b>Validar</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Porquê o ângulo?</b> Um mesmo nó oferece muitas vezes <b>duas viragens para a mesma rua</b>. O nome do destino sozinho não as distingue: o ângulo sim.</p>
+            <p style="margin-top:6px"><b>Viragens «não cortáveis»</b>: o WME lista viragens que não existem no seu modelo de dados — tipicamente as <b>inversões de marcha</b>. Aparecem esbatidas: não é um erro do WCT, o SDK recusa cortá-las.</p>
+            <p style="margin-top:6px">Em Configurar, tudo o que não faz sentido para uma viragem fica <b>esbatido</b>: o sentido A/B (uma viragem já traz o seu) e os nós cortados.</p>` }) },
+        { id:'h12', title:t('helpH12'), body: _L({ fr:`
+            <p>Les segments et les virages ne peuvent pas voyager dans le même fichier : le format de WME Advanced Closures n'a aucune colonne capable de désigner un virage. D'où <b>deux boutons</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td>Fermetures de <b>segments</b>, au format <b>WME Advanced Closures</b>. Réimportable dans AC comme dans WCT.</td></tr>
+            <tr><td><b>⬇ CSV Virages</b></td><td>Fermetures de <b>virages</b>, au format <b>WCT</b>. Réimportable dans WCT ; <b>illisible par Advanced Closures</b>, qui le rejettera proprement (les lignes commencent par <code>add-turn</code> et non <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Chaque bouton ne s'allume que si la file contient de quoi l'alimenter. Les <b>lignes supprimées</b> à la main dans une carte de la file ne sont pas exportées : le fichier décrit ce qui reste, pas ce qui a été saisi.</p>
+            <p style="margin-top:6px">Le CSV Virages enregistre l'identité complète du virage — segment d'origine, nœud, segment de destination — <b>en plus</b> de son identifiant. Cet identifiant dérive des segments : si un carrefour est retracé, il ne résout plus. Les trois autres colonnes permettront de retrouver le virage malgré tout.</p>`, en:`
+            <p>Segments and turns cannot travel in the same file: the WME Advanced Closures format has no column able to designate a turn. Hence <b>two buttons</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td><b>Segment</b> closures, in the <b>WME Advanced Closures</b> format. Re-importable into AC as well as WCT.</td></tr>
+            <tr><td><b>⬇ CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Each button only lights up if the queue holds something to feed it. Rows <b>deleted</b> by hand in a queue card are not exported: the file describes what is left, not what was entered.</p>
+            <p style="margin-top:6px">The Turns CSV records the turn's full identity — source segment, node, destination segment — <b>on top of</b> its id. That id derives from the segments: if a junction is redrawn, it no longer resolves. The three other columns will let the turn be found anyway.</p>`, de:`
+            <p>Segmente und Abbieger können nicht in derselben Datei reisen: das Format von WME Advanced Closures hat keine Spalte, die einen Abbieger bezeichnen könnte. Daher <b>zwei Schaltflächen</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
+            <tr><td><b>⬇ CSV Abbieger</b></td><td><b>Abbieger</b>-Sperrungen im <b>WCT</b>-Format. In WCT reimportierbar; <b>von Advanced Closures nicht lesbar</b> — es lehnt sie sauber ab (die Zeilen beginnen mit <code>add-turn</code> statt <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Jede Schaltfläche leuchtet nur, wenn die Warteschlange etwas dafür enthält. Von Hand <b>gelöschte Zeilen</b> einer Karte werden nicht exportiert: die Datei beschreibt, was übrig ist, nicht was eingegeben wurde.</p>
+            <p style="margin-top:6px">Die Abbieger-CSV speichert die vollständige Identität des Abbiegers — Ausgangssegment, Knoten, Zielsegment — <b>zusätzlich</b> zu seiner Id. Diese Id leitet sich aus den Segmenten ab: wird eine Kreuzung neu gezeichnet, löst sie nicht mehr auf. Die drei anderen Spalten erlauben es, den Abbieger dennoch zu finden.</p>`, es:`
+            <p>Los segmentos y los giros no pueden viajar en el mismo archivo: el formato de WME Advanced Closures no tiene ninguna columna capaz de designar un giro. De ahí <b>dos botones</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td>Cierres de <b>segmentos</b>, en formato <b>WME Advanced Closures</b>. Reimportable tanto en AC como en WCT.</td></tr>
+            <tr><td><b>⬇ CSV Giros</b></td><td>Cierres de <b>giros</b>, en formato <b>WCT</b>. Reimportable en WCT; <b>ilegible para Advanced Closures</b>, que lo rechazará limpiamente (las líneas empiezan por <code>add-turn</code> y no <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Cada botón solo se enciende si la cola contiene con qué alimentarlo. Las <b>líneas eliminadas</b> a mano en una tarjeta de la cola no se exportan: el archivo describe lo que queda, no lo que se introdujo.</p>
+            <p style="margin-top:6px">El CSV de Giros guarda la identidad completa del giro — segmento de origen, nodo, segmento de destino — <b>además</b> de su identificador. Ese identificador deriva de los segmentos: si se vuelve a trazar un cruce, deja de resolver. Las otras tres columnas permitirán encontrar el giro igualmente.</p>`, 'pt-BR':`
+            <p>Segmentos e conversões não podem viajar no mesmo arquivo: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma conversão. Daí <b>dois botões</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td>Bloqueios de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC quanto no WCT.</td></tr>
+            <tr><td><b>⬇ CSV Conversões</b></td><td>Bloqueios de <b>conversões</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam com <code>add-turn</code> e não <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Cada botão só acende se a fila tiver com que alimentá-lo. As <b>linhas excluídas</b> à mão em um cartão da fila não são exportadas: o arquivo descreve o que resta, não o que foi digitado.</p>
+            <p style="margin-top:6px">O CSV de Conversões grava a identidade completa da conversão — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, ele deixa de resolver. As outras três colunas permitirão encontrar a conversão mesmo assim.</p>`, 'pt-PT':`
+            <p>Os segmentos e as viragens não podem viajar no mesmo ficheiro: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma viragem. Daí <b>dois botões</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇ CSV AC</b></td><td>Cortes de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC como no WCT.</td></tr>
+            <tr><td><b>⬇ CSV Viragens</b></td><td>Cortes de <b>viragens</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam por <code>add-turn</code> e não <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Cada botão só acende se a fila tiver com que o alimentar. As <b>linhas eliminadas</b> à mão num cartão da fila não são exportadas: o ficheiro descreve o que resta, não o que foi introduzido.</p>
+            <p style="margin-top:6px">O CSV de Viragens guarda a identidade completa da viragem — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, deixa de resolver. As outras três colunas permitirão encontrar a viragem mesmo assim.</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -3946,27 +4208,46 @@ const renderTurnsPane = () => {
         _turnNodeId = null; _turnChecked.clear();
         return;
     }
-    // Extremite par defaut : le noeud A, sauf si le choix courant appartient encore au segment
-    const ends = [seg.fromNodeId, seg.toNodeId].filter(Boolean);
-    if (!ends.map(Number).includes(Number(_turnNodeId))) { _turnNodeId = ends[0] ?? null; _turnChecked.clear(); }
-    if (_turnNodeId == null) { box.innerHTML = `<div class="wct-tn-hint">${escHtml(t('tnNoTurns'))}</div>`; return; }
+    // Une extremite n'est utilisable que si elle offre au moins un virage FERMABLE.
+    // Le critere n'est pas « le noeud a des virages » : une impasse en expose un — le
+    // demi-tour — mais il est absent du data model, donc infermable (verifie en live).
+    const ends = [seg.fromNodeId, seg.toNodeId].filter(Boolean).map((nid, i) => {
+        const rows = _turnRows(seg.id, nid);
+        return { nid, idx: i, rows, nOk: rows.filter(r => r.closable).length };
+    });
+    const usable = ends.filter(e => e.nOk > 0);
 
-    const rows = _turnRows(seg.id, _turnNodeId);
+    // Segment orphelin : aucune de ses deux extremites ne debouche sur un virage fermable.
+    if (!usable.length) {
+        box.innerHTML = `<div class="wct-tn-seg">${escHtml(t('tnSegLabel', getSegName(seg.id)))}</div>
+          <div class="wct-tn-warn">${escHtml(t('tnOrphan'))}</div>
+          <div class="wct-tn-hint">${escHtml(t('tnOrphanHint'))}</div>`;
+        _turnNodeId = null; _turnChecked.clear();
+        return;
+    }
+    // Selection auto : garder le choix courant s'il tient encore, sinon la 1re extremite
+    // utilisable — inutile de laisser l'utilisateur sur un noeud qui ne peut rien donner.
+    if (!usable.some(e => Number(e.nid) === Number(_turnNodeId))) {
+        _turnNodeId = usable[0].nid; _turnChecked.clear();
+    }
+    const cur = ends.find(e => Number(e.nid) === Number(_turnNodeId));
+    const rows = cur.rows;
     const editable = canEditTurnsAt(_turnNodeId);
-    const endLabel = (nid, i) => `${i === 0 ? t('tnNodeA') : t('tnNodeB')}`;
+    const endLabel = e => `${e.idx === 0 ? t('tnNodeA') : t('tnNodeB')} (${e.nOk})`;
 
     box.innerHTML = `
       <div class="wct-tn-seg">${escHtml(t('tnSegLabel', getSegName(seg.id)))}</div>
       <label class="wct-label">${escHtml(t('tnExtremity'))}</label>
       <div class="wct-tn-ends">
-        ${ends.map((nid, i) => `<label class="wct-tn-end"><input type="radio" name="wct-tn-end" value="${nid}"${Number(nid) === Number(_turnNodeId) ? ' checked' : ''}> ${escHtml(endLabel(nid, i))}</label>`).join('')}
+        ${ends.map(e => `<label class="wct-tn-end${e.nOk ? '' : ' off'}" title="${escHtml(e.nOk ? t('tnEndTip', e.nid, e.nOk) : t('tnEndDeadTip'))}"><input type="radio" name="wct-tn-end" value="${e.nid}"${Number(e.nid) === Number(_turnNodeId) ? ' checked' : ''}${e.nOk ? '' : ' disabled'}> ${escHtml(endLabel(e))}</label>`).join('')}
       </div>
+      ${ends.some(e => !e.nOk) ? `<div class="wct-tn-warn">${escHtml(t('tnEndDead', ends.find(e => !e.nOk).idx === 0 ? t('tnNodeA') : t('tnNodeB')))}</div>` : ''}
       ${editable ? '' : `<div class="wct-tn-warn">${escHtml(t('tnNotEditable'))}</div>`}
       <div class="wct-tn-foot" style="margin:6px 0 3px">
         <label class="wct-label" style="margin:0">${escHtml(t('tnTurnsFrom'))}</label>
         <span style="display:flex;gap:4px">
-          <button id="wct-tn-all" class="wct-btn wct-btn-neutral wct-btn-sm">${escHtml(t('tnAll'))}</button>
-          <button id="wct-tn-none" class="wct-btn wct-btn-neutral wct-btn-sm">${escHtml(t('tnNone'))}</button>
+          <button id="wct-tn-all" class="wct-btn wct-btn-neutral wct-btn-sm" title="${escHtml(t('tipTnAll'))}">${escHtml(t('tnAll'))}</button>
+          <button id="wct-tn-none" class="wct-btn wct-btn-neutral wct-btn-sm" title="${escHtml(t('tipTnNone'))}">${escHtml(t('tnNone'))}</button>
         </span>
       </div>
       ${rows.length ? `<div class="wct-tn-list">${rows.map(r => `
@@ -3982,7 +4263,7 @@ const renderTurnsPane = () => {
       : `<div class="wct-tn-hint">${escHtml(t('tnNoTurns'))}</div>`}
       <div class="wct-tn-foot">
         <span id="wct-tn-count" style="color:var(--wct-text2);font-size:0.833em">${escHtml(t('tnCount', _turnChecked.size))}</span>
-        <button id="wct-tn-send" class="wct-btn wct-btn-primary wct-btn-sm"${_turnChecked.size ? '' : ' disabled'}>${escHtml(t('tnSend'))}</button>
+        <button id="wct-tn-send" class="wct-btn wct-btn-primary wct-btn-sm" title="${escHtml(t('tipTnSend'))}"${_turnChecked.size ? '' : ' disabled'}>${escHtml(t('tnSend'))}</button>
       </div>`;
     connectTurnsPane(seg);
 };
@@ -4699,7 +4980,9 @@ const exportTurnsCSV=()=>{
 };
 // Export CSV des lots configurés d'une trace donnée (entrées 'sweep' de ce fichier).
 const exportLotsCSV=(fileId)=>{
-    const lots=queue.filter(e=>e.source==='sweep'&&e.fileId===fileId);
+    // _entryLiveRows : un lot dont toutes les lignes ont ete supprimees a la main ne doit
+    // pas produire un fichier reduit a son en-tete.
+    const lots=queue.filter(e=>e.source==='sweep'&&e.fileId===fileId&&_entryLiveRows(e)>0);
     if(!lots.length){ showToast(t('lotCsvNone'),3000,'#f57c00'); return; }
     const fname=(_traceFiles.find(f=>f.fileId===fileId)?.filename||'lots').replace(/\.[^.]+$/,'');
     download(_queueToCSV(lots),`${fname}_lots_${todayStr()}.csv`);
@@ -5943,7 +6226,7 @@ const _sweepShowProgress = (done, total, nSel) => {
     const pct = total ? Math.round(done*100/total) : 0;
     f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
         <b style="flex:1">${escHtml(t('sweepProgress', done, total, nSel))}</b>
-        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
+        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm" title="${t('tipSweepStop')}">${t('btnStop')}</button>
       </div>
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
     f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
@@ -6042,7 +6325,7 @@ const _sweepShowLotProgress = (done, total, added, seg) => {
     const pct = total ? Math.round(done*100/total) : 0;
     f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
         <b style="flex:1">${escHtml(t('lotsProgress', done, total, added, seg))}</b>
-        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm">${t('btnStop')}</button>
+        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm" title="${t('tipSweepStop')}">${t('btnStop')}</button>
       </div>
       <div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:4px">${escHtml(t('lotsWhyMoving'))}</div>
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
@@ -6491,12 +6774,12 @@ const buildOverlay=()=>{
         </label>
     </div>
     <div id="wct-main-tabs">
-        <button class="wct-main-tab on" data-tab="cfg" style="--tc:#2196f3">${t('tabCfg')}</button>
-        <button class="wct-main-tab" data-tab="turn" style="--tc:#7b1fa2">${t('tabTurn')}</button>
-        <button class="wct-main-tab" data-tab="csv" style="--tc:#43a047">${t('tabCsv')}</button>
-        <button class="wct-main-tab" data-tab="gpx" style="--tc:#00897b">${t('tabGpx')}</button>
-        <button class="wct-main-tab" data-tab="pre" style="--tc:#f57c00">${t('tabPre')}</button>
-        <button class="wct-main-tab" data-tab="src" style="--tc:#e91e63">${t('tabSrc')}</button>
+        <button class="wct-main-tab on" data-tab="cfg" style="--tc:#2196f3" title="${t('tipTabCfg')}">${t('tabCfg')}</button>
+        <button class="wct-main-tab" data-tab="turn" style="--tc:#7b1fa2" title="${t('tipTabTurn')}">${t('tabTurn')}</button>
+        <button class="wct-main-tab" data-tab="csv" style="--tc:#43a047" title="${t('tipTabCsv')}">${t('tabCsv')}</button>
+        <button class="wct-main-tab" data-tab="gpx" style="--tc:#00897b" title="${t('tipTabGpx')}">${t('tabGpx')}</button>
+        <button class="wct-main-tab" data-tab="pre" style="--tc:#f57c00" title="${t('tipTabPre')}">${t('tabPre')}</button>
+        <button class="wct-main-tab" data-tab="src" style="--tc:#e91e63" title="${t('tipTabSrc')}">${t('tabSrc')}</button>
         <button class="wct-main-tab wct-tab-icon-only" data-tab="help" style="--tc:#9c27b0" title="${t('tabHelpTitle')}">${t('tabHelp')}</button>
     </div>
     <div id="wct-body">
@@ -6546,8 +6829,8 @@ const buildOverlay=()=>{
               </div>
             </div>
             <div class="wct-tabs">
-              <button class="wct-tab on" data-target="wct-tab-each">${t('tabEachDay')}</button>
-              <button class="wct-tab" data-target="wct-tab-repeat">${t('tabRepeat')}</button>
+              <button class="wct-tab on" data-target="wct-tab-each" title="${t('tipTabEach')}">${t('tabEachDay')}</button>
+              <button class="wct-tab" data-target="wct-tab-repeat" title="${t('tipTabRepeat')}">${t('tabRepeat')}</button>
             </div>
             <div id="wct-tab-each" class="wct-pane on">
               <div class="wct-days">${chips}</div>
@@ -6745,7 +7028,7 @@ const buildOverlay=()=>{
         <div class="wct-pb-wrap" id="wct-pb-wrap"><div class="wct-pb-fill" id="wct-pb-fill"></div></div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
           <div class="wct-pb-text" id="wct-pb-text" style="flex:1"></div>
-          <button id="wct-btn-stop" type="button" class="wct-btn wct-btn-danger wct-btn-sm" style="display:none;flex-shrink:0">${t('btnStop')}</button>
+          <button id="wct-btn-stop" type="button" class="wct-btn wct-btn-danger wct-btn-sm" title="${t('tipBtnStop')}" style="display:none;flex-shrink:0">${t('btnStop')}</button>
         </div>
       </div>
       <div id="wct-preview-section"></div>
@@ -6756,15 +7039,15 @@ const buildOverlay=()=>{
     <div id="wct-apply-log" class="wct-log" style="display:none;margin:0 10px 4px"></div>
     <!-- Pied fixe : Valider (hors défilement, visible seulement sur l'onglet Configurer via :has) -->
     <div class="wct-validate-footer" style="display:flex;gap:8px;align-items:center">
-      <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate">${t('btnValidate')}</button>
+      <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate" title="${t('tipBtnValidate')}">${t('btnValidate')}</button>
       <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">&#x1F4BE;</button>
     </div>
     <!-- Boutons fixes hors scroll -->
     <div id="wct-action-bar-wrap">
-        <button class="wct-btn wct-btn-success wct-btn-dis" id="wct-btn-apply">${t('btnApply')}</button>
+        <button class="wct-btn wct-btn-success wct-btn-dis" id="wct-btn-apply" title="${t('tipBtnApply')}">${t('btnApply')}</button>
         <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export" title="${t('btnCsvAcTip')}">${t('btnCsvAc')}</button>
         <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export-turn" title="${t('btnCsvTurnTip')}">${t('btnCsvTurn')}</button>
-        <button class="wct-btn wct-btn-danger wct-btn-dis" id="wct-btn-clear">${t('btnClear')}</button>
+        <button class="wct-btn wct-btn-danger wct-btn-dis" id="wct-btn-clear" title="${t('tipBtnClear')}">${t('btnClear')}</button>
     </div>
 
     <!-- TOAST -->
@@ -6778,8 +7061,8 @@ const buildOverlay=()=>{
         <input id="wct-preset-name-input" class="wct-input" placeholder="${t('presetNamePh')}" style="margin-bottom:4px">
         <div id="wct-preset-name-err" style="font-size:0.917em;color:var(--wct-red);display:none;margin-bottom:0.5em"></div>
         <div style="display:flex;gap:6px">
-            <button class="wct-btn wct-btn-primary" style="flex:1" id="wct-preset-confirm">${t('btnSave')}</button>
-            <button class="wct-btn wct-btn-neutral" id="wct-preset-cancel">${t('btnCancel')}</button>
+            <button class="wct-btn wct-btn-primary" style="flex:1" id="wct-preset-confirm" title="${t('tipPresetConfirm')}">${t('btnSave')}</button>
+            <button class="wct-btn wct-btn-neutral" id="wct-preset-cancel" title="${t('tipPresetCancel')}">${t('btnCancel')}</button>
         </div>
     </div>
     `;
