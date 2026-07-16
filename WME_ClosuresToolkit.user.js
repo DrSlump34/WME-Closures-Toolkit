@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.75.00
+// @version      0.76.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -489,6 +489,7 @@ GM_addStyle(`
 }
 .wct-main-tab:last-child { border-right:none; }
 .wct-main-tab[data-tab="cfg"] { --tc:#2196f3; }
+.wct-main-tab[data-tab="turn"] { --tc:#7b1fa2; }
 .wct-main-tab[data-tab="csv"] { --tc:#43a047; }
 .wct-main-tab[data-tab="pre"] { --tc:#f57c00; }
 .wct-main-tab[data-tab="gpx"] { --tc:#00897b; }
@@ -502,11 +503,13 @@ GM_addStyle(`
 .wct-qcard-hdr:hover { background:#eef4fb !important; }
 /* Onglets — couleur toujours visible */
 .wct-main-tab[data-tab="cfg"] { border-top:3px solid #2196f3 !important; }
+.wct-main-tab[data-tab="turn"] { border-top:3px solid #7b1fa2 !important; }
 .wct-main-tab[data-tab="csv"] { border-top:3px solid #43a047 !important; }
 .wct-main-tab[data-tab="pre"] { border-top:3px solid #f57c00 !important; }
 .wct-main-tab[data-tab="gpx"] { border-top:3px solid #00897b !important; }
 .wct-main-tab[data-tab="src"] { border-top:3px solid #e91e63 !important; }
 .wct-main-tab.on[data-tab="cfg"] { background:#e3f2fd; color:#1565c0; }
+.wct-main-tab.on[data-tab="turn"] { background:#f3e5f5; color:#6a1b9a; }
 .wct-main-tab.on[data-tab="csv"] { background:#e8f5e9; color:#2e7d32; }
 .wct-main-tab.on[data-tab="pre"] { background:#fff3e0; color:#e65100; }
 .wct-main-tab.on[data-tab="gpx"] { background:#e0f2f1; color:#00695c; }
@@ -692,6 +695,34 @@ GM_addStyle(`
 .wct-cl-status-UNVERIFIED                               { background:#ede7f6; color:#4527a0; }
 .wct-cl-status-FAILED                                   { background:#ffebee; color:#b71c1c; }
 .wct-cl-status-UNKNOWN                                  { background:#f5f5f5; color:#9e9e9e; }
+
+/* ─── Onglet Virages ─── */
+.wct-tn-hint { color:var(--wct-text2); font-size:0.833em; padding:6px 2px; }
+.wct-tn-seg { font-weight:600; margin-bottom:6px; word-break:break-word; }
+.wct-tn-ends { display:flex; flex-wrap:wrap; gap:4px 14px; margin-bottom:4px; }
+.wct-tn-end { display:flex; align-items:center; gap:4px; font-size:0.917em; cursor:pointer; }
+.wct-tn-end input { margin:0; cursor:pointer; }
+.wct-tn-warn { color:var(--wct-orange); font-size:0.833em; margin:2px 0 6px; }
+.wct-tn-list { border:1px solid var(--wct-border); border-radius:var(--wct-radius); max-height:190px; overflow-y:auto; }
+.wct-tn-row { display:flex; align-items:center; gap:6px; padding:4px 6px; border-bottom:1px solid var(--wct-border); font-size:0.917em; }
+.wct-tn-row:last-child { border-bottom:none; }
+.wct-tn-row:hover { background:var(--wct-hover,#f5f5f5); }
+.wct-tn-row input { margin:0; flex-shrink:0; cursor:pointer; }
+.wct-tn-arrow { font-size:1.15em; width:1.3em; text-align:center; flex-shrink:0; }
+.wct-tn-to { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wct-tn-deg { color:var(--wct-text2); font-size:0.833em; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.wct-tn-flag { font-size:0.75em; font-weight:600; padding:1px 5px; border-radius:3px; flex-shrink:0; }
+.wct-tn-flag.ok  { background:#e8f5e9; color:#2e7d32; }
+.wct-tn-flag.ko  { background:#ffebee; color:#b71c1c; }
+.wct-tn-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; flex-wrap:wrap; }
+#wct-overlay.wct-compact .wct-tn-list,
+#wct-overlay.wct-compact .wct-tn-flag { border-radius:0; }
+#wct-overlay.wct-compact .wct-tn-flag { border:1px solid #808080; }
+/* Bandeau de cible Virages dans Configurer */
+.wct-tn-banner { display:flex; align-items:center; gap:6px; background:#f3e5f5; color:#6a1b9a;
+    border:1px solid #ce93d8; border-radius:var(--wct-radius); padding:4px 8px; margin-bottom:8px; font-size:0.917em; font-weight:600; }
+.wct-tn-banner button { margin-left:auto; background:none; border:none; cursor:pointer; color:#6a1b9a; font-size:1.1em; padding:0 2px; line-height:1; }
+#wct-overlay.wct-compact .wct-tn-banner { background:#c0c0c0; color:#000; border:1px solid #808080; border-radius:0; }
 
 /* ══════════════════════════════════════════
    MODE COMPACT — austère, carré, dense
@@ -3788,6 +3819,127 @@ const applyConfig=cfg=>{
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  ONGLET VIRAGES
+// ═══════════════════════════════════════════════════════════════════════════
+let _turnNodeId  = null;          // noeud (extremite) choisi
+let _turnChecked = new Set();     // ids de virages coches
+let _currentTurns = null;         // cible envoyee vers Configurer : {segId,nodeId,turns:[...]}
+
+// Segment unique selectionne, ou null. Les virages se raisonnent segment par segment :
+// une selection multiple n'a pas de sens ici (l'extremite serait ambigue).
+const _turnSoleSeg = () => {
+    const sel = getSelection();
+    if (sel.objectType !== 'segment' || sel.ids.length !== 1) return null;
+    const seg = getSegById(sel.ids[0]);
+    return seg ? seg : null;
+};
+
+// Liste enrichie des virages a l'extremite courante, triee par angle.
+const _turnRows = (segId, nodeId) => getTurnsAtNode(segId, nodeId)
+    .map(tn => ({ tn, geom: getTurnGeom(nodeId, tn), to: getSegName(tn.toSegmentId) }))
+    .sort((a, b) => (a.geom?.delta ?? 999) - (b.geom?.delta ?? 999));
+
+const renderTurnsPane = () => {
+    const box = $id('wct-turn-body');
+    if (!box) return;
+    const seg = _turnSoleSeg();
+    if (!seg) {
+        const sel = getSelection();
+        const msg = (sel.objectType === 'segment' && sel.ids.length > 1) ? t('tnMultiSel') : t('tnNoSel');
+        box.innerHTML = `<div class="wct-tn-hint">${escHtml(msg)}</div>`;
+        _turnNodeId = null; _turnChecked.clear();
+        return;
+    }
+    // Extremite par defaut : le noeud A, sauf si le choix courant appartient encore au segment
+    const ends = [seg.fromNodeId, seg.toNodeId].filter(Boolean);
+    if (!ends.map(Number).includes(Number(_turnNodeId))) { _turnNodeId = ends[0] ?? null; _turnChecked.clear(); }
+    if (_turnNodeId == null) { box.innerHTML = `<div class="wct-tn-hint">${escHtml(t('tnNoTurns'))}</div>`; return; }
+
+    const rows = _turnRows(seg.id, _turnNodeId);
+    const editable = canEditTurnsAt(_turnNodeId);
+    const endLabel = (nid, i) => `${i === 0 ? t('tnNodeA') : t('tnNodeB')}`;
+
+    box.innerHTML = `
+      <div class="wct-tn-seg">${escHtml(t('tnSegLabel', getSegName(seg.id)))}</div>
+      <label class="wct-label">${escHtml(t('tnExtremity'))}</label>
+      <div class="wct-tn-ends">
+        ${ends.map((nid, i) => `<label class="wct-tn-end"><input type="radio" name="wct-tn-end" value="${nid}"${Number(nid) === Number(_turnNodeId) ? ' checked' : ''}> ${escHtml(endLabel(nid, i))}</label>`).join('')}
+      </div>
+      ${editable ? '' : `<div class="wct-tn-warn">${escHtml(t('tnNotEditable'))}</div>`}
+      <div class="wct-tn-foot" style="margin:6px 0 3px">
+        <label class="wct-label" style="margin:0">${escHtml(t('tnTurnsFrom'))}</label>
+        <span style="display:flex;gap:4px">
+          <button id="wct-tn-all" class="wct-btn wct-btn-neutral wct-btn-sm">${escHtml(t('tnAll'))}</button>
+          <button id="wct-tn-none" class="wct-btn wct-btn-neutral wct-btn-sm">${escHtml(t('tnNone'))}</button>
+        </span>
+      </div>
+      ${rows.length ? `<div class="wct-tn-list">${rows.map(r => `
+        <label class="wct-tn-row">
+          <input type="checkbox" class="wct-tn-cb" value="${escHtml(r.tn.id)}"${_turnChecked.has(r.tn.id) ? ' checked' : ''}>
+          <span class="wct-tn-arrow">${r.geom ? r.geom.arrow : '•'}</span>
+          <span class="wct-tn-to" title="${escHtml(r.to)}">${escHtml(r.to)}</span>
+          <span class="wct-tn-deg">${r.geom ? escHtml(t(r.geom.key)) + ' · ' + r.geom.delta + '°' : ''}</span>
+          <span class="wct-tn-flag ${r.tn.isAllowed ? 'ok' : 'ko'}">${escHtml(r.tn.isAllowed ? t('tnAllowed') : t('tnForbidden'))}</span>
+        </label>`).join('')}</div>`
+      : `<div class="wct-tn-hint">${escHtml(t('tnNoTurns'))}</div>`}
+      <div class="wct-tn-foot">
+        <span id="wct-tn-count" style="color:var(--wct-text2);font-size:0.833em">${escHtml(t('tnCount', _turnChecked.size))}</span>
+        <button id="wct-tn-send" class="wct-btn wct-btn-primary wct-btn-sm"${_turnChecked.size ? '' : ' disabled'}>${escHtml(t('tnSend'))}</button>
+      </div>`;
+    connectTurnsPane(seg);
+};
+
+const connectTurnsPane = (seg) => {
+    document.querySelectorAll('#wct-turn-body input[name="wct-tn-end"]').forEach(r =>
+        r.addEventListener('change', () => { _turnNodeId = Number(r.value); _turnChecked.clear(); renderTurnsPane(); }));
+    const sync = () => {
+        const c = $id('wct-tn-count'), b = $id('wct-tn-send');
+        if (c) c.textContent = t('tnCount', _turnChecked.size);
+        if (b) b.disabled = !_turnChecked.size;
+    };
+    document.querySelectorAll('#wct-turn-body .wct-tn-cb').forEach(cb =>
+        cb.addEventListener('change', () => { cb.checked ? _turnChecked.add(cb.value) : _turnChecked.delete(cb.value); sync(); }));
+    $id('wct-tn-all')?.addEventListener('click', () => {
+        document.querySelectorAll('#wct-turn-body .wct-tn-cb').forEach(cb => { cb.checked = true; _turnChecked.add(cb.value); });
+        sync();
+    });
+    $id('wct-tn-none')?.addEventListener('click', () => {
+        document.querySelectorAll('#wct-turn-body .wct-tn-cb').forEach(cb => { cb.checked = false; });
+        _turnChecked.clear(); sync();
+    });
+    $id('wct-tn-send')?.addEventListener('click', () => {
+        if (!_turnChecked.size) { showToast(t('tnNoneSelected'), 2500, '#f57c00'); return; }
+        const rows = _turnRows(seg.id, _turnNodeId).filter(r => _turnChecked.has(r.tn.id));
+        _currentTurns = {
+            segId: seg.id, nodeId: _turnNodeId,
+            turns: rows.map(r => ({ id: r.tn.id, to: r.to, arrow: r.geom ? r.geom.arrow : '•' })),
+        };
+        renderTurnBanner();
+        document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
+        showToast(t('tnSent', rows.length), 3000, '#7b1fa2');
+    });
+};
+
+// Bandeau de cible dans Configurer. Tant qu'il est present, Valider produit des
+// fermetures de VIRAGE et le champ Direction est masque (sans objet pour un virage).
+const renderTurnBanner = () => {
+    const pane = $id('wct-pane-cfg');
+    if (!pane) return;
+    $id('wct-tn-banner')?.remove();
+    const dirWrap = $id('wct-direction')?.closest('div');
+    if (dirWrap) dirWrap.style.display = _currentTurns ? 'none' : '';
+    if (!_currentTurns) return;
+    const el = make('div');
+    el.id = 'wct-tn-banner';
+    el.className = 'wct-tn-banner';
+    el.innerHTML = `<span>${escHtml(t('tnBanner', _currentTurns.turns.length))}</span>
+        <span style="font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(_currentTurns.turns.map(x => x.arrow + ' ' + x.to).join(', '))}</span>
+        <button type="button" title="${escHtml(t('tnBannerClear'))}">✕</button>`;
+    el.querySelector('button').addEventListener('click', () => { _currentTurns = null; renderTurnBanner(); });
+    pane.insertBefore(el, pane.firstChild);
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const makeEntry=(segIds,cfg,closures)=>{
@@ -4140,6 +4292,34 @@ const addClosure=(options,okCb,koCb)=>{
         else{okCb&&okCb(v);}
     },r=>koCb&&koCb([r]));
 };
+
+// ─── Fermeture de VIRAGES ───────────────────────────────────────────────────
+// Meme contrat que addClosure (options, okCb, koCb) mais cible TurnClosures.
+// Differences imposees par le SDK :
+//  - l'argument MTE s'appelle majorTrafficEventId (et non trafficEventId) ;
+//  - aucun sens a resoudre : un virage porte deja le sien (fromSegmentFwd) ;
+//  - aucune notion de noeud ferme : sans objet pour un virage.
+// Le decalage DST est traite comme dans addClosure (valueOf() - tzOffset).
+const addTurnClosure=(options,okCb,koCb)=>{
+    const{turnIds,reason,startDate,endDate,permanent,eventId}=options;
+    const sd=new Date(startDate),ed=new Date(endDate);
+    const sdoff=sd.getTimezoneOffset()*60000;
+    const edoff=ed.getTimezoneOffset()*60000;
+    const args={description:reason,endDate:ed.valueOf()-edoff,isPermanent:!!permanent,
+        startDate:sd.valueOf()-sdoff,turnId:'',majorTrafficEventId:eventId||null};
+    const loopErrors=[];
+    for(const tid of turnIds){
+        args.turnId=String(tid);
+        try{ sdk.DataModel.TurnClosures.addClosure(args); }
+        catch(e){ loopErrors.push(`turn ${tid}: ${e.message}`); }
+    }
+    if(loopErrors.length>0){log('addTurnClosure errors: '+loopErrors.join(' | '));}
+    sdk.Editing.save().then(v=>{
+        const er=document.querySelector('.error-list');
+        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg]);}
+        else{okCb&&okCb(v);}
+    },r=>koCb&&koCb([r]));
+};
 // Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
 // Le retour visuel est immédiat : sans lui, le clic n'avait aucun effet perceptible
 // avant la fin de la fermeture en cours, et le bouton passait pour inopérant.
@@ -4174,6 +4354,13 @@ const applyQueue=async()=>{
     let total=0,done=0,failed=0;
     queue.forEach(e=>{
         const excl=e.excludedRows||new Set();
+        // Entree virages : l'unite comptee est le virage, pas le segment (segIds est vide).
+        if(e.source==='turn'&&e.turnIds?.length){
+            e.turnIds.forEach(tid=>{
+                e.closures.forEach((_,ci)=>{if(!excl.has(`${tid}:${ci}`))total++;});
+            });
+            return;
+        }
         const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
         e.segIds.forEach(sid=>{
             if(skip(sid)) return;
@@ -4222,6 +4409,32 @@ const applyQueue=async()=>{
                 await waitMapLoaded();
                 await _sweepSleep(150);
                 if(_applyAborted) break;
+            }
+            // ─── Entree VIRAGES ───
+            // Les virages ne vivent que si leur noeud est charge : recadrer dessus avant
+            // d'appliquer, comme on le fait pour la bbox d'un lot.
+            if(e.source==='turn'&&e.turnIds?.length){
+                try{
+                    const p=_segEndAt(e.turnSegId,e.turnNodeId);
+                    if(p?.at) sdk.Map.setMapCenter({lonLat:{lon:p.at[0],lat:p.at[1]},zoomLevel:17});
+                }catch(err){}
+                await waitMapLoaded();
+                if(_applyAborted) break;
+                const exclT=e.excludedRows||new Set();
+                for(let ci=0;ci<e.closures.length;ci++){
+                    if(_applyAborted) break;
+                    const cl=e.closures[ci];
+                    const ids=e.turnIds.filter(tid=>!exclT.has(`${tid}:${ci}`));
+                    if(!ids.length) continue;
+                    await waitMapLoaded();
+                    if(_applyAborted) break;
+                    await new Promise(res=>{
+                        addTurnClosure({turnIds:ids,reason:e.config.reason,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
+                            ()=>{done+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyOk',e.config.reason,ls),'#43a047');res();},
+                            (errs)=>{failed+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                    });
+                }
+                continue;
             }
             const dir=parseInt(e.config.direction);
             const excl=e.excludedRows||new Set();
@@ -6066,6 +6279,7 @@ const buildOverlay=()=>{
     </div>
     <div id="wct-main-tabs">
         <button class="wct-main-tab on" data-tab="cfg" style="--tc:#2196f3">${t('tabCfg')}</button>
+        <button class="wct-main-tab" data-tab="turn" style="--tc:#7b1fa2">${t('tabTurn')}</button>
         <button class="wct-main-tab" data-tab="csv" style="--tc:#43a047">${t('tabCsv')}</button>
         <button class="wct-main-tab" data-tab="gpx" style="--tc:#00897b">${t('tabGpx')}</button>
         <button class="wct-main-tab" data-tab="pre" style="--tc:#f57c00">${t('tabPre')}</button>
@@ -6196,6 +6410,11 @@ const buildOverlay=()=>{
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
+      </div>
+
+      <!-- ONGLET VIRAGES -->
+      <div id="wct-pane-turn" class="wct-main-pane">
+        <div id="wct-turn-body"></div>
       </div>
 
       <!-- ONGLET CSV -->
@@ -6394,8 +6613,10 @@ const buildQueueCard=(entry,idx)=>{
     // État plié/déplié mémorisé sur l'entrée (persistant entre les re-render).
     // Premier affichage : suit la préférence "cartes pliées par défaut".
     if(entry.collapsed===undefined) entry.collapsed=_cardsCollapsedDefault;
-    const SRC_COLOR={cfg:'#2196f3',csv:'#43a047',pre:'#f57c00',sweep:'#8e24aa'};
+    const SRC_COLOR={cfg:'#2196f3',csv:'#43a047',pre:'#f57c00',sweep:'#8e24aa',turn:'#7b1fa2'};
     const color=SRC_COLOR[entry.source]||'#2196f3';
+    // Entree virages : ni sens ni noeud ferme (sans objet), et l'unite comptee est le virage.
+    const isTurnEntry=entry.source==='turn'&&!!entry.turnIds?.length;
     const dir=dirStr(parseInt(entry.config.direction));
     const it=entry.config.ignoretraffic;
     const mteId=entry.config.mteId;
@@ -6406,7 +6627,15 @@ const buildQueueCard=(entry,idx)=>{
     // excludedRows contient des clés "sid:closureIdx". On déduit le nombre de
     // segments et d'occurrences réellement appliquables (état statique connu à l'affichage).
     let nbOcc=entry.closures.length, nbSeg=entry.segIds.length;
-    try{
+    if(isTurnEntry){
+        const liveT=new Set(), liveO=new Set();
+        entry.turnIds.forEach(tid=>entry.closures.forEach((cl,ci)=>{
+            if(entry.excludedRows.has(`${tid}:${ci}`)) return;
+            liveT.add(tid); liveO.add(ci);
+        }));
+        nbSeg=liveT.size; nbOcc=liveO.size;
+    }
+    else try{
         const dirConflictIds=new Set(
             getSegDirConflicts(entry.segIds,parseInt(entry.config.direction)).map(c=>c.sid)
         );
@@ -6442,9 +6671,9 @@ const buildQueueCard=(entry,idx)=>{
         ${entry.nullSegs?.size?`<span class="wct-badge wct-badge-null" title="${t('nullSegBadgeTip',entry.nullSegs.size)}">\u26A0\uFE0F ${entry.nullSegs.size}</span>`:''}
         ${entry.recentSegs?.size?`<span class="wct-badge wct-badge-recent" title="${t('recentSegBadgeTip',entry.recentSegs.size)}">\uD83D\uDD52 ${entry.recentSegs.size}</span>`:''}
         ${entry.excludedSegs&&entry.excludedSegs.length?`<span class="wct-badge wct-badge-warn wct-excl-warn" title="${t('exclWarnTitle',entry.excludedSegs.length)}">\u26A0\uFE0F ${entry.excludedSegs.length}</span>`:''}
-        <span class="wct-badge wct-badge-dir" title="${t('tipDir')}">${dir}</span>
+        ${isTurnEntry?'':`<span class="wct-badge wct-badge-dir" title="${t('tipDir')}">${dir}</span>`}
         <span class="wct-badge" style="background:#fce4ec;color:#880e4f" title="${it?t('tipITon'):t('tipIToff')}">${it?'&#x1F6AB;IT':'&#x2705;IT'}</span>
-        <span class="wct-badge wct-badge-node" title="${t('tipNodes',entry.config.nodesClosed||t('nodeNone'))}">${entry.config.nodesClosed||t('nodeIconNone')}</span>
+        ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${t('tipNodes',entry.config.nodesClosed||t('nodeNone'))}">${entry.config.nodesClosed||t('nodeIconNone')}</span>`}
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
@@ -6698,10 +6927,11 @@ const connectOverlay=ov=>{
     ov.querySelectorAll('.wct-main-tab').forEach(tab=>{
         tab.addEventListener('click',()=>{
             ov.querySelectorAll('.wct-main-tab').forEach(t=>t.classList.remove('on'));
-            ['cfg','csv','pre','gpx','src','help'].forEach(id=>$id('wct-pane-'+id)?.classList.remove('on'));
+            ['cfg','turn','csv','pre','gpx','src','help'].forEach(id=>$id('wct-pane-'+id)?.classList.remove('on'));
             tab.classList.add('on');
             $id('wct-pane-'+tab.dataset.tab)?.classList.add('on');
             if(tab.dataset.tab==='pre') renderPresetsTable();
+            if(tab.dataset.tab==='turn') renderTurnsPane();
         });
     });
 
@@ -6989,6 +7219,28 @@ const connectOverlay=ov=>{
 
     // Valider
     $id('wct-btn-validate')?.addEventListener('click',async()=>{
+        // \u2500\u2500\u2500 Cible = virages (envoyee depuis l'onglet Virages) \u2500\u2500\u2500
+        // Court-circuite tout le chemin segment : pas de selection requise (les virages
+        // sont deja captes), pas de controle de sens (un virage porte son propre sens).
+        if(_currentTurns){
+            const rcT=await buildClosureList();
+            if(rcT.error){showToast('\u274C '+rcT.error,2500,'#e53935');return;}
+            if(!rcT.list.length){showToast(t('errNone'),2500,'#e53935');return;}
+            const cfgT=readConfig();lastConfig=cfgT;
+            const tn=_currentTurns;
+            queue.push({
+                segIds:[], turnIds:tn.turns.map(x=>x.id), turnMeta:tn.turns,
+                turnSegId:tn.segId, turnNodeId:tn.nodeId,
+                config:cfgT, closures:rcT.list, source:'turn',
+                label:`\uD83D\uDD00 ${cfgT.reason||t('defaultClosure')}`,
+                detail:t('tnEntryDetail',tn.turns.length,rcT.list.length,cfgT.starttime),
+                nullSegs:new Set(), recentSegs:new Set(),
+            });
+            renderQueue();
+            showToast(t('toastOk',rcT.list.length,tn.turns.length,0),3000,'#43a047');
+            _currentTurns=null; renderTurnBanner();
+            return;
+        }
         const sel=getSelection();
         if(!sel.ids.length||sel.objectType!=='segment'){showToast('\u26A0\uFE0F Aucun segment s\u00E9lectionn\u00E9','2500','#e53935');return;}
         // Vérif multipays
@@ -7441,6 +7693,9 @@ const setLang=pref=>{
     // Ré-alimenter tout ce qui n'est rendu qu'à la demande
     reloadPresets(); renderPresetsTable(); renderQueue();
     traceRenderTable(); traceUpdateStripCtrl();
+    // _currentTurns / _turnNodeId / _turnChecked vivent en variables : ils survivent à la
+    // reconstruction, mais leur rendu DOM (bandeau, volet) est à refaire.
+    renderTurnBanner();
     updateFab(); updateCountryInfo();
     renderSidebar();
 };
@@ -7553,7 +7808,20 @@ const init=async()=>{
     injectFab();
 
     // Selection listeners (+ on garantit que le FAB reste docké au container natif)
-    const onSel=()=>{updateFab();updateCountryInfo();ensureFabDocked();};
+    // onSel tourne aussi en polling 500 ms : ne redessiner l'onglet Virages que si la
+    // sélection a VRAIMENT changé, sinon on écraserait les cases cochées 2×/seconde.
+    let _lastSelSig=null;
+    const onSel=()=>{
+        updateFab();updateCountryInfo();ensureFabDocked();
+        try{
+            const s=getSelection();
+            const sig=s.objectType+':'+s.ids.join(',');
+            if(sig!==_lastSelSig){
+                _lastSelSig=sig;
+                if($id('wct-pane-turn')?.classList.contains('on')) renderTurnsPane();
+            }
+        }catch(e){}
+    };
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
     try{W.selectionManager.events.register('selectionchanged',null,onSel);}catch(e){}
     setInterval(onSel,500);
