@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.76.02
+// @version      0.76.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1056,6 +1056,10 @@ const t = (key, ...args) => {
             tnNotClosable:'non fermable', tnNotClosableTip:'Ce virage n\u2019existe pas dans le mod\u00E8le de donn\u00E9es de WME (cas courant des demi-tours) : le SDK refuse de le fermer.',
             colTurn:'Virage', colTurnTip:'Extr\u00E9mit\u00E9 et direction du virage ferm\u00E9',
             csvTurnOnly:'\u26A0\uFE0F La file ne contient que des fermetures de virage : le format WME Advanced Closures ne sait pas les repr\u00E9senter. Rien \u00E0 exporter.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
+            btnCsvTurn:'\u2B07 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
+            csvNoTurns:'Aucune fermeture de virage \u00E0 exporter.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} ligne(s) de virage export\u00E9e(s) au format WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lot(s) de virages \u00E9cart\u00E9(s) de l\u2019export : le format Advanced Closures est propre aux segments.`,
             tgtSeg:'Fermeture de segments', tgtTurn:'Fermeture de virages',
             tnNotApplicable:'Sans objet pour une fermeture de virage.',
@@ -1367,6 +1371,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnNotClosable:'not closable', tnNotClosableTip:'This turn does not exist in the WME data model (typically U-turns): the SDK refuses to close it.',
             colTurn:'Turn', colTurnTip:'Extremity and direction of the closed turn',
             csvTurnOnly:'\u26A0\uFE0F The queue only holds turn closures: the WME Advanced Closures format cannot represent them. Nothing to export.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
+            btnCsvTurn:'\u2B07 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
+            csvNoTurns:'No turn closure to export.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} turn row(s) exported in the WCT format.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} turn batch(es) left out of the export: the Advanced Closures format is segment-only.`,
             tgtSeg:'Segment closure', tgtTurn:'Turn closure',
             tnNotApplicable:'Not applicable to a turn closure.',
@@ -1664,6 +1672,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'nicht sperrbar', tnNotClosableTip:'Dieser Abbieger existiert nicht im WME-Datenmodell (typisch bei Wendem\u00F6glichkeiten): das SDK lehnt die Sperrung ab.',
             colTurn:'Abbieger', colTurnTip:'Ende und Richtung des gesperrten Abbiegers',
             csvTurnOnly:'\u26A0\uFE0F Die Warteschlange enth\u00E4lt nur Abbiegersperrungen: das Format WME Advanced Closures kann sie nicht abbilden. Nichts zu exportieren.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
+            btnCsvTurn:'\u2B07 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
+            csvNoTurns:'Keine Abbiegersperrung zum Exportieren.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} Abbieger-Zeile(n) im WCT-Format exportiert.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} Abbieger-Paket(e) vom Export ausgenommen: das Advanced-Closures-Format gilt nur f\u00FCr Segmente.`,
             tgtSeg:'Segmentsperrung', tgtTurn:'Abbiegersperrung',
             tnNotApplicable:'F\u00FCr eine Abbiegersperrung ohne Bedeutung.',
@@ -1960,6 +1972,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'no cerrable', tnNotClosableTip:'Este giro no existe en el modelo de datos de WME (t\u00EDpico en los cambios de sentido): el SDK se niega a cerrarlo.',
             colTurn:'Giro', colTurnTip:'Extremo y direcci\u00F3n del giro cerrado',
             csvTurnOnly:'\u26A0\uFE0F La cola solo contiene cierres de giro: el formato WME Advanced Closures no puede representarlos. Nada que exportar.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
+            btnCsvTurn:'\u2B07 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
+            csvNoTurns:'No hay ning\u00FAn cierre de giro que exportar.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} l\u00EDnea(s) de giro exportada(s) en formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de giros excluido(s) de la exportaci\u00F3n: el formato Advanced Closures es solo para segmentos.`,
             tgtSeg:'Cierre de segmentos', tgtTurn:'Cierre de giros',
             tnNotApplicable:'No aplicable a un cierre de giro.',
@@ -2256,6 +2272,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnNotClosable:'n\u00E3o bloque\u00E1vel', tnNotClosableTip:'Esta convers\u00E3o n\u00E3o existe no modelo de dados do WME (t\u00EDpico dos retornos): o SDK se recusa a bloque\u00E1-la.',
             colTurn:'Convers\u00E3o', colTurnTip:'Extremidade e dire\u00E7\u00E3o da convers\u00E3o bloqueada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas bloqueios de convers\u00E3o: o formato WME Advanced Closures n\u00E3o sabe represent\u00E1-los. Nada a exportar.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
+            btnCsvTurn:'\u2B07 CSV Convers\u00F5es', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            csvNoTurns:'Nenhum bloqueio de convers\u00E3o para exportar.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de convers\u00E3o exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de convers\u00F5es exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Bloqueio de segmentos', tgtTurn:'Bloqueio de convers\u00F5es',
             tnNotApplicable:'N\u00E3o se aplica a um bloqueio de convers\u00E3o.',
@@ -2552,6 +2572,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnNotClosable:'n\u00E3o cort\u00E1vel', tnNotClosableTip:'Esta viragem n\u00E3o existe no modelo de dados do WME (t\u00EDpico das invers\u00F5es de marcha): o SDK recusa cort\u00E1-la.',
             colTurn:'Viragem', colTurnTip:'Extremidade e dire\u00E7\u00E3o da viragem cortada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas cortes de viragem: o formato WME Advanced Closures n\u00E3o os sabe representar. Nada a exportar.',
+            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
+            btnCsvTurn:'\u2B07 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            csvNoTurns:'Nenhum corte de viragem para exportar.',
+            csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de viragem exportada(s) no formato WCT.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de viragens exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Corte de segmentos', tgtTurn:'Corte de viragens',
             tnNotApplicable:'N\u00E3o se aplica a um corte de viragem.',
@@ -4043,7 +4067,13 @@ const renderQueue=()=>{
 };
 const updateActionBtns=()=>{
     const has=queue.length>0;
-    ['wct-btn-apply','wct-btn-export','wct-btn-clear'].forEach(id=>$id(id)?.classList.toggle('wct-btn-dis',!has));
+    ['wct-btn-apply','wct-btn-clear'].forEach(id=>$id(id)?.classList.toggle('wct-btn-dis',!has));
+    // Les deux exports ne s'allument que si la file contient de quoi les alimenter :
+    // les formats sont disjoints (AC = segments only, WCT = virages).
+    const hasSeg =queue.some(e=>e.source!=='turn');
+    const hasTurn=queue.some(e=>e.source==='turn'&&e.turnIds?.length);
+    $id('wct-btn-export')?.classList.toggle('wct-btn-dis',!hasSeg);
+    $id('wct-btn-export-turn')?.classList.toggle('wct-btn-dis',!hasTurn);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4592,6 +4622,53 @@ const exportCSV=()=>{
     if(!segEntries.length){ showToast(t('csvTurnOnly'),4000,'#f57c00'); return; }
     download(_queueToCSV(segEntries),`closures_${todayStr()}.csv`);
     if(skipped) showToast(t('csvTurnSkipped',skipped),4500,'#f57c00');
+};
+// ─── CSV VIRAGES (format WCT) ───────────────────────────────────────────────
+// Le format WME Advanced Closures est segment-only : il n'a aucune colonne capable
+// de designer un virage. D'ou ce format propre a WCT, concu POUR ETRE REIMPORTE.
+// Choix de conception :
+//  - action « add-turn » (et non « add ») : un fichier de virages donne par erreur a
+//    Advanced Closures est rejete au lieu d'etre mal interprete ;
+//  - on ecrit l'IDENTITE SEMANTIQUE du virage (from segment / node / to segment) EN PLUS
+//    du turn id. Le turn id est un composite derive des segments : il suffit qu'un
+//    carrefour soit retrace pour qu'il ne resolve plus. A l'import, on pourra donc
+//    re-resoudre le virage via getTurnsThroughNode(node) filtre sur (from,to) plutot
+//    que de faire aveuglement confiance a la chaine ;
+//  - lon/lat pointe le NŒUD du virage (et non le centre de carte comme le CSV AC) :
+//    un import pourra recadrer dessus, condition pour que le virage soit charge.
+const TURN_CSV_HEADER='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),from segment id,node id,to segment id,turn id,ignore trafic (Yes|No),MTE id (empty cell if not),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),comment (optional)\n';
+const _turnsToCSV=(entries)=>{
+    const zoom=17;
+    let csv=TURN_CSV_HEADER, rows=0;
+    entries.forEach(e=>{
+        const it=e.config.ignoretraffic?'Yes':'No';
+        // Position du nœud du virage ; repli sur le centre de carte si indisponible.
+        let lon='',lat='';
+        try{
+            const p=_segEndAt(e.turnSegId,e.turnNodeId);
+            if(p?.at){ lon=p.at[0].toFixed(6); lat=p.at[1].toFixed(6); }
+        }catch(err){}
+        if(lon===''){ try{const c=sdk.Map.getMapCenter(); lon=c.lon; lat=c.lat;}catch(err){} }
+        (e.turnMeta||[]).forEach(tm=>{
+            e.closures.forEach((cl,ci)=>{
+                // Respecter les lignes supprimees a la main dans la carte de file.
+                if(e.excludedRows?.has(`${tm.id}:${ci}`)) return;
+                const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
+                const ce=cl.end   instanceof Date?dateToUTCStr(cl.end)  :cl.end;
+                csv+=`add-turn,"${e.config.reason}","${cs}","${ce}",${e.turnSegId},${e.turnNodeId},${tm.toSegId},"${tm.id}",${it},${e.config.mteId||''},"lon=${lon}&lat=${lat}",${zoom},"WME Closures Toolkit"\n`;
+                rows++;
+            });
+        });
+    });
+    return {csv,rows};
+};
+const exportTurnsCSV=()=>{
+    const turnEntries=queue.filter(e=>e.source==='turn'&&e.turnIds?.length);
+    if(!turnEntries.length){ showToast(t('csvNoTurns'),3000,'#f57c00'); return; }
+    const {csv,rows}=_turnsToCSV(turnEntries);
+    if(!rows){ showToast(t('csvNoTurns'),3000,'#f57c00'); return; }
+    download(csv,`turn_closures_${todayStr()}.csv`);
+    showToast(t('csvTurnDone',rows),3500,'#43a047');
 };
 // Export CSV des lots configurés d'une trace donnée (entrées 'sweep' de ce fichier).
 const exportLotsCSV=(fileId)=>{
@@ -6658,7 +6735,8 @@ const buildOverlay=()=>{
     <!-- Boutons fixes hors scroll -->
     <div id="wct-action-bar-wrap">
         <button class="wct-btn wct-btn-success wct-btn-dis" id="wct-btn-apply">${t('btnApply')}</button>
-        <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export">${t('btnCsv')}</button>
+        <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export" title="${t('btnCsvAcTip')}">${t('btnCsvAc')}</button>
+        <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export-turn" title="${t('btnCsvTurnTip')}">${t('btnCsvTurn')}</button>
         <button class="wct-btn wct-btn-danger wct-btn-dis" id="wct-btn-clear">${t('btnClear')}</button>
     </div>
 
@@ -7388,7 +7466,10 @@ const connectOverlay=ov=>{
                 segIds:[], turnIds:tn.turns.map(x=>x.id), turnMeta:tn.turns,
                 turnSegId:tn.segId, turnNodeId:tn.nodeId,
                 config:cfgT, closures:rcT.list, source:'turn',
-                label:`\uD83D\uDD00 ${cfgT.reason||t('defaultClosure')}`,
+                // Pas d'emoji dans le libelle : l'icone de cible est portee par l'en-tete
+                // (TARGET_ICON), et ce libelle est editable au crayon \u2014 un emoji fige
+                // dedans ferait double emploi et se retrouverait modifiable.
+                label:cfgT.reason||t('defaultClosure'),
                 detail:t('tnEntryDetail',tn.turns.length,rcT.list.length,cfgT.starttime),
                 nullSegs:new Set(), recentSegs:new Set(),
             });
@@ -7485,13 +7566,29 @@ const connectOverlay=ov=>{
     });
 
     // Actions
-    $id('wct-btn-clear')?.addEventListener('click',()=>{if(!confirm(t('confirmClear')))return;queue=[];renderQueue();$id('wct-preview-section').innerHTML='';});
+    $id('wct-btn-clear')?.addEventListener('click',()=>{
+        if(!confirm(t('confirmClear')))return;
+        queue=[];renderQueue();
+        $id('wct-preview-section').innerHTML='';
+        // Vider AUSSI le log d'application : il décrit une file qui n'existe plus.
+        // Le laisser affiché après un Vider donnait l'impression qu'il restait du travail.
+        const lg=$id('wct-apply-log');
+        if(lg){ lg.innerHTML=''; lg.style.display='none'; }
+        // Et la barre de progression, qui reste sinon figée sur le dernier résultat.
+        const pbw=$id('wct-pb-wrap'),pbf=$id('wct-pb-fill'),pbt=$id('wct-pb-text');
+        if(pbw)pbw.style.display='none';
+        if(pbf)pbf.style.width='0%';
+        if(pbt)pbt.textContent='';
+        // Cible virages en cours : sans objet une fois la file vidée.
+        _currentTurns=null; renderTurnBanner();
+    });
     $id('wct-btn-apply')?.addEventListener('click',async()=>{if(!confirm(t('confirmApply',queue.length)))return;await applyQueue();});
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
     // Échap = secours clavier : atteint l'interruption même si un masque WME (« Enregistrement… »)
     // recouvre le bouton pendant les sauvegardes en chaîne.
     document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(_applyRunning) requestApplyAbort(); if(_sweepRunning) requestSweepAbort(); } },{capture:true,signal:sig});
     $id('wct-btn-export')?.addEventListener('click',exportCSV);
+    $id('wct-btn-export-turn')?.addEventListener('click',exportTurnsCSV);
 
     // Drop zone CSV
     const dz=$id('wct-dropzone'),fi=$id('wct-file-input');
