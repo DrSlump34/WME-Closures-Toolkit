@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.80.00
+// @version      0.81.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -55,7 +55,12 @@
 
 const SCRIPT_NAME = 'WME Closures Toolkit';
 const SCRIPT_ID   = 'wmeClosuresToolkit';
-const VERSION     = '0.75.00';
+// ⚠️ NE JAMAIS re-figer ce numero en dur. Il etait reste bloque a '0.75.00' pendant que
+// @version annoncait 0.80.00 — 5 versions d'ecart, affichees a l'utilisateur dans l'en-tete
+// du panneau ET dans l'aide. Deux sources de verite pour une meme information : l'une des
+// deux finit toujours par mentir. Il est desormais LU dans le bloc de metadonnees.
+// Repli sur '?' plutot qu'une valeur figee : mieux vaut avouer qu'on ne sait pas.
+const VERSION     = (typeof GM_info !== 'undefined' && GM_info?.script?.version) || '?';
 
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
@@ -1139,7 +1144,7 @@ const t = (key, ...args) => {
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} fermeture(s) de segment export\u00E9e(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} fermeture(s) de virage export\u00E9e(s).`,
             srcNothingFound:'Rien \u00E0 exporter : lance d\u2019abord une recherche.',
-            srcViewOnly:'\u2139 La recherche ne voit que ce qui est charg\u00E9 dans la VUE COURANTE. Un export d\u00E9crit donc cette vue, pas une zone enti\u00E8re.',
+            srcViewOnly:'\u2139\uFE0F La recherche ne voit que ce qui est charg\u00E9 dans la VUE COURANTE. Un export d\u00E9crit donc cette vue, pas une zone enti\u00E8re.',
             // Source (partenaire) d'une fermeture
             lblSource:'Source (partenaire)', srcSelNone:'Aucune',
             tipSource:'Attribuer la fermeture \u00E0 un partenaire, comme le fait le formulaire natif de WME. La liste d\u00E9pend de la zone affich\u00E9e. Laisser \u00AB Aucune \u00BB pour une fermeture d\u2019\u00E9diteur.',
@@ -1150,7 +1155,19 @@ const t = (key, ...args) => {
             srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
             srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
             // Recherche : filtre par partenaire
-            srcSectionPartner:'\uD83C\uDFF7 Source (partenaire)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partenaire)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F \u00C9v\u00E9nement MTE',
+            // Infobulles des listes deroulantes
+            tipRepUnit:'Unite de l\u2019intervalle entre deux occurrences : jours, heures ou minutes.',
+            tipRangeStart:'Premier jour de la plage sur laquelle la fermeture est r\u00E9p\u00E9t\u00E9e.',
+            tipRangeEnd:'Dernier jour de la plage. Une occurrence qui d\u00E9passerait cette date n\u2019est pas g\u00E9n\u00E9r\u00E9e.',
+            tipStartTime:'Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement.',
+            tipDurTime:'Dur\u00E9e de chaque fermeture (h:mm). Bascule avec Heure de fin via le bouton \u23F1.',
+            tipEndTime:'Heure de fin de chaque fermeture. Si elle est ant\u00E9rieure \u00E0 l\u2019heure de d\u00E9but, la fermeture court jusqu\u2019au lendemain (badge J+1).',
+            tipReason:'Texte affich\u00E9 dans WME pour identifier la fermeture. Le bouton \uD83D\uDCCC ins\u00E8re un \u00E9moji \u00E0 la position du curseur.',
+            tipMteSel:'Rattacher les fermetures \u00E0 un \u00E9v\u00E9nement de circulation majeur (MTE). Ouvre l\u2019onglet \u00C9v\u00E9nements de WME pour en cr\u00E9er un.',
+            tipNodeSel:'Fermer aussi les n\u0153uds : aucun, seulement ceux INTERNES \u00E0 la s\u00E9lection (\u00E9vite de bloquer les rues adjacentes), ou tous.',
+            tipLangSel:'Langue de WCT. \u00AB Auto \u00BB suit celle de WME. Le changement est imm\u00E9diat, le panneau est reconstruit.',
             srcTipPartner:'Filtrer sur le partenaire \u00E0 qui la fermeture est attribu\u00E9e. La liste ne contient que les partenaires PR\u00C9SENTS dans les fermetures charg\u00E9es \u2014 elle ne peut donc pas proposer un choix qui ne rendrait rien.',
             srcPartnerAll:'Tous', srcPartnerNone:'Aucun (fermeture d\u2019\u00E9diteur)',
             srcPartnerEmpty:'Aucune fermeture avec partenaire dans cette vue.',
@@ -1423,6 +1440,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpH9:'\uD83D\uDD0D Recherche de fermetures',
             helpH10:'📦 Longs tracés : le mode lots',
             helpH11:'\uD83D\uDD00 Fermer des virages', helpH12:'\u2B07 Les deux exports CSV',
+            helpH13:'\uD83C\uDFF7\uFE0F Source (partenaire)',
             helpS1:'<b>S\u00E9lectionnez</b> un ou plusieurs segments sur la carte WME',
             helpS2:'Cliquez sur le bouton \uD83D\uDEA7 visible sur la carte (d\u00E9pla\u00E7able par glisser-d\u00E9poser)',
             helpS3:'Dans l\u2019onglet <b>\u2699 Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
@@ -1513,7 +1531,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} segment closure(s) exported.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} turn closure(s) exported.`,
             srcNothingFound:'Nothing to export: run a search first.',
-            srcViewOnly:'\u2139 The search only sees what is loaded in the CURRENT VIEW. An export therefore describes that view, not a whole area.',
+            srcViewOnly:'\u2139\uFE0F The search only sees what is loaded in the CURRENT VIEW. An export therefore describes that view, not a whole area.',
             // Closure source (partner)
             lblSource:'Source (partner)', srcSelNone:'None',
             tipSource:'Attribute the closure to a partner, exactly as WME\u2019s native form does. The list depends on the area in view. Leave "None" for an editor closure.',
@@ -1524,7 +1542,19 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
             srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
             // Search: partner filter
-            srcSectionPartner:'\uD83C\uDFF7 Source (partner)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partner)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F MTE event',
+            // Dropdown tooltips
+            tipRepUnit:'Unit of the interval between two occurrences: days, hours or minutes.',
+            tipRangeStart:'First day of the range over which the closure is repeated.',
+            tipRangeEnd:'Last day of the range. An occurrence running past this date is not generated.',
+            tipStartTime:'Time at which the closure starts each day. Daylight-saving changes are handled automatically.',
+            tipDurTime:'Duration of each closure (h:mm). Switch with End time via the \u23F1 button.',
+            tipEndTime:'End time of each closure. If earlier than the start time, the closure runs into the next day (D+1 badge).',
+            tipReason:'Text shown in WME to identify the closure. The \uD83D\uDCCC button inserts an emoji at the cursor.',
+            tipMteSel:'Attach the closures to a Major Traffic Event (MTE). Open WME\u2019s Events tab to create one.',
+            tipNodeSel:'Also close nodes: none, only those INSIDE the selection (avoids blocking adjacent streets), or all of them.',
+            tipLangSel:'WCT\u2019s language. "Auto" follows WME\u2019s. The change is immediate \u2014 the panel is rebuilt.',
             srcTipPartner:'Filter on the partner the closure is attributed to. The list only holds partners PRESENT in the loaded closures \u2014 so it cannot offer a choice that would return nothing.',
             srcPartnerAll:'All', srcPartnerNone:'None (editor closure)',
             srcPartnerEmpty:'No closure with a partner in this view.',
@@ -1782,6 +1812,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH9:'\uD83D\uDD0D Closure search',
             helpH10:'📦 Long tracks: batch mode',
             helpH11:'\uD83D\uDD00 Closing turns', helpH12:'\u2B07 The two CSV exports',
+            helpH13:'\uD83C\uDFF7\uFE0F Source (partner)',
             helpS1:'<b>Select</b> one or more segments on the WME map',
             helpS2:'Click the \uD83D\uDEA7 button visible on the map (drag and drop to reposition)',
             helpS3:'In the <b>\u2699 Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
@@ -1873,7 +1904,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} Segmentsperrung(en) exportiert.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} Abbiegersperrung(en) exportiert.`,
             srcNothingFound:'Nichts zu exportieren: starte zuerst eine Suche.',
-            srcViewOnly:'\u2139 Die Suche sieht nur, was in der AKTUELLEN ANSICHT geladen ist. Ein Export beschreibt daher diese Ansicht, kein ganzes Gebiet.',
+            srcViewOnly:'\u2139\uFE0F Die Suche sieht nur, was in der AKTUELLEN ANSICHT geladen ist. Ein Export beschreibt daher diese Ansicht, kein ganzes Gebiet.',
             // Quelle (Partner) einer Sperrung
             lblSource:'Quelle (Partner)', srcSelNone:'Keine',
             tipSource:'Die Sperrung einem Partner zuschreiben, genau wie das native WME-Formular. Die Liste h\u00E4ngt vom angezeigten Gebiet ab. F\u00FCr eine Editor-Sperrung \u00ABKeine\u00BB lassen.',
@@ -1884,7 +1915,19 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
             srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
             // Suche: Partnerfilter
-            srcSectionPartner:'\uD83C\uDFF7 Quelle (Partner)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F MTE-Ereignis',
+            // Tooltips der Auswahllisten
+            tipRepUnit:'Einheit des Abstands zwischen zwei Terminen: Tage, Stunden oder Minuten.',
+            tipRangeStart:'Erster Tag des Zeitraums, \u00FCber den die Sperrung wiederholt wird.',
+            tipRangeEnd:'Letzter Tag des Zeitraums. Ein Termin, der dar\u00FCber hinausreicht, wird nicht erzeugt.',
+            tipStartTime:'Uhrzeit, zu der die Sperrung t\u00E4glich beginnt. Zeitumstellungen werden automatisch ber\u00FCcksichtigt.',
+            tipDurTime:'Dauer jeder Sperrung (h:mm). Wechsel zu Endzeit \u00FCber die Schaltfl\u00E4che \u23F1.',
+            tipEndTime:'Endzeit jeder Sperrung. Liegt sie vor der Startzeit, l\u00E4uft die Sperrung bis zum Folgetag (Kennzeichen T+1).',
+            tipReason:'In WME angezeigter Text zur Kennzeichnung der Sperrung. Die Schaltfl\u00E4che \uD83D\uDCCC f\u00FCgt ein Emoji an der Cursorposition ein.',
+            tipMteSel:'Die Sperrungen an ein Major Traffic Event (MTE) h\u00E4ngen. \u00D6ffne den Reiter Ereignisse in WME, um eines anzulegen.',
+            tipNodeSel:'Auch Knoten sperren: keine, nur die INNERHALB der Auswahl (verhindert das Blockieren angrenzender Stra\u00DFen), oder alle.',
+            tipLangSel:'Sprache von WCT. \u00ABAuto\u00BB folgt der von WME. Die \u00C4nderung wirkt sofort \u2014 das Panel wird neu aufgebaut.',
             srcTipPartner:'Nach dem Partner filtern, dem die Sperrung zugeschrieben ist. Die Liste enth\u00E4lt nur Partner, die in den geladenen Sperrungen VORKOMMEN \u2014 sie kann also keine Auswahl anbieten, die nichts liefert.',
             srcPartnerAll:'Alle', srcPartnerNone:'Keiner (Editor-Sperrung)',
             srcPartnerEmpty:'Keine Sperrung mit Partner in dieser Ansicht.',
@@ -2142,6 +2185,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH9:'\uD83D\uDD0D Sperrungssuche',
             helpH10:'📦 Lange Tracks: Paket-Modus',
             helpH11:'\uD83D\uDD00 Abbieger sperren', helpH12:'\u2B07 Die zwei CSV-Exporte',
+            helpH13:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
             helpS1:'<b>W\u00E4hle</b> ein oder mehrere Segmente auf der WME-Karte aus',
             helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
             helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
@@ -2232,7 +2276,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} cierre(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} cierre(s) de giro exportado(s).`,
             srcNothingFound:'Nada que exportar: lanza primero una b\u00FAsqueda.',
-            srcViewOnly:'\u2139 La b\u00FAsqueda solo ve lo que est\u00E1 cargado en la VISTA ACTUAL. Una exportaci\u00F3n describe por tanto esa vista, no una zona entera.',
+            srcViewOnly:'\u2139\uFE0F La b\u00FAsqueda solo ve lo que est\u00E1 cargado en la VISTA ACTUAL. Una exportaci\u00F3n describe por tanto esa vista, no una zona entera.',
             // Fuente (socio) de un cierre
             lblSource:'Fuente (socio)', srcSelNone:'Ninguna',
             tipSource:'Atribuir el cierre a un socio, igual que hace el formulario nativo de WME. La lista depende de la zona mostrada. Deja \u00ABNinguna\u00BB para un cierre de editor.',
@@ -2243,7 +2287,19 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
             srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
             // Busqueda: filtro por socio
-            srcSectionPartner:'\uD83C\uDFF7 Fuente (socio)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Fuente (socio)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
+            // Descripciones de las listas desplegables
+            tipRepUnit:'Unidad del intervalo entre dos repeticiones: d\u00EDas, horas o minutos.',
+            tipRangeStart:'Primer d\u00EDa del rango en el que se repite el cierre.',
+            tipRangeEnd:'\u00DAltimo d\u00EDa del rango. Una repetici\u00F3n que sobrepase esta fecha no se genera.',
+            tipStartTime:'Hora a la que empieza el cierre cada d\u00EDa. Los cambios de hora se gestionan autom\u00E1ticamente.',
+            tipDurTime:'Duraci\u00F3n de cada cierre (h:mm). Alterna con Hora de fin mediante el bot\u00F3n \u23F1.',
+            tipEndTime:'Hora de fin de cada cierre. Si es anterior a la hora de inicio, el cierre se prolonga al d\u00EDa siguiente (distintivo D+1).',
+            tipReason:'Texto mostrado en WME para identificar el cierre. El bot\u00F3n \uD83D\uDCCC inserta un emoji en la posici\u00F3n del cursor.',
+            tipMteSel:'Vincular los cierres a un evento de tr\u00E1fico mayor (MTE). Abre la pesta\u00F1a Eventos de WME para crear uno.',
+            tipNodeSel:'Cerrar tambi\u00E9n los nodos: ninguno, solo los INTERNOS a la selecci\u00F3n (evita bloquear calles adyacentes), o todos.',
+            tipLangSel:'Idioma de WCT. \u00ABAuto\u00BB sigue el de WME. El cambio es inmediato: el panel se reconstruye.',
             srcTipPartner:'Filtrar por el socio al que se atribuye el cierre. La lista solo contiene los socios PRESENTES en los cierres cargados, as\u00ED que no puede ofrecer una opci\u00F3n que no devuelva nada.',
             srcPartnerAll:'Todos', srcPartnerNone:'Ninguno (cierre de editor)',
             srcPartnerEmpty:'No hay ning\u00FAn cierre con socio en esta vista.',
@@ -2501,6 +2557,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpH9:'🔍 Búsqueda de cierres',
             helpH10:'📦 Trazas largas: modo por lotes',
             helpH11:'\uD83D\uDD00 Cerrar giros', helpH12:'\u2B07 Las dos exportaciones CSV',
+            helpH13:'\uD83C\uDFF7\uFE0F Fuente (socio)',
             helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME',
             helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
             helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
@@ -2591,7 +2648,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} bloqueio(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} bloqueio(s) de convers\u00E3o exportado(s).`,
             srcNothingFound:'Nada para exportar: fa\u00E7a uma pesquisa primeiro.',
-            srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISUALIZA\u00C7\u00C3O ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa visualiza\u00E7\u00E3o, n\u00E3o uma \u00E1rea inteira.',
+            srcViewOnly:'\u2139\uFE0F A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISUALIZA\u00C7\u00C3O ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa visualiza\u00E7\u00E3o, n\u00E3o uma \u00E1rea inteira.',
             // Fonte (parceiro) de um bloqueio
             lblSource:'Fonte (parceiro)', srcSelNone:'Nenhuma',
             tipSource:'Atribuir o bloqueio a um parceiro, igual ao formul\u00E1rio nativo do WME. A lista depende da \u00E1rea exibida. Deixe \u00ABNenhuma\u00BB para um bloqueio de editor.',
@@ -2602,7 +2659,19 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             // Pesquisa: filtro por parceiro
-            srcSectionPartner:'\uD83C\uDFF7 Fonte (parceiro)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
+            // Dicas das listas suspensas
+            tipRepUnit:'Unidade do intervalo entre duas ocorr\u00EAncias: dias, horas ou minutos.',
+            tipRangeStart:'Primeiro dia do intervalo em que o bloqueio \u00E9 repetido.',
+            tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que passe desta data n\u00E3o \u00E9 gerada.',
+            tipStartTime:'Hora em que o bloqueio come\u00E7a a cada dia. As mudan\u00E7as de hor\u00E1rio s\u00E3o tratadas automaticamente.',
+            tipDurTime:'Dura\u00E7\u00E3o de cada bloqueio (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
+            tipEndTime:'Hora de fim de cada bloqueio. Se for anterior \u00E0 hora de in\u00EDcio, o bloqueio segue at\u00E9 o dia seguinte (selo D+1).',
+            tipReason:'Texto exibido no WME para identificar o bloqueio. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
+            tipMteSel:'Vincular os bloqueios a um evento de tr\u00E1fego maior (MTE). Abra a aba Eventos do WME para criar um.',
+            tipNodeSel:'Bloquear tamb\u00E9m os n\u00F3s: nenhum, apenas os INTERNOS \u00E0 sele\u00E7\u00E3o (evita bloquear ruas adjacentes), ou todos.',
+            tipLangSel:'Idioma do WCT. \u00ABAuto\u00BB segue o do WME. A mudan\u00E7a \u00E9 imediata \u2014 o painel \u00E9 reconstru\u00EDdo.',
             srcTipPartner:'Filtrar pelo parceiro a quem o bloqueio \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos bloqueios carregados \u2014 portanto n\u00E3o pode oferecer uma escolha que n\u00E3o retorne nada.',
             srcPartnerAll:'Todos', srcPartnerNone:'Nenhum (bloqueio de editor)',
             srcPartnerEmpty:'Nenhum bloqueio com parceiro nesta visualiza\u00E7\u00E3o.',
@@ -2860,6 +2929,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH9:'🔍 Busca de bloqueios',
             helpH10:'📦 Trajetos longos: modo em lotes',
             helpH11:'\uD83D\uDD00 Bloquear convers\u00F5es', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
+            helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
             helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
@@ -2950,7 +3020,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} corte(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} corte(s) de viragem exportado(s).`,
             srcNothingFound:'Nada para exportar: faz primeiro uma pesquisa.',
-            srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISTA ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa vista, n\u00E3o uma \u00E1rea inteira.',
+            srcViewOnly:'\u2139\uFE0F A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISTA ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa vista, n\u00E3o uma \u00E1rea inteira.',
             // Fonte (parceiro) de um corte
             lblSource:'Fonte (parceiro)', srcSelNone:'Nenhuma',
             tipSource:'Atribuir o corte a um parceiro, tal como faz o formul\u00E1rio nativo do WME. A lista depende da \u00E1rea apresentada. Deixa \u00ABNenhuma\u00BB para um corte de editor.',
@@ -2961,7 +3031,19 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             // Pesquisa: filtro por parceiro
-            srcSectionPartner:'\uD83C\uDFF7 Fonte (parceiro)',
+            srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
+            srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
+            // Dicas das listas pendentes
+            tipRepUnit:'Unidade do intervalo entre duas ocorr\u00EAncias: dias, horas ou minutos.',
+            tipRangeStart:'Primeiro dia do intervalo em que o corte \u00E9 repetido.',
+            tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que ultrapasse esta data n\u00E3o \u00E9 gerada.',
+            tipStartTime:'Hora a que o corte come\u00E7a todos os dias. As mudan\u00E7as de hora s\u00E3o tratadas automaticamente.',
+            tipDurTime:'Dura\u00E7\u00E3o de cada corte (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
+            tipEndTime:'Hora de fim de cada corte. Se for anterior \u00E0 hora de in\u00EDcio, o corte segue at\u00E9 ao dia seguinte (selo D+1).',
+            tipReason:'Texto apresentado no WME para identificar o corte. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
+            tipMteSel:'Ligar os cortes a um evento de tr\u00E2nsito maior (MTE). Abre o separador Eventos do WME para criar um.',
+            tipNodeSel:'Cortar tamb\u00E9m os n\u00F3s: nenhum, apenas os INTERNOS \u00E0 sele\u00E7\u00E3o (evita bloquear ruas adjacentes), ou todos.',
+            tipLangSel:'Idioma do WCT. \u00ABAuto\u00BB segue o do WME. A mudan\u00E7a \u00E9 imediata \u2014 o painel \u00E9 reconstru\u00EDdo.',
             srcTipPartner:'Filtrar pelo parceiro a quem o corte \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos cortes carregados \u2014 por isso n\u00E3o pode oferecer uma escolha que n\u00E3o devolva nada.',
             srcPartnerAll:'Todos', srcPartnerNone:'Nenhum (corte de editor)',
             srcPartnerEmpty:'Nenhum corte com parceiro nesta vista.',
@@ -3219,6 +3301,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH9:'🔍 Pesquisa de cortes',
             helpH10:'📦 Trajetos longos: modo por lotes',
             helpH11:'\uD83D\uDD00 Cortar viragens', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
+            helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
             helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
             helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
@@ -3882,6 +3965,55 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px">Cada botão só acende se a fila tiver com que o alimentar. As <b>linhas eliminadas</b> à mão num cartão da fila não são exportadas: o ficheiro descreve o que resta, não o que foi introduzido.</p>
             <p style="margin-top:6px">O CSV de Viragens guarda a identidade completa da viragem — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, deixa de resolver. As outras três colunas permitirão encontrar a viragem mesmo assim.</p>` }) },
+        { id:'h13', title:t('helpH13'), body: _L({ fr:`
+            <p>Une fermeture peut être <b>attribuée à un partenaire</b> (une collectivité, un exploitant…), exactement comme le fait le formulaire natif de WME. Sans partenaire, c'est une fermeture d'éditeur.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Poser</b></td><td>Onglet <b>⚙ Configurer</b>, champ <b>Source (partenaire)</b>. La liste dépend de la <b>zone affichée</b> : les partenaires de Nice ne sont pas ceux du Mans.</td></tr>
+            <tr><td><b>Chercher</b></td><td>Onglet <b>🔍 Recherche</b>, section <b>🏷️ Source</b> : <i>Tous</i>, <i>Aucun</i> (fermetures d'éditeur) ou un partenaire. La colonne <b>Source</b> affiche l'attribution de chaque résultat.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Qui peut attribuer&nbsp;?</b> Seuls les comptes ayant le <b>statut partenaire</b>, accordé par Waze — pas par WCT. Si le champ est grisé, l'infobulle en donne la raison exacte. C'est une relation de confiance : attribuer une fermeture à un partenaire, c'est affirmer qu'il en est la source.</p>
+            <p style="margin-top:6px"><b>Si Waze change&nbsp;:</b> WCT vérifie au démarrage que tout est en place (statut, API, structure des données). Au moindre doute, le champ se désactive et l'explique, plutôt que de risquer une attribution de travers. Et si la pose échoue en cours de route, <b>rien n'est enregistré</b> : mieux vaut aucune fermeture qu'une fermeture faussement attribuée.</p>
+            <p style="margin-top:6px"><i>La Source ne s'applique pas aux virages : c'est un champ de fermeture de segment.</i></p>`, en:`
+            <p>A closure can be <b>attributed to a partner</b> (a local authority, an operator…), exactly as WME's native form does. With no partner, it is an editor closure.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Set</b></td><td><b>⚙ Configure</b> tab, <b>Source (partner)</b> field. The list depends on the <b>area in view</b>: the partners of Nice are not those of Le Mans.</td></tr>
+            <tr><td><b>Search</b></td><td><b>🔍 Search</b> tab, <b>🏷️ Source</b> section: <i>All</i>, <i>None</i> (editor closures) or a partner. The <b>Source</b> column shows each result's attribution.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Who can attribute?</b> Only accounts with <b>partner status</b>, granted by Waze — not by WCT. If the field is greyed out, the tooltip gives the exact reason. It is a relationship of trust: attributing a closure to a partner asserts that they are its source.</p>
+            <p style="margin-top:6px"><b>If Waze changes:</b> WCT checks at startup that everything is in place (status, API, data structure). At the slightest doubt the field disables itself and says why, rather than risk a wrong attribution. And if setting it fails midway, <b>nothing is saved</b>: better no closure than a falsely attributed one.</p>
+            <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>`, de:`
+            <p>Eine Sperrung kann einem <b>Partner zugeschrieben</b> werden (einer Gebietskörperschaft, einem Betreiber…), genau wie im nativen WME-Formular. Ohne Partner ist es eine Editor-Sperrung.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Setzen</b></td><td>Reiter <b>⚙ Einrichten</b>, Feld <b>Quelle (Partner)</b>. Die Liste hängt vom <b>angezeigten Gebiet</b> ab: die Partner von Nizza sind nicht die von Le Mans.</td></tr>
+            <tr><td><b>Suchen</b></td><td>Reiter <b>🔍 Suche</b>, Abschnitt <b>🏷️ Quelle</b>: <i>Alle</i>, <i>Keiner</i> (Editor-Sperrungen) oder ein Partner. Die Spalte <b>Quelle</b> zeigt die Zuschreibung jedes Treffers.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Wer darf zuschreiben?</b> Nur Konten mit <b>Partnerstatus</b>, den Waze vergibt — nicht WCT. Ist das Feld ausgegraut, nennt der Tooltip den genauen Grund. Es ist ein Vertrauensverhältnis: eine Sperrung einem Partner zuzuschreiben heißt zu behaupten, er sei ihre Quelle.</p>
+            <p style="margin-top:6px"><b>Wenn Waze sich ändert:</b> WCT prüft beim Start, ob alles vorhanden ist (Status, API, Datenstruktur). Beim geringsten Zweifel deaktiviert sich das Feld und sagt warum, statt eine falsche Zuschreibung zu riskieren. Und schlägt das Setzen unterwegs fehl, wird <b>nichts gespeichert</b>: lieber keine Sperrung als eine falsch zugeschriebene.</p>
+            <p style="margin-top:6px"><i>Die Quelle gilt nicht für Abbieger: sie ist ein Feld der Segmentsperrung.</i></p>`, es:`
+            <p>Un cierre puede <b>atribuirse a un socio</b> (un municipio, un operador…), igual que hace el formulario nativo de WME. Sin socio, es un cierre de editor.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Poner</b></td><td>Pestaña <b>⚙ Configurar</b>, campo <b>Fuente (socio)</b>. La lista depende de la <b>zona mostrada</b>: los socios de Niza no son los de Le Mans.</td></tr>
+            <tr><td><b>Buscar</b></td><td>Pestaña <b>🔍 Buscar</b>, sección <b>🏷️ Fuente</b>: <i>Todos</i>, <i>Ninguno</i> (cierres de editor) o un socio. La columna <b>Fuente</b> muestra la atribución de cada resultado.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>¿Quién puede atribuir?</b> Solo las cuentas con <b>estado de socio</b>, concedido por Waze — no por WCT. Si el campo está atenuado, la descripción emergente da el motivo exacto. Es una relación de confianza: atribuir un cierre a un socio es afirmar que él es su fuente.</p>
+            <p style="margin-top:6px"><b>Si Waze cambia:</b> WCT comprueba al arrancar que todo está en su sitio (estado, API, estructura de datos). A la mínima duda el campo se desactiva y lo explica, en lugar de arriesgar una atribución errónea. Y si la puesta falla a medias, <b>no se guarda nada</b>: mejor ningún cierre que uno mal atribuido.</p>
+            <p style="margin-top:6px"><i>La Fuente no se aplica a los giros: es un campo del cierre de segmento.</i></p>`, 'pt-BR':`
+            <p>Um bloqueio pode ser <b>atribuído a um parceiro</b> (uma prefeitura, um operador…), igual ao formulário nativo do WME. Sem parceiro, é um bloqueio de editor.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Definir</b></td><td>Aba <b>⚙ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área exibida</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
+            <tr><td><b>Pesquisar</b></td><td>Aba <b>🔍 Pesquisa</b>, seção <b>🏷️ Fonte</b>: <i>Todos</i>, <i>Nenhum</i> (bloqueios de editor) ou um parceiro. A coluna <b>Fonte</b> mostra a atribuição de cada resultado.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>status de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esmaecido, a dica informa o motivo exato. É uma relação de confiança: atribuir um bloqueio a um parceiro é afirmar que ele é a sua fonte.</p>
+            <p style="margin-top:6px"><b>Se o Waze mudar:</b> o WCT verifica na inicialização se tudo está no lugar (status, API, estrutura dos dados). À menor dúvida o campo se desativa e explica por quê, em vez de arriscar uma atribuição errada. E se a aplicação falhar no meio, <b>nada é salvo</b>: melhor nenhum bloqueio do que um falsamente atribuído.</p>
+            <p style="margin-top:6px"><i>A Fonte não se aplica às conversões: é um campo do bloqueio de segmento.</i></p>`, 'pt-PT':`
+            <p>Um corte pode ser <b>atribuído a um parceiro</b> (uma autarquia, um operador…), tal como faz o formulário nativo do WME. Sem parceiro, é um corte de editor.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Definir</b></td><td>Separador <b>⚙ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área apresentada</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
+            <tr><td><b>Pesquisar</b></td><td>Separador <b>🔍 Pesquisa</b>, secção <b>🏷️ Fonte</b>: <i>Todos</i>, <i>Nenhum</i> (cortes de editor) ou um parceiro. A coluna <b>Fonte</b> mostra a atribuição de cada resultado.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>estatuto de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esbatido, a dica indica o motivo exato. É uma relação de confiança: atribuir um corte a um parceiro é afirmar que ele é a sua fonte.</p>
+            <p style="margin-top:6px"><b>Se o Waze mudar:</b> o WCT verifica no arranque se está tudo no lugar (estatuto, API, estrutura dos dados). À menor dúvida o campo desativa-se e explica porquê, em vez de arriscar uma atribuição errada. E se a aplicação falhar a meio, <b>nada é guardado</b>: melhor nenhum corte do que um falsamente atribuído.</p>
+            <p style="margin-top:6px"><i>A Fonte não se aplica às viragens: é um campo do corte de segmento.</i></p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -7476,9 +7608,9 @@ const buildOverlay=()=>{
             <div class="wct-section" style="margin-top:0">${t('sectionPeriod')}</div>
             <div class="wct-row">
               <div class="wct-col"><label class="wct-label">${t('lblStart')}</label>
-                <input id="wct-rangestart" class="wct-input" type="date" value="${today}" min="${today}"></div>
+                <input id="wct-rangestart" class="wct-input" type="date" title="${t('tipRangeStart')}" value="${today}" min="${today}"></div>
               <div class="wct-col"><label class="wct-label">${t('lblEnd')}</label>
-                <input id="wct-rangeend" class="wct-input" type="date" value="${today}" min="${today}"></div>
+                <input id="wct-rangeend" class="wct-input" type="date" title="${t('tipRangeEnd')}" value="${today}" min="${today}"></div>
             </div>
             <div id="wct-date-warn" style="display:none;font-size:0.917em;color:var(--wct-red);margin-top:3px;padding:0.25em 0.583em;background:#fce4ec;border-radius:var(--wct-radius);border:1px solid var(--wct-red)"></div>
             <!-- Toggle + grille 3 colonnes -->
@@ -7505,11 +7637,11 @@ const buildOverlay=()=>{
                 </div>
                 <label class="wct-label">${t('lblDurDay')}</label>
                 <!-- Ligne inputs -->
-                <input id="wct-starttime" class="wct-input" type="time" value="21:00">
+                <input id="wct-starttime" class="wct-input" type="time" title="${t('tipStartTime')}" value="21:00">
                 <div id="wct-mode-dur" style="display:flex">
-                  <input id="wct-dur-time" class="wct-input" type="time" value="08:00" style="width:100%"></div>
+                  <input id="wct-dur-time" class="wct-input" type="time" title="${t('tipDurTime')}" value="08:00" style="width:100%"></div>
                 <div id="wct-mode-end" style="display:none">
-                  <input id="wct-endtime" class="wct-input" type="time" value="05:00" style="width:100%"></div>
+                  <input id="wct-endtime" class="wct-input" type="time" title="${t('tipEndTime')}" value="05:00" style="width:100%"></div>
                 <input id="wct-dur-day" class="wct-input" type="number" min="0" value="0">
               </div>
             </div>
@@ -7545,7 +7677,7 @@ const buildOverlay=()=>{
                 </div>
                 <div class="wct-col">
                   <label class="wct-label">&nbsp;</label>
-                  <select id="wct-rep-unit" class="wct-select">
+                  <select id="wct-rep-unit" class="wct-select" title="${t('tipRepUnit')}">
                     <option value="day">${t('unitDay')}</option>
                     <option value="hour">${t('unitHour')}</option>
                     <option value="min">${t('unitMin')}</option>
@@ -7559,12 +7691,12 @@ const buildOverlay=()=>{
             <div class="wct-section" style="margin-top:0">${t('sectionParams')}</div>
             <div style="margin-bottom:4px"><label class="wct-label">${t('lblDesc')}</label>
               <div style="position:relative;display:flex;gap:4px;align-items:center">
-                <input id="wct-reason" class="wct-input" type="text" value="&#x1F6A7;Travaux&#x1F6A7;" style="flex:1;min-width:0">
+                <input id="wct-reason" class="wct-input" type="text" title="${t('tipReason')}" value="&#x1F6A7;Travaux&#x1F6A7;" style="flex:1;min-width:0">
                 <button id="wct-emoji-btn" type="button" title="${t('emojiPickerTip')}" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--wct-border);border-radius:var(--wct-radius);background:var(--wct-bg);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0">&#x1F4CC;</button>
                 <div id="wct-emoji-picker" style="display:none;position:absolute;top:100%;right:0;z-index:10010;background:var(--wct-surface);border:1px solid var(--wct-border);border-radius:var(--wct-radius);box-shadow:0 4px 16px rgba(0,0,0,.18);padding:6px;width:232px;margin-top:3px"></div>
               </div></div>
             <div style="margin-bottom:4px"><label class="wct-label">${t('lblDir')}</label>
-              <select id="wct-direction" class="wct-select">
+              <select id="wct-direction" class="wct-select" title="${t('tipDir')}">
                 <option value="3">${t('dirBoth')}</option>
                 <option value="1">${t('dirAtoB')}</option>
                 <option value="2">${t('dirBtoA')}</option>
@@ -7574,7 +7706,7 @@ const buildOverlay=()=>{
                 <span style="font-weight:400;color:var(--wct-text2);font-size:0.833em" id="wct-mte-hint">${t('lblMteHint')}</span>
               </label>
               <div style="display:flex;gap:4px;align-items:center">
-                <select id="wct-mtesel" class="wct-select" style="flex:1">
+                <select id="wct-mtesel" class="wct-select" style="flex:1" title="${t('tipMteSel')}">
                   <option value="">${t('mteEmpty')}</option>
                 </select>
                 <button id="wct-mte-refresh" class="wct-btn wct-btn-neutral wct-btn-sm" title="${t('mteRefreshTip')}" style="flex-shrink:0;font-size:14px;padding:4px 8px">${t('mteRefresh')}</button>
@@ -7582,11 +7714,11 @@ const buildOverlay=()=>{
             </div>
             <div id="wct-source-wrap" style="margin-bottom:4px">
               <label class="wct-label" title="${t('tipSource')}">${t('lblSource')}</label>
-              <select id="wct-sourcesel" class="wct-select"><option value="">${t('srcSelNone')}</option></select>
+              <select id="wct-sourcesel" class="wct-select" title="${t('tipSource')}"><option value="">${t('srcSelNone')}</option></select>
               <div id="wct-source-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px"></div>
             </div>
             <div id="wct-nodes-wrap" style="margin-bottom:4px"><label class="wct-label">${t('lblNodes')}</label>
-              <select id="wct-nodesel" class="wct-select">
+              <select id="wct-nodesel" class="wct-select" title="${t('tipNodeSel')}">
                 <option value="1">${t('nodeNone')}</option>
                 <option value="2">${t('nodeInner')}</option>
                 <option value="3">${t('nodeAll')}</option>
@@ -7677,12 +7809,17 @@ const buildOverlay=()=>{
           </div>
         </div>
 
-        <div class="wct-src-section">${t('srcSectionKeywords')}</div>
+        <div class="wct-src-section" title="${t('srcTipDesc')}">${t('srcSectionKeywords')}</div>
         <div>
           <label class="wct-label" title="${t('srcTipDesc')}">${t('srcLblDesc')}</label>
           <input id="wct-src-desc" class="wct-input" type="text" placeholder="…" style="width:100%" title="${t('srcTipDesc')}">
         </div>
-        <div style="margin:5px 0 3px">
+
+        <!-- MTE : section a part entiere, au meme niveau que Mots-cles et Source.
+             Le bascule ET/OU vit ICI car il ne relie que Description et MTE : la Source
+             est un filtre d'identite (liste fermee), le ET/OU ne s'y applique pas. -->
+        <div class="wct-src-section" title="${t('srcTipMte')}">${t('srcSectionMte')}</div>
+        <div style="margin-bottom:3px">
           <div class="wct-src-andor-wrap" style="margin-bottom:3px" title="${t('srcTipAndOr')}">
             <div class="wct-src-andor-toggle">
               <button class="wct-src-andor-btn on" id="wct-src-and" title="${t('srcTipAndOr')}">${t('srcBtnAnd')}</button>
@@ -7690,7 +7827,6 @@ const buildOverlay=()=>{
             </div>
             <span class="wct-src-andor-lbl" style="font-size:0.75em;color:var(--wct-text2)">${t('srcTipAndOrLbl')}</span>
           </div>
-          <label class="wct-label" title="${t('srcTipMte')}">${t('srcLblMte')}</label>
           <input id="wct-src-mte" class="wct-input" type="text" placeholder="…" style="width:100%" title="${t('srcTipMte')}">
         </div>
 
@@ -9057,7 +9193,7 @@ const buildSidebar=()=>`
     </div>
     <div style="margin-top:14px">
         <div style="font-size:11px;font-weight:700;color:var(--wct-blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">&#x1F310; ${t('sbLanguage')}</div>
-        <select id="wct-lang-select" class="wct-input" style="width:100%;font-size:12px">
+        <select id="wct-lang-select" class="wct-input" style="width:100%;font-size:12px" title="${t('tipLangSel')}">
             <option value="auto" ${_langPref==='auto'?'selected':''}>${t('sbLangAuto',LANGS.find(x=>x.code===detectLang())?.label||'English')}</option>
             ${LANGS.map(l=>`<option value="${l.code}" ${_langPref===l.code?'selected':''}>${l.label}</option>`).join('')}
         </select>
