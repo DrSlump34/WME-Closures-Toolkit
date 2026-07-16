@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.77.00
+// @version      0.78.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -664,6 +664,12 @@ GM_addStyle(`
 .wct-src-status-cb input { margin:0; cursor:pointer; }
 /* Résultats */
 .wct-src-results-hdr { font-size:0.833em; font-weight:600; color:#880e4f; margin:8px 0 4px; }
+.wct-src-results-hdr-turn { color:#6a1b9a; margin-top:14px; }
+.wct-src-tgt-grid { display:flex; flex-wrap:wrap; gap:3px 14px; margin-top:3px; }
+/* Export DU RÉSULTAT : vit à côté des résultats, jamais dans la barre du bas —
+   celle-ci ne parle que de la file d'attente. Un bouton = un objet. */
+.wct-src-exp-bar { display:flex; justify-content:flex-end; margin:4px 0 2px; }
+.wct-src-viewnote { font-size:0.75em; color:var(--wct-text2); font-style:italic; margin:8px 0 0; padding-top:5px; border-top:1px dashed var(--wct-border); }
 .wct-src-table { width:100%; border-collapse:collapse; font-size:0.75em; margin-top:4px; }
 .wct-src-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:left; white-space:nowrap; cursor:pointer; user-select:none; }
 .wct-src-table th:hover { color:var(--wct-blue); }
@@ -1109,6 +1115,22 @@ const t = (key, ...args) => {
             srcBtnSearch:'Rechercher',
             srcBtnClear:'Effacer',
             srcNoResults:'Aucun segment trouv\u00E9 avec ces crit\u00E8res.',
+            // Recherche : cibles segments / virages
+            srcSectionTarget:'\uD83C\uDFAF Chercher quoi', srcTgtSeg:'Segments', srcTgtTurn:'Virages',
+            srcTipTarget:'Choisir ce que la recherche doit remonter. Les deux par d\u00E9faut.',
+            srcPickTarget:'\u26A0 Coche au moins une cible : Segments ou Virages.',
+            srcResultsSeg: n => `${n} segment(s) avec fermeture`,
+            srcResultsTurn: n => `${n} virage(s) avec fermeture`,
+            srcColTurn:'Virage', srcTipColTurn:'Trier par virage (fl\u00E8che et rues)',
+            srcTipCenterTurn:'Centrer la carte sur le n\u0153ud de ce virage',
+            srcBtnExportSeg:'\u2B07 Exporter ces segments (CSV AC)',
+            srcTipExportSeg:'Exporter les fermetures de segments TROUV\u00C9ES au format WME Advanced Closures. Rien \u00E0 voir avec la file d\u2019attente. \u26A0 Le drapeau « n\u0153uds ferm\u00E9s » ne peut pas \u00EAtre restitu\u00E9 : le SDK ne le relit pas.',
+            srcBtnExportTurn:'\u2B07 Exporter ces virages (CSV WCT)',
+            srcTipExportTurn:'Exporter les fermetures de virages TROUV\u00C9ES au format WCT. Rien \u00E0 voir avec la file d\u2019attente.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} fermeture(s) de segment export\u00E9e(s).`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} fermeture(s) de virage export\u00E9e(s).`,
+            srcNothingFound:'Rien \u00E0 exporter : lance d\u2019abord une recherche.',
+            srcViewOnly:'\u2139 La recherche ne voit que ce qui est charg\u00E9 dans la VUE COURANTE. Un export d\u00E9crit donc cette vue, pas une zone enti\u00E8re.',
             srcNoClosures:'Aucune fermeture charg\u00E9e dans la vue courante.',
             srcResults: n => `${n} segment(s) trouv\u00E9(s)`,
             srcBtnGoCfg:'\u2699 Basculer vers Configurer',
@@ -1451,6 +1473,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcBtnSearch:'Search',
             srcBtnClear:'Clear',
             srcNoResults:'No segments found matching these criteria.',
+            // Search: segment / turn targets
+            srcSectionTarget:'\uD83C\uDFAF What to search', srcTgtSeg:'Segments', srcTgtTurn:'Turns',
+            srcTipTarget:'Choose what the search should return. Both by default.',
+            srcPickTarget:'\u26A0 Check at least one target: Segments or Turns.',
+            srcResultsSeg: n => `${n} segment(s) with a closure`,
+            srcResultsTurn: n => `${n} turn(s) with a closure`,
+            srcColTurn:'Turn', srcTipColTurn:'Sort by turn (arrow and streets)',
+            srcTipCenterTurn:'Center the map on this turn\u2019s node',
+            srcBtnExportSeg:'\u2B07 Export these segments (CSV AC)',
+            srcTipExportSeg:'Export the segment closures FOUND, in the WME Advanced Closures format. Nothing to do with the queue. \u26A0 The "closed nodes" flag cannot be restored: the SDK does not read it back.',
+            srcBtnExportTurn:'\u2B07 Export these turns (CSV WCT)',
+            srcTipExportTurn:'Export the turn closures FOUND, in the WCT format. Nothing to do with the queue.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} segment closure(s) exported.`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} turn closure(s) exported.`,
+            srcNothingFound:'Nothing to export: run a search first.',
+            srcViewOnly:'\u2139 The search only sees what is loaded in the CURRENT VIEW. An export therefore describes that view, not a whole area.',
             srcNoClosures:'No closures loaded in the current view.',
             srcResults: n => `${n} segment(s) found`,
             srcBtnGoCfg:'\u2699 Switch to Configure',
@@ -1779,6 +1817,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnSearch:'Suchen',
             srcBtnClear:'Zur\u00FCcksetzen',
             srcNoResults:'Keine Segmente gefunden, die diesen Kriterien entsprechen.',
+            // Suche: Ziele Segmente / Abbieger
+            srcSectionTarget:'\uD83C\uDFAF Wonach suchen', srcTgtSeg:'Segmente', srcTgtTurn:'Abbieger',
+            srcTipTarget:'W\u00E4hle, was die Suche liefern soll. Standardm\u00E4\u00DFig beides.',
+            srcPickTarget:'\u26A0 Kreuze mindestens ein Ziel an: Segmente oder Abbieger.',
+            srcResultsSeg: n => `${n} Segment(e) mit Sperrung`,
+            srcResultsTurn: n => `${n} Abbieger mit Sperrung`,
+            srcColTurn:'Abbieger', srcTipColTurn:'Nach Abbieger sortieren (Pfeil und Stra\u00DFen)',
+            srcTipCenterTurn:'Karte auf den Knoten dieses Abbiegers zentrieren',
+            srcBtnExportSeg:'\u2B07 Diese Segmente exportieren (CSV AC)',
+            srcTipExportSeg:'Die GEFUNDENEN Segmentsperrungen im Format WME Advanced Closures exportieren. Hat nichts mit der Warteschlange zu tun. \u26A0 Das Kennzeichen «gesperrte Knoten» l\u00E4sst sich nicht wiederherstellen: das SDK liest es nicht zur\u00FCck.',
+            srcBtnExportTurn:'\u2B07 Diese Abbieger exportieren (CSV WCT)',
+            srcTipExportTurn:'Die GEFUNDENEN Abbiegersperrungen im WCT-Format exportieren. Hat nichts mit der Warteschlange zu tun.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} Segmentsperrung(en) exportiert.`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} Abbiegersperrung(en) exportiert.`,
+            srcNothingFound:'Nichts zu exportieren: starte zuerst eine Suche.',
+            srcViewOnly:'\u2139 Die Suche sieht nur, was in der AKTUELLEN ANSICHT geladen ist. Ein Export beschreibt daher diese Ansicht, kein ganzes Gebiet.',
             srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
             srcResults: n => `${n} Segment(e) gefunden`,
             srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
@@ -2106,6 +2160,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnSearch:'Buscar',
             srcBtnClear:'Borrar',
             srcNoResults:'No se ha encontrado ningún segmento con estos criterios.',
+            // Busqueda: objetivos segmentos / giros
+            srcSectionTarget:'\uD83C\uDFAF Qu\u00E9 buscar', srcTgtSeg:'Segmentos', srcTgtTurn:'Giros',
+            srcTipTarget:'Elige qu\u00E9 debe devolver la b\u00FAsqueda. Ambos por defecto.',
+            srcPickTarget:'\u26A0 Marca al menos un objetivo: Segmentos o Giros.',
+            srcResultsSeg: n => `${n} segmento(s) con cierre`,
+            srcResultsTurn: n => `${n} giro(s) con cierre`,
+            srcColTurn:'Giro', srcTipColTurn:'Ordenar por giro (flecha y calles)',
+            srcTipCenterTurn:'Centrar el mapa en el nodo de este giro',
+            srcBtnExportSeg:'\u2B07 Exportar estos segmentos (CSV AC)',
+            srcTipExportSeg:'Exportar los cierres de segmentos ENCONTRADOS, en formato WME Advanced Closures. Nada que ver con la cola. \u26A0 El indicador «nodos cerrados» no puede restaurarse: el SDK no lo relee.',
+            srcBtnExportTurn:'\u2B07 Exportar estos giros (CSV WCT)',
+            srcTipExportTurn:'Exportar los cierres de giros ENCONTRADOS, en formato WCT. Nada que ver con la cola.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} cierre(s) de segmento exportado(s).`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} cierre(s) de giro exportado(s).`,
+            srcNothingFound:'Nada que exportar: lanza primero una b\u00FAsqueda.',
+            srcViewOnly:'\u2139 La b\u00FAsqueda solo ve lo que est\u00E1 cargado en la VISTA ACTUAL. Una exportaci\u00F3n describe por tanto esa vista, no una zona entera.',
             srcNoClosures:'No hay cierres cargados en la vista actual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Cambiar a Configurar',
@@ -2433,6 +2503,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcBtnSearch:'Buscar',
             srcBtnClear:'Limpar',
             srcNoResults:'Nenhum segmento encontrado com esses critérios.',
+            // Pesquisa: alvos segmentos / conversoes
+            srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Convers\u00F5es',
+            srcTipTarget:'Escolha o que a pesquisa deve retornar. Ambos por padr\u00E3o.',
+            srcPickTarget:'\u26A0 Marque pelo menos um alvo: Segmentos ou Convers\u00F5es.',
+            srcResultsSeg: n => `${n} segmento(s) com bloqueio`,
+            srcResultsTurn: n => `${n} convers\u00E3o(\u00F5es) com bloqueio`,
+            srcColTurn:'Convers\u00E3o', srcTipColTurn:'Ordenar por convers\u00E3o (seta e ruas)',
+            srcTipCenterTurn:'Centralizar o mapa no n\u00F3 desta convers\u00E3o',
+            srcBtnExportSeg:'\u2B07 Exportar estes segmentos (CSV AC)',
+            srcTipExportSeg:'Exportar os bloqueios de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s bloqueados» n\u00E3o pode ser restaurado: o SDK n\u00E3o o rel\u00EA.',
+            srcBtnExportTurn:'\u2B07 Exportar estas convers\u00F5es (CSV WCT)',
+            srcTipExportTurn:'Exportar os bloqueios de convers\u00F5es ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} bloqueio(s) de segmento exportado(s).`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} bloqueio(s) de convers\u00E3o exportado(s).`,
+            srcNothingFound:'Nada para exportar: fa\u00E7a uma pesquisa primeiro.',
+            srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISUALIZA\u00C7\u00C3O ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa visualiza\u00E7\u00E3o, n\u00E3o uma \u00E1rea inteira.',
             srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Ir para Configurar',
@@ -2760,6 +2846,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcBtnSearch:'Pesquisar',
             srcBtnClear:'Limpar',
             srcNoResults:'Nenhum segmento corresponde a estes critérios.',
+            // Pesquisa: alvos segmentos / viragens
+            srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Viragens',
+            srcTipTarget:'Escolhe o que a pesquisa deve devolver. Ambos por omiss\u00E3o.',
+            srcPickTarget:'\u26A0 Marca pelo menos um alvo: Segmentos ou Viragens.',
+            srcResultsSeg: n => `${n} segmento(s) com corte`,
+            srcResultsTurn: n => `${n} viragem(ns) com corte`,
+            srcColTurn:'Viragem', srcTipColTurn:'Ordenar por viragem (seta e ruas)',
+            srcTipCenterTurn:'Centrar o mapa no n\u00F3 desta viragem',
+            srcBtnExportSeg:'\u2B07 Exportar estes segmentos (CSV AC)',
+            srcTipExportSeg:'Exportar os cortes de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s cortados» n\u00E3o pode ser reposto: o SDK n\u00E3o o rel\u00EA.',
+            srcBtnExportTurn:'\u2B07 Exportar estas viragens (CSV WCT)',
+            srcTipExportTurn:'Exportar os cortes de viragens ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
+            srcExportedSeg: n => `\uD83D\uDCE5 ${n} corte(s) de segmento exportado(s).`,
+            srcExportedTurn: n => `\uD83D\uDCE5 ${n} corte(s) de viragem exportado(s).`,
+            srcNothingFound:'Nada para exportar: faz primeiro uma pesquisa.',
+            srcViewOnly:'\u2139 A pesquisa s\u00F3 v\u00EA o que est\u00E1 carregado na VISTA ATUAL. Uma exporta\u00E7\u00E3o descreve portanto essa vista, n\u00E3o uma \u00E1rea inteira.',
             srcNoClosures:'Nenhum corte carregado na vista atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Mudar para Configurar',
@@ -4391,125 +4493,188 @@ const refreshMTE=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  SEARCH (onglet Recherche)
 // ═══════════════════════════════════════════════════════════════════════════
+// ─── Cercles « ruban de chantier » autour des nœuds des virages trouvés ─────
+// Deux anneaux superposés : blanc plein dessous, rouge pointillé dessus. Les tirets
+// rouges laissent voir le blanc entre eux → effet barrière de chantier, vectoriel donc
+// net à tous les zooms, et qui grandit avec la carte comme un vrai objet géographique.
+// On passe par OpenLayers brut (comme le calque Tracés), pas par le SDK.
+const SRC_RING_RADIUS_M = 18;
+let _srcRingLayer = null;
+const _srcClearRings = () => {
+    try{
+        if(_srcRingLayer){ W.map.removeLayer(_srcRingLayer); _srcRingLayer.destroy(); }
+    }catch(e){}
+    _srcRingLayer = null;
+};
+const _srcDrawRings = (nodes) => {
+    _srcClearRings();
+    if(!nodes.length) return;
+    try{
+        const proj4326=new OpenLayers.Projection('EPSG:4326');
+        const projMap=W.map.getProjectionObject();
+        const feats=[];
+        nodes.forEach(([lon,lat])=>{
+            const ctr=new OpenLayers.Geometry.Point(lon,lat);
+            ctr.transform(proj4326,projMap);
+            // La projection de WME est en mercator : un « mètre » y vaut cos(lat) mètre réel.
+            // Sans cette correction, le cercle serait ~39 % trop grand dans le Sud et pire au Nord.
+            const rad=SRC_RING_RADIUS_M/Math.cos(lat*Math.PI/180);
+            const ring=()=>OpenLayers.Geometry.Polygon.createRegularPolygon(ctr.clone(),rad,48,0);
+            feats.push(new OpenLayers.Feature.Vector(ring(),null,
+                {strokeColor:'#ffffff',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeLinecap:'butt'}));
+            feats.push(new OpenLayers.Feature.Vector(ring(),null,
+                {strokeColor:'#e53935',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeDashstyle:'12 12',strokeLinecap:'butt'}));
+        });
+        _srcRingLayer=new OpenLayers.Layer.Vector('WCT_SRC_RINGS',{displayInLayerSwitcher:false});
+        _srcRingLayer.addFeatures(feats);
+        W.map.addLayer(_srcRingLayer);
+    }catch(e){ log('src rings: '+e.message); }
+};
+
+// Nœud commun à deux segments (celui que traverse le virage). null si introuvable.
+const _sharedNode=(segA,segB)=>{
+    if(!segA||!segB) return null;
+    const a=[segA.fromNodeId,segA.toNodeId].filter(Boolean).map(Number);
+    const b=[segB.fromNodeId,segB.toNodeId].filter(Boolean).map(Number);
+    return a.find(n=>b.includes(n)) ?? null;
+};
+
+// ─── Filtres de recherche : lus une fois, appliqués aux deux cibles ─────────
+const _srcReadFilters=()=>{
+    const statusItems=[...document.querySelectorAll('.wct-src-status-item')];
+    const checkedStatuses=new Set(statusItems.filter(cb=>cb.checked).map(cb=>cb.dataset.status));
+    const toTs=str=>str?new Date(str).getTime():null;
+    return {
+        statusItems,
+        checkedStatuses,
+        allStatusChecked: statusItems.length>0 && checkedStatuses.size===statusItems.length,
+        startAfter : toTs($id('wct-src-start-after')?.value||''),
+        startBefore: toTs($id('wct-src-start-before')?.value||''),
+        endAfter   : toTs($id('wct-src-end-after')?.value||''),
+        endBefore  : toTs($id('wct-src-end-before')?.value||''),
+        descKw     : ($id('wct-src-desc')?.value||'').trim().toLowerCase(),
+        mteKw      : ($id('wct-src-mte')?.value||'').trim().toLowerCase(),
+        useAnd     : $id('wct-src-and')?.classList.contains('on'),
+    };
+};
+// Cache des noms MTE (lookup SDK coûteux). {name, resolved} ; resolved=false ⇒ MTE non chargé.
+const _srcMteCache=new Map();
+const _srcGetMte=id=>{
+    if(!id) return {name:'',resolved:true};
+    if(_srcMteCache.has(id)) return _srcMteCache.get(id);
+    let res={name:id,resolved:false};
+    try{
+        const ev=sdk.DataModel.MajorTrafficEvents.getById({majorTrafficEventId:id});
+        const nm=ev?.names?.[0]?.value;
+        if(nm) res={name:nm,resolved:true};
+    }catch(e){}
+    _srcMteCache.set(id,res);
+    return res;
+};
+const _srcStatusLabel=s=>{ const l=t('srcStatusLabels'); return l[s]||s||'—'; };
+// Prédicat commun. mteField DIFFÈRE selon la cible : les fermetures de segment portent
+// trafficEventId, celles de virage majorTrafficEventId — sans ce paramètre, le filtre par
+// événement ne trouverait jamais un virage.
+const _srcMatch=(cl,F,mteField)=>{
+    if(!F.allStatusChecked && !F.checkedStatuses.has(cl.status)) return false;
+    const p=str=>{ if(!str)return null; try{return new Date(str).getTime();}catch(e){return null;} };
+    const s=p(cl.startDate), e=p(cl.endDate);
+    if(F.startAfter  && s!==null && s<F.startAfter)  return false;
+    if(F.startBefore && s!==null && s>F.startBefore) return false;
+    if(F.endAfter    && e!==null && e<F.endAfter)    return false;
+    if(F.endBefore   && e!==null && e>F.endBefore)   return false;
+    if(F.descKw||F.mteKw){
+        const descMatch=F.descKw?(cl.description||'').toLowerCase().includes(F.descKw):false;
+        const mteName=_srcGetMte(cl[mteField]).name.toLowerCase();
+        const mteMatch=F.mteKw?mteName.includes(F.mteKw):false;
+        if(F.useAnd){ if(F.descKw&&!descMatch)return false; if(F.mteKw&&!mteMatch)return false; }
+        else{ if(F.descKw||F.mteKw){ if(!(descMatch||mteMatch))return false; } }
+    }
+    return true;
+};
+
+// Résultats retenus, pour l'export « de ce qu'on trouve » (≠ export de la file).
+let _srcFoundSegs  = null;   // Map(sid -> {closures:[]})
+let _srcFoundTurns = null;   // [{tc, fromSegId, toSegId, nodeId, turnId, arrow}]
+
 const runSearch=()=>{
     const resEl=$id('wct-src-results');
     if(!resEl) return;
+    _srcClearRings();
+    _srcFoundSegs=null; _srcFoundTurns=null;
     resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcLoading')}</p>`;
 
-    // Lire les filtres statut (checkboxes)
-    const statusItems=[...document.querySelectorAll('.wct-src-status-item')];
-    const checkedStatuses=new Set(statusItems.filter(cb=>cb.checked).map(cb=>cb.dataset.status));
-    // "tout coché" = aucun filtre statut (comparaison au nombre réel de cases, pas un magique)
-    const allStatusChecked=statusItems.length>0 && checkedStatuses.size===statusItems.length;
-
-    const startAfterVal   =$id('wct-src-start-after')?.value||'';
-    const startBeforeVal  =$id('wct-src-start-before')?.value||'';
-    const endAfterVal     =$id('wct-src-end-after')?.value||'';
-    const endBeforeVal    =$id('wct-src-end-before')?.value||'';
-    const descKw          =($id('wct-src-desc')?.value||'').trim().toLowerCase();
-    const mteKw           =($id('wct-src-mte')?.value||'').trim().toLowerCase();
-    const useAnd          =$id('wct-src-and')?.classList.contains('on');
-
-    const toTs=str=>str?new Date(str).getTime():null;
-    const startAfter =toTs(startAfterVal);
-    const startBefore=toTs(startBeforeVal);
-    const endAfter   =toTs(endAfterVal);
-    const endBefore  =toTs(endBeforeVal);
-
-    let allClosures=[];
-    try{ allClosures=sdk.DataModel.RoadClosures.getAll(); }catch(e){}
-    if(!allClosures.length){
-        resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcNoClosures')}</p>`;
+    const wantSeg  = $id('wct-src-tgt-seg')?.checked;
+    const wantTurn = $id('wct-src-tgt-turn')?.checked;
+    if(!wantSeg && !wantTurn){
+        resEl.innerHTML=`<p style="color:var(--wct-orange);font-size:0.833em;margin-top:6px">${escHtml(t('srcPickTarget'))}</p>`;
         return;
     }
+    const F=_srcReadFilters();
+    resEl.innerHTML='';
 
-    const parseClDate=str=>{ if(!str)return null; try{return new Date(str).getTime();}catch(e){return null;} };
-    // Cache des noms MTE (lookup SDK coûteux). Retourne {name, resolved}.
-    // resolved=false => MTE non chargé en mémoire, seul l'ID est disponible.
-    const _mteCache=new Map();
-    const getMte=id=>{
-        if(!id) return {name:'',resolved:true};
-        if(_mteCache.has(id)) return _mteCache.get(id);
-        let res={name:id,resolved:false};
-        try{
-            const ev=sdk.DataModel.MajorTrafficEvents.getById({majorTrafficEventId:id});
-            const nm=ev?.names?.[0]?.value;
-            if(nm) res={name:nm,resolved:true};
-        }catch(e){}
-        _mteCache.set(id,res);
-        return res;
-    };
-    const statusLabel=s=>{ const l=t('srcStatusLabels'); return l[s]||s||'—'; };
+    const nSeg  = wantSeg  ? _srcBlockSegments(resEl,F) : 0;
+    const nTurn = wantTurn ? _srcBlockTurns(resEl,F)    : 0;
 
-    const matchedClosures=allClosures.filter(cl=>{
-        if(!allStatusChecked && !checkedStatuses.has(cl.status)) return false;
-        const clStart=parseClDate(cl.startDate), clEnd=parseClDate(cl.endDate);
-        if(startAfter  && clStart!==null && clStart<startAfter)  return false;
-        if(startBefore && clStart!==null && clStart>startBefore) return false;
-        if(endAfter    && clEnd!==null   && clEnd<endAfter)      return false;
-        if(endBefore   && clEnd!==null   && clEnd>endBefore)     return false;
-        if(descKw||mteKw){
-            const descMatch=descKw?(cl.description||'').toLowerCase().includes(descKw):false;
-            const mteName=getMte(cl.trafficEventId).name.toLowerCase();
-            const mteMatch=mteKw?mteName.includes(mteKw):false;
-            if(useAnd){ if(descKw&&!descMatch)return false; if(mteKw&&!mteMatch)return false; }
-            else{ if(descKw||mteKw){ if(!(descMatch||mteMatch))return false; } }
-        }
-        return true;
-    });
-
-    if(!matchedClosures.length){
+    if(!nSeg && !nTurn){
         resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcNoResults')}</p>`;
         return;
     }
+    // Rappel de périmètre : la recherche ne voit que ce qui est CHARGÉ dans la vue.
+    const note=make('p');
+    note.className='wct-src-viewnote';
+    note.textContent=t('srcViewOnly');
+    resEl.appendChild(note);
+
+    // Sélection carte : uniquement les segments trouvés (un virage ne se sélectionne pas).
+    try{
+        const segIds=_srcFoundSegs?[..._srcFoundSegs.keys()].map(Number).filter(id=>!isNaN(id)):[];
+        if(segIds.length) sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}});
+    }catch(e){ console.warn('WCT search select:',e); }
+};
+
+// ─── BLOC SEGMENTS ─────────────────────────────────────────────────────────
+// Retourne le nombre de segments trouvés (0 = bloc non affiché).
+const _srcBlockSegments=(resEl,F)=>{
+    let all=[];
+    try{ all=sdk.DataModel.RoadClosures.getAll(); }catch(e){}
+    const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId'));
 
     const bySegId=new Map();
-    matchedClosures.forEach(cl=>{
+    matched.forEach(cl=>{
         const sid=cl.segmentId;
-        // Option A : ne garder que les segments réellement chargés dans la vue courante.
-        if(bySegId.has(sid)){
-            // déjà validé
-        } else {
-            if(!getSegById(sid)) return; // segment absent du data model → ignorer
+        if(!bySegId.has(sid)){
+            if(!getSegById(sid)) return; // segment absent du data model (hors vue) → ignorer
             bySegId.set(sid,{closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set()});
         }
         const entry=bySegId.get(sid);
         entry.closures.push(cl);
         if(cl.trafficEventId){
-            const m=getMte(cl.trafficEventId);
-            // clé = libellé affiché ; on retient l'état resolved pour l'infobulle
+            const m=_srcGetMte(cl.trafficEventId);
             if(!entry.mtes.has(m.name)) entry.mtes.set(m.name,m.resolved);
         }
         if(cl.status) entry.statuses.add(cl.status);
         const d=(cl.description||'').trim();
         if(d) entry.descriptions.add(d);
     });
+    if(!bySegId.size) return 0;
+    _srcFoundSegs=bySegId;
 
-    if(!bySegId.size){
-        resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcNoResults')}</p>`;
-        return;
-    }
-
-    // Construction du tableau avec tri
-    const hdr=document.createElement('div');
+    const hdr=make('div');
     hdr.className='wct-src-results-hdr';
-    hdr.textContent=t('srcResults',bySegId.size);
-    resEl.innerHTML='';
+    hdr.innerHTML=`${TARGET_ICON.seg} ${escHtml(t('srcResultsSeg',bySegId.size))}`;
     resEl.appendChild(hdr);
 
-    // Données lignes (tableau trié)
     const rows=[...bySegId.entries()].map(([sid,entry])=>({
         sid,
         name:getSegName(sid),
         count:entry.closures.length,
-        statuses:[...entry.statuses].sort(), // tri stable pour rendu et tri colonne déterministes
+        statuses:[...entry.statuses].sort(),
         descriptions:[...entry.descriptions].sort(),
-        // [{label, resolved}] triés par label
         mtes:[...entry.mtes.entries()].map(([label,resolved])=>({label,resolved})).sort((a,b)=>a.label.localeCompare(b.label)),
     }));
 
-    let sortKey='sid', sortDir=1; // par défaut : ID croissant
-
+    let sortKey='sid', sortDir=1;
     const COLS=[
         {key:'sid',    tip:t('srcTipColId'),       label:t('srcColId')},
         {key:'name',   tip:t('srcTipColName'),      label:t('srcColName')},
@@ -4518,13 +4683,11 @@ const runSearch=()=>{
         {key:'desc',   tip:t('srcTipColDesc'),      label:t('srcColDesc')},
         {key:'mte',    tip:t('srcTipColMte'),       label:t('srcColMte')},
     ];
-
-    const table=document.createElement('table');
+    const table=make('table');
     table.className='wct-src-table';
 
     const buildTable=()=>{
         table.innerHTML='';
-        // Tri
         const sorted=[...rows].sort((a,b)=>{
             let va,vb;
             if(sortKey==='sid')    { va=a.sid;     vb=b.sid; }
@@ -4535,15 +4698,10 @@ const runSearch=()=>{
             else if(sortKey==='mte')   { va=(a.mtes[0]?.label||'').toLowerCase(); vb=(b.mtes[0]?.label||'').toLowerCase(); }
             if(va<vb) return -sortDir; if(va>vb) return sortDir; return 0;
         });
-
-        // Thead
-        const thead=document.createElement('thead');
-        const trh=document.createElement('tr');
-        // Colonne centrage (pas triable)
-        const thCenter=document.createElement('th');
-        trh.appendChild(thCenter);
+        const thead=make('thead'); const trh=make('tr');
+        trh.appendChild(make('th'));
         COLS.forEach(col=>{
-            const th=document.createElement('th');
+            const th=make('th');
             if(col.center) th.style.textAlign='center';
             th.title=col.tip;
             th.innerHTML=`${col.label}<span class="wct-sort-icon"></span>`;
@@ -4554,20 +4712,16 @@ const runSearch=()=>{
             });
             trh.appendChild(th);
         });
-        thead.appendChild(trh);
-        table.appendChild(thead);
+        thead.appendChild(trh); table.appendChild(thead);
 
-        // Tbody
-        const tbody=document.createElement('tbody');
+        const tbody=make('tbody');
         sorted.forEach(row=>{
             const statusBadges=row.statuses.map(s=>
-                `<span class="wct-cl-status wct-cl-status-${escHtml(s)}" title="${escHtml(statusLabel(s))}">${escHtml(statusLabel(s))}</span>`
+                `<span class="wct-cl-status wct-cl-status-${escHtml(s)}" title="${escHtml(_srcStatusLabel(s))}">${escHtml(_srcStatusLabel(s))}</span>`
             ).join(' ');
-            // Descriptions : une ligne par description distincte
             const descHtml=row.descriptions.length
                 ? row.descriptions.map(d=>`<div class="wct-src-desc-item" title="${escHtml(d)}">${escHtml(d)}</div>`).join('')
                 : '—';
-            // MTE : nom si résolu, sinon ID avec infobulle explicative
             const mteHtml=row.mtes.length
                 ? row.mtes.map(m=>m.resolved
                     ? `<div class="wct-src-mte-item" title="${escHtml(m.label)}">${escHtml(m.label)}</div>`
@@ -4575,7 +4729,7 @@ const runSearch=()=>{
                   ).join('')
                 : '—';
             const nameEsc=escHtml(row.name);
-            const tr=document.createElement('tr');
+            const tr=make('tr');
             tr.innerHTML=`
                 <td><button class="wct-src-center" data-sid="${row.sid}" title="${escHtml(t('srcTipCenterRow'))}">&#x1F3AF;</button></td>
                 <td style="font-family:monospace" title="${row.sid}">${row.sid}</td>
@@ -4595,15 +4749,216 @@ const runSearch=()=>{
         });
         table.appendChild(tbody);
     };
-
     buildTable();
     resEl.appendChild(table);
 
-    // Sélection des segments sur la carte (tous validés présents dans le data model)
-    try{
-        const segIds=[...bySegId.keys()].map(Number).filter(id=>!isNaN(id));
-        if(segIds.length) sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}});
-    }catch(e){ console.warn('WCT search select:',e); }
+    // Export DU RÉSULTAT (et non de la file) : le bouton vit à côté de ce qu'il exporte.
+    const bar=make('div'); bar.className='wct-src-exp-bar';
+    const btn=make('button');
+    btn.className='wct-btn wct-btn-neutral wct-btn-sm';
+    btn.title=t('srcTipExportSeg');
+    btn.textContent=t('srcBtnExportSeg');
+    btn.addEventListener('click',exportFoundSegsCSV);
+    bar.appendChild(btn);
+    resEl.appendChild(bar);
+    return bySegId.size;
+};
+
+// ─── BLOC VIRAGES ──────────────────────────────────────────────────────────
+const _srcBlockTurns=(resEl,F)=>{
+    let all=[];
+    try{ all=sdk.DataModel.TurnClosures.getAll(); }catch(e){}
+    const matched=all.filter(cl=>_srcMatch(cl,F,'majorTrafficEventId'));
+
+    // Regroupement par VIRAGE, c.-à-d. par couple (from,to) : l'objet TurnClosure ne
+    // porte pas de turnId, seulement fromSegmentId / toSegmentId.
+    const byTurn=new Map();
+    matched.forEach(cl=>{
+        const from=Number(cl.fromSegmentId), to=Number(cl.toSegmentId);
+        const key=`${from}>${to}`;
+        if(!byTurn.has(key)){
+            const segA=getSegById(from), segB=getSegById(to);
+            if(!segA||!segB) return;                       // hors vue → ignorer
+            const nodeId=_sharedNode(segA,segB);
+            if(nodeId==null) return;                       // nœud introuvable → inexploitable
+            // Retrouver le vrai virage pour récupérer son id et son angle.
+            const tn=getTurnsAtNode(from,nodeId).find(x=>Number(x.toSegmentId)===to);
+            const geom=tn?getTurnGeom(nodeId,tn):null;
+            byTurn.set(key,{from,to,nodeId,turnId:tn?tn.id:'',geom,
+                closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set()});
+        }
+        const e=byTurn.get(key);
+        e.closures.push(cl);
+        if(cl.majorTrafficEventId){
+            const m=_srcGetMte(cl.majorTrafficEventId);
+            if(!e.mtes.has(m.name)) e.mtes.set(m.name,m.resolved);
+        }
+        if(cl.status) e.statuses.add(cl.status);
+        const d=(cl.description||'').trim();
+        if(d) e.descriptions.add(d);
+    });
+    if(!byTurn.size) return 0;
+    _srcFoundTurns=[...byTurn.values()];
+
+    const hdr=make('div');
+    hdr.className='wct-src-results-hdr wct-src-results-hdr-turn';
+    hdr.innerHTML=`${TARGET_ICON.turn} ${escHtml(t('srcResultsTurn',byTurn.size))}`;
+    resEl.appendChild(hdr);
+
+    const rows=[...byTurn.values()].map(e=>({
+        from:e.from, to:e.to, nodeId:e.nodeId, geom:e.geom,
+        turn:`${e.geom?e.geom.arrow:'•'} ${getSegName(e.from)} → ${getSegName(e.to)}`,
+        count:e.closures.length,
+        statuses:[...e.statuses].sort(),
+        descriptions:[...e.descriptions].sort(),
+        mtes:[...e.mtes.entries()].map(([label,resolved])=>({label,resolved})).sort((a,b)=>a.label.localeCompare(b.label)),
+    }));
+
+    let sortKey='from', sortDir=1;
+    const COLS=[
+        {key:'from',   tip:t('srcTipColId'),       label:t('srcColId')},
+        {key:'turn',   tip:t('srcTipColTurn'),      label:t('srcColTurn')},
+        {key:'count',  tip:t('srcTipColClosures'),  label:t('srcColClosures'), center:true},
+        {key:'status', tip:t('srcTipColStatus'),    label:t('srcColStatus')},
+        {key:'desc',   tip:t('srcTipColDesc'),      label:t('srcColDesc')},
+        {key:'mte',    tip:t('srcTipColMte'),       label:t('srcColMte')},
+    ];
+    const table=make('table');
+    table.className='wct-src-table';
+
+    const buildTable=()=>{
+        table.innerHTML='';
+        const sorted=[...rows].sort((a,b)=>{
+            let va,vb;
+            if(sortKey==='from')   { va=a.from; vb=b.from; }
+            else if(sortKey==='turn')  { va=a.turn.toLowerCase(); vb=b.turn.toLowerCase(); }
+            else if(sortKey==='count') { va=a.count; vb=b.count; }
+            else if(sortKey==='status'){ va=a.statuses[0]||''; vb=b.statuses[0]||''; }
+            else if(sortKey==='desc')  { va=(a.descriptions[0]||'').toLowerCase(); vb=(b.descriptions[0]||'').toLowerCase(); }
+            else if(sortKey==='mte')   { va=(a.mtes[0]?.label||'').toLowerCase(); vb=(b.mtes[0]?.label||'').toLowerCase(); }
+            if(va<vb) return -sortDir; if(va>vb) return sortDir; return 0;
+        });
+        const thead=make('thead'); const trh=make('tr');
+        trh.appendChild(make('th'));
+        COLS.forEach(col=>{
+            const th=make('th');
+            if(col.center) th.style.textAlign='center';
+            th.title=col.tip;
+            th.innerHTML=`${col.label}<span class="wct-sort-icon"></span>`;
+            if(sortKey===col.key) th.classList.add(sortDir===1?'sort-asc':'sort-desc');
+            th.addEventListener('click',()=>{
+                if(sortKey===col.key) sortDir*=-1; else { sortKey=col.key; sortDir=1; }
+                buildTable();
+            });
+            trh.appendChild(th);
+        });
+        thead.appendChild(trh); table.appendChild(thead);
+
+        const tbody=make('tbody');
+        sorted.forEach(row=>{
+            const statusBadges=row.statuses.map(s=>
+                `<span class="wct-cl-status wct-cl-status-${escHtml(s)}" title="${escHtml(_srcStatusLabel(s))}">${escHtml(_srcStatusLabel(s))}</span>`
+            ).join(' ');
+            const descHtml=row.descriptions.length
+                ? row.descriptions.map(d=>`<div class="wct-src-desc-item" title="${escHtml(d)}">${escHtml(d)}</div>`).join('')
+                : '—';
+            const mteHtml=row.mtes.length
+                ? row.mtes.map(m=>m.resolved
+                    ? `<div class="wct-src-mte-item" title="${escHtml(m.label)}">${escHtml(m.label)}</div>`
+                    : `<div class="wct-src-mte-item wct-src-mte-unresolved" title="${escHtml(t('srcTipMteId'))}">${escHtml(m.label)}</div>`
+                  ).join('')
+                : '—';
+            const turnEsc=escHtml(row.turn);
+            const degTip=row.geom?`${t(row.geom.key)} · ${row.geom.delta}°`:'';
+            const tr=make('tr');
+            tr.innerHTML=`
+                <td><button class="wct-src-center" data-node="${row.nodeId}" data-sid="${row.from}" title="${escHtml(t('srcTipCenterTurn'))}">&#x1F3AF;</button></td>
+                <td style="font-family:monospace" title="${row.from}">${row.from}</td>
+                <td><span class="wct-src-name" title="${turnEsc}${degTip?' — '+escHtml(degTip):''}">${turnEsc}</span></td>
+                <td style="text-align:center">${row.count}</td>
+                <td>${statusBadges||'—'}</td>
+                <td><div class="wct-src-desc-cell">${descHtml}</div></td>
+                <td><div class="wct-src-mte-cell">${mteHtml}</div></td>`;
+            tr.querySelector('.wct-src-center').addEventListener('click',e=>{
+                e.stopPropagation();
+                const nid=Number(e.currentTarget.dataset.node), sid=Number(e.currentTarget.dataset.sid);
+                const p=_segEndAt(sid,nid);
+                // ⚠️ sdk.Map.setMapCenter ne recentre PAS quand un segment est sélectionné
+                // (constaté en live) — passer par OpenLayers.
+                if(p?.at){
+                    try{
+                        const pt=new OpenLayers.Geometry.Point(p.at[0],p.at[1]);
+                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
+                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),18);
+                    }catch(err){}
+                }
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+    };
+    buildTable();
+    resEl.appendChild(table);
+
+    // Cercles « ruban de chantier » sur les nœuds concernés (dédoublonnés).
+    const seen=new Set(), pts=[];
+    rows.forEach(r=>{
+        if(seen.has(r.nodeId)) return;
+        seen.add(r.nodeId);
+        const p=_segEndAt(r.from,r.nodeId);
+        if(p?.at) pts.push(p.at);
+    });
+    _srcDrawRings(pts);
+
+    const bar=make('div'); bar.className='wct-src-exp-bar';
+    const btn=make('button');
+    btn.className='wct-btn wct-btn-neutral wct-btn-sm';
+    btn.title=t('srcTipExportTurn');
+    btn.textContent=t('srcBtnExportTurn');
+    btn.addEventListener('click',exportFoundTurnsCSV);
+    bar.appendChild(btn);
+    resEl.appendChild(bar);
+    return byTurn.size;
+};
+
+// ─── EXPORTS DU RÉSULTAT DE RECHERCHE ──────────────────────────────────────
+// ⚠️ Ces exports décrivent des fermetures qui EXISTENT déjà sur la carte. Les lignes
+// sont des « add » : réimporter le fichier les recréerait. C'est l'usage visé
+// (sauvegarder une zone, la rejouer l'année suivante).
+// ⚠️ LOSSY : fromNodeClosed s'écrit mais ne se relit pas (absent de l'objet RoadClosure)
+// → la colonne « nœuds fermés » ne peut pas être restituée.
+const exportFoundSegsCSV=()=>{
+    if(!_srcFoundSegs?.size){ showToast(t('srcNothingFound'),3000,'#f57c00'); return; }
+    const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
+    let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)\n';
+    let n=0;
+    _srcFoundSegs.forEach((entry,sid)=>{
+        entry.closures.forEach(cl=>{
+            // Une fermeture existante porte UN sens (isForward), jamais TWO WAY.
+            const dir=cl.isForward?DIR_CSV[1]:DIR_CSV[2];
+            const it=cl.isPermanent?'Yes':'No';
+            csv+=`add,"${(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}","${dir}",${it},"${sid}","lon=${center.lon}&lat=${center.lat}",${zoom},${cl.trafficEventId||''},"WME Closures Toolkit (search)"\n`;
+            n++;
+        });
+    });
+    download(csv,`found_closures_${todayStr()}.csv`);
+    showToast(t('srcExportedSeg',n),3500,'#43a047');
+};
+const exportFoundTurnsCSV=()=>{
+    if(!_srcFoundTurns?.length){ showToast(t('srcNothingFound'),3000,'#f57c00'); return; }
+    let csv=TURN_CSV_HEADER, n=0;
+    _srcFoundTurns.forEach(e=>{
+        let lon='',lat='';
+        const p=_segEndAt(e.from,e.nodeId);
+        if(p?.at){ lon=p.at[0].toFixed(6); lat=p.at[1].toFixed(6); }
+        e.closures.forEach(cl=>{
+            const it=cl.isPermanent?'Yes':'No';
+            csv+=`add-turn,"${(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}",${e.from},${e.nodeId},${e.to},"${e.turnId}",${it},${cl.majorTrafficEventId||''},"lon=${lon}&lat=${lat}",17,"WME Closures Toolkit (search)"\n`;
+            n++;
+        });
+    });
+    download(csv,`found_turn_closures_${todayStr()}.csv`);
+    showToast(t('srcExportedTurn',n),3500,'#43a047');
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -6954,6 +7309,12 @@ const buildOverlay=()=>{
       <div id="wct-pane-src" class="wct-main-pane">
         <p class="wct-src-hint">${t('srcHint')}</p>
 
+        <div class="wct-src-section" title="${t('srcTipTarget')}">${t('srcSectionTarget')}</div>
+        <div class="wct-src-tgt-grid" title="${t('srcTipTarget')}">
+          <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-seg" checked> <span>${TARGET_ICON.seg} ${t('srcTgtSeg')}</span></label>
+          <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-turn" checked> <span>${TARGET_ICON.turn} ${t('srcTgtTurn')}</span></label>
+        </div>
+
         <div class="wct-src-section" title="${t('srcTipStatus')}">${t('srcSectionStatus')}</div>
         <div class="wct-src-status-grid" id="wct-src-status-grid">
           <label class="wct-src-status-cb" title="${t('srcTipStatus')}">
@@ -7671,7 +8032,11 @@ const connectOverlay=ov=>{
         // Remettre toutes les checkboxes à coché
         const cbAll=$id('wct-src-status-all');
         if(cbAll){cbAll.checked=true;cbAll.dispatchEvent(new Event('change'));}
+        // Remettre les deux cibles (état par défaut : on cherche les deux)
+        ['wct-src-tgt-seg','wct-src-tgt-turn'].forEach(id=>{const el=$id(id);if(el)el.checked=true;});
         const res=$id('wct-src-results');if(res)res.innerHTML='';
+        // Les cercles décrivent un résultat qui n'existe plus.
+        _srcClearRings(); _srcFoundSegs=null; _srcFoundTurns=null;
     });
     $id('wct-src-go-cfg')?.addEventListener('click',()=>{
         // Délai pour laisser WME traiter la sélection avant de switcher l'onglet
@@ -8262,6 +8627,9 @@ const setLang=pref=>{
     // _currentTurns / _turnNodeId / _turnChecked vivent en variables : ils survivent à la
     // reconstruction, mais leur rendu DOM (bandeau, volet) est à refaire.
     renderTurnBanner();
+    // Les résultats de recherche, eux, ne survivent pas au rebuild du DOM : effacer les
+    // cercles, sinon ils resteraient sur la carte sans plus rien décrire.
+    _srcClearRings(); _srcFoundSegs=null; _srcFoundTurns=null;
     updateFab(); updateCountryInfo();
     renderSidebar();
 };
