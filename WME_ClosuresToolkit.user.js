@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.81.00
+// @version      0.82.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -434,6 +434,10 @@ GM_addStyle(`
 
 /* Small preview */
 #wct-small-prev { font-size:0.917em; color:var(--wct-text2); padding:0.333em 0; margin-top:0.5em; }
+/* Aperçu repliable : l'en-tête (le compteur) reste toujours lisible, seul le détail se replie. */
+.wct-prev-toggle { cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.wct-prev-toggle:hover { color:var(--wct-blue); }
+.wct-prev-chevron { font-size:0.9em; flex-shrink:0; }
 .wct-prev-box { text-align:left; margin-top:0.5em; max-height:130px; overflow-y:auto; border:1px solid var(--wct-border); border-radius:var(--wct-radius); background:var(--wct-bg2,#f7fafc); padding:5px 8px; font-size:0.833em; line-height:1.5; }
 .wct-prev-head { font-weight:700; color:var(--wct-blue); margin-bottom:3px; position:sticky; top:-5px; background:inherit; padding:2px 0; }
 .wct-prev-row { font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--wct-text2); white-space:nowrap; }
@@ -1159,13 +1163,14 @@ const t = (key, ...args) => {
             srcSectionMte:'\uD83C\uDF9F\uFE0F \u00C9v\u00E9nement MTE',
             // Infobulles des listes deroulantes
             tipRepUnit:'Unite de l\u2019intervalle entre deux occurrences : jours, heures ou minutes.',
+            tipPrevToggle:'Replier ou d\u00E9plier le d\u00E9tail des occurrences. Le compteur reste toujours visible.',
             tipRangeStart:'Premier jour de la plage sur laquelle la fermeture est r\u00E9p\u00E9t\u00E9e.',
             tipRangeEnd:'Dernier jour de la plage. Une occurrence qui d\u00E9passerait cette date n\u2019est pas g\u00E9n\u00E9r\u00E9e.',
             tipStartTime:'Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement.',
             tipDurTime:'Dur\u00E9e de chaque fermeture (h:mm). Bascule avec Heure de fin via le bouton \u23F1.',
             tipEndTime:'Heure de fin de chaque fermeture. Si elle est ant\u00E9rieure \u00E0 l\u2019heure de d\u00E9but, la fermeture court jusqu\u2019au lendemain (badge J+1).',
             tipReason:'Texte affich\u00E9 dans WME pour identifier la fermeture. Le bouton \uD83D\uDCCC ins\u00E8re un \u00E9moji \u00E0 la position du curseur.',
-            tipMteSel:'Rattacher les fermetures \u00E0 un \u00E9v\u00E9nement de circulation majeur (MTE). Ouvre l\u2019onglet \u00C9v\u00E9nements de WME pour en cr\u00E9er un.',
+            tipMteSel:'Rattacher les fermetures \u00E0 un \u00E9v\u00E9nement de circulation majeur (MTE). \uD83D\uDCA1 La liste ne se remplit qu\u2019une fois l\u2019onglet \u00C9v\u00E9nements de WME ouvert : ouvrez-le, puis cliquez sur \u21BB.',
             tipNodeSel:'Fermer aussi les n\u0153uds : aucun, seulement ceux INTERNES \u00E0 la s\u00E9lection (\u00E9vite de bloquer les rues adjacentes), ou tous.',
             tipLangSel:'Langue de WCT. \u00AB Auto \u00BB suit celle de WME. Le changement est imm\u00E9diat, le panneau est reconstruit.',
             srcTipPartner:'Filtrer sur le partenaire \u00E0 qui la fermeture est attribu\u00E9e. La liste ne contient que les partenaires PR\u00C9SENTS dans les fermetures charg\u00E9es \u2014 elle ne peut donc pas proposer un choix qui ne rendrait rien.',
@@ -1316,7 +1321,7 @@ const t = (key, ...args) => {
             // Infobulles badges lot
             countBadge: (o,s) => `${o}\u00D7${s} seg`,
             tipCount: (o,s) => `${o} fermeture(s) \u00D7 ${s} segment(s) \u2014 hors lignes supprim\u00E9es et conflits de sens. Les chevauchements ne sont d\u00E9tect\u00E9s qu'\u00E0 l'application.`,
-            tipDir:'Direction de fermeture',
+            tipDir:'Sens de la fermeture : double sens, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Sur les longs tron\u00E7ons, le sens A \u21D2 B peut diff\u00E9rer d\u2019un segment \u00E0 l\u2019autre : les segments incompatibles sont \u00E9cart\u00E9s automatiquement et list\u00E9s dans la carte de la file.',
             tipITon:'Ignore le trafic \u2014 pas de d\u00E9tection', tipIToff:'D\u00E9tecte le trafic',
             tipNodes: n => `Fermetures aux n\u0153uds\u00A0: ${n}`,
             tipMte: n => `MTE associ\u00E9\u00A0: ${n}`,
@@ -1546,13 +1551,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSectionMte:'\uD83C\uDF9F\uFE0F MTE event',
             // Dropdown tooltips
             tipRepUnit:'Unit of the interval between two occurrences: days, hours or minutes.',
+            tipPrevToggle:'Collapse or expand the list of occurrences. The count always stays visible.',
             tipRangeStart:'First day of the range over which the closure is repeated.',
             tipRangeEnd:'Last day of the range. An occurrence running past this date is not generated.',
             tipStartTime:'Time at which the closure starts each day. Daylight-saving changes are handled automatically.',
             tipDurTime:'Duration of each closure (h:mm). Switch with End time via the \u23F1 button.',
             tipEndTime:'End time of each closure. If earlier than the start time, the closure runs into the next day (D+1 badge).',
             tipReason:'Text shown in WME to identify the closure. The \uD83D\uDCCC button inserts an emoji at the cursor.',
-            tipMteSel:'Attach the closures to a Major Traffic Event (MTE). Open WME\u2019s Events tab to create one.',
+            tipMteSel:'Attach the closures to a Major Traffic Event (MTE). \uD83D\uDCA1 The list only fills once WME\u2019s Events tab has been opened: open it, then click \u21BB.',
             tipNodeSel:'Also close nodes: none, only those INSIDE the selection (avoids blocking adjacent streets), or all of them.',
             tipLangSel:'WCT\u2019s language. "Auto" follows WME\u2019s. The change is immediate \u2014 the panel is rebuilt.',
             srcTipPartner:'Filter on the partner the closure is attributed to. The list only holds partners PRESENT in the loaded closures \u2014 so it cannot offer a choice that would return nothing.',
@@ -1689,7 +1695,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             noMte:'No MTE',
             countBadge: (o,s) => `${o}\u00D7${s} seg`,
             tipCount: (o,s) => `${o} closure(s) \u00D7 ${s} segment(s) \u2014 excluding deleted rows and direction conflicts. Overlaps are only detected on apply.`,
-            tipDir:'Closure direction',
+            tipDir:'Closure direction: both ways, A \u21D2 B or B \u21D2 A. \u26A0\uFE0F On long stretches the A \u21D2 B direction can differ from one segment to the next: incompatible segments are excluded automatically and listed in the queue card.',
             tipITon:'Ignores traffic \u2014 no detection', tipIToff:'Detects traffic',
             tipNodes: n => `Node closures: ${n}`,
             tipMte: n => `Associated MTE: ${n}`,
@@ -1919,13 +1925,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSectionMte:'\uD83C\uDF9F\uFE0F MTE-Ereignis',
             // Tooltips der Auswahllisten
             tipRepUnit:'Einheit des Abstands zwischen zwei Terminen: Tage, Stunden oder Minuten.',
+            tipPrevToggle:'Die Liste der Termine ein- oder ausklappen. Die Anzahl bleibt immer sichtbar.',
             tipRangeStart:'Erster Tag des Zeitraums, \u00FCber den die Sperrung wiederholt wird.',
             tipRangeEnd:'Letzter Tag des Zeitraums. Ein Termin, der dar\u00FCber hinausreicht, wird nicht erzeugt.',
             tipStartTime:'Uhrzeit, zu der die Sperrung t\u00E4glich beginnt. Zeitumstellungen werden automatisch ber\u00FCcksichtigt.',
             tipDurTime:'Dauer jeder Sperrung (h:mm). Wechsel zu Endzeit \u00FCber die Schaltfl\u00E4che \u23F1.',
             tipEndTime:'Endzeit jeder Sperrung. Liegt sie vor der Startzeit, l\u00E4uft die Sperrung bis zum Folgetag (Kennzeichen T+1).',
             tipReason:'In WME angezeigter Text zur Kennzeichnung der Sperrung. Die Schaltfl\u00E4che \uD83D\uDCCC f\u00FCgt ein Emoji an der Cursorposition ein.',
-            tipMteSel:'Die Sperrungen an ein Major Traffic Event (MTE) h\u00E4ngen. \u00D6ffne den Reiter Ereignisse in WME, um eines anzulegen.',
+            tipMteSel:'Die Sperrungen an ein Major Traffic Event (MTE) h\u00E4ngen. \uD83D\uDCA1 Die Liste f\u00FCllt sich erst, wenn der Reiter Ereignisse in WME ge\u00F6ffnet wurde: \u00F6ffne ihn und klicke dann auf \u21BB.',
             tipNodeSel:'Auch Knoten sperren: keine, nur die INNERHALB der Auswahl (verhindert das Blockieren angrenzender Stra\u00DFen), oder alle.',
             tipLangSel:'Sprache von WCT. \u00ABAuto\u00BB folgt der von WME. Die \u00C4nderung wirkt sofort \u2014 das Panel wird neu aufgebaut.',
             srcTipPartner:'Nach dem Partner filtern, dem die Sperrung zugeschrieben ist. Die Liste enth\u00E4lt nur Partner, die in den geladenen Sperrungen VORKOMMEN \u2014 sie kann also keine Auswahl anbieten, die nichts liefert.',
@@ -2062,7 +2069,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             noMte:'Kein MTE',
             countBadge: (o,s) => `${o}\u00D7${s} Seg`,
             tipCount: (o,s) => `${o} Sperrung(en) \u00D7 ${s} Segment(e) \u2014 ohne gel\u00F6schte Zeilen und Richtungskonflikte. \u00DCberschneidungen werden erst beim Anwenden erkannt.`,
-            tipDir:'Sperrrichtung',
+            tipDir:'Sperrrichtung: beide Richtungen, A \u21D2 B oder B \u21D2 A. \u26A0\uFE0F Auf langen Abschnitten kann die Richtung A \u21D2 B von Segment zu Segment abweichen: unpassende Segmente werden automatisch ausgeschlossen und in der Karte der Warteschlange aufgef\u00FChrt.',
             tipITon:'Ignoriert den Verkehr \u2014 keine Erkennung', tipIToff:'Erkennt den Verkehr',
             tipNodes: n => `Knotensperrungen: ${n}`,
             tipMte: n => `Zugeh\u00F6riges MTE: ${n}`,
@@ -2291,13 +2298,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
             // Descripciones de las listas desplegables
             tipRepUnit:'Unidad del intervalo entre dos repeticiones: d\u00EDas, horas o minutos.',
+            tipPrevToggle:'Plegar o desplegar el detalle de las repeticiones. El contador siempre queda visible.',
             tipRangeStart:'Primer d\u00EDa del rango en el que se repite el cierre.',
             tipRangeEnd:'\u00DAltimo d\u00EDa del rango. Una repetici\u00F3n que sobrepase esta fecha no se genera.',
             tipStartTime:'Hora a la que empieza el cierre cada d\u00EDa. Los cambios de hora se gestionan autom\u00E1ticamente.',
             tipDurTime:'Duraci\u00F3n de cada cierre (h:mm). Alterna con Hora de fin mediante el bot\u00F3n \u23F1.',
             tipEndTime:'Hora de fin de cada cierre. Si es anterior a la hora de inicio, el cierre se prolonga al d\u00EDa siguiente (distintivo D+1).',
             tipReason:'Texto mostrado en WME para identificar el cierre. El bot\u00F3n \uD83D\uDCCC inserta un emoji en la posici\u00F3n del cursor.',
-            tipMteSel:'Vincular los cierres a un evento de tr\u00E1fico mayor (MTE). Abre la pesta\u00F1a Eventos de WME para crear uno.',
+            tipMteSel:'Vincular los cierres a un evento de tr\u00E1fico mayor (MTE). \uD83D\uDCA1 La lista solo se rellena tras abrir la pesta\u00F1a Eventos de WME: \u00E1brela y luego pulsa \u21BB.',
             tipNodeSel:'Cerrar tambi\u00E9n los nodos: ninguno, solo los INTERNOS a la selecci\u00F3n (evita bloquear calles adyacentes), o todos.',
             tipLangSel:'Idioma de WCT. \u00ABAuto\u00BB sigue el de WME. El cambio es inmediato: el panel se reconstruye.',
             srcTipPartner:'Filtrar por el socio al que se atribuye el cierre. La lista solo contiene los socios PRESENTES en los cierres cargados, as\u00ED que no puede ofrecer una opci\u00F3n que no devuelva nada.',
@@ -2434,7 +2442,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             noMte:'No MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
             tipCount: (o,s) => `${o} cierre(s) × ${s} segmento(s) — sin contar las filas eliminadas ni los conflictos de sentido. Los solapamientos solo se detectan al aplicar.`,
-            tipDir:'Sentido del cierre',
+            tipDir:'Sentido del cierre: doble sentido, A \u21D2 B o B \u21D2 A. \u26A0\uFE0F En tramos largos el sentido A \u21D2 B puede variar de un segmento a otro: los segmentos incompatibles se descartan autom\u00E1ticamente y se listan en la tarjeta de la cola.',
             tipITon:'Ignora el tráfico — sin detección', tipIToff:'Detecta el tráfico',
             tipNodes: n => `Cierres en los nodos: ${n}`,
             tipMte: n => `MTE asociado: ${n}`,
@@ -2663,13 +2671,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
             // Dicas das listas suspensas
             tipRepUnit:'Unidade do intervalo entre duas ocorr\u00EAncias: dias, horas ou minutos.',
+            tipPrevToggle:'Recolher ou expandir o detalhe das ocorr\u00EAncias. O contador fica sempre vis\u00EDvel.',
             tipRangeStart:'Primeiro dia do intervalo em que o bloqueio \u00E9 repetido.',
             tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que passe desta data n\u00E3o \u00E9 gerada.',
             tipStartTime:'Hora em que o bloqueio come\u00E7a a cada dia. As mudan\u00E7as de hor\u00E1rio s\u00E3o tratadas automaticamente.',
             tipDurTime:'Dura\u00E7\u00E3o de cada bloqueio (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
             tipEndTime:'Hora de fim de cada bloqueio. Se for anterior \u00E0 hora de in\u00EDcio, o bloqueio segue at\u00E9 o dia seguinte (selo D+1).',
             tipReason:'Texto exibido no WME para identificar o bloqueio. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
-            tipMteSel:'Vincular os bloqueios a um evento de tr\u00E1fego maior (MTE). Abra a aba Eventos do WME para criar um.',
+            tipMteSel:'Vincular os bloqueios a um evento de tr\u00E1fego maior (MTE). \uD83D\uDCA1 A lista s\u00F3 \u00E9 preenchida depois de abrir a aba Eventos do WME: abra-a e depois clique em \u21BB.',
             tipNodeSel:'Bloquear tamb\u00E9m os n\u00F3s: nenhum, apenas os INTERNOS \u00E0 sele\u00E7\u00E3o (evita bloquear ruas adjacentes), ou todos.',
             tipLangSel:'Idioma do WCT. \u00ABAuto\u00BB segue o do WME. A mudan\u00E7a \u00E9 imediata \u2014 o painel \u00E9 reconstru\u00EDdo.',
             srcTipPartner:'Filtrar pelo parceiro a quem o bloqueio \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos bloqueios carregados \u2014 portanto n\u00E3o pode oferecer uma escolha que n\u00E3o retorne nada.',
@@ -2806,7 +2815,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             noMte:'Sem MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
             tipCount: (o,s) => `${o} bloqueio(s) × ${s} segmento(s) — sem contar as linhas excluídas e os conflitos de sentido. As sobreposições só são detectadas ao aplicar.`,
-            tipDir:'Sentido do bloqueio',
+            tipDir:'Sentido do bloqueio: m\u00E3o dupla, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em trechos longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o tráfego — sem detecção', tipIToff:'Detecta o tráfego',
             tipNodes: n => `Bloqueios nos nós: ${n}`,
             tipMte: n => `MTE associado: ${n}`,
@@ -3035,13 +3044,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
             // Dicas das listas pendentes
             tipRepUnit:'Unidade do intervalo entre duas ocorr\u00EAncias: dias, horas ou minutos.',
+            tipPrevToggle:'Recolher ou expandir o detalhe das ocorr\u00EAncias. O contador fica sempre vis\u00EDvel.',
             tipRangeStart:'Primeiro dia do intervalo em que o corte \u00E9 repetido.',
             tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que ultrapasse esta data n\u00E3o \u00E9 gerada.',
             tipStartTime:'Hora a que o corte come\u00E7a todos os dias. As mudan\u00E7as de hora s\u00E3o tratadas automaticamente.',
             tipDurTime:'Dura\u00E7\u00E3o de cada corte (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
             tipEndTime:'Hora de fim de cada corte. Se for anterior \u00E0 hora de in\u00EDcio, o corte segue at\u00E9 ao dia seguinte (selo D+1).',
             tipReason:'Texto apresentado no WME para identificar o corte. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
-            tipMteSel:'Ligar os cortes a um evento de tr\u00E2nsito maior (MTE). Abre o separador Eventos do WME para criar um.',
+            tipMteSel:'Ligar os cortes a um evento de tr\u00E2nsito maior (MTE). \uD83D\uDCA1 A lista s\u00F3 \u00E9 preenchida depois de abrir o separador Eventos do WME: abre-o e depois clica em \u21BB.',
             tipNodeSel:'Cortar tamb\u00E9m os n\u00F3s: nenhum, apenas os INTERNOS \u00E0 sele\u00E7\u00E3o (evita bloquear ruas adjacentes), ou todos.',
             tipLangSel:'Idioma do WCT. \u00ABAuto\u00BB segue o do WME. A mudan\u00E7a \u00E9 imediata \u2014 o painel \u00E9 reconstru\u00EDdo.',
             srcTipPartner:'Filtrar pelo parceiro a quem o corte \u00E9 atribu\u00EDdo. A lista s\u00F3 cont\u00E9m os parceiros PRESENTES nos cortes carregados \u2014 por isso n\u00E3o pode oferecer uma escolha que n\u00E3o devolva nada.',
@@ -3178,7 +3188,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             noMte:'Sem MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
             tipCount: (o,s) => `${o} corte(s) × ${s} segmento(s) — excluindo as linhas eliminadas e os conflitos de sentido. As sobreposições só são detetadas na aplicação.`,
-            tipDir:'Sentido do corte',
+            tipDir:'Sentido do corte: dois sentidos, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em tro\u00E7os longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o trânsito — sem deteção', tipIToff:'Deteta o trânsito',
             tipNodes: n => `Cortes nos nós: ${n}`,
             tipMte: n => `MTE associado: ${n}`,
@@ -4657,7 +4667,8 @@ const renderTurnBanner = () => {
     //  - Sens A/B : un virage porte deja le sien (fromSegmentFwd) ;
     //  - Noeuds fermes : notion propre au segment, absente de TurnClosures.addClosure ;
     //  - Alerte de sens : sans objet, elle parle des segments.
-    [ $id('wct-direction')?.closest('div'), $id('wct-nodes-wrap'), $id('wct-alert-dir') ]
+    // (l'alerte de sens n'existe plus en tant qu'encart : fusionnée dans l'infobulle de « Sens »)
+    [ $id('wct-direction')?.closest('div'), $id('wct-nodes-wrap') ]
         .forEach(el => {
             if (!el) return;
             el.classList.toggle('wct-na', !!_currentTurns);
@@ -5411,11 +5422,16 @@ const PREVIEW_MAX_ROWS=200; // plafond d'affichage des occurrences en live previ
 // fermeture de VIRAGE. Utilisee partout ou l'utilisateur lit ce qui va etre ferme
 // (apercu live, file d'attente, log d'application).
 const TARGET_ICON={seg:'\uD83D\uDEE3\uFE0F', turn:'\uD83D\uDD00'};
+// Etat replie de l'apercu. ⚠️ DOIT vivre en variable, pas dans le DOM : refreshSmallPreview
+// reconstruit le innerHTML a CHAQUE frappe, un etat porte par le DOM se rouvrirait tout seul.
+// (C'est la difference avec la File d'attente, qui n'est re-rendue qu'a la demande.)
+let _prevCollapsed=false;
 const refreshSmallPreview=async()=>{
     const el=$id('wct-small-prev');if(!el)return;
     const rc=await buildClosureList();
     if(rc.error){el.innerHTML=`<span style="color:var(--wct-red)">${rc.error}</span>`;return;}
     const n=rc.list.length;
+    // Rien a lister : pas de chevron, il n'y a rien a replier.
     if(!n){ el.innerHTML=`<div class="wct-prev-head">${t('previewHead',0)}</div>`; return; }
     // Métadonnées communes à toutes les occurrences (config globale), façon AC
     const reason=($id('wct-reason')?.value||'').trim();
@@ -5433,7 +5449,10 @@ const refreshSmallPreview=async()=>{
         return `<div class="wct-prev-row">${_icon} ${pre}${s} \u2192 ${e} (${dirIcon})</div>`;
     }).join('');
     const more=n>PREVIEW_MAX_ROWS?`<div class="wct-prev-more">${t('previewMore',n-PREVIEW_MAX_ROWS)}</div>`:'';
-    el.innerHTML=`<div class="wct-prev-head">${t('previewHead',n)}</div>${rows}${more}`;
+    // Repliable : le COMPTEUR reste toujours visible — c'est le filet qui evite de poser
+    // 90 fermetures de travers. On replie le detail, jamais l'information.
+    el.innerHTML=`<div class="wct-prev-head wct-prev-toggle" title="${escHtml(t('tipPrevToggle'))}">${t('previewHead',n)}<span class="wct-prev-chevron">${_prevCollapsed?'&#x25B6;':'&#x25BC;'}</span></div>`
+        + `<div class="wct-prev-rows"${_prevCollapsed?' style="display:none"':''}>${rows}${more}</div>`;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -7703,7 +7722,6 @@ const buildOverlay=()=>{
               </select></div>
             <div style="margin-bottom:4px">
               <label class="wct-label">${t('lblMte')}
-                <span style="font-weight:400;color:var(--wct-text2);font-size:0.833em" id="wct-mte-hint">${t('lblMteHint')}</span>
               </label>
               <div style="display:flex;gap:4px;align-items:center">
                 <select id="wct-mtesel" class="wct-select" style="flex:1" title="${t('tipMteSel')}">
@@ -7724,7 +7742,6 @@ const buildOverlay=()=>{
                 <option value="3">${t('nodeAll')}</option>
               </select></div>
             <label class="wct-check" title="${t('tipIT')}"><input id="wct-ignoretraffic" type="checkbox"> ${t('lblIT')}</label>
-            <div id="wct-alert-dir" class="wct-alert" style="margin-top:8px">${t('alertDir')}</div>
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
@@ -8724,6 +8741,17 @@ const connectOverlay=ov=>{
         presets.push({name,values:readConfig()});save();renderPresetsTable();
         popup.style.display='none';nameInp.value='';
         showToast(t('presetSaved',name),2500,'#43a047');
+    });
+
+    // Aperçu live repliable. Délégué sur le conteneur : refreshSmallPreview reconstruit
+    // son innerHTML à chaque frappe, un écouteur posé sur l'en-tête serait détruit aussitôt.
+    $id('wct-small-prev')?.addEventListener('click',e=>{
+        if(!e.target.closest('.wct-prev-toggle')) return;
+        _prevCollapsed=!_prevCollapsed;
+        const rows=$id('wct-small-prev')?.querySelector('.wct-prev-rows');
+        const chev=$id('wct-small-prev')?.querySelector('.wct-prev-chevron');
+        if(rows) rows.style.display=_prevCollapsed?'none':'';
+        if(chev) chev.innerHTML=_prevCollapsed?'&#x25B6;':'&#x25BC;';
     });
 
     // File d'attente repliable
