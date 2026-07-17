@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.84.02
+// @version      0.85.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -61,14 +61,12 @@ const SCRIPT_ID   = 'wmeClosuresToolkit';
 // deux finit toujours par mentir. Il est desormais LU dans le bloc de metadonnees.
 // Repli sur '?' plutot qu'une valeur figee : mieux vaut avouer qu'on ne sait pas.
 const VERSION     = (typeof GM_info !== 'undefined' && GM_info?.script?.version) || '?';
-
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
     clone()       { return new JDate(this); }
     addMinutes(v) { return new JDate(this.getTime() + v * 60000); }
     addDays(v)    { this.setDate(this.getDate() + v); return this; }
 }
-
 // ─── Constants & State ─────────────────────────────────────────────────────
 const DIR     = { AtoB:1, BtoA:2, TWO:3 };
 const NODE_CL = { none:1, inside:2, all:3 };
@@ -94,7 +92,6 @@ let _applyRunning = false;  // true pendant applyQueue() — autorise l'interrup
 let _dateFormat = (navigator.language||'').toLowerCase().startsWith('en-us') ? 'mdy' : 'dmy';
 // Langue : 'auto' = suit WME (défaut), sinon code forcé par l'utilisateur ('fr', 'de', 'pt-BR'…)
 let _langPref = 'auto';
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  CSS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1041,12 +1038,10 @@ GM_addStyle(`
 
 `);
 
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  I18N — détection langue + dictionnaire FR/EN/DE
 // ═══════════════════════════════════════════════════════════════════════════
 let _lang = 'en';
-
 // Langues traduites. L'ordre fixe celui du sélecteur ; le libellé est dans la langue
 // elle-même (un germanophone cherche « Deutsch », pas « Allemand »).
 const LANGS = [
@@ -1057,7 +1052,6 @@ const LANGS = [
     { code:'pt-BR', label:'Português (BR)'},
     { code:'pt-PT', label:'Português (PT)'},
 ];
-
 // Langue déduite de WME/navigateur. Le portugais est traité à part : seul « br » distingue
 // le brésilien ; « pt » nu ou « pt-PT » ⇒ portugais européen.
 const detectLang = () => {
@@ -1067,10 +1061,8 @@ const detectLang = () => {
         return LANGS.map(x => x.code).find(code => !code.includes('-') && l.startsWith(code)) || 'en';
     } catch(e) { return 'en'; }
 };
-
 // Langue effective = préférence forcée, ou détection auto si 'auto' (défaut).
 const resolveLang = () => (_langPref !== 'auto' && LANGS.some(x => x.code === _langPref)) ? _langPref : detectLang();
-
 // Sélecteur de variante par langue, avec repli sur l'anglais.
 // Usage : _L({fr:'…', en:'…', de:'…'}) — utilisé pour les gros blocs (aide) et les
 // libellés qui ne peuvent pas vivre dans le dictionnaire.
@@ -1126,6 +1118,8 @@ const t = (key, ...args) => {
             tnEndDead: lbl => `\u26A0 ${lbl} ne d\u00E9bouche sur aucun virage fermable : extr\u00E9mit\u00E9 d\u00E9sactiv\u00E9e.`,
             tnEndDeadTip:'Impasse, ou seulement des demi-tours : rien n\u2019est fermable \u00E0 cette extr\u00E9mit\u00E9.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} ligne(s) de virage export\u00E9e(s) au format WCT.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} fermeture(s) de virage ajout\u00E9e(s) \u00E0 la file${ko?', '+ko+' ligne(s) ignor\u00E9e(s)':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Virage introuvable au n\u0153ud ${nid} depuis le segment ${sid} \u2014 le carrefour a peut-\u00EAtre \u00E9t\u00E9 retrac\u00E9 depuis l\u2019export.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lot(s) de virages \u00E9cart\u00E9(s) de l\u2019export : le format Advanced Closures est propre aux segments.`,
             tgtSeg:'Fermeture de segments', tgtTurn:'Fermeture de virages',
             tnNotApplicable:'Sans objet pour une fermeture de virage.',
@@ -1207,7 +1201,6 @@ const t = (key, ...args) => {
             srcNoClosures:'Aucune fermeture charg\u00E9e dans la vue courante.',
             srcResults: n => `${n} segment(s) trouv\u00E9(s)`,
             srcBtnGoCfg:'\u2699 Basculer vers Configurer',
-            srcHint:'Segments portant des fermetures charg\u00E9es dans la vue courante.',
             srcLoading:'Recherche en cours\u2026',
             srcSectionStatus:'\uD83D\uDCA1 \u00C9tat',
             srcStatusAll:'Tous',
@@ -1278,7 +1271,6 @@ const t = (key, ...args) => {
             lblDesc:'Description', lblDir:'Sens',
             dirBoth:'Double sens', dirAtoB:'A \u21D2 B', dirBtoA:'B \u21D2 A',
             lblMte:'MTE associ\u00E9',
-            lblMteHint:'Ouvrez l\u2019onglet \u00C9v\u00E9nements dans WME pour charger les MTE',
             lblMtePh:'Aucun MTE',
             mteRefresh:'\u21BB',
             mteRefreshTip:'Recharger les MTE depuis l\u2019onglet \u00C9v\u00E9nements WME',
@@ -1293,11 +1285,10 @@ const t = (key, ...args) => {
             tipHolAdd:'Ajoute les jours f\u00e9ri\u00e9s de la plage en suppl\u00e9ment des jours s\u00e9lectionn\u00e9s (union).',
             holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
-            alertDir:'\u26A0\uFE0F Pour les longs tron\u00E7ons, le sens A \u21D2 B peut diff\u00E9rer par segment.',
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
             btnValidate:'\u2714 Valider et ajouter \u00E0 la file',
-            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6 Appliquer', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Vider',
+            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6 Appliquer', btnClear:'\uD83D\uDDD1 Vider',
             // CSV
             dropText:'\uD83D\uDCC4 Cliquer ou glisser un fichier CSV ici',
             dropHint:'Ajout direct en file d\u2019attente',
@@ -1455,7 +1446,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Cartes de la file pli\u00E9es par d\u00E9faut',
-
             sbLanguage:'Langue',
             sbLangAuto: l => `Automatique — WME (${l})`,
             sbDateFormat:'Format des dates',
@@ -1526,6 +1516,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnEndDead: lbl => `\u26A0 ${lbl} leads to no closable turn: extremity disabled.`,
             tnEndDeadTip:'Dead end, or U-turns only: nothing is closable at this extremity.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} turn row(s) exported in the WCT format.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} turn closure(s) added to the queue${ko?', '+ko+' row(s) skipped':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Turn not found at node ${nid} from segment ${sid} \u2014 the junction may have been redrawn since the export.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} turn batch(es) left out of the export: the Advanced Closures format is segment-only.`,
             tgtSeg:'Segment closure', tgtTurn:'Turn closure',
             tnNotApplicable:'Not applicable to a turn closure.',
@@ -1607,7 +1599,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcNoClosures:'No closures loaded in the current view.',
             srcResults: n => `${n} segment(s) found`,
             srcBtnGoCfg:'\u2699 Switch to Configure',
-            srcHint:'Segments with closures loaded in the current view.',
             srcLoading:'Searching\u2026',
             srcSectionStatus:'\uD83D\uDCA1 Status',
             srcStatusAll:'All',
@@ -1671,7 +1662,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lblDesc:'Description', lblDir:'Direction',
             dirBoth:'Both ways', dirAtoB:'A \u21D2 B', dirBtoA:'B \u21D2 A',
             lblMte:'Associated MTE',
-            lblMteHint:'Open the Events tab in WME to load MTEs',
             lblMtePh:'No MTE',
             mteRefresh:'\u21BB',
             mteRefreshTip:'Reload MTEs from WME Events tab',
@@ -1686,10 +1676,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipHolAdd:'Adds public holidays in the range on top of the selected weekdays (union).',
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
-            alertDir:'\u26A0\uFE0F For long segments, A \u21D2 B direction may differ per segment.',
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
             btnValidate:'\u2714 Validate and add to queue',
-            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6 Apply', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Clear',
+            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6 Apply', btnClear:'\uD83D\uDDD1 Clear',
             dropText:'\uD83D\uDCC4 Click or drag a CSV file here',
             dropHint:'Added directly to queue',
             gpxDropText:'\uD83D\uDDFA Click or drag a file here',
@@ -1841,7 +1830,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Queue cards collapsed by default',
-
             sbLanguage:'Language',
             sbLangAuto: l => `Automatic — WME (${l})`,
             sbDateFormat:'Date format',
@@ -1912,6 +1900,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnEndDead: lbl => `\u26A0 ${lbl} f\u00FChrt zu keinem sperrbaren Abbieger: Ende deaktiviert.`,
             tnEndDeadTip:'Sackgasse oder nur Wendem\u00F6glichkeiten: an diesem Ende ist nichts sperrbar.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} Abbieger-Zeile(n) im WCT-Format exportiert.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} Abbiegersperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Zeile(n) \u00FCbersprungen':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Abbieger am Knoten ${nid} vom Segment ${sid} nicht gefunden \u2014 die Kreuzung wurde seit dem Export vielleicht neu gezeichnet.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} Abbieger-Paket(e) vom Export ausgenommen: das Advanced-Closures-Format gilt nur f\u00FCr Segmente.`,
             tgtSeg:'Segmentsperrung', tgtTurn:'Abbiegersperrung',
             tnNotApplicable:'F\u00FCr eine Abbiegersperrung ohne Bedeutung.',
@@ -1993,7 +1983,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
             srcResults: n => `${n} Segment(e) gefunden`,
             srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
-            srcHint:'Segmente mit Sperrungen, die in der aktuellen Ansicht geladen sind.',
             srcLoading:'Suche l\u00E4uft\u2026',
             srcSectionStatus:'\uD83D\uDCA1 Status',
             srcStatusAll:'Alle',
@@ -2057,7 +2046,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDesc:'Beschreibung', lblDir:'Fahrtrichtung',
             dirBoth:'Beide Richtungen', dirAtoB:'A \u21D2 B', dirBtoA:'B \u21D2 A',
             lblMte:'Zugeh\u00F6riges MTE',
-            lblMteHint:'\u00D6ffne den Reiter Ereignisse in WME, um MTEs zu laden',
             lblMtePh:'Kein MTE',
             mteRefresh:'\u21BB',
             mteRefreshTip:'MTEs aus dem WME-Reiter Ereignisse neu laden',
@@ -2072,10 +2060,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolAdd:'F\u00FCgt die Feiertage im Zeitraum zus\u00E4tzlich zu den gew\u00E4hlten Wochentagen hinzu (Vereinigung).',
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
-            alertDir:'\u26A0\uFE0F Bei langen Abschnitten kann die Richtung A \u21D2 B je Segment unterschiedlich sein.',
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
             btnValidate:'\u2714 Best\u00E4tigen und zur Warteschlange',
-            btnStop:'\u23F9 Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6 Anwenden', btnCsv:'\u2B07 CSV', btnClear:'\uD83D\uDDD1 Leeren',
+            btnStop:'\u23F9 Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6 Anwenden', btnClear:'\uD83D\uDDD1 Leeren',
             dropText:'\uD83D\uDCC4 CSV-Datei hier klicken oder ablegen',
             dropHint:'Wird direkt in die Warteschlange \u00FCbernommen',
             gpxDropText:'\uD83D\uDDFA Datei hier klicken oder ablegen',
@@ -2227,7 +2214,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Karten der Warteschlange standardm\u00E4\u00DFig eingeklappt',
-
             sbLanguage:'Sprache',
             sbLangAuto: l => `Automatisch — WME (${l})`,
             sbDateFormat:'Datumsformat',
@@ -2297,6 +2283,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnEndDead: lbl => `\u26A0 ${lbl} no lleva a ning\u00FAn giro cerrable: extremo desactivado.`,
             tnEndDeadTip:'Callej\u00F3n sin salida, o solo cambios de sentido: aqu\u00ED no hay nada cerrable.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} l\u00EDnea(s) de giro exportada(s) en formato WCT.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} cierre(s) de giro a\u00F1adido(s) a la cola${ko?', '+ko+' l\u00EDnea(s) omitida(s)':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Giro no encontrado en el nodo ${nid} desde el segmento ${sid} \u2014 puede que el cruce se haya vuelto a trazar desde la exportaci\u00F3n.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de giros excluido(s) de la exportaci\u00F3n: el formato Advanced Closures es solo para segmentos.`,
             tgtSeg:'Cierre de segmentos', tgtTurn:'Cierre de giros',
             tnNotApplicable:'No aplicable a un cierre de giro.',
@@ -2378,7 +2366,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcNoClosures:'No hay cierres cargados en la vista actual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Cambiar a Configurar',
-            srcHint:'Segmentos con cierres cargados en la vista actual.',
             srcLoading:'Buscando…',
             srcSectionStatus:'💡 Estado',
             srcStatusAll:'Todos',
@@ -2442,7 +2429,6 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDesc:'Descripción', lblDir:'Sentido',
             dirBoth:'Ambos sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
             lblMte:'MTE asociado',
-            lblMteHint:'Abre la pestaña Eventos en WME para cargar los MTE',
             lblMtePh:'Sin MTE',
             mteRefresh:'↻',
             mteRefreshTip:'Recargar los MTE desde la pestaña Eventos de WME',
@@ -2457,10 +2443,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolAdd:'Añade los festivos del periodo además de los días seleccionados (unión).',
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
-            alertDir:'⚠️ En tramos largos, el sentido A ⇒ B puede variar según el segmento.',
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
             btnValidate:'✔ Validar y añadir a la cola',
-            btnStop:'⏹ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Vaciar',
+            btnStop:'⏹ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶ Aplicar', btnClear:'🗑 Vaciar',
             dropText:'📄 Haz clic o arrastra aquí un archivo CSV',
             dropHint:'Se añade directamente a la cola',
             gpxDropText:'🗺 Haz clic o arrastra aquí un archivo',
@@ -2612,7 +2597,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Tarjetas de la cola plegadas por defecto',
-
             sbLanguage:'Idioma',
             sbLangAuto: l => `Automático — WME (${l})`,
             sbDateFormat:'Formato de las fechas',
@@ -2682,6 +2666,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma convers\u00E3o bloque\u00E1vel: extremidade desativada.`,
             tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 retornos: nada \u00E9 bloque\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de convers\u00E3o exportada(s) no formato WCT.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} bloqueio(s) de convers\u00E3o adicionado(s) \u00E0 fila${ko?', '+ko+' linha(s) ignorada(s)':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Convers\u00E3o n\u00E3o encontrada no n\u00F3 ${nid} a partir do segmento ${sid} \u2014 o cruzamento pode ter sido redesenhado desde a exporta\u00E7\u00E3o.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de convers\u00F5es exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Bloqueio de segmentos', tgtTurn:'Bloqueio de convers\u00F5es',
             tnNotApplicable:'N\u00E3o se aplica a um bloqueio de convers\u00E3o.',
@@ -2763,7 +2749,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Ir para Configurar',
-            srcHint:'Segmentos com bloqueios carregados na visualização atual.',
             srcLoading:'Buscando…',
             srcSectionStatus:'💡 Status',
             srcStatusAll:'Todos',
@@ -2827,7 +2812,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lblDesc:'Descrição', lblDir:'Sentido',
             dirBoth:'Ambos os sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
             lblMte:'MTE associado',
-            lblMteHint:'Abra a aba Eventos no WME para carregar os MTEs',
             lblMtePh:'Sem MTE',
             mteRefresh:'↻',
             mteRefreshTip:'Recarregar os MTEs da aba Eventos do WME',
@@ -2842,10 +2826,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipHolAdd:'Adiciona os feriados do período aos dias da semana selecionados (união).',
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
-            alertDir:'⚠️ Em trechos longos, o sentido A ⇒ B pode variar de um segmento para outro.',
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             btnValidate:'✔ Validar e adicionar à fila',
-            btnStop:'⏹ Parar', btnStopping:'⏳ Parando…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Limpar',
+            btnStop:'⏹ Parar', btnStopping:'⏳ Parando…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
             dropText:'📄 Clique ou arraste um arquivo CSV aqui',
             dropHint:'Adicionado diretamente à fila',
             gpxDropText:'🗺 Clique ou arraste um arquivo aqui',
@@ -2997,7 +2980,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Cartões da fila recolhidos por padrão',
-
             sbLanguage:'Idioma',
             sbLangAuto: l => `Automático — WME (${l})`,
             sbDateFormat:'Formato de data',
@@ -3067,6 +3049,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma viragem cort\u00E1vel: extremidade desativada.`,
             tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 invers\u00F5es de marcha: nada \u00E9 cort\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de viragem exportada(s) no formato WCT.`,
+            csvTurnAdded: (n,ko) => `\u2705 ${n} corte(s) de viragem adicionado(s) \u00E0 fila${ko?', '+ko+' linha(s) ignorada(s)':''}.`,
+            turnResolveFail: (sid,nid) => `\u274C Viragem n\u00E3o encontrada no n\u00F3 ${nid} a partir do segmento ${sid} \u2014 o cruzamento pode ter sido redesenhado desde a exporta\u00E7\u00E3o.`,
             csvTurnSkipped: n => `\u26A0\uFE0F ${n} lote(s) de viragens exclu\u00EDdo(s) da exporta\u00E7\u00E3o: o formato Advanced Closures \u00E9 s\u00F3 para segmentos.`,
             tgtSeg:'Corte de segmentos', tgtTurn:'Corte de viragens',
             tnNotApplicable:'N\u00E3o se aplica a um corte de viragem.',
@@ -3148,7 +3132,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcNoClosures:'Nenhum corte carregado na vista atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
             srcBtnGoCfg:'⚙ Mudar para Configurar',
-            srcHint:'Segmentos com cortes carregados na vista atual.',
             srcLoading:'A pesquisar…',
             srcSectionStatus:'💡 Estado',
             srcStatusAll:'Todos',
@@ -3212,7 +3195,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lblDesc:'Descrição', lblDir:'Sentido',
             dirBoth:'Ambos os sentidos', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
             lblMte:'MTE associado',
-            lblMteHint:'Abra o separador Eventos no WME para carregar os MTE',
             lblMtePh:'Sem MTE',
             mteRefresh:'↻',
             mteRefreshTip:'Recarregar os MTE a partir do separador Eventos do WME',
@@ -3227,10 +3209,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipHolAdd:'Acrescenta os feriados do período aos dias da semana selecionados (união).',
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
-            alertDir:'⚠️ Em troços longos, o sentido A ⇒ B pode variar de segmento para segmento.',
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             btnValidate:'✔ Validar e adicionar à fila',
-            btnStop:'⏹ Parar', btnStopping:'⏳ A parar…', btnApply:'▶ Aplicar', btnCsv:'⬇ CSV', btnClear:'🗑 Limpar',
+            btnStop:'⏹ Parar', btnStopping:'⏳ A parar…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
             dropText:'📄 Clique ou arraste um ficheiro CSV para aqui',
             dropHint:'Adicionado diretamente à fila',
             gpxDropText:'🗺 Clique ou arraste um ficheiro para aqui',
@@ -3382,7 +3363,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
             sbCardsCollapsed:'Cartões da fila recolhidos por predefinição',
-
             sbLanguage:'Idioma',
             sbLangAuto: l => `Automático — WME (${l})`,
             sbDateFormat:'Formato da data',
@@ -3411,7 +3391,6 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
     if (typeof v === 'function') return v(...args);
     return v !== undefined ? v : key;
 };
-
 // buildHelpHTML — contenu aide selon la langue (_L : repli sur l'anglais)
 const buildHelpHTML = () => {
     const sections = [
@@ -4097,7 +4076,6 @@ const buildHelpHTML = () => {
     </div>`;
 };
 
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  UTILS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4130,7 +4108,6 @@ const formatDateDisplay=d=>{
     if(_dateFormat==='iso') return `${Y}-${M}-${D} ${hm}`;
     return `${D}/${M}/${Y} ${hm}`; // dmy par défaut
 };
-
 // ─── DST-safe date builder ──────────────────────────────────────────────────
 // Construit une date "baseDate + dayOffset jours, à localHour:localMin heure locale".
 // Utilise new Date(y,m,d,h,min) — le seul constructeur JS opérant en heure locale —
@@ -4156,16 +4133,21 @@ const makeDSTSafeDate=(baseDate,dayOffset,localHour,localMin)=>{
 const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;};
 const MAX_CLOSURES=500;
 const download=(data,fn)=>{const a=make('a');a.style.display='none';a.href=encodeURI('data:text/plain,'+data);a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);};
+// ⚠️ Le CSV STANDARD échappe un guillemet en le DOUBLANT ("") — pas avec un antislash.
+// Ce parseur ne connaissait que l'antislash : un motif comme  Travaux "nocturnes"  rendait
+// un champ tronqué, et WCT ne savait donc pas relire son PROPRE export. Bug trouvé par le
+// test d'aller-retour du CSV Virages, présent depuis toujours.
+// On accepte désormais les DEUX formes : "" (standard, ce qu'on écrit) et \" (héritage).
 const CSVtoArray=text=>{
-    const b=[],re=/(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+    const b=[],re=/(?!\s*$)\s*(?:'((?:[^'\\]|\\[\S\s]|'')*)'|"((?:[^"\\]|\\[\S\s]|"")*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+    const unesc=(s,q)=>s.split(q+q).join(q).split('\\'+q).join(q);
     text.split('\n').forEach(line=>{
         if(!line.trim())return;const a=[];
-        line.replace(re,(m0,m1,m2,m3)=>{if(m1!==undefined)a.push(m1.replace(/\\'/g,"'"));else if(m2!==undefined)a.push(m2.replace(/\\"/g,'"'));else if(m3!==undefined)a.push(m3);return '';});
+        line.replace(re,(m0,m1,m2,m3)=>{if(m1!==undefined)a.push(unesc(m1,"'"));else if(m2!==undefined)a.push(unesc(m2,'"'));else if(m3!==undefined)a.push(m3);return '';});
         if(/,\s*$/.test(line))a.push('');if(a.length)b.push(a);
     });
     return b;
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  SELECTION — via selectedFeatureIds (confirmé par debug)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4184,7 +4166,6 @@ const getSelection=()=>{
     return {ids:[],objectType:'none'};
 };
 const hasSel=()=>{const s=getSelection();return s.ids.length>0&&s.objectType==='segment';};
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  WME HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4202,7 +4183,6 @@ const getExistingClosures=segIds=>{
     try{return sdk.DataModel.RoadClosures.getAll().filter(c=>segIds.map(Number).includes(Number(c.segmentId)));}catch(e){return [];}
 };
 const dateTimeOverlaps=(a,b)=>new Date(a.startDate)<new Date(b.endDate)&&new Date(a.endDate)>new Date(b.startDate);
-
 // ─── Vérifie la compatibilité sens de circulation / direction de fermeture ──
 // Retourne les segments en conflit : [{sid, name, segDirLabel}]
 // Tient compte des reversed segments (même logique que addClosure).
@@ -4232,7 +4212,6 @@ const getSegDirConflicts=(segIds,requestedDir)=>{
     }
     return conflicts;
 };
-
 // ─── VIRAGES (turn closures) ────────────────────────────────────────────────
 // Cap en degres du point a vers le point b (coords [lon,lat]).
 const _bearing=(a,b)=>{
@@ -4309,7 +4288,6 @@ const turnEndLabel=(segId,nodeId)=>{
     if(!seg) return '?';
     return Number(seg.fromNodeId)===Number(nodeId) ? t('tnNodeA') : t('tnNodeB');
 };
-
 // ─── Construit le permalink WME d'un segment ───────────────────────────────
 const getSegPermalink=(sid)=>{
     try{
@@ -4320,7 +4298,6 @@ const getSegPermalink=(sid)=>{
         return `https://www.waze.com/editor?env=row&lon=${mid[0].toFixed(6)}&lat=${mid[1].toFixed(6)}&zoom=17&segments=${sid}`;
     }catch(e){return null;}
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  PAYS & JOURS FERIES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4330,7 +4307,6 @@ const getSegmentCountry=id=>{
         return addr?.country?.abbr||null;
     }catch(e){return null;}
 };
-
 // Cache JF : { 'FR-2026': ['2026-01-01', ...] }
 const holidayCache={};
 
@@ -4362,7 +4338,6 @@ const getHolidaysForRange=async(countryCode,startDate,endDate)=>{
     const results=await Promise.all(promises);
     return results.flat();
 };
-
 // ─── Tile build timestamp (flux RSS Waze) ──────────────────────────────────
 // Retourne le timestamp UTC du dernier assemblage de tiles publié (ms).
 // Mis en cache 30min. En cas d'échec, retourne 0 (pas de filtre).
@@ -4404,13 +4379,11 @@ const waitMapLoaded=()=>new Promise(resolve=>{
     // le chargement de la carte restait sans effet visible jusqu'à 10 s.
     let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||(!sdk.State.isMapLoading()&&(W?.app?.attributes?.pendingOperations?.length||0)===0)||n>100){clearInterval(iv);resolve();}},100);
 });
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
 const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault,langPref:_langPref});}catch(e){}};
 const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;if(d.langPref==='auto'||LANGS.some(x=>x.code===d.langPref))_langPref=d.langPref;}}catch(e){}};
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4524,7 +4497,6 @@ const buildClosureList=async()=>{
     }
     return{list,error:''};
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIG READ / APPLY
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4589,14 +4561,12 @@ const applyConfig=cfg=>{
         document.querySelector(`#wct-body .wct-tab[data-target="${cfg.activeTab}"]`)?.classList.add('on');
     }
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  ONGLET VIRAGES
 // ═══════════════════════════════════════════════════════════════════════════
 let _turnNodeId  = null;          // noeud (extremite) choisi
 let _turnChecked = new Set();     // ids de virages coches
 let _currentTurns = null;         // cible envoyee vers Configurer : {segId,nodeId,turns:[...]}
-
 // Segment unique selectionne, ou null. Les virages se raisonnent segment par segment :
 // une selection multiple n'a pas de sens ici (l'extremite serait ambigue).
 const _turnSoleSeg = () => {
@@ -4605,7 +4575,6 @@ const _turnSoleSeg = () => {
     const seg = getSegById(sel.ids[0]);
     return seg ? seg : null;
 };
-
 // Liste enrichie des virages a l'extremite courante, triee par angle.
 const _turnRows = (segId, nodeId) => getTurnsAtNode(segId, nodeId)
     .map(tn => ({ tn, geom: getTurnGeom(nodeId, tn), to: getSegName(tn.toSegmentId), closable: isTurnClosable(tn) }))
@@ -4630,7 +4599,6 @@ const renderTurnsPane = () => {
         return { nid, idx: i, rows, nOk: rows.filter(r => r.closable).length };
     });
     const usable = ends.filter(e => e.nOk > 0);
-
     // Segment orphelin : aucune de ses deux extremites ne debouche sur un virage fermable.
     if (!usable.length) {
         box.innerHTML = `<div class="wct-tn-seg">${escHtml(t('tnSegLabel', getSegName(seg.id)))}</div>
@@ -4717,7 +4685,6 @@ const connectTurnsPane = (seg) => {
         showToast(t('tnSent', rows.length), 3000, '#7b1fa2');
     });
 };
-
 // Bandeau de cible dans Configurer. Tant qu'il est present, Valider produit des
 // fermetures de VIRAGE et le champ Direction est masque (sans objet pour un virage).
 const renderTurnBanner = () => {
@@ -4749,7 +4716,6 @@ const renderTurnBanner = () => {
     el.querySelector('button').addEventListener('click', () => { _currentTurns = null; renderTurnBanner(); });
     pane.insertBefore(el, pane.firstChild);
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4781,7 +4747,6 @@ const updateActionBtns=()=>{
     $id('wct-btn-export')?.classList.toggle('wct-btn-dis',!hasSeg);
     $id('wct-btn-export-turn')?.classList.toggle('wct-btn-dis',!hasTurn);
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  MTE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4810,7 +4775,6 @@ const updateActionBtns=()=>{
 const PARTNERS_URL = env => `/${env}-Descartes/app/Partners`;
 const PARTNER_CHANNEL = 'WME_PARTNER_EDITOR';
 const PARTNER_USER_CHANNEL = 'PARTNER';
-
 // Capacite : {ok:bool, reason:'flag'|'feature'|'api'|'schema'|null}
 // Le PREMIER verrou qui tombe desactive la Source, avec sa cause. Tout le reste de
 // WCT continue de fonctionner : une fermeture ne doit JAMAIS partir avec une source
@@ -4844,7 +4808,6 @@ const probeSourceCap = async () => {
     }catch(e){ _srcCap.reason='schema'; log('probeSourceCap: '+e.message); }
     return _srcCap;
 };
-
 // Liste des partenaires de l'emprise courante. Cache court : la vue bouge souvent,
 // mais on ne veut pas rappeler l'API a chaque pan de 10 m.
 let _partners = [];              // [{id,name}]
@@ -4871,7 +4834,6 @@ const loadPartners = async () => {
     }catch(e){ log('loadPartners: '+e.message); _srcCap={ok:false,reason:'api',checked:true}; renderSourceSel(); return []; }
     return _partners;
 };
-
 // Rend le selecteur de Source (ou son message d'indisponibilite).
 const renderSourceSel = () => {
     const wrap=$id('wct-source-wrap'); if(!wrap) return;
@@ -4892,7 +4854,6 @@ const renderSourceSel = () => {
         _partners.map(p=>`<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`).join('');
     if(prev && _partners.some(p=>p.id===prev)) sel.value=prev;
 };
-
 // Pose la Source sur les fermetures FRAICHEMENT creees (diff avant/apres addClosure).
 // Reproduit a l'identique ce que produit le formulaire natif.
 const _applyProviderTo = (nouvellesCles, partnerId) => {
@@ -4932,7 +4893,6 @@ const refreshMTE=()=>{
     // Restaurer sélection précédente si toujours présente
     if(current) sel.value=current;
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  SEARCH (onglet Recherche)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4973,7 +4933,6 @@ const _srcDrawRings = (nodes) => {
         W.map.addLayer(_srcRingLayer);
     }catch(e){ log('src rings: '+e.message); }
 };
-
 // Nœud commun à deux segments (celui que traverse le virage). null si introuvable.
 const _sharedNode=(segA,segB)=>{
     if(!segA||!segB) return null;
@@ -4981,7 +4940,6 @@ const _sharedNode=(segA,segB)=>{
     const b=[segB.fromNodeId,segB.toNodeId].filter(Boolean).map(Number);
     return a.find(n=>b.includes(n)) ?? null;
 };
-
 // ─── Filtres de recherche : lus une fois, appliqués aux deux cibles ─────────
 const _srcReadFilters=()=>{
     const statusItems=[...document.querySelectorAll('.wct-src-status-item')];
@@ -5040,7 +4998,6 @@ const _srcMatch=(cl,F,mteField)=>{
     }
     return true;
 };
-
 // ─── SOURCE (partenaire) CÔTÉ RECHERCHE ────────────────────────────────────
 // Le SDK masque `provider` : il faut le relire dans le modèle interne. Le repo est
 // indexé PAR ID (vérifié), donc le recoupement SDK↔modèle est direct.
@@ -5092,7 +5049,6 @@ const _srcPartnerMatch = (provider, want) => {
     if(want===SRC_PARTNER_NONE) return provider===null;
     return provider===want;
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  RECHERCHE PAR ZONE (au-delà de la vue courante)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5157,14 +5113,12 @@ const fetchZoneClosures = async (km) => {
         return {ok:true, closures:tousSeg, turns:tousTurn};
     }catch(e){ return {ok:false, erreur:e.message.slice(0,80)}; }
 };
-
 // ─── Sections repliables du volet Recherche ────────────────────────────────
 // État en variable (survit aux re-rendus, se remet à neuf au rechargement — c'est un
 // formulaire de filtres, repartir propre est le bon défaut).
 // « time » est replié d'origine : c'est le plus gros bloc (108 px pour 4 champs de
 // date) et le moins utilisé. Le reste est ouvert.
 let _srcFold = { tgt:false, status:false, time:true, kw:false, mte:false, partner:false };
-
 // Un filtre est-il actif dans cette section ? Sert au marqueur ● : une section repliée
 // dont le filtre écrème les résultats DOIT le dire, sinon on cherche sans comprendre.
 const _srcSecActive = (sec) => {
@@ -5198,11 +5152,9 @@ const refreshSrcFold = () => {
         }
     });
 };
-
 // Résultats retenus, pour l'export « de ce qu'on trouve » (≠ export de la file).
 let _srcFoundSegs  = null;   // Map(sid -> {closures:[]})
 let _srcFoundTurns = null;   // [{tc, fromSegId, toSegId, nodeId, turnId, arrow}]
-
 // Garde contre le double clic : une recherche par zone dure jusqu'à ~2 s, et rien
 // n'empêchait d'en relancer une par-dessus — deux réponses se seraient écrasées.
 let _srcRunning=false;
@@ -5237,7 +5189,6 @@ const runSearch=async()=>{
     }
     const F=_srcReadFilters();
     _srcBusy(true,F.zoneKm);
-
     // ─── Source des fermetures : vue courante (modèle) ou zone (API Features) ───
     // ⚠️ En cas d'échec de l'API on RETOMBE sur la vue courante en le DISANT. Rendre
     // silencieusement 12 fermetures au lieu de 300 ferait croire à une zone vide.
@@ -5270,7 +5221,6 @@ const runSearch=async()=>{
     note.className='wct-src-viewnote';
     note.textContent = F.zoneKm>0 ? t('srcZoneNote',F.zoneKm) : t('srcViewOnly');
     resEl.appendChild(note);
-
     // Sélection carte : uniquement les segments trouvés (un virage ne se sélectionne pas).
     // ⚠️ En mode zone, la plupart des segments ne sont PAS chargés : setSelection lèverait
     // un DataModelNotFoundError. On ne sélectionne donc que ceux réellement présents.
@@ -5281,7 +5231,6 @@ const runSearch=async()=>{
         if(segIds.length) sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}});
     }catch(e){ console.warn('WCT search select:',e); }
 };
-
 // ─── BLOC SEGMENTS ─────────────────────────────────────────────────────────
 // Retourne le nombre de segments trouvés (0 = bloc non affiché).
 const _srcBlockSegments=(resEl,F,zone)=>{
@@ -5435,7 +5384,6 @@ const _srcBlockSegments=(resEl,F,zone)=>{
     };
     buildTable();
     resEl.appendChild(table);
-
     // Export DU RÉSULTAT (et non de la file) : le bouton vit à côté de ce qu'il exporte.
     const bar=make('div'); bar.className='wct-src-exp-bar';
     const btn=make('button');
@@ -5447,7 +5395,6 @@ const _srcBlockSegments=(resEl,F,zone)=>{
     resEl.appendChild(bar);
     return bySegId.size;
 };
-
 // ─── BLOC VIRAGES ──────────────────────────────────────────────────────────
 const _srcBlockTurns=(resEl,F,zone)=>{
     // ⚠️ En mode ZONE, un virage n'est exploitable que si ses DEUX segments sont chargés
@@ -5465,7 +5412,6 @@ const _srcBlockTurns=(resEl,F,zone)=>{
     const champMte = zone ? 'trafficEventId' : 'majorTrafficEventId';
     const matched=all.filter(cl=>_srcMatch(cl,F,champMte)
         && _srcPartnerMatch(cl._provider??null, F.partner));
-
     // Regroupement par VIRAGE, c.-à-d. par couple (from,to) : l'objet TurnClosure ne
     // porte pas de turnId, seulement fromSegmentId / toSegmentId.
     const byTurn=new Map();
@@ -5595,7 +5541,6 @@ const _srcBlockTurns=(resEl,F,zone)=>{
     };
     buildTable();
     resEl.appendChild(table);
-
     // Cercles « ruban de chantier » sur les nœuds concernés (dédoublonnés).
     const seen=new Set(), pts=[];
     rows.forEach(r=>{
@@ -5616,7 +5561,6 @@ const _srcBlockTurns=(resEl,F,zone)=>{
     resEl.appendChild(bar);
     return byTurn.size;
 };
-
 // ─── EXPORTS DU RÉSULTAT DE RECHERCHE ──────────────────────────────────────
 // ⚠️ Ces exports décrivent des fermetures qui EXISTENT déjà sur la carte. Les lignes
 // sont des « add » : réimporter le fichier les recréerait. C'est l'usage visé
@@ -5656,7 +5600,6 @@ const exportFoundTurnsCSV=()=>{
     download(csv,`found_turn_closures_${todayStr()}.csv`);
     showToast(t('srcExportedTurn',n),3500,'#43a047');
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  SMALL PREVIEW
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5697,7 +5640,6 @@ const refreshSmallPreview=async()=>{
     el.innerHTML=`<div class="wct-prev-head wct-prev-toggle" title="${escHtml(t('tipPrevToggle'))}">${t('previewHead',n)}<span class="wct-prev-chevron">${_prevCollapsed?'&#x25B6;':'&#x25BC;'}</span></div>`
         + `<div class="wct-prev-rows"${_prevCollapsed?' style="display:none"':''}>${rows}${more}</div>`;
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  FULL PREVIEW TABLE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5716,7 +5658,6 @@ const showPreview=()=>{
         if(chev) chev.innerHTML='&#x25BC;';
     }
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5779,6 +5720,24 @@ const addClosure=(options,okCb,koCb)=>{
         if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg]);}
         else{okCb&&okCb(v);}
     },r=>koCb&&koCb([r]));
+};
+// Re-résout les virages d'une entrée à partir de leur IDENTITÉ SÉMANTIQUE
+// (from → to via le nœud), et non du turn id stocké. Rend [{orig, id}] : `orig` est
+// l'id d'origine (clé des lignes supprimées), `id` celui qui existe MAINTENANT.
+// ⚠️ Indispensable pour l'import CSV : le turn id est un composite dérivé des
+// segments, il ne résout plus si le carrefour a été retracé depuis l'export.
+// Pour une entrée créée dans l'onglet Virages, la résolution retombe sur le même id.
+const _resolveTurnIds=(e)=>{
+    const out=[];
+    const dispo=getTurnsAtNode(e.turnSegId,e.turnNodeId);
+    (e.turnMeta||[]).forEach(tm=>{
+        // 1) le virage attendu, par identité sémantique
+        let tn=dispo.find(x=>Number(x.toSegmentId)===Number(tm.toSegId));
+        // 2) repli : l'id stocké existe-t-il encore tel quel ?
+        if(!tn && tm.id) tn=dispo.find(x=>x.id===tm.id);
+        if(tn && isTurnClosable(tn)) out.push({orig:tm.id||tn.id, id:tn.id});
+    });
+    return out;
 };
 
 // ─── Fermeture de VIRAGES ───────────────────────────────────────────────────
@@ -5909,17 +5868,32 @@ const applyQueue=async()=>{
             // Les virages ne vivent que si leur noeud est charge : recadrer dessus avant
             // d'appliquer, comme on le fait pour la bbox d'un lot.
             if(e.source==='turn'&&e.turnIds?.length){
+                // Recadrer sur le nœud : un virage n'existe que si son nœud est chargé.
+                // ⚠️ Repli sur turnLonLat (venu du CSV) : à l'import, le segment n'est
+                // presque jamais chargé, donc _segEndAt rend null et on ne saurait pas où
+                // aller. C'est précisément pour ça que le format stocke le lon/lat du nœud.
                 try{
                     const p=_segEndAt(e.turnSegId,e.turnNodeId);
-                    if(p?.at) sdk.Map.setMapCenter({lonLat:{lon:p.at[0],lat:p.at[1]},zoomLevel:17});
+                    const at = p?.at ? {lon:p.at[0],lat:p.at[1]} : (e.turnLonLat||null);
+                    if(at) sdk.Map.setMapCenter({lonLat:at,zoomLevel:17});
                 }catch(err){}
                 await waitMapLoaded();
                 if(_applyAborted) break;
+                // RE-RÉSOUDRE les virages maintenant que le nœud est chargé. Le turn id du
+                // fichier est un composite dérivé des segments : il ne résout plus si le
+                // carrefour a été retracé depuis l'export. On repart donc de l'identité
+                // sémantique (from → to via le nœud), qui, elle, survit.
+                const resolus=_resolveTurnIds(e);
+                if(!resolus.length){
+                    failed+=e.turnIds.length*e.closures.length; upd(done+failed);
+                    logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'#e53935');
+                    continue;
+                }
                 const exclT=e.excludedRows||new Set();
                 for(let ci=0;ci<e.closures.length;ci++){
                     if(_applyAborted) break;
                     const cl=e.closures[ci];
-                    const ids=e.turnIds.filter(tid=>!exclT.has(`${tid}:${ci}`));
+                    const ids=resolus.filter(x=>!exclT.has(`${x.orig}:${ci}`)).map(x=>x.id);
                     if(!ids.length) continue;
                     await waitMapLoaded();
                     if(_applyAborted) break;
@@ -5970,6 +5944,11 @@ const applyQueue=async()=>{
 // NB : on ne retire QUE les suppressions explicites (excludedRows). Les segments
 // signales nullSegs/recentSegs restent exportes : ce sont des avertissements, pas des
 // decisions de l'utilisateur, et ils seront reevalues a l'import.
+// Échappement CSV : un guillemet se double à l'intérieur d'un champ entre guillemets.
+// ⚠️ Sans ça, un motif comme  Travaux "nocturnes"  produit un CSV CASSÉ, illisible par
+// Advanced Closures comme par WCT. Bug trouvé par le test d'aller-retour du CSV Virages,
+// et présent depuis toujours dans l'export des segments.
+const _csvQ=(s)=>'"'+String(s??'').replace(/"/g,'""')+'"';
 const _entryLiveRows=(e)=>{
     const excl=e.excludedRows||new Set();
     const ids=(e.source==='turn'&&e.turnIds?.length)?e.turnIds:e.segIds;
@@ -5991,7 +5970,7 @@ const _queueToCSV=(entries)=>{
             if(!activeSegs.length) return;   // occurrence entierement supprimee : pas de ligne
             const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
             const ce=cl.end instanceof Date?dateToUTCStr(cl.end):cl.end;
-            csv+=`add,"${e.config.reason}","${cs}","${ce}","${dir}",${it},"${activeSegs.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
+            csv+=`add,${_csvQ(e.config.reason)},"${cs}","${ce}","${dir}",${it},"${activeSegs.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
         });
     });
     return csv;
@@ -6042,7 +6021,7 @@ const _turnsToCSV=(entries)=>{
                 if(e.excludedRows?.has(`${tm.id}:${ci}`)) return;
                 const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
                 const ce=cl.end   instanceof Date?dateToUTCStr(cl.end)  :cl.end;
-                csv+=`add-turn,"${e.config.reason}","${cs}","${ce}",${e.turnSegId},${e.turnNodeId},${tm.toSegId},"${tm.id}",${it},${e.config.mteId||''},"lon=${lon}&lat=${lat}",${zoom},"WME Closures Toolkit"\n`;
+                csv+=`add-turn,${_csvQ(e.config.reason)},"${cs}","${ce}",${e.turnSegId},${e.turnNodeId},${tm.toSegId},${_csvQ(tm.id)},${it},${e.config.mteId||''},"lon=${lon}&lat=${lat}",${zoom},"WME Closures Toolkit"\n`;
                 rows++;
             });
         });
@@ -6067,12 +6046,10 @@ const exportLotsCSV=(fileId)=>{
     download(_queueToCSV(lots),`${fname}_lots_${todayStr()}.csv`);
     showToast(t('lotCsvDone',lots.length),3000,'#43a047');
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  PRESETS
 // ═══════════════════════════════════════════════════════════════════════════
 const reloadPresets=()=>{const sel=$id('wct-presets-list');if(!sel)return;sel.innerHTML=presets.map((p,i)=>`<option value="${i}">${escHtml(p.name)}</option>`).join('');};
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  DRAGGABLE (borné à l'écran)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -6091,7 +6068,6 @@ const makeDraggable=(el,handle)=>{
         document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  BUILD OVERLAY
 // ═══════════════════════════════════════════════════════════════════════════
@@ -6106,7 +6082,6 @@ const showToast=(msg,duration=2500,color='#323232')=>{
     el.classList.add('show');
     toastTimer=setTimeout(()=>el.classList.remove('show'),duration);
 };
-
 // ─── updateCountryInfo (global) ────────────────────────────────────────────
 const updateCountryInfo=()=>{
     const sel=getSelection();
@@ -6122,7 +6097,6 @@ const updateCountryInfo=()=>{
         if(holidaysWarn&&(holidaysWarn.innerHTML.includes('multi-pays')||holidaysWarn.innerHTML.includes('Multi-country')))holidaysWarn.style.display='none';
     }
 };
-
 
 // ─── TRACÉS (GPX / KML / KMZ / GeoJSON) ────────────────────────────────────
 //
@@ -6148,7 +6122,6 @@ let _traceColorIdx = 0;
 
 const _traceNewId = (prefix) => prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
 const _traceNextColor = () => TRACE_COLORS[_traceColorIdx++ % TRACE_COLORS.length];
-
 // Subsample : garde au max maxPts points régulièrement espacés
 const traceSubsample = (pts, maxPts) => {
     if(pts.length <= maxPts) return pts;
@@ -6157,13 +6130,10 @@ const traceSubsample = (pts, maxPts) => {
     for(let i = 0; i < maxPts; i++) out.push(pts[Math.round(i * step)]);
     return out;
 };
-
 // ── Parsers ──────────────────────────────────────────────────────────────────
-
 // Helper multilingue pour les messages d'erreur des parsers.
 // deStr omis ⇒ repli sur l'anglais (pas de message vide).
 const _pe = (frStr, enStr, deStr) => (_lang === 'fr' ? frStr : _lang === 'de' ? (deStr ?? enStr) : enStr);
-
 // GPX → [{ name, points[], errors[] }]  — un objet par <trk>
 const parseGpx = (filename, xmlText) => {
     const tracks = [];
@@ -6194,7 +6164,6 @@ const parseGpx = (filename, xmlText) => {
     }
     return tracks;
 };
-
 // KML (texte) → [{ name, points[], errors[] }]  — un objet par Placemark LineString
 // Gère les deux namespaces : OGC 2.2 et ancien Google 2.1
 const parseKml = (filename, xmlText) => {
@@ -6202,11 +6171,9 @@ const parseKml = (filename, xmlText) => {
     try {
         const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
         if(doc.querySelector('parsererror')) return [{ name: filename, points: [], errors: [_pe('XML invalide','Invalid XML','Ungültiges XML')] }];
-
         // Détection namespace
         const rootEl = doc.documentElement;
         const nsUri = rootEl.namespaceURI || 'http://www.opengis.net/kml/2.2';
-
         // Récupère tous les Placemark contenant une LineString
         const allPM = Array.from(doc.getElementsByTagNameNS(nsUri, 'Placemark'));
         const linePM = allPM.filter(pm => pm.getElementsByTagNameNS(nsUri, 'LineString').length > 0);
@@ -6257,7 +6224,6 @@ const parseKml = (filename, xmlText) => {
     }
     return tracks;
 };
-
 // KMZ (ArrayBuffer) → [{ name, points[], errors[] }]
 // Décompression via fflate (@require CDN)
 const parseKmz = async (filename, arrayBuffer) => {
@@ -6275,7 +6241,6 @@ const parseKmz = async (filename, arrayBuffer) => {
         return [{ name: filename, points: [], errors: [_pe('Erreur décompression KMZ : ','KMZ decompression error: ','KMZ-Entpackfehler: ') + e.message] }];
     }
 };
-
 // GeoJSON → [{ name, points[], errors[] }]  — un objet par Feature LineString/MultiLineString
 const parseGeoJSON = (filename, jsonText) => {
     const tracks = [];
@@ -6323,7 +6288,6 @@ const parseGeoJSON = (filename, jsonText) => {
     }
     return tracks;
 };
-
 // ── Shapefile ────────────────────────────────────────────────────────────────
 // Définitions proj4 statiques — projections françaises + WGS84 + WebMercator
 const EPSG_DEFS = {
@@ -6338,14 +6302,12 @@ const EPSG_DEFS = {
     32631: '+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs',
     32632: '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs',
 };
-
 // Extrait le code EPSG depuis un WKT .prj
 // Extrait le code EPSG depuis un WKT .prj (si AUTHORITY présente)
 const _epsgFromPrj = (prjText) => {
     const m = prjText.match(/AUTHORITY\s*\[\s*["']EPSG["']\s*,\s*["']?(\d+)["']?\s*\]/i);
     return m ? parseInt(m[1], 10) : null;
 };
-
 // Construit une chaîne proj4 depuis un WKT ESRI .prj (sans AUTHORITY)
 // Gère LCC, Transverse Mercator, Mercator — avec conversion grades→degrés
 const _wktToDef = (wkt) => {
@@ -6367,22 +6329,18 @@ const _wktToDef = (wkt) => {
         const lat2 = toD(param('Standard_Parallel_2') ?? lat1);
         const lon0 = toD(param('Central_Meridian') ?? 0);
         const k0   = param('Scale_Factor') ?? 1;
-
         // Primem
         const pmMatch = wkt.match(/PRIMEM\s*\[\s*"([^"]+)"\s*,\s*([\d.eE+\-]+)/i);
         const pmName  = pmMatch ? pmMatch[1].toLowerCase() : 'greenwich';
         const pm = pmName === 'paris' ? '+pm=paris' : (pmName !== 'greenwich' ? `+pm=${pmMatch[2]}` : '');
-
         // Sphéroïde
         const sphMatch = wkt.match(/SPHEROID\s*\[\s*"[^"]*"\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
         const a   = sphMatch ? parseFloat(sphMatch[1]) : 6378137;
         const invf = sphMatch ? parseFloat(sphMatch[2]) : 298.257223563;
         const b   = a * (1 - 1/invf);
-
         // Towgs84
         const twMatch = wkt.match(/TOWGS84\s*\[\s*([\d.,\-\s]+)\]/i);
         const towgs84 = twMatch ? `+towgs84=${twMatch[1].trim().replace(/\s/g,'')}` : '';
-
         // Projection
         const projMatch = wkt.match(/PROJECTION\s*\[\s*"([^"]+)"/i);
         const projName  = projMatch ? projMatch[1].toLowerCase().replace(/_/g,' ') : '';
@@ -6399,7 +6357,6 @@ const _wktToDef = (wkt) => {
         return `${projStr} +a=${a} +b=${b.toFixed(3)} ${towgs84} ${pm} +units=m +no_defs`.replace(/\s+/g,' ').trim();
     } catch(e) { return null; }
 };
-
 // Shapefile (ZIP ArrayBuffer) → [{ name, points[], errors[], isDataset }]
 // Reprojection manuelle via proj4 (notre table EPSG_DEFS) — évite le bug +pm=paris de shpjs
 const parseShapefile = async (filename, arrayBuffer) => {
@@ -6410,7 +6367,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         if(typeof fflate === 'undefined') return [{ name: baseName, points: [], errors: [_pe('fflate non disponible','fflate library unavailable','fflate-Bibliothek nicht verfügbar')], isDataset: true }];
         if(typeof shp   === 'undefined') return [{ name: baseName, points: [], errors: [_pe('shpjs non disponible','shpjs library unavailable','shpjs-Bibliothek nicht verfügbar')], isDataset: true }];
         if(typeof proj4 === 'undefined') return [{ name: baseName, points: [], errors: [_pe('proj4 non disponible','proj4 library unavailable','proj4-Bibliothek nicht verfügbar')], isDataset: true }];
-
         // 2. Dézipper + validation des fichiers obligatoires
         const uint8 = new Uint8Array(arrayBuffer);
         let unzipped;
@@ -6437,7 +6393,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
                 )
             ], isDataset: true }];
         }
-
         // 3. Identifier la projection depuis le .prj
         // Priorité : 1) parser WKT complet (_wktToDef) 2) EPSG_DEFS via code 3) WGS84 par défaut
         let projSrcDef = null; // chaîne proj4 source, null = WGS84
@@ -6467,7 +6422,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         } else {
             errors.push(_pe('.prj absent — WGS84 supposé (risque de décalage si autre projection).','.prj missing — WGS84 assumed (possible offset if another projection is used).','.prj fehlt — WGS84 angenommen (Versatz möglich, falls eine andere Projektion verwendet wird).'));
         }
-
         // 4. Parser .shp + .dbf via shpjs SANS reprojection interne (prj=false)
         const toAB = (u8) => u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
         let geojson;
@@ -6478,7 +6432,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         } catch(e) {
             return [{ name: baseName, points: [], errors: [_pe('Erreur parsing shapefile : ','Shapefile parse error: ','Shapefile-Parsing-Fehler: ') + e.message], isDataset: true }];
         }
-
         // 5. Filtrer géométries linéaires/surfaciques
         const allFeats = (geojson.features || []).filter(f =>
             f.geometry && ['LineString','MultiLineString','Polygon','MultiPolygon'].includes(f.geometry.type)
@@ -6486,7 +6439,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         if(allFeats.length === 0) {
             return [{ name: baseName, points: [], errors: [_pe('Aucune géométrie linéaire ou surfacique dans ce shapefile.','No linear or surface geometry found in this shapefile.','Keine Linien- oder Flächengeometrie in diesem Shapefile.')], isDataset: true }];
         }
-
         // 6. Reprojection manuelle vers WGS84 avec proj4
         // On conserve la structure GeoJSON par feature pour le rendu intelligent (line vs polygon)
         const needsReproj = (projSrcDef !== null);
@@ -6503,13 +6455,11 @@ const parseShapefile = async (filename, arrayBuffer) => {
             }
             return coords.map(reprojectCoords);
         };
-
         // Features reprojetées avec leur type de géométrie intact
         const reprojFeats = allFeats.map(feat => ({
             type: feat.geometry.type,
             coordinates: reprojectCoords(feat.geometry.coordinates)
         }));
-
         // Points aplatis pour focus/bbox (conservé pour compatibilité)
         const allPoints = [];
         reprojFeats.forEach(f => {
@@ -6520,7 +6470,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         if(allPoints.length === 0) {
             return [{ name: baseName, points: [], errors: [_pe('Aucun point valide après reprojection.','No valid points after reprojection.','Keine gültigen Punkte nach der Umprojektion.')], isDataset: true }];
         }
-
         // 7. Nom : champ texte le plus probable dans les attributs
         const nameFields = ['name','Name','NOM','nom','LIBELLE','libelle','TWG_LIBELL','label','LABEL','title','TITLE'];
         const fields = Object.keys((allFeats[0].properties) || {});
@@ -6533,7 +6482,6 @@ const parseShapefile = async (filename, arrayBuffer) => {
         return [{ name: baseName, points: [], errors: [_pe('Erreur inattendue : ','Unexpected error: ','Unerwarteter Fehler: ') + e.message], isDataset: true }];
     }
 };
-
 // ── Gestion OL par track ──────────────────────────────────────────────────────
 
 const _traceBuildOL = (trackId, sampledPts, color) => {
@@ -6557,7 +6505,6 @@ const _traceBuildOL = (trackId, sampledPts, color) => {
         return null;
     }
 };
-
 // Construit un layer OL depuis des features GeoJSON reprojetées (WGS84 [lon,lat])
 // Style intelligent : LineString → trait plein, Polygon → contour seul sans remplissage
 const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => {
@@ -6566,7 +6513,6 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => 
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
         const projMap  = W.map.getProjectionObject();
         const olFeatures = [];
-
         // Subsampler les features si trop nombreuses (performance)
         const step = geoFeatures.length > maxFeatures ? Math.ceil(geoFeatures.length / maxFeatures) : 1;
 
@@ -6615,7 +6561,6 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => 
         return null;
     }
 };
-
 // ── Ajout d'un fichier (entrée commune) ──────────────────────────────────────
 
 const _traceRegisterFile = (filename, type, parsedTracks) => {
@@ -6670,7 +6615,6 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
     // Shapefile de réseau : expliquer au chargement pourquoi il n'a pas de lots
     if(_hasNetworkShp) showToast(t('shpNetworkNote'), 5500, '#f57c00');
 };
-
 // Entrées publiques par format
 const traceAddGpx = (filename, xmlText) => {
     _traceRegisterFile(filename, 'GPX', parseGpx(filename, xmlText));
@@ -6689,7 +6633,6 @@ const traceAddShapefile = async (filename, arrayBuffer) => {
     const parsed = await parseShapefile(filename, arrayBuffer);
     _traceRegisterFile(filename, 'SHP', parsed);
 };
-
 // ── Actions sur les tracks/fichiers ──────────────────────────────────────────
 
 const traceSetTrackVisible = (trackId, visible) => {
@@ -6770,7 +6713,6 @@ const traceSetColor = (trackId, color) => {
     traceRenderTable();
     document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
 };
-
 // Applique une couleur uniforme à tous les tracks d'un fichier
 const traceSetFileColor = (fileId, color) => {
     const file = _traceFiles.find(f => f.fileId === fileId);
@@ -6821,7 +6763,6 @@ const traceFocus = (trackId) => {
         W.map.moveTo(center, zoom);
     } catch(e) { console.error('WCT trace focus:', e); }
 };
-
 // ── Vérification de couverture ────────────────────────────────────────────────
 // Identifie les segments WME empruntés par le tracé mais NON sélectionnés.
 // Lecture pure : ne crée/modifie aucune fermeture.
@@ -6836,7 +6777,6 @@ const COVERAGE_SPAN_FRAC = 0.3;  // étendue min couverte du segment (anti-accro
 const COVERAGE_MAX_EVAL  = 6000; // plafond de points évalués (perf)
 
 let _coverageLayer = null; // calque OL distinct des calques de tracés
-
 // Distance (m) d'un point [lat,lon] au segment de droite [a,b] (chacun [lat,lon])
 // Projection en repère plan local équirectangulaire — suffisant à l'échelle de 30 m.
 const _covDistPtToEdge = (p, a, b) => {
@@ -6853,7 +6793,6 @@ const _covDistPtToEdge = (p, a, b) => {
     const cx = ax + tt*dx, cy = ay + tt*dy;
     return Math.hypot(px-cx, py-cy);
 };
-
 // Projection d'un point sur une arête : renvoie { tt (∈[0,1]), dist (m) }
 const _covProjEdge = (p, a, b) => {
     const lat0 = p[0] * Math.PI / 180;
@@ -6867,7 +6806,6 @@ const _covProjEdge = (p, a, b) => {
     tt = Math.max(0, Math.min(1, tt));
     return { tt, dist: Math.hypot(px-(ax+tt*dx), py-(ay+tt*dy)) };
 };
-
 // Boîte englobante d'un ensemble de points [lat,lon]
 const _covBBox = (pts) => {
     let minLat=Infinity, maxLat=-Infinity, minLon=Infinity, maxLon=-Infinity;
@@ -6876,7 +6814,6 @@ const _covBBox = (pts) => {
         if(lo<minLon)minLon=lo; if(lo>maxLon)maxLon=lo; }
     return { minLat, maxLat, minLon, maxLon };
 };
-
 // Segments WME chargés dont l'emprise recoupe la bbox du tracé (+marge).
 // Lit la géométrie sur attributes.geoJSONGeometry (WGS84 [lon,lat]) — confirmé terrain.
 // Renvoie [{ id, edges:[[[lat,lon],[lat,lon]]], lonlat:[[lon,lat]], length, fromNode, toNode }]
@@ -6912,7 +6849,6 @@ const _covCandidateSegments = (tb, marginDeg) => {
     }
     return out;
 };
-
 // Densifie un tracé [lat,lon] à un pas donné en mètres (capte les segments courts)
 const _covDensify = (pts, stepM) => {
     if(pts.length < 2) return pts.slice();
@@ -6927,7 +6863,6 @@ const _covDensify = (pts, stepM) => {
     }
     return out;
 };
-
 // Regroupe des segments en zones connexes (partage de nœud) — union-find
 const _covGroupByNode = (segObjs) => {
     const parent = {};
@@ -6942,7 +6877,6 @@ const _covGroupByNode = (segObjs) => {
     segObjs.forEach(s => { const r=find(s.id); (groups[r]=groups[r]||[]).push(s); });
     return Object.values(groups);
 };
-
 // Efface le calque de trous
 const _covClearGaps = () => {
     if(_coverageLayer){
@@ -6952,7 +6886,6 @@ const _covClearGaps = () => {
     const res = document.getElementById('wct-coverage-result');
     if(res){ res.style.display = 'none'; res.innerHTML = ''; }
 };
-
 // Dessine les SEGMENTS empruntés non sélectionnés (suit la géométrie réelle des routes)
 // magenta pointillé + halo blanc — calque dédié WCT_COVERAGE_GAPS
 const _covDrawGaps = (segObjs) => {
@@ -6980,7 +6913,6 @@ const _covDrawGaps = (segObjs) => {
         _coverageLayer = layer;
     } catch(e){ console.error('WCT coverage draw:', e); }
 };
-
 // Calcule la zone libre de la carte (hors overlay droit et sidebar gauche)
 // et retourne {freeLeft, freeRight, freeWidth, mapW, mapH} en pixels dans le div carte
 // Zone libre de la carte = du bord gauche du div carte au bord gauche de l'overlay.
@@ -6993,7 +6925,6 @@ const _getMapFreeZone=()=>{
     const freeRight=mapW-OVERLAY_W-OVERLAY_RIGHT; // bord gauche de l'overlay
     return {freeLeft:0, freeRight, freeWidth:freeRight, mapW, mapH};
 };
-
 // Recentre la carte pour qu'un point WGS84 apparaisse au centre de la zone libre
 // (à gauche de l'overlay). Utilise les conversions pixel SDK — aucune approximation projection.
 const _shiftCenterToFreeZone=(targetLon,targetLat)=>{
@@ -7013,7 +6944,6 @@ const _shiftCenterToFreeZone=(targetLon,targetLat)=>{
         sdk.Map.setMapCenter({lonLat:{lon:newLon,lat:newLat}});
     }catch(e){ console.warn('[WCT] _shiftCenterToFreeZone:',e); }
 };
-
 // Extrait les coordonnées WGS84 [[lon,lat],...] d'un objet segment (SDK ou legacy)
 const _getSegCoords=(seg)=>{
     if(!seg) return null;
@@ -7021,7 +6951,6 @@ const _getSegCoords=(seg)=>{
     if(seg.attributes?.geoJSONGeometry?.coordinates?.length>=2) return seg.attributes.geoJSONGeometry.coordinates;
     return null;
 };
-
 // Centre la carte sur un segment au zoom voulu, décalé dans la zone libre.
 const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
     if(!coords||!coords.length) return;
@@ -7044,7 +6973,6 @@ const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
         }catch(e2){}
     }
 };
-
 // Conservée pour compat : centre un point unique dans la zone libre
 const centerWithOverlayOffset=(lon,lat,zoomLevel=17)=>{
     try{
@@ -7054,7 +6982,6 @@ const centerWithOverlayOffset=(lon,lat,zoomLevel=17)=>{
         try{ sdk.Map.setMapCenter({lonLat:{lon,lat},zoomLevel}); }catch(e2){}
     }
 };
-
 // Centre la carte sur une zone (cadre la bbox de ses segments), comme traceFocus
 const _covFocusGap = (zone) => {
     if(!zone || !zone.segs || zone.segs.length === 0) return;
@@ -7081,7 +7008,6 @@ const _covFocusGap = (zone) => {
         W.map.moveTo(center, zoom);
     } catch(e){ console.error('WCT coverage focus:', e); }
 };
-
 // ── Briques de matching tracé→segments, réutilisées par la couverture ET le balayage ──
 // Construit l'index géométrique d'une liste de candidats : arêtes à plat (avec offset
 // cumulé), grille spatiale, et longueur polyligne par segment.
@@ -7110,11 +7036,9 @@ const _covBuildIndex = (candList) => {
     }
     return { edges, grid, segPolyLen, cellDeg };
 };
-
 // Accumulateur vide : compteurs de points et étendue longée, cumulés sur un ou plusieurs
 // appels (le balayage accumule à travers les tronçons ; la couverture fait un seul appel).
 const _covNewAcc = () => ({ cnt:{}, spanMin:{}, spanMax:{}, segLen:{} });
-
 // Rattache chaque point au segment le plus proche (≤ snap) via la grille, et met à jour
 // l'accumulateur (nombre de points + étendue min/max le long du segment).
 const _covAccumulate = (evalPts, index, acc) => {
@@ -7142,7 +7066,6 @@ const _covAccumulate = (evalPts, index, acc) => {
         }
     }
 };
-
 // Segment "emprunté" = ≥ MIN_PTS points ET étendue couverte ≥ SPAN_FRAC de sa longueur.
 const _covFinalizeUsed = (acc) => Object.keys(acc.cnt).filter(id => {
     if(acc.cnt[id] < COVERAGE_MIN_PTS) return false;
@@ -7150,38 +7073,32 @@ const _covFinalizeUsed = (acc) => Object.keys(acc.cnt).filter(id => {
     const span = acc.spanMax[id] - acc.spanMin[id];
     return len > 0 && (span / len) >= COVERAGE_SPAN_FRAC;
 }).map(Number);
-
 // Cœur : segments empruntés par le tracé mais non sélectionnés.
 // Retourne { pct, zones:[{segs}], uncov:[seg], nUncov, outsideFrac } ou { error }.
 const traceCoverage = (fileId) => {
     const sel = getSelection();
     if(!(sel.ids.length > 0 && sel.objectType === 'segment')) return { error: t('covNoSel') };
     const selSet = new Set(sel.ids.map(Number));
-
     // Points cumulés de tous les tracés du fichier
     let pts = [];
     _traceTracks.filter(tk => tk.fileId === fileId).forEach(tk => {
         if(tk.sampledPts && tk.sampledPts.length) pts = pts.concat(tk.sampledPts);
     });
     if(pts.length === 0) return { error: t('covNoPts') };
-
     // Segments candidats (préfiltrage spatial par bbox + marge ~60 m)
     const tb = _covBBox(pts);
     const cand = _covCandidateSegments(tb, 0.0006);
     if(cand.length === 0) return { error: t('covNoSeg') };
     const candById = new Map(cand.map(c => [c.id, c]));
-
     // Restreindre les points du tracé à la zone réellement chargée (bbox des candidats)
     const lb = _covBBox(cand.flatMap(c => c.edges.flatMap(e => e)));
     const m = 0.0006;
     const inZone = pts.filter(p => p[0]>=lb.minLat-m && p[0]<=lb.maxLat+m && p[1]>=lb.minLon-m && p[1]<=lb.maxLon+m);
     const outsideFrac = pts.length ? (pts.length - inZone.length) / pts.length : 0;
     if(inZone.length < 2) return { error: t('covNoOverlap') };
-
     // Densifier à 3 m (capte les segments courts), plafonner pour la perf
     let evalPts = _covDensify(inZone, COVERAGE_DENSIFY_M);
     if(evalPts.length > COVERAGE_MAX_EVAL) evalPts = traceSubsample(evalPts, COVERAGE_MAX_EVAL);
-
     // Rattachement points→segments via les briques mutualisées (un seul appel ici)
     const index = _covBuildIndex(cand);
     const acc = _covNewAcc();
@@ -7189,14 +7106,12 @@ const traceCoverage = (fileId) => {
     const usedIds = _covFinalizeUsed(acc);
     const coveredIds   = usedIds.filter(id => selSet.has(id));
     const uncoveredIds = usedIds.filter(id => !selSet.has(id));
-
     // Couverture pondérée par longueur (plancher si trou subsiste → jamais de faux 100 %)
     const lenOf = id => { const c = candById.get(id); return c ? c.length : 0; };
     const covLen  = coveredIds.reduce((s,id)=>s+lenOf(id), 0);
     const usedLen = usedIds.reduce((s,id)=>s+lenOf(id), 0);
     let pct = usedLen > 0 ? (covLen * 100 / usedLen) : 0;
     pct = uncoveredIds.length > 0 ? Math.floor(pct) : Math.round(pct);
-
     // Zones = composantes connexes des segments non sélectionnés (partage de nœud)
     const uncov = uncoveredIds.map(id => candById.get(id)).filter(Boolean);
     const groups = _covGroupByNode(uncov);
@@ -7204,7 +7119,6 @@ const traceCoverage = (fileId) => {
 
     return { pct, zones, uncov, nUncov: uncoveredIds.length, nUsed: usedIds.length, outsideFrac };
 };
-
 // Lance la vérif pour un fichier et restitue résultat texte + visuel
 const traceRunCoverage = (fileId) => {
     const res = traceCoverage(fileId);
@@ -7246,13 +7160,11 @@ const traceRunCoverage = (fileId) => {
         });
     });
 };
-
 // Affiche/masque les boutons couverture selon l'état de sélection (appelé depuis updateFab)
 const traceUpdateCoverageBtns = () => {
     const show = hasSel();
     document.querySelectorAll('.wct-trace-file-cov').forEach(b => { b.style.display = show ? '' : 'none'; });
 };
-
 // Strip globale
 // ═══════════════════════════════════════════════════════════════════════════
 //  BALAYAGE : sélectionner les segments d'un tracé en déplaçant la carte
@@ -7270,7 +7182,6 @@ const SWEEP_WARN_ANCHORS = 60;// au-delà de ce nombre de sauts, on demande conf
 let _sweepRunning = false, _sweepAborted = false;
 const requestSweepAbort = () => { if(_sweepRunning) _sweepAborted = true; };
 const _sweepSleep = ms => new Promise(r => setTimeout(r, ms));
-
 // Découpe le tracé en tronçons d'environ stepM mètres → [[i0,i1], ...]
 const _sweepSlices = (pts, stepM) => {
     const slices = [];
@@ -7310,7 +7221,6 @@ const _sweepShowProgress = (done, total, nSel) => {
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
     f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
 };
-
 // Balaie tous les tracés d'un fichier et sélectionne les segments empruntés.
 const traceSweepSelect = async (fileId) => {
     if(_sweepRunning) return;
@@ -7350,7 +7260,6 @@ const traceSweepSelect = async (fileId) => {
             _sweepShowProgress(k+1, slices.length, selIds.length);
         }
     } catch(e){ log('sweep error: '+e.message); }
-
     // Rendre la carte de départ (la sélection persiste indépendamment de la vue)
     try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
     const aborted = _sweepAborted;
@@ -7359,7 +7268,6 @@ const traceSweepSelect = async (fileId) => {
     _sweepShowText(`<div style="color:${color};font-weight:600">${escHtml(t(aborted?'sweepStopped':'sweepDone', selIds.length))}</div>`);
     updateFab(); updateCountryInfo();
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  MODE LOTS : tracé trop long pour tenir en mémoire → découpe en lots
 // ═══════════════════════════════════════════════════════════════════════════
@@ -7368,7 +7276,6 @@ const traceSweepSelect = async (fileId) => {
 // file autonome, applicable en une fois une fois la carte recadrée dessus (brique 2).
 const SWEEP_LOT_KM = 4.5; // bbox maximale d'un lot : tient dans une vue zoom 15 (~7,4×5,7 km
                           // mesuré) avec marge pour charger les segments accrochés aux bords
-
 // Découpe les points en lots dont la bbox reste sous SWEEP_LOT_KM → [{pts, bbox}]
 const _sweepLots = (pts) => {
     const lots = [];
@@ -7410,7 +7317,6 @@ const _sweepShowLotProgress = (done, total, added, seg) => {
       <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
     f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
 };
-
 // Découpe le tracé en lots et crée une entrée de file par lot, avec la config
 // courante de l'onglet Configurer. La carte se déplace lot par lot pour charger
 // les segments à capter. N'applique RIEN (les fermetures sont posées en brique 2).
@@ -7425,14 +7331,12 @@ const traceGenerateLots = async (fileId) => {
         return;
     }
     const cfg = readConfig();
-
     // 2) Points du tracé → lots
     let pts = [];
     _traceTracks.filter(tk => tk.fileId === fileId).forEach(tk => { if(tk.sampledPts?.length) pts = pts.concat(tk.sampledPts); });
     if(pts.length < 2){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('covNoPts'))}</span>`); return; }
     const lots = _sweepLots(pts);
     if(!confirm(t('lotsConfirm', lots.length))) return;
-
     // 3) Balayage lot par lot : un recadrage par lot suffit (le lot tient dans la vue)
     _sweepRunning = true; _sweepAborted = false;
     _covClearGaps();
@@ -7474,7 +7378,6 @@ const traceGenerateLots = async (fileId) => {
             _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
         }
     } catch(e){ log('lots error: '+e.message); }
-
     // 4) Rendre la vue de départ + bilan
     try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
     const aborted = _sweepAborted;
@@ -7484,11 +7387,9 @@ const traceGenerateLots = async (fileId) => {
     showToast(t(aborted?'lotsStopped':'lotsDone', added, totalSeg), 4000, aborted?'#f57c00':'#43a047');
     updateFab(); updateCountryInfo();
 };
-
 // Lot en cours de traitement : {trackId, lotIdx}. Mémorisé quand on sélectionne un
 // lot, lu par le bouton Valider (pont Tracés → Configurer → file).
 let _currentLot = null;
-
 // Cadre la carte sur la bbox d'un lot, DANS la zone libre (hors overlay) et sans
 // descendre sous le zoom 15 : en dessous, WME décharge segments ET fermetures — ce qui
 // rendait le lot invisible sous le panneau et cassait la détection de chevauchement.
@@ -7505,7 +7406,6 @@ const _lotFocus = (lot) => {
         setTimeout(() => _shiftCenterToFreeZone(cLon, cLat), 160); // décale dans la zone visible
     }catch(e){}
 };
-
 // Sélectionne les segments d'un lot : recadre à zoom 16 (le lot tient dans la vue →
 // tous ses segments chargés), matche, sélectionne, puis bascule vers Configurer.
 const _lotSelect = async (trackId, lotIdx) => {
@@ -7537,7 +7437,6 @@ const _lotSelect = async (trackId, lotIdx) => {
         updateFab(); updateCountryInfo();
     } catch(e){ _sweepRunning = false; log('lotSelect error: '+e.message); }
 };
-
 // Permalien WME d'un lot (segments captés + vue cadrée). Copié dans le presse-papiers.
 // Proposé seulement une fois le lot parcouru (lot.segIds présent) : un lot tient dans une
 // vue, donc l'ouverture du permalien resélectionne l'intégralité de ses segments (testé).
@@ -7577,7 +7476,6 @@ const traceStripToggle = (visible) => {
     document.querySelectorAll('.wct-trace-trk-chk').forEach(c => { c.checked = visible; });
     traceUpdateStripCtrl();
 };
-
 // ── Rendu du tableau hiérarchique ─────────────────────────────────────────────
 
 const traceRenderTable = () => {
@@ -7585,7 +7483,6 @@ const traceRenderTable = () => {
     if(!container) return;
     if(_traceFiles.length === 0) { container.style.display = 'none'; container.innerHTML = ''; return; }
     container.style.display = '';
-
     // Colonnes (11) : chev | chk | nom(×2 colspan) | heure | type | pts | swatch | err | pos | del
     // thead global figé — une seule <table> — repli par masquage des <tr> enfants
 
@@ -7605,7 +7502,6 @@ const traceRenderTable = () => {
             ? `background:${file.color};box-shadow:0 0 0 1px rgba(0,0,0,.2)`
             : `background:transparent;border:2px dashed #999`;
         const fileSwatchTitle = t('trkTipFileColor');
-
         // Ligne père
         tbody += `<tr class="wct-trace-file-row" data-fid="${file.fileId}" style="background:var(--wct-bg2,#f5f7fa);border-top:1px solid var(--wct-border)">
             <td style="width:14px;padding:0 2px;cursor:pointer;text-align:center" class="wct-trace-file-chev" data-fid="${file.fileId}" title="${isCollapsed?t('trkExpand'):t('trkCollapse')}"><span style="font-size:10px;color:var(--wct-text2)">${chev}</span></td>
@@ -7619,7 +7515,6 @@ const traceRenderTable = () => {
             <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">📥</button></td>
             <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
-
         // Lignes enfants — masquées si replié
         fileTracks.forEach(trk => {
             const errCount = trk.errors.length;
@@ -7688,9 +7583,7 @@ const traceRenderTable = () => {
         </thead>
         <tbody>${tbody}</tbody>
     </table>`;
-
     // ── Listeners ──
-
     // Chevron repli/dépli
     container.querySelectorAll('.wct-trace-file-chev').forEach(cell => {
         cell.addEventListener('click', e => {
@@ -7707,7 +7600,6 @@ const traceRenderTable = () => {
             if(span) span.innerHTML = file.collapsed ? '&#x25B6;' : '&#x25BC;';
         });
     });
-
     // Checkbox fichier
     container.querySelectorAll('.wct-trace-file-chk').forEach(chk => {
         chk.addEventListener('change', e => traceSetFileVisible(e.target.dataset.fid, e.target.checked));
@@ -7770,7 +7662,6 @@ const traceRenderTable = () => {
     container.querySelectorAll('.wct-trace-trk-pos').forEach(btn => {
         btn.addEventListener('click', e => traceFocus(e.currentTarget.dataset.tid));
     });
-
     // Palette couleur — helper commun
     const openPalette = (anchor, onPick) => {
         document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
@@ -7800,7 +7691,6 @@ const traceRenderTable = () => {
         sw.addEventListener('click', e => { e.stopPropagation(); openPalette(sw, c => traceSetColor(sw.dataset.tid, c)); });
     });
 };
-
 // ── Gestionnaire de fichiers entrants (dropzone) ──────────────────────────────
 
 const traceHandleFiles = (files) => {
@@ -8219,7 +8109,6 @@ const renderPresetsTable=()=>{
         tbody.appendChild(tr);
     });
 };
-
 // Queue entry card avec poubelles par ligne
 const buildQueueCard=(entry,idx)=>{
     // Initialiser le set des lignes supprimées si absent
@@ -8236,7 +8125,6 @@ const buildQueueCard=(entry,idx)=>{
     const mteId=entry.config.mteId;
     let mteName=t('noMte');
     if(mteId){try{mteName=sdk.DataModel.MajorTrafficEvents.getById({majorTrafficEventId:mteId})?.names?.[0]?.value||mteId;}catch(e){}}
-
     // ── Compte net occurrences × segments (hors lignes supprimées + conflits de direction) ──
     // excludedRows contient des clés "sid:closureIdx". On déduit le nombre de
     // segments et d'occurrences réellement appliquables (état statique connu à l'affichage).
@@ -8272,7 +8160,6 @@ const buildQueueCard=(entry,idx)=>{
     const card=document.createElement('div');
     card.className='wct-qcard';
     card.style.cssText='border-radius:var(--wct-radius);margin-bottom:6px;overflow:hidden;border:1px solid var(--wct-border);border-left:3px solid '+color+';';
-
     // ── Header du lot ──
     const hdr=document.createElement('div');
     hdr.className='wct-qcard-hdr';
@@ -8292,7 +8179,6 @@ const buildQueueCard=(entry,idx)=>{
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
-
     // ── Logique édition inline du libellé ──
     hdr.querySelector('.wct-qcard-edit').addEventListener('click', e => {
         e.stopPropagation();
@@ -8328,11 +8214,9 @@ const buildQueueCard=(entry,idx)=>{
         });
         input.addEventListener('blur', confirm);
     });
-
     // ── Body = tableau des lignes ──
     const body=document.createElement('div');
     body.className='wct-qcard-body';
-
     // État tri
     let sortCol=null, sortAsc=true;
 
@@ -8441,7 +8325,6 @@ const buildQueueCard=(entry,idx)=>{
         body.innerHTML='';
         const table=document.createElement('table');
         table.style.cssText='width:100%;border-collapse:collapse;font-size:0.917em;table-layout:fixed;';
-
         // Thead
         const thead=document.createElement('thead');
         const trh=document.createElement('tr');
@@ -8467,7 +8350,6 @@ const buildQueueCard=(entry,idx)=>{
         });
         thead.appendChild(trh);
         table.appendChild(thead);
-
         // Tbody
         const tbody=document.createElement('tbody');
         buildRows().forEach(row=>{
@@ -8517,7 +8399,6 @@ const buildQueueCard=(entry,idx)=>{
     renderTable();
     card.appendChild(hdr);
     card.appendChild(body);
-
     // Collapse toggle sur le chevron uniquement
     let open=!entry.collapsed;
     const chev=hdr.querySelector('.wct-qcard-chevron');
@@ -8531,7 +8412,6 @@ const buildQueueCard=(entry,idx)=>{
         body.style.display=open?'':'none';
         chev.innerHTML=open?'&#x25BC;':'&#x25B6;';
     });
-
     // Clic sur le badge ⚠️ → télécharger le .txt des segments écartés
     const warnBadge=hdr.querySelector('.wct-excl-warn');
     if(warnBadge&&entry.excludedSegs&&entry.excludedSegs.length){
@@ -8552,7 +8432,6 @@ const buildQueueCard=(entry,idx)=>{
             download(txt,t('exclTxtFilename')+'_'+todayStr()+'.txt');
         });
     }
-
     // Supprimer lot
     hdr.querySelector('.wct-qcard-del').addEventListener('click',e=>{
         e.stopPropagation();
@@ -8561,7 +8440,6 @@ const buildQueueCard=(entry,idx)=>{
 
     return card;
 };
-
 
 // Les écouteurs posés sur `document` (et non sur l'overlay) survivraient à la destruction
 // de l'overlay lors d'un changement de langue et s'empileraient à chaque bascule. On les
@@ -8587,16 +8465,13 @@ const connectOverlay=ov=>{
         // l'utilisateur perd tout accès au script et doit recharger WME.
         ensureFab();
     });
-
     // Fermer la palette couleur GPX si clic ailleurs
     document.addEventListener('click', () => {
         document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
     }, {signal:sig});
-
     // Contrôle calque GPX dans la strip
     const gpxLbl=$id('wct-gpx-layer-lbl');
     if(gpxLbl) gpxLbl.textContent=t('gpxLayerCtrl');
-
     // Onglets principaux
     ov.querySelectorAll('.wct-main-tab').forEach(tab=>{
         tab.addEventListener('click',()=>{
@@ -8611,7 +8486,6 @@ const connectOverlay=ov=>{
             if(tab.dataset.tab==='src'){ refreshSrcPartnerFilter(); refreshSrcFold(); }
         });
     });
-
     // Sous-onglets
     ov.querySelectorAll('.wct-tab').forEach(tab=>{
         tab.addEventListener('click',()=>{
@@ -8621,7 +8495,6 @@ const connectOverlay=ov=>{
             refreshSmallPreview();
         });
     });
-
     // Day chips
     ov.querySelectorAll('.wct-chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');refreshSmallPreview();}));
     const setDays=(...dows)=>{ov.querySelectorAll('.wct-chip').forEach(c=>c.classList.toggle('on',dows.includes(Number(c.dataset.dow))));refreshSmallPreview();};
@@ -8649,7 +8522,6 @@ const connectOverlay=ov=>{
         applyTimeMode();
     });
     applyTimeMode(); // Appliquer le mode mémorisé (ou 'end' par défaut) au rendu initial
-
     // ── Emoji picker ──
     const EMOJIS=[
         '🚧','🦺','🏗️','⛏️','🪵','🔨',
@@ -8718,7 +8590,6 @@ const connectOverlay=ov=>{
                 emojiPicker.style.display='none';
         }, {signal:sig});
     }
-
     // Badge J+N sur l'heure de fin (dynamique selon +Jours et heure de fin vs heure de début)
     const checkJpN=()=>{
         const extra=parseInt($id('wct-dur-day')?.value)||0;
@@ -8759,7 +8630,6 @@ const connectOverlay=ov=>{
     $id('wct-rangeend')?.addEventListener('change',refreshMTE);
     $id('wct-mte-refresh')?.addEventListener('click',()=>{ refreshMTE(); refreshSmallPreview(); });
     $id('wct-mtesel')?.addEventListener('change',refreshSmallPreview);
-
     // Onglet Recherche — checkboxes statut
     // Statuts proposés en filtre : uniquement ceux qu'un éditeur rencontre réellement.
     // Les autres (chevauchement, non vérifiée, erreur, inconnu) restent gérés en interne
@@ -8912,7 +8782,6 @@ const connectOverlay=ov=>{
     });
     $id('wct-nodesel')?.addEventListener('change',()=>{closeNodes=parseInt($id('wct-nodesel').value);save();});
     $id('wct-nodesel').value=String(closeNodes);
-
     // Checkboxes jours fériés — exclusivité mutuelle
     const holSkip=$id('wct-hol-skip'),holOnly=$id('wct-hol-only');
     if(holSkip&&holOnly){
@@ -8921,7 +8790,6 @@ const connectOverlay=ov=>{
         holOnly.addEventListener('change',()=>{if(holOnly.checked){holSkip.checked=false;if(holAdd)holAdd.checked=false;}refreshSmallPreview();});
         if(holAdd)holAdd.addEventListener('change',()=>{if(holAdd.checked){holSkip.checked=false;holOnly.checked=false;}refreshSmallPreview();});
     }
-
     // Valider
     $id('wct-btn-validate')?.addEventListener('click',async()=>{
         // \u2500\u2500\u2500 Cible = virages (envoyee depuis l'onglet Virages) \u2500\u2500\u2500
@@ -9009,7 +8877,6 @@ const connectOverlay=ov=>{
             else showToast(t('lotsAllDone'),4000,'#43a047');
         }
     });
-
     // Popup preset
     const popup=$id('wct-preset-popup'),nameInp=$id('wct-preset-name-input'),nameErr=$id('wct-preset-name-err');
     $id('wct-preset-save-btn')?.addEventListener('click',()=>{
@@ -9026,7 +8893,6 @@ const connectOverlay=ov=>{
         popup.style.display='none';nameInp.value='';
         showToast(t('presetSaved',name),2500,'#43a047');
     });
-
     // Aperçu live repliable. Délégué sur le conteneur : refreshSmallPreview reconstruit
     // son innerHTML à chaque frappe, un écouteur posé sur l'en-tête serait détruit aussitôt.
     $id('wct-small-prev')?.addEventListener('click',e=>{
@@ -9037,7 +8903,6 @@ const connectOverlay=ov=>{
         if(rows) rows.style.display=_prevCollapsed?'none':'';
         if(chev) chev.innerHTML=_prevCollapsed?'&#x25B6;':'&#x25BC;';
     });
-
     // File d'attente repliable
     $id('wct-queue-section-hdr')?.addEventListener('click',()=>{
         const body=$id('wct-queue-body');
@@ -9046,7 +8911,6 @@ const connectOverlay=ov=>{
         body.style.display=open?'none':'';
         if(chev) chev.innerHTML=open?'&#x25B6;':'&#x25BC;';
     });
-
     // Actions
     $id('wct-btn-clear')?.addEventListener('click',()=>{
         if(!confirm(t('confirmClear')))return;
@@ -9071,7 +8935,6 @@ const connectOverlay=ov=>{
     document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(_applyRunning) requestApplyAbort(); if(_sweepRunning) requestSweepAbort(); } },{capture:true,signal:sig});
     $id('wct-btn-export')?.addEventListener('click',exportCSV);
     $id('wct-btn-export-turn')?.addEventListener('click',exportTurnsCSV);
-
     // Drop zone CSV
     const dz=$id('wct-dropzone'),fi=$id('wct-file-input');
     dz?.addEventListener('click',e=>{if(e.target!==fi)fi?.click();});
@@ -9080,7 +8943,6 @@ const connectOverlay=ov=>{
     dz?.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--wct-green)';});
     dz?.addEventListener('dragleave',()=>{dz.style.borderColor='';});
     dz?.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';handleCSV(e.dataTransfer.files);});
-
     // Drop zone GPX
     const gpxDz=$id('wct-gpx-drop'),gpxFi=$id('wct-gpx-file');
     gpxDz?.addEventListener('click',e=>{if(e.target!==gpxFi)gpxFi?.click();});
@@ -9089,14 +8951,12 @@ const connectOverlay=ov=>{
     gpxDz?.addEventListener('dragover',e=>{e.preventDefault();gpxDz.classList.add('wct-drop-hover');});
     gpxDz?.addEventListener('dragleave',()=>{gpxDz.classList.remove('wct-drop-hover');});
     gpxDz?.addEventListener('drop',e=>{e.preventDefault();gpxDz.classList.remove('wct-drop-hover');traceHandleFiles(e.dataTransfer.files);});
-
     // Checkbox strip calque GPX
     $id('wct-gpx-layer-chk')?.addEventListener('change',e=>traceStripToggle(e.target.checked));
 
     const helpDiv=$id('wct-help-dynamic');if(helpDiv)helpDiv.innerHTML=buildHelpHTML();
     // Onglet aide — toujours accessible
     document.querySelector('.wct-main-tab[data-tab="help"]')?.classList.remove('disabled');
-
     // Accordéon aide
     document.querySelectorAll('.wct-help-hdr').forEach(hdr=>{
         hdr.addEventListener('click',()=>{
@@ -9111,7 +8971,6 @@ const connectOverlay=ov=>{
 
     renderPresetsTable();refreshMTE();refreshSmallPreview();renderQueue();
 };
-
 // Au-delà de ce total de segments cumulés, l'import CSV demande confirmation : le
 // parsing + la détection de conflits de sens sont synchrones (thread principal), donc
 // un très gros fichier peut figer l'onglet. Seuil volontairement haut : ~1000 segments
@@ -9149,12 +9008,69 @@ const parseCSV=text=>{
     return rows.map((r,i)=>({action:r[0],closure:new CsvClosure(r,i)}));
 };
 
+// ─── IMPORT DU CSV VIRAGES (format WCT) ─────────────────────────────────────
+// Colonnes (cf. TURN_CSV_HEADER, écrit par _turnsToCSV) :
+//  0 add-turn · 1 reason · 2 start · 3 end · 4 from segment id · 5 node id ·
+//  6 to segment id · 7 turn id · 8 ignore trafic · 9 MTE id · 10 lon/lat · 11 zoom · 12 comment
+const TURN_CSV_RE=[/^add-turn$/,/.*/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
+    /^\d+$/,/^\d+$/,/^\d+$/,/.*/,/^(Yes|No)$/,/.*/,
+    /(lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*))|(lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*))/,/^\d*$/,/.*/];
+const _parseLonLat=(s)=>{
+    const lon=/lon=(-?\d+\.?\d*)/.exec(s||''), lat=/lat=(-?\d+\.?\d*)/.exec(s||'');
+    return (lon&&lat) ? {lon:parseFloat(lon[1]), lat:parseFloat(lat[1])} : null;
+};
+// Rend {entries, errors} — une entrée de file par ligne, comme le fait l'import segments.
+const parseTurnCSV=(rows)=>{
+    const entries=[]; let errors=0, fb='';
+    rows.forEach((r,l)=>{
+        let ok=true;
+        TURN_CSV_RE.forEach((re,i)=>{ if(!re.test(r[i]??'')){ ok=false; fb+=`L${l} c${i}: "${r[i]??''}"\n`; } });
+        if(!ok){ errors++; return; }
+        const [,reason,start,end,fromS,nodeS,toS,turnId,it,mteId,lonlat]=r;
+        const ll=_parseLonLat(lonlat);
+        entries.push({
+            segIds:[], turnIds:[turnId],
+            // toSegId sert à RE-RÉSOUDRE le virage à l'application ; le turn id du fichier
+            // n'est qu'un raccourci, il ne résout plus si le carrefour a été retracé.
+            turnMeta:[{id:turnId, toSegId:Number(toS), to:String(toS), arrow:'•'}],
+            turnSegId:Number(fromS), turnNodeId:Number(nodeS),
+            // ⚠️ C'est POUR ÇA que le format stocke le lon/lat du nœud : à l'application,
+            // le segment n'est presque jamais chargé — sans ce point, impossible de
+            // recadrer, donc impossible de résoudre le virage, donc rien ne se pose.
+            turnLonLat:ll,
+            config:{reason, direction:'3', ignoretraffic:it==='Yes', mteId:mteId||'', partnerId:''},
+            closures:[{start,end}],
+            source:'turn',
+            label:reason||'CSV',
+            detail:`${fromS} → ${toS} · ${start.slice(0,16)} → ${end.slice(0,16)}`,
+            nullSegs:new Set(), recentSegs:new Set(),
+        });
+    });
+    if(fb) csvLog(fb);
+    return {entries, errors};
+};
+
 const handleCSV=files=>{
     for(const f of files){
         const r=new FileReader();
         r.onload=e=>{
             const logEl=$id('wct-csv-log');
             if(logEl) logEl.style.display='block';
+
+            // ─── Aiguillage : lignes « add-turn » = CSV Virages (format WCT) ───
+            // Sans ça, un fichier de virages ressortait « 0 fermeture ajoutée » SANS
+            // explication : parseCSV ne garde que add/remove et jetait tout en silence.
+            const brut=CSVtoArray(e.target.result);
+            const lignesTurn=brut.filter(x=>x.length>=1 && x[0]==='add-turn');
+            if(lignesTurn.length){
+                const {entries,errors}=parseTurnCSV(lignesTurn);
+                entries.forEach(x=>queue.push(x));
+                renderQueue();
+                if(logEl) logEl.innerHTML=t('csvTurnAdded',entries.length,errors);
+                // Un fichier mixte reste possible : on continue vers l'import segments.
+                if(!brut.some(x=>['add','remove'].includes(x[0]))) return;
+            }
+
             const items=parseCSV(e.target.result);
             if(!items){if(logEl)logEl.innerHTML='❌ CSV invalide.';return;}
             // Garde-fou volume : avertir avant d'ajouter un très gros lot (freeze possible).
@@ -9186,7 +9102,6 @@ const handleCSV=files=>{
         r.readAsText(f);
     }
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  FAB — bouton docké dans le container natif WME (4e bouton)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9196,7 +9111,6 @@ const handleCSV=files=>{
 
 const _findOverlayContainer=()=>document.querySelector('.overlay-buttons-container.top')
                              ||document.querySelector('.overlay-buttons-container');
-
 // ── Calque « Fermetures » de WME ─────────────────────────────────────────────
 // La détection de chevauchement (getExistingClosures) et l'affichage des fermetures
 // existantes n'ont de données QUE si le calque WME « Fermetures » est actif. Ni
@@ -9254,7 +9168,6 @@ const doInjectFab=()=>{
     // Docker le FAB dans le container natif WME (body en secours si pas encore prêt au boot)
     (_findOverlayContainer()||document.body).appendChild(wrap);
     log('FAB injecté (docké container natif)');
-
     // Clic : ouvrir / fermer l'overlay
     wzBtn.addEventListener('click', e=>{
         e.stopPropagation();
@@ -9278,7 +9191,6 @@ const doInjectFab=()=>{
         ov.classList.toggle('open',!isOpen);
     });
 };
-
 // Garantit que le FAB reste le DERNIER bouton du container natif. WME recrée certains
 // boutons à leur clic (ex. « partager la position ») et les ré-ajoute EN FIN, ce qui
 // faisait passer le FAB en avant-dernière position. On le remet donc toujours en fin —
@@ -9322,7 +9234,6 @@ const injectFab=()=>{
 
 
 
-
 // ─── Met à jour le FAB selon la sélection ──────────────────────────────────
 let _lastSelIds=[];
 const updateFab=()=>{
@@ -9345,10 +9256,8 @@ const updateFab=()=>{
     if(preTab) preTab.classList.toggle('disabled',!hasSeg);
     // Aide toujours accessible
     document.querySelector('.wct-main-tab[data-tab="help"]')?.classList.remove('disabled');
-
     // Boutons couverture (onglet Tracés) : visibles seulement si segments sélectionnés
     if(typeof traceUpdateCoverageBtns === 'function') traceUpdateCoverageBtns();
-
     // Si sélection change (nouveaux segments) → proposer de vider la file
     const newIds=JSON.stringify([...sel.ids].sort());
     const oldIds=JSON.stringify([..._lastSelIds].sort());
@@ -9381,7 +9290,6 @@ const updateFab=()=>{
     }
     _lastSelIds=[...sel.ids];
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  DISPLAY MODE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9404,7 +9312,6 @@ const applyDisplayMode=(mode)=>{
     }
     save();
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  LANGUE — bascule à chaud
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9435,7 +9342,6 @@ const setLang=pref=>{
     if(tab!=='cfg')ov.querySelector(`.wct-main-tab[data-tab="${tab}"]`)?.click();
     if(wasCollapsed){collapsed=true;ov.classList.add('collapsed');const b=$id('wct-btn-collapse');if(b)b.textContent='□';}
     if(wasOpen)ov.classList.add('open');
-
     // Ré-alimenter tout ce qui n'est rendu qu'à la demande
     reloadPresets(); renderPresetsTable(); renderQueue();
     traceRenderTable(); traceUpdateStripCtrl();
@@ -9448,7 +9354,6 @@ const setLang=pref=>{
     updateFab(); updateCountryInfo();
     renderSidebar();
 };
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  SIDEBAR (onglet Scripts — simple toggle)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9528,7 +9433,6 @@ const buildSidebar=()=>`
     </p>
 </div>`;
 
-
 // ===========================================================================
 //  INIT
 // ===========================================================================
@@ -9536,7 +9440,6 @@ const init=async()=>{
     sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME});
     load();                 // charge _langPref…
     _lang=resolveLang();    // …qui décide si on suit WME ou une langue forcée
-
     // Sidebar
     try {
         const res=await sdk.Sidebar.registerScriptTab();
@@ -9547,16 +9450,13 @@ const init=async()=>{
         await new Promise(r=>setTimeout(r,200));
         connectSidebar();
     } catch(e) { log('Sidebar: '+e.message); }
-
     // Overlay
     const ov=buildOverlay();
     connectOverlay(ov);
     // Appliquer le mode d'affichage sauvegardé
     applyDisplayMode(_displayMode);
-
     // FAB
     injectFab();
-
     // Source (partenaire) : sonder la capacité UNE fois, puis charger la liste de
     // l'emprise. Tout est asynchrone et sans blocage — si ça échoue, le sélecteur reste
     // grisé avec sa cause et le reste de WCT n'en sait rien.
@@ -9572,7 +9472,6 @@ const init=async()=>{
         if(_srcCap.ok) loadPartners().then(renderSourceSel);
         if($id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter();
     }}); }catch(e){ log('map-move-end non disponible: '+e.message); }
-
     // Selection listeners (+ on garantit que le FAB reste docké au container natif)
     // onSel tourne aussi en polling 500 ms : ne redessiner l'onglet Virages que si la
     // sélection a VRAIMENT changé, sinon on écraserait les cases cochées 2×/seconde.
@@ -9599,7 +9498,6 @@ const init=async()=>{
     try{W.selectionManager.events.register('selectionchanged',null,onSel);}catch(e){}
     setInterval(onSel,500);
     onSel();
-
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
     // le FAB étant docké dans le container natif, il suit le même empilement que les boutons WME.
 
