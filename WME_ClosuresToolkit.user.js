@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.84.01
+// @version      0.84.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -3799,104 +3799,80 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP que contenha, no mínimo, <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Recomenda-se um ficheiro <code>.prj</code> para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, assume-se WGS84.</p>
             <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um ficheiro é carregado — caixa de verificação global para mostrar/ocultar todas as camadas de uma só vez.</p>
             <p><b>Limitação:</b> apenas camada visual. Sem seleção automática de segmentos — a seleção continua a ser manual no WME.</p>` }) },
-        { id:'h9', title:t('helpH9'), body: _L({ fr:`
-            <p>Recherche les <b>fermetures déjà existantes</b> chargées dans la vue courante et sélectionne les segments correspondants. Utile pour retrouver toutes les fermetures d'un événement, ou vérifier ce qui est actif sur une période.</p>
+                { id:'h9', title:t('helpH9'), body: _L({ fr:`
+            <p>Retrouve les <b>fermetures déjà existantes</b> — de segment <i>et</i> de virage. Utile pour rassembler les fermetures d'un événement, vérifier ce qui est actif sur une période, ou <b>sauvegarder une zone</b> avant de la rejouer.</p>
             <table class="wct-help-table">
-            <tr><td><b>État</b></td><td>Cases à cocher des statuts de fermeture à inclure. <b>Tous</b> coche/décoche l'ensemble. Décocher une case décoche aussi Tous.</td></tr>
-            <tr><td><b>Fenêtre temporelle</b></td><td>Bornes optionnelles sur la date de début et de fin des fermetures. Une borne vide est ignorée. Toutes les bornes renseignées sont cumulées (ET).</td></tr>
-            <tr><td><b>Description contient</b></td><td>Filtre les fermetures dont le libellé contient le texte (insensible à la casse).</td></tr>
-            <tr><td><b>ET / OU</b></td><td>Combinaison entre Description et Événement MTE. <b>ET</b> : les deux doivent correspondre. <b>OU</b> : au moins un.</td></tr>
-            <tr><td><b>Événement MTE contient</b></td><td>Filtre par nom d'événement MTE (recherche « like », insensible à la casse). Ex : « Mans » remonte « 24H Le Mans », « LeMans Classic »…</td></tr>
-            <tr><td><b>Rechercher</b></td><td>Lance la recherche. Tous les segments trouvés sont sélectionnés sur la carte.</td></tr>
-            <tr><td><b>Effacer</b></td><td>Réinitialise tous les critères et les résultats.</td></tr>
-            <tr><td><b>\u2699 Basculer vers Configurer</b></td><td>Bascule vers l'onglet Configurer en conservant la sélection, pour enchaîner la création de fermetures.</td></tr>
-            <tr><td><b>\uD83C\uDFAF</b></td><td>Centre la carte sur le segment, positionné dans la zone visible à gauche de l'overlay.</td></tr>
-            <tr><td><b>Description</b></td><td>Libellé(s) de la ou des fermetures du segment. Plusieurs descriptions distinctes sont affichées l'une sous l'autre.</td></tr>
-            <tr><td><b>MTE</b></td><td>Nom de l'événement associé. Si l'événement n'est pas chargé en mémoire, seul son <b>identifiant</b> s'affiche (en orange) — ouvrez l'onglet Événements de WME pour charger les noms, puis relancez la recherche.</td></tr>
-            <tr><td><b>En-têtes de colonnes</b></td><td>Cliquez pour trier (croissant, puis décroissant au 2e clic).</td></tr>
+            <tr><td><b>Chercher quoi</b></td><td>Cibles <b>Segments</b> et/ou <b>Virages</b> (les deux par défaut) → deux blocs de résultats distincts.</td></tr>
+            <tr><td><b>Zone à chercher</b></td><td><b>Vue courante</b>, ou <b>5 / 20 / 50 km</b> autour du centre de la carte. La carte ne bouge pas. ⚠️ Au-delà de la vue, les <b>noms de rue</b> ne sont pas chargés (ils pèseraient des dizaines de Mo) : la colonne Rue affiche « — », mais l'ID du segment est complet et le 🎯 vous y emmène.</td></tr>
+            <tr><td><b>État</b></td><td>Statuts à inclure. <b>Tous</b> coche/décoche l'ensemble.</td></tr>
+            <tr><td><b>Fenêtre temporelle</b></td><td>Bornes optionnelles sur les dates de début et de fin, cumulées en ET. <b>Repliée par défaut</b> : c'est le filtre le moins courant.</td></tr>
+            <tr><td><b>Mots-clés / MTE</b></td><td>Texte contenu dans le libellé, et nom d'événement MTE. Le <b>ET / OU</b> ne relie que ces deux-là.</td></tr>
+            <tr><td><b>Source</b></td><td>Filtre par partenaire : <i>Tous</i>, <i>Aucun</i> (fermetures d'éditeur) ou un partenaire. La liste ne contient que les partenaires <b>présents dans les résultats chargés</b> — elle ne peut donc pas proposer un choix qui ne rendrait rien.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limites :</b> seules les fermetures <b>chargées dans la vue courante</b> sont analysées (dézoomez/recadrez pour élargir). Les segments référencés par une fermeture mais non chargés sont ignorés. La <b>suppression</b> de fermetures n'est pas possible (non exposée par le SDK WME).</p>`, en:`
-            <p>Searches <b>existing closures</b> loaded in the current view and selects the matching segments. Useful to find all closures of an event, or to check what is active over a period.</p>
+            <p style="margin-top:6px"><b>Sections repliables</b> — chaque en-tête se replie d'un clic, comme la File d'attente. ⚠️ Une section repliée dont le filtre est <b>actif</b> porte un point <span style="color:#e53935">●</span> : un filtre invisible qui écrème les résultats sans qu'on sache pourquoi serait pire que quelques pixels de trop.</p>
+            <p style="margin-top:6px"><b>Les résultats</b> : tableau triable (ID, rue, nombre de fermetures, état, description, Source, MTE). Les <b>virages trouvés</b> font apparaître un cercle « ruban de chantier » rouge et blanc sur la carte, autour de chaque carrefour. Le 🎯 recentre — même hors de la vue.</p>
+            <p style="margin-top:6px"><b>Exporter ce qu'on trouve</b> (≠ exporter la file) : les boutons sont sous chaque bloc de résultats — <i>CSV AC</i> pour les segments, <i>CSV Virages</i> pour les virages. La barre du bas, elle, ne parle que de la file d'attente. ⚠️ Ces exports produisent des lignes <code>add</code> : les réimporter <b>recrée</b> les fermetures. Le drapeau « nœuds fermés » ne peut pas être restitué (WME ne le relit pas).</p>`, en:`
+            <p>Finds <b>existing closures</b> — both segment <i>and</i> turn closures. Useful to gather an event's closures, check what is active over a period, or <b>save an area</b> before replaying it.</p>
             <table class="wct-help-table">
-            <tr><td><b>Status</b></td><td>Checkboxes for the closure statuses to include. <b>All</b> checks/unchecks everything. Unchecking one also unchecks All.</td></tr>
-            <tr><td><b>Time window</b></td><td>Optional bounds on closure start and end dates. An empty bound is ignored. All set bounds are combined (AND).</td></tr>
-            <tr><td><b>Description contains</b></td><td>Filters closures whose label contains the text (case-insensitive).</td></tr>
-            <tr><td><b>AND / OR</b></td><td>Combination between Description and MTE event. <b>AND</b>: both must match. <b>OR</b>: at least one.</td></tr>
-            <tr><td><b>MTE event contains</b></td><td>Filters by MTE event name ("like" search, case-insensitive). E.g. "Mans" matches "24H Le Mans", "LeMans Classic"…</td></tr>
-            <tr><td><b>Search</b></td><td>Runs the search. All found segments are selected on the map.</td></tr>
-            <tr><td><b>Clear</b></td><td>Resets all criteria and results.</td></tr>
-            <tr><td><b>\u2699 Switch to Configure</b></td><td>Switches to the Configure tab keeping the selection, to chain closure creation.</td></tr>
-            <tr><td><b>\uD83C\uDFAF</b></td><td>Centers the map on the segment, positioned in the visible area left of the overlay.</td></tr>
-            <tr><td><b>Description</b></td><td>Label(s) of the segment's closure(s). Multiple distinct descriptions are shown stacked.</td></tr>
-            <tr><td><b>MTE</b></td><td>Associated event name. If the event is not loaded in memory, only its <b>ID</b> is shown (in orange) — open the WME Events tab to load names, then run the search again.</td></tr>
-            <tr><td><b>Column headers</b></td><td>Click to sort (ascending, then descending on 2nd click).</td></tr>
+            <tr><td><b>What to search</b></td><td><b>Segments</b> and/or <b>Turns</b> targets (both by default) → two separate result blocks.</td></tr>
+            <tr><td><b>Area to search</b></td><td><b>Current view</b>, or <b>5 / 20 / 50 km</b> around the map centre. The map does not move. ⚠️ Past the view, <b>street names</b> are not loaded (they would weigh tens of MB): the Street column shows "—", but the segment ID is complete and 🎯 takes you there.</td></tr>
+            <tr><td><b>Status</b></td><td>Statuses to include. <b>All</b> ticks/unticks everything.</td></tr>
+            <tr><td><b>Time window</b></td><td>Optional bounds on start and end dates, combined with AND. <b>Collapsed by default</b>: it is the least common filter.</td></tr>
+            <tr><td><b>Keywords / MTE</b></td><td>Text in the description, and MTE event name. The <b>AND / OR</b> toggle only links those two.</td></tr>
+            <tr><td><b>Source</b></td><td>Filter by partner: <i>All</i>, <i>None</i> (editor closures) or a partner. The list only holds partners <b>present in the loaded results</b> — so it cannot offer a choice that would return nothing.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limits:</b> only closures <b>loaded in the current view</b> are analyzed (zoom out/pan to widen). Segments referenced by a closure but not loaded are ignored. Closure <b>deletion</b> is not possible (not exposed by the WME SDK).</p>`, de:`
-            <p>Durchsucht die <b>bereits bestehenden Sperrungen</b>, die in der aktuellen Ansicht geladen sind, und wählt die zugehörigen Segmente aus. Nützlich, um alle Sperrungen eines Ereignisses wiederzufinden oder zu prüfen, was in einem Zeitraum aktiv ist.</p>
+            <p style="margin-top:6px"><b>Collapsible sections</b> — each header folds with one click, like the Queue. ⚠️ A collapsed section whose filter is <b>active</b> carries a <span style="color:#e53935">●</span> dot: a hidden filter thinning your results without you knowing would be worse than a few pixels too many.</p>
+            <p style="margin-top:6px"><b>Results</b>: sortable table (ID, street, closure count, status, description, Source, MTE). <b>Turn results</b> draw a red-and-white "roadworks ribbon" ring on the map around each junction. 🎯 re-centres — even outside the view.</p>
+            <p style="margin-top:6px"><b>Export what you found</b> (≠ export the queue): the buttons sit under each result block — <i>CSV AC</i> for segments, <i>CSV Turns</i> for turns. The bottom bar keeps talking about the queue only. ⚠️ These exports produce <code>add</code> rows: re-importing them <b>recreates</b> the closures. The "closed nodes" flag cannot be restored (WME does not read it back).</p>`, de:`
+            <p>Findet <b>vorhandene Sperrungen</b> — Segment- <i>und</i> Abbiegersperrungen. Nützlich, um die Sperrungen eines Ereignisses zu sammeln, zu prüfen was in einem Zeitraum aktiv ist, oder ein <b>Gebiet zu sichern</b>, bevor man es erneut abspielt.</p>
             <table class="wct-help-table">
-            <tr><td><b>Status</b></td><td>Kontrollkästchen für die einzubeziehenden Sperrungsstatus. <b>Alle</b> setzt bzw. entfernt alle Häkchen. Wird ein einzelnes Häkchen entfernt, wird auch Alle abgewählt.</td></tr>
-            <tr><td><b>Zeitfenster</b></td><td>Optionale Grenzen für Beginn und Ende der Sperrungen. Eine leere Grenze wird ignoriert. Alle gesetzten Grenzen werden kombiniert (UND).</td></tr>
-            <tr><td><b>Beschreibung enthält</b></td><td>Filtert Sperrungen, deren Bezeichnung den Text enthält (Groß-/Kleinschreibung wird ignoriert).</td></tr>
-            <tr><td><b>UND / ODER</b></td><td>Verknüpfung von Beschreibung und MTE-Ereignis. <b>UND</b>: beide müssen passen. <b>ODER</b>: mindestens eines.</td></tr>
-            <tr><td><b>MTE-Ereignis enthält</b></td><td>Filtert nach dem Namen des MTE-Ereignisses („like“-Suche, Groß-/Kleinschreibung wird ignoriert). Beispiel: „Mans“ findet „24H Le Mans“, „LeMans Classic“…</td></tr>
-            <tr><td><b>Suchen</b></td><td>Startet die Suche. Alle gefundenen Segmente werden auf der Karte ausgewählt.</td></tr>
-            <tr><td><b>Zurücksetzen</b></td><td>Setzt alle Kriterien und Ergebnisse zurück.</td></tr>
-            <tr><td><b>⚙ Zu Einrichten wechseln</b></td><td>Wechselt unter Beibehaltung der Auswahl zum Reiter Einrichten, um direkt Sperrungen anzulegen.</td></tr>
-            <tr><td><b>🎯</b></td><td>Zentriert die Karte auf das Segment, versetzt in den sichtbaren Bereich links neben dem Overlay.</td></tr>
-            <tr><td><b>Beschreibung</b></td><td>Bezeichnung(en) der Sperrung(en) des Segments. Mehrere unterschiedliche Beschreibungen werden untereinander angezeigt.</td></tr>
-            <tr><td><b>MTE</b></td><td>Name des zugehörigen Ereignisses. Ist das Ereignis nicht im Speicher geladen, wird nur seine <b>ID</b> angezeigt (in Orange) — öffne den WME-Reiter Ereignisse, um die Namen zu laden, und starte die Suche erneut.</td></tr>
-            <tr><td><b>Spaltenköpfe</b></td><td>Zum Sortieren anklicken (aufsteigend, beim 2. Klick absteigend).</td></tr>
+            <tr><td><b>Wonach suchen</b></td><td>Ziele <b>Segmente</b> und/oder <b>Abbieger</b> (standardmäßig beides) → zwei getrennte Ergebnisblöcke.</td></tr>
+            <tr><td><b>Suchgebiet</b></td><td><b>Aktuelle Ansicht</b>, oder <b>5 / 20 / 50 km</b> um die Kartenmitte. Die Karte bewegt sich nicht. ⚠️ Jenseits der Ansicht werden <b>Straßennamen</b> nicht geladen (sie würden zig MB wiegen): die Spalte Straße zeigt „—“, aber die Segment-ID ist vollständig und 🎯 bringt dich hin.</td></tr>
+            <tr><td><b>Status</b></td><td>Einzubeziehende Status. <b>Alle</b> kreuzt alles an/ab.</td></tr>
+            <tr><td><b>Zeitfenster</b></td><td>Optionale Grenzen für Start- und Enddatum, mit UND verknüpft. <b>Standardmäßig eingeklappt</b>: der am seltensten genutzte Filter.</td></tr>
+            <tr><td><b>Stichwörter / MTE</b></td><td>Text in der Beschreibung und MTE-Ereignisname. Das <b>UND / ODER</b> verknüpft nur diese beiden.</td></tr>
+            <tr><td><b>Quelle</b></td><td>Nach Partner filtern: <i>Alle</i>, <i>Keiner</i> (Editor-Sperrungen) oder ein Partner. Die Liste enthält nur Partner, die <b>in den geladenen Ergebnissen vorkommen</b> — sie kann also keine Auswahl anbieten, die nichts liefert.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Grenzen:</b> Es werden nur die <b>in der aktuellen Ansicht geladenen</b> Sperrungen ausgewertet (herauszoomen/schwenken, um den Bereich zu erweitern). Segmente, auf die eine Sperrung verweist, die aber nicht geladen sind, werden übergangen. Das <b>Löschen</b> von Sperrungen ist nicht möglich (vom WME-SDK nicht bereitgestellt).</p>`, es:`
-            <p>Busca los <b>cierres ya existentes</b> cargados en la vista actual y selecciona los segmentos correspondientes. Útil para localizar todos los cierres de un evento o comprobar qué está activo durante un periodo.</p>
+            <p style="margin-top:6px"><b>Einklappbare Abschnitte</b> — jede Überschrift klappt mit einem Klick ein, wie die Warteschlange. ⚠️ Ein eingeklappter Abschnitt mit <b>aktivem</b> Filter trägt einen Punkt <span style="color:#e53935">●</span>: ein unsichtbarer Filter, der die Ergebnisse ausdünnt, ohne dass man es merkt, wäre schlimmer als ein paar Pixel zu viel.</p>
+            <p style="margin-top:6px"><b>Die Ergebnisse</b>: sortierbare Tabelle (ID, Straße, Anzahl Sperrungen, Status, Beschreibung, Quelle, MTE). <b>Gefundene Abbieger</b> lassen einen rot-weißen „Baustellenband“-Ring um jeden Knoten auf der Karte erscheinen. 🎯 zentriert — auch außerhalb der Ansicht.</p>
+            <p style="margin-top:6px"><b>Exportieren, was man findet</b> (≠ die Warteschlange exportieren): die Schaltflächen sitzen unter jedem Ergebnisblock — <i>CSV AC</i> für Segmente, <i>CSV Abbieger</i> für Abbieger. Die untere Leiste spricht weiterhin nur von der Warteschlange. ⚠️ Diese Exporte erzeugen <code>add</code>-Zeilen: sie wieder zu importieren <b>erstellt die Sperrungen neu</b>. Das Kennzeichen „gesperrte Knoten“ lässt sich nicht wiederherstellen (WME liest es nicht zurück).</p>`, es:`
+            <p>Encuentra los <b>cierres ya existentes</b> — de segmento <i>y</i> de giro. Útil para reunir los cierres de un evento, comprobar qué está activo en un periodo, o <b>guardar una zona</b> antes de repetirla.</p>
             <table class="wct-help-table">
-            <tr><td><b>Estado</b></td><td>Casillas de los estados de cierre que se incluyen. <b>Todos</b> marca o desmarca el conjunto. Al desmarcar una casilla, también se desmarca Todos.</td></tr>
-            <tr><td><b>Ventana temporal</b></td><td>Límites opcionales sobre la fecha de inicio y de fin de los cierres. Un límite vacío se ignora. Todos los límites indicados se acumulan (Y).</td></tr>
-            <tr><td><b>La descripción contiene</b></td><td>Filtra los cierres cuya descripción contiene el texto (sin distinguir mayúsculas).</td></tr>
-            <tr><td><b>Y / O</b></td><td>Combinación entre Descripción y evento MTE. <b>Y</b>: ambos deben coincidir. <b>O</b>: basta con uno.</td></tr>
-            <tr><td><b>El evento MTE contiene</b></td><td>Filtra por nombre de evento MTE (búsqueda tipo «like», sin distinguir mayúsculas). Ej.: «Mans» devuelve «24H Le Mans», «LeMans Classic»…</td></tr>
-            <tr><td><b>Buscar</b></td><td>Lanza la búsqueda. Todos los segmentos encontrados quedan seleccionados en el mapa.</td></tr>
-            <tr><td><b>Borrar</b></td><td>Restablece todos los criterios y los resultados.</td></tr>
-            <tr><td><b>⚙ Cambiar a Configurar</b></td><td>Cambia a la pestaña Configurar conservando la selección, para encadenar la creación de cierres.</td></tr>
-            <tr><td><b>🎯</b></td><td>Centra el mapa en el segmento, colocado en la zona visible a la izquierda del panel.</td></tr>
-            <tr><td><b>Descripción</b></td><td>Descripción o descripciones de los cierres del segmento. Varias descripciones distintas se muestran una debajo de otra.</td></tr>
-            <tr><td><b>MTE</b></td><td>Nombre del evento asociado. Si el evento no está cargado en memoria, solo se muestra su <b>ID</b> (en naranja) — abre la pestaña Eventos de WME para cargar los nombres y vuelve a lanzar la búsqueda.</td></tr>
-            <tr><td><b>Encabezados de columna</b></td><td>Haz clic para ordenar (ascendente y, al segundo clic, descendente).</td></tr>
+            <tr><td><b>Qué buscar</b></td><td>Objetivos <b>Segmentos</b> y/o <b>Giros</b> (ambos por defecto) → dos bloques de resultados distintos.</td></tr>
+            <tr><td><b>Zona a buscar</b></td><td><b>Vista actual</b>, o <b>5 / 20 / 50 km</b> alrededor del centro del mapa. El mapa no se mueve. ⚠️ Más allá de la vista, los <b>nombres de calle</b> no se cargan (pesarían decenas de MB): la columna Calle muestra «—», pero el ID del segmento está completo y 🎯 te lleva allí.</td></tr>
+            <tr><td><b>Estado</b></td><td>Estados a incluir. <b>Todos</b> marca/desmarca el conjunto.</td></tr>
+            <tr><td><b>Ventana temporal</b></td><td>Límites opcionales sobre las fechas de inicio y fin, combinados con Y. <b>Plegada por defecto</b>: es el filtro menos habitual.</td></tr>
+            <tr><td><b>Palabras clave / MTE</b></td><td>Texto contenido en la descripción, y nombre del evento MTE. El <b>Y / O</b> solo enlaza esos dos.</td></tr>
+            <tr><td><b>Fuente</b></td><td>Filtrar por socio: <i>Todos</i>, <i>Ninguno</i> (cierres de editor) o un socio. La lista solo contiene los socios <b>presentes en los resultados cargados</b>, así que no puede ofrecer una opción que no devuelva nada.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Límites:</b> solo se analizan los cierres <b>cargados en la vista actual</b> (aleja el zoom o desplaza el mapa para ampliarla). Los segmentos referenciados por un cierre pero no cargados se ignoran. <b>No es posible eliminar</b> cierres (el SDK de WME no lo permite).</p>`, 'pt-BR':`
-            <p>Busca os <b>bloqueios já existentes</b> carregados na visualização atual e seleciona os segmentos correspondentes. Útil para reencontrar todos os bloqueios de um evento ou verificar o que está ativo em um período.</p>
+            <p style="margin-top:6px"><b>Secciones plegables</b> — cada encabezado se pliega con un clic, como la Cola. ⚠️ Una sección plegada cuyo filtro está <b>activo</b> lleva un punto <span style="color:#e53935">●</span>: un filtro invisible que recorta los resultados sin que lo sepas sería peor que unos píxeles de más.</p>
+            <p style="margin-top:6px"><b>Los resultados</b>: tabla ordenable (ID, calle, número de cierres, estado, descripción, Fuente, MTE). Los <b>giros encontrados</b> hacen aparecer un círculo «cinta de obras» rojo y blanco en el mapa, alrededor de cada cruce. 🎯 centra — incluso fuera de la vista.</p>
+            <p style="margin-top:6px"><b>Exportar lo que se encuentra</b> (≠ exportar la cola): los botones están bajo cada bloque de resultados — <i>CSV AC</i> para los segmentos, <i>CSV Giros</i> para los giros. La barra inferior sigue hablando solo de la cola. ⚠️ Estas exportaciones producen líneas <code>add</code>: reimportarlas <b>recrea</b> los cierres. El indicador «nodos cerrados» no puede restaurarse (WME no lo relee).</p>`, 'pt-BR':`
+            <p>Encontra os <b>bloqueios já existentes</b> — de segmento <i>e</i> de conversão. Útil para reunir os bloqueios de um evento, verificar o que está ativo num período, ou <b>salvar uma área</b> antes de repeti-la.</p>
             <table class="wct-help-table">
-            <tr><td><b>Status</b></td><td>Caixas de seleção dos status de bloqueio a incluir. <b>Todos</b> marca/desmarca tudo. Desmarcar uma caixa também desmarca Todos.</td></tr>
-            <tr><td><b>Janela de tempo</b></td><td>Limites opcionais para as datas de início e de fim dos bloqueios. Um limite vazio é ignorado. Todos os limites informados são combinados (E).</td></tr>
-            <tr><td><b>Descrição contém</b></td><td>Filtra os bloqueios cujo rótulo contém o texto (sem diferenciar maiúsculas de minúsculas).</td></tr>
-            <tr><td><b>E / OU</b></td><td>Combinação entre Descrição e evento MTE. <b>E</b>: os dois devem corresponder. <b>OU</b>: basta um deles.</td></tr>
-            <tr><td><b>Evento MTE contém</b></td><td>Filtra pelo nome do evento MTE (busca do tipo "like", sem diferenciar maiúsculas de minúsculas). Ex.: "Mans" encontra "24H Le Mans", "LeMans Classic"…</td></tr>
-            <tr><td><b>Buscar</b></td><td>Executa a busca. Todos os segmentos encontrados são selecionados no mapa.</td></tr>
-            <tr><td><b>Limpar</b></td><td>Redefine todos os critérios e resultados.</td></tr>
-            <tr><td><b>⚙ Ir para Configurar</b></td><td>Vai para a aba Configurar mantendo a seleção, para já criar bloqueios em seguida.</td></tr>
-            <tr><td><b>🎯</b></td><td>Centraliza o mapa no segmento, posicionado na área visível à esquerda do painel.</td></tr>
-            <tr><td><b>Descrição</b></td><td>Rótulo(s) do(s) bloqueio(s) do segmento. Várias descrições distintas são exibidas uma abaixo da outra.</td></tr>
-            <tr><td><b>MTE</b></td><td>Nome do evento associado. Se o evento não estiver carregado na memória, apenas o <b>ID</b> é exibido (em laranja) — abra a aba Eventos do WME para carregar os nomes e refaça a busca.</td></tr>
-            <tr><td><b>Cabeçalhos de coluna</b></td><td>Clique para ordenar (crescente e, no 2º clique, decrescente).</td></tr>
+            <tr><td><b>O que pesquisar</b></td><td>Alvos <b>Segmentos</b> e/ou <b>Conversões</b> (ambos por padrão) → dois blocos de resultados distintos.</td></tr>
+            <tr><td><b>Área a pesquisar</b></td><td><b>Visualização atual</b>, ou <b>5 / 20 / 50 km</b> em torno do centro do mapa. O mapa não se move. ⚠️ Além da visualização, os <b>nomes de rua</b> não são carregados (pesariam dezenas de MB): a coluna Rua mostra «—», mas o ID do segmento está completo e o 🎯 leva você até lá.</td></tr>
+            <tr><td><b>Status</b></td><td>Status a incluir. <b>Todos</b> marca/desmarca o conjunto.</td></tr>
+            <tr><td><b>Janela temporal</b></td><td>Limites opcionais sobre as datas de início e fim, combinados com E. <b>Recolhida por padrão</b>: é o filtro menos usado.</td></tr>
+            <tr><td><b>Palavras-chave / MTE</b></td><td>Texto contido na descrição, e nome do evento MTE. O <b>E / OU</b> liga apenas esses dois.</td></tr>
+            <tr><td><b>Fonte</b></td><td>Filtrar por parceiro: <i>Todos</i>, <i>Nenhum</i> (bloqueios de editor) ou um parceiro. A lista só contém os parceiros <b>presentes nos resultados carregados</b> — portanto não pode oferecer uma escolha que não retorne nada.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limites:</b> somente os bloqueios <b>carregados na visualização atual</b> são analisados (afaste o zoom/mova o mapa para ampliar). Segmentos referenciados por um bloqueio mas não carregados são ignorados. A <b>exclusão</b> de bloqueios não é possível (não exposta pelo SDK do WME).</p>`, 'pt-PT':`
-            <p>Pesquisa os <b>cortes já existentes</b> carregados na vista atual e seleciona os segmentos correspondentes. Útil para encontrar todos os cortes de um evento ou para verificar o que está ativo num determinado período.</p>
+            <p style="margin-top:6px"><b>Seções recolhíveis</b> — cada cabeçalho recolhe com um clique, como a Fila. ⚠️ Uma seção recolhida cujo filtro está <b>ativo</b> exibe um ponto <span style="color:#e53935">●</span>: um filtro invisível que enxuga os resultados sem que você saiba seria pior do que alguns pixels a mais.</p>
+            <p style="margin-top:6px"><b>Os resultados</b>: tabela ordenável (ID, rua, número de bloqueios, status, descrição, Fonte, MTE). As <b>conversões encontradas</b> fazem aparecer um círculo «fita de obras» vermelho e branco no mapa, em torno de cada cruzamento. O 🎯 centraliza — mesmo fora da visualização.</p>
+            <p style="margin-top:6px"><b>Exportar o que se encontra</b> (≠ exportar a fila): os botões ficam sob cada bloco de resultados — <i>CSV AC</i> para os segmentos, <i>CSV Conversões</i> para as conversões. A barra inferior continua falando apenas da fila. ⚠️ Essas exportações produzem linhas <code>add</code>: reimportá-las <b>recria</b> os bloqueios. O indicador «nós bloqueados» não pode ser restaurado (o WME não o relê).</p>`, 'pt-PT':`
+            <p>Encontra os <b>cortes já existentes</b> — de segmento <i>e</i> de viragem. Útil para reunir os cortes de um evento, verificar o que está ativo num período, ou <b>guardar uma zona</b> antes de a repetir.</p>
             <table class="wct-help-table">
-            <tr><td><b>Estado</b></td><td>Caixas de verificação dos estados de corte a incluir. <b>Todos</b> marca/desmarca tudo. Desmarcar uma caixa desmarca também Todos.</td></tr>
-            <tr><td><b>Janela temporal</b></td><td>Limites opcionais para as datas de início e de fim dos cortes. Um limite vazio é ignorado. Todos os limites definidos são combinados (E).</td></tr>
-            <tr><td><b>Descrição contém</b></td><td>Filtra os cortes cuja designação contém o texto (sem distinguir maiúsculas de minúsculas).</td></tr>
-            <tr><td><b>E / OU</b></td><td>Combinação entre Descrição e evento MTE. <b>E</b>: ambos têm de corresponder. <b>OU</b>: pelo menos um.</td></tr>
-            <tr><td><b>Evento MTE contém</b></td><td>Filtra pelo nome do evento MTE (pesquisa do tipo «like», sem distinguir maiúsculas de minúsculas). Ex.: «Mans» encontra «24H Le Mans», «LeMans Classic»…</td></tr>
-            <tr><td><b>Pesquisar</b></td><td>Executa a pesquisa. Todos os segmentos encontrados são selecionados no mapa.</td></tr>
-            <tr><td><b>Limpar</b></td><td>Repõe todos os critérios e resultados.</td></tr>
-            <tr><td><b>⚙ Mudar para Configurar</b></td><td>Muda para o separador Configurar mantendo a seleção, para criar cortes de seguida.</td></tr>
-            <tr><td><b>🎯</b></td><td>Centra o mapa no segmento, posicionado na área visível à esquerda do painel.</td></tr>
-            <tr><td><b>Descrição</b></td><td>Designação(ões) do(s) corte(s) do segmento. Várias descrições distintas são apresentadas umas por baixo das outras.</td></tr>
-            <tr><td><b>MTE</b></td><td>Nome do evento associado. Se o evento não estiver carregado em memória, apenas é apresentado o seu <b>ID</b> (a laranja) — abra o separador Eventos do WME para carregar os nomes e repita a pesquisa.</td></tr>
-            <tr><td><b>Cabeçalhos das colunas</b></td><td>Clique para ordenar (ascendente e, no 2.º clique, descendente).</td></tr>
+            <tr><td><b>O que pesquisar</b></td><td>Alvos <b>Segmentos</b> e/ou <b>Viragens</b> (ambos por omissão) → dois blocos de resultados distintos.</td></tr>
+            <tr><td><b>Área a pesquisar</b></td><td><b>Vista atual</b>, ou <b>5 / 20 / 50 km</b> em redor do centro do mapa. O mapa não se move. ⚠️ Para além da vista, os <b>nomes de rua</b> não são carregados (pesariam dezenas de MB): a coluna Rua mostra «—», mas o ID do segmento está completo e o 🎯 leva-te lá.</td></tr>
+            <tr><td><b>Estado</b></td><td>Estados a incluir. <b>Todos</b> marca/desmarca o conjunto.</td></tr>
+            <tr><td><b>Janela temporal</b></td><td>Limites opcionais sobre as datas de início e fim, combinados com E. <b>Recolhida por omissão</b>: é o filtro menos usado.</td></tr>
+            <tr><td><b>Palavras-chave / MTE</b></td><td>Texto contido na descrição, e nome do evento MTE. O <b>E / OU</b> liga apenas esses dois.</td></tr>
+            <tr><td><b>Fonte</b></td><td>Filtrar por parceiro: <i>Todos</i>, <i>Nenhum</i> (cortes de editor) ou um parceiro. A lista só contém os parceiros <b>presentes nos resultados carregados</b> — por isso não pode oferecer uma escolha que não devolva nada.</td></tr>
             </table>
-            <p style="margin-top:6px"><b>Limites:</b> apenas são analisados os cortes <b>carregados na vista atual</b> (afaste o zoom/desloque o mapa para alargar). Os segmentos referenciados por um corte mas não carregados são ignorados. A <b>eliminação</b> de cortes não é possível (não é disponibilizada pelo SDK do WME).</p>` }) },
-        { id:'h10', title:t('helpH10'), body: _L({ fr:`
+            <p style="margin-top:6px"><b>Secções recolhíveis</b> — cada cabeçalho recolhe com um clique, como a Fila. ⚠️ Uma secção recolhida cujo filtro está <b>ativo</b> apresenta um ponto <span style="color:#e53935">●</span>: um filtro invisível que corta os resultados sem que saibas seria pior do que alguns pixels a mais.</p>
+            <p style="margin-top:6px"><b>Os resultados</b>: tabela ordenável (ID, rua, número de cortes, estado, descrição, Fonte, MTE). As <b>viragens encontradas</b> fazem aparecer um círculo «fita de obras» vermelho e branco no mapa, em redor de cada cruzamento. O 🎯 centra — mesmo fora da vista.</p>
+            <p style="margin-top:6px"><b>Exportar o que se encontra</b> (≠ exportar a fila): os botões ficam sob cada bloco de resultados — <i>CSV AC</i> para os segmentos, <i>CSV Viragens</i> para as viragens. A barra inferior continua a falar apenas da fila. ⚠️ Estas exportações produzem linhas <code>add</code>: reimportá-las <b>recria</b> os cortes. O indicador «nós cortados» não pode ser reposto (o WME não o relê).</p>` }) },
+{ id:'h10', title:t('helpH10'), body: _L({ fr:`
             <p>Une trace qui dépasse une vue (~4,5 km) est automatiquement <b>découpée en lots</b>, affichés en sous-lignes sous la trace. On les traite un par un :</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Sélectionne les segments du lot — la carte se déplace pour tout charger (c'est normal) — puis bascule sur <b>Configurer</b>.</td></tr>
