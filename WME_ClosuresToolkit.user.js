@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.82.00
+// @version      0.82.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1257,7 +1257,7 @@ const t = (key, ...args) => {
             mteRefresh:'\u21BB',
             mteRefreshTip:'Recharger les MTE depuis l\u2019onglet \u00C9v\u00E9nements WME',
             mteNone:'— Aucun MTE —',
-            mteEmpty:'Ouvrez l\u2019onglet \u00C9v\u00E9nements WME puis cliquez \u21BB',
+            mteEmpty:'— Aucun MTE chargé —',
             lblNodes:'Fermetures aux n\u0153uds',
             nodeNone:'Aucune (□—□—□—□)', nodeInner:'Intérieures (□—■—■—□)', nodeAll:'Toutes (■—■—■—■)',
             lblIT:'Ignorer le trafic',
@@ -1638,7 +1638,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             mteRefresh:'\u21BB',
             mteRefreshTip:'Reload MTEs from WME Events tab',
             mteNone:'— No MTE —',
-            mteEmpty:'Open WME Events tab then click \u21BB',
+            mteEmpty:'— No MTE loaded —',
             lblNodes:'Node closures',
             nodeNone:'None (□—□—□—□)', nodeInner:'Inner nodes (□—■—■—□)', nodeAll:'All (■—■—■—■)',
             lblIT:'Ignore traffic',
@@ -2012,7 +2012,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             mteRefresh:'\u21BB',
             mteRefreshTip:'MTEs aus dem WME-Reiter Ereignisse neu laden',
             mteNone:'\u2014 Kein MTE \u2014',
-            mteEmpty:'\u00D6ffne den WME-Reiter Ereignisse und klicke dann \u21BB',
+            mteEmpty:'— Kein MTE geladen —',
             lblNodes:'Knotensperrungen',
             nodeNone:'Keine (\u25A1\u2014\u25A1\u2014\u25A1\u2014\u25A1)', nodeInner:'Innere Knoten (\u25A1\u2014\u25A0\u2014\u25A0\u2014\u25A1)', nodeAll:'Alle (\u25A0\u2014\u25A0\u2014\u25A0\u2014\u25A0)',
             lblIT:'Verkehr ignorieren',
@@ -2385,7 +2385,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             mteRefresh:'↻',
             mteRefreshTip:'Recargar los MTE desde la pestaña Eventos de WME',
             mteNone:'— Sin MTE —',
-            mteEmpty:'Abre la pestaña Eventos de WME y haz clic en ↻',
+            mteEmpty:'— Sin MTE cargado —',
             lblNodes:'Cierres en los nodos',
             nodeNone:'Ninguno (□—□—□—□)', nodeInner:'Nodos interiores (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
             lblIT:'Ignorar el tráfico',
@@ -2758,7 +2758,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             mteRefresh:'↻',
             mteRefreshTip:'Recarregar os MTEs da aba Eventos do WME',
             mteNone:'— Sem MTE —',
-            mteEmpty:'Abra a aba Eventos do WME e clique em ↻',
+            mteEmpty:'— Nenhum MTE carregado —',
             lblNodes:'Bloqueios nos nós',
             nodeNone:'Nenhum (□—□—□—□)', nodeInner:'Nós internos (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
             lblIT:'Ignorar o tráfego',
@@ -3131,7 +3131,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             mteRefresh:'↻',
             mteRefreshTip:'Recarregar os MTE a partir do separador Eventos do WME',
             mteNone:'— Sem MTE —',
-            mteEmpty:'Abra o separador Eventos do WME e clique em ↻',
+            mteEmpty:'— Nenhum MTE carregado —',
             lblNodes:'Cortes nos nós',
             nodeNone:'Nenhum (□—□—□—□)', nodeInner:'Nós interiores (□—■—■—□)', nodeAll:'Todos (■—■—■—■)',
             lblIT:'Ignorar o trânsito',
