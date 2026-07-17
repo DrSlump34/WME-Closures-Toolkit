@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.82.01
+// @version      0.83.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -672,6 +672,12 @@ GM_addStyle(`
 .wct-src-status-cb { display:flex; align-items:center; gap:3px; font-size:0.75em; cursor:pointer; white-space:nowrap; }
 .wct-src-status-cb input { margin:0; cursor:pointer; }
 /* Résultats */
+/* Sections repliables du volet Recherche */
+.wct-src-fold { cursor:pointer; user-select:none; display:flex; align-items:center; gap:5px; }
+.wct-src-fold:hover { color:var(--wct-blue); }
+.wct-src-chev { margin-left:auto; font-size:0.9em; flex-shrink:0; }
+/* ● = un filtre est actif dans cette section, même repliée. */
+.wct-src-mark { color:var(--wct-red,#e53935); font-size:0.9em; line-height:1; }
 .wct-src-results-hdr { font-size:0.833em; font-weight:600; color:#880e4f; margin:8px 0 4px; }
 .wct-src-results-hdr-turn { color:#6a1b9a; margin-top:14px; }
 .wct-src-tgt-grid { display:flex; flex-wrap:wrap; gap:3px 14px; margin-top:3px; }
@@ -1135,6 +1141,8 @@ const t = (key, ...args) => {
             srcNoResults:'Aucun segment trouv\u00E9 avec ces crit\u00E8res.',
             // Recherche : cibles segments / virages
             srcSectionTarget:'\uD83C\uDFAF Chercher quoi', srcTgtSeg:'Segments', srcTgtTurn:'Virages',
+            srcTipTime:'Filtrer sur les dates de début et de fin des fermetures. Bornes facultatives, combinées en ET. Repliée par défaut : c’est le filtre le moins courant.',
+            srcSecActive:'Un filtre est actif dans cette section.',
             srcTipTarget:'Choisir ce que la recherche doit remonter. Les deux par d\u00E9faut.',
             srcPickTarget:'\u26A0 Coche au moins une cible : Segments ou Virages.',
             srcResultsSeg: n => `${n} segment(s) avec fermeture`,
@@ -1523,6 +1531,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcNoResults:'No segments found matching these criteria.',
             // Search: segment / turn targets
             srcSectionTarget:'\uD83C\uDFAF What to search', srcTgtSeg:'Segments', srcTgtTurn:'Turns',
+            srcTipTime:'Filter on the closures’ start and end dates. Bounds are optional and combined with AND. Collapsed by default: it is the least common filter.',
+            srcSecActive:'A filter is active in this section.',
             srcTipTarget:'Choose what the search should return. Both by default.',
             srcPickTarget:'\u26A0 Check at least one target: Segments or Turns.',
             srcResultsSeg: n => `${n} segment(s) with a closure`,
@@ -1897,6 +1907,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcNoResults:'Keine Segmente gefunden, die diesen Kriterien entsprechen.',
             // Suche: Ziele Segmente / Abbieger
             srcSectionTarget:'\uD83C\uDFAF Wonach suchen', srcTgtSeg:'Segmente', srcTgtTurn:'Abbieger',
+            srcTipTime:'Nach Start- und Enddatum der Sperrungen filtern. Grenzen optional, mit UND verknüpft. Standardmäßig eingeklappt: der am seltensten genutzte Filter.',
+            srcSecActive:'In diesem Abschnitt ist ein Filter aktiv.',
             srcTipTarget:'W\u00E4hle, was die Suche liefern soll. Standardm\u00E4\u00DFig beides.',
             srcPickTarget:'\u26A0 Kreuze mindestens ein Ziel an: Segmente oder Abbieger.',
             srcResultsSeg: n => `${n} Segment(e) mit Sperrung`,
@@ -2270,6 +2282,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcNoResults:'No se ha encontrado ningún segmento con estos criterios.',
             // Busqueda: objetivos segmentos / giros
             srcSectionTarget:'\uD83C\uDFAF Qu\u00E9 buscar', srcTgtSeg:'Segmentos', srcTgtTurn:'Giros',
+            srcTipTime:'Filtrar por las fechas de inicio y fin de los cierres. Límites opcionales, combinados con Y. Plegada por defecto: es el filtro menos habitual.',
+            srcSecActive:'Hay un filtro activo en esta sección.',
             srcTipTarget:'Elige qu\u00E9 debe devolver la b\u00FAsqueda. Ambos por defecto.',
             srcPickTarget:'\u26A0 Marca al menos un objetivo: Segmentos o Giros.',
             srcResultsSeg: n => `${n} segmento(s) con cierre`,
@@ -2643,6 +2657,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcNoResults:'Nenhum segmento encontrado com esses critérios.',
             // Pesquisa: alvos segmentos / conversoes
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Convers\u00F5es',
+            srcTipTime:'Filtrar pelas datas de início e fim dos bloqueios. Limites opcionais, combinados com E. Recolhida por padrão: é o filtro menos usado.',
+            srcSecActive:'Há um filtro ativo nesta seção.',
             srcTipTarget:'Escolha o que a pesquisa deve retornar. Ambos por padr\u00E3o.',
             srcPickTarget:'\u26A0 Marque pelo menos um alvo: Segmentos ou Convers\u00F5es.',
             srcResultsSeg: n => `${n} segmento(s) com bloqueio`,
@@ -3016,6 +3032,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcNoResults:'Nenhum segmento corresponde a estes critérios.',
             // Pesquisa: alvos segmentos / viragens
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Viragens',
+            srcTipTime:'Filtrar pelas datas de início e fim dos cortes. Limites opcionais, combinados com E. Recolhida por omissão: é o filtro menos usado.',
+            srcSecActive:'Há um filtro ativo nesta secção.',
             srcTipTarget:'Escolhe o que a pesquisa deve devolver. Ambos por omiss\u00E3o.',
             srcPickTarget:'\u26A0 Marca pelo menos um alvo: Segmentos ou Viragens.',
             srcResultsSeg: n => `${n} segmento(s) com corte`,
@@ -5027,6 +5045,46 @@ const _srcPartnerMatch = (provider, want) => {
     if(!want) return true;
     if(want===SRC_PARTNER_NONE) return provider===null;
     return provider===want;
+};
+
+// ─── Sections repliables du volet Recherche ────────────────────────────────
+// État en variable (survit aux re-rendus, se remet à neuf au rechargement — c'est un
+// formulaire de filtres, repartir propre est le bon défaut).
+// « time » est replié d'origine : c'est le plus gros bloc (108 px pour 4 champs de
+// date) et le moins utilisé. Le reste est ouvert.
+let _srcFold = { tgt:false, status:false, time:true, kw:false, mte:false, partner:false };
+
+// Un filtre est-il actif dans cette section ? Sert au marqueur ● : une section repliée
+// dont le filtre écrème les résultats DOIT le dire, sinon on cherche sans comprendre.
+const _srcSecActive = (sec) => {
+    try{
+        switch(sec){
+            case 'tgt':     return !($id('wct-src-tgt-seg')?.checked && $id('wct-src-tgt-turn')?.checked);
+            case 'status':  { const it=[...document.querySelectorAll('.wct-src-status-item')];
+                              return it.length>0 && it.some(cb=>!cb.checked); }
+            case 'time':    return ['wct-src-start-after','wct-src-start-before','wct-src-end-after','wct-src-end-before']
+                                     .some(id=>!!$id(id)?.value);
+            case 'kw':      return !!($id('wct-src-desc')?.value||'').trim();
+            case 'mte':     return !!($id('wct-src-mte')?.value||'').trim();
+            case 'partner': return !!$id('wct-src-partner')?.value;
+        }
+    }catch(e){}
+    return false;
+};
+const refreshSrcFold = () => {
+    document.querySelectorAll('#wct-pane-src .wct-src-fold').forEach(h=>{
+        const sec=h.dataset.sec, replie=!!_srcFold[sec];
+        const body=document.querySelector(`#wct-pane-src .wct-src-secbody[data-sec="${sec}"]`);
+        if(body) body.style.display=replie?'none':'';
+        const chev=h.querySelector('.wct-src-chev');
+        if(chev) chev.innerHTML=replie?'&#x25B6;':'&#x25BC;';
+        const mark=h.querySelector('.wct-src-mark');
+        if(mark){
+            const actif=_srcSecActive(sec);
+            mark.textContent=actif?'●':'';
+            mark.title=actif?t('srcSecActive'):'';
+        }
+    });
 };
 
 // Résultats retenus, pour l'export « de ce qu'on trouve » (≠ export de la file).
@@ -7790,24 +7848,31 @@ const buildOverlay=()=>{
       </div>
 
       <!-- ONGLET RECHERCHE -->
+      <!-- ONGLET RECHERCHE — sections repliables.
+           Le volet est un FORMULAIRE DE FILTRES : la plupart des champs restent vides.
+           Chaque section se replie donc via son en-tête (même geste que la File d'attente
+           et l'aperçu). ⚠️ RÈGLE : une section repliée dont le filtre est ACTIF porte un
+           point ● — un filtre invisible qui écrème les résultats sans qu'on sache
+           pourquoi serait pire que quelques pixels de trop.
+           (L'ancien srcHint « Segments portant des fermetures… » a été retiré : il était
+           devenu FAUX depuis que la recherche trouve aussi les virages, et il faisait
+           doublon avec la note srcViewOnly affichée sous les résultats.) -->
       <div id="wct-pane-src" class="wct-main-pane">
-        <p class="wct-src-hint">${t('srcHint')}</p>
-
-        <div class="wct-src-section" title="${t('srcTipTarget')}">${t('srcSectionTarget')}</div>
-        <div class="wct-src-tgt-grid" title="${t('srcTipTarget')}">
+        <div class="wct-src-section wct-src-fold" data-sec="tgt" title="${t('srcTipTarget')}">${t('srcSectionTarget')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="tgt"><div class="wct-src-tgt-grid" title="${t('srcTipTarget')}">
           <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-seg" checked> <span>${TARGET_ICON.seg} ${t('srcTgtSeg')}</span></label>
           <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-turn" checked> <span>${TARGET_ICON.turn} ${t('srcTgtTurn')}</span></label>
-        </div>
+        </div></div>
 
-        <div class="wct-src-section" title="${t('srcTipStatus')}">${t('srcSectionStatus')}</div>
-        <div class="wct-src-status-grid" id="wct-src-status-grid">
+        <div class="wct-src-section wct-src-fold" data-sec="status" title="${t('srcTipStatus')}">${t('srcSectionStatus')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="status"><div class="wct-src-status-grid" id="wct-src-status-grid">
           <label class="wct-src-status-cb" title="${t('srcTipStatus')}">
             <input type="checkbox" id="wct-src-status-all" checked> <span>${t('srcStatusAll')}</span>
           </label>
-        </div>
+        </div></div>
 
-        <div class="wct-src-section">${t('srcSectionTime')}</div>
-        <div class="wct-src-grid2">
+        <div class="wct-src-section wct-src-fold" data-sec="time" title="${t('srcTipTime')}">${t('srcSectionTime')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="time"><div class="wct-src-grid2">
           <div>
             <label class="wct-label" title="${t('srcTipStartAfter')}">${t('srcLblStartAfter')}</label>
             <input id="wct-src-start-after" class="wct-input" type="date" title="${t('srcTipStartAfter')}">
@@ -7824,19 +7889,18 @@ const buildOverlay=()=>{
             <label class="wct-label" title="${t('srcTipEndBefore')}">${t('srcLblEndBefore')}</label>
             <input id="wct-src-end-before" class="wct-input" type="date" title="${t('srcTipEndBefore')}">
           </div>
-        </div>
+        </div></div>
 
-        <div class="wct-src-section" title="${t('srcTipDesc')}">${t('srcSectionKeywords')}</div>
-        <div>
-          <label class="wct-label" title="${t('srcTipDesc')}">${t('srcLblDesc')}</label>
-          <input id="wct-src-desc" class="wct-input" type="text" placeholder="…" style="width:100%" title="${t('srcTipDesc')}">
+        <div class="wct-src-section wct-src-fold" data-sec="kw" title="${t('srcTipDesc')}">${t('srcSectionKeywords')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="kw">
+          <input id="wct-src-desc" class="wct-input" type="text" placeholder="${escHtml(t('srcLblDesc'))}" style="width:100%" title="${t('srcTipDesc')}">
         </div>
 
         <!-- MTE : section a part entiere, au meme niveau que Mots-cles et Source.
              Le bascule ET/OU vit ICI car il ne relie que Description et MTE : la Source
              est un filtre d'identite (liste fermee), le ET/OU ne s'y applique pas. -->
-        <div class="wct-src-section" title="${t('srcTipMte')}">${t('srcSectionMte')}</div>
-        <div style="margin-bottom:3px">
+        <div class="wct-src-section wct-src-fold" data-sec="mte" title="${t('srcTipMte')}">${t('srcSectionMte')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="mte" style="margin-bottom:3px">
           <div class="wct-src-andor-wrap" style="margin-bottom:3px" title="${t('srcTipAndOr')}">
             <div class="wct-src-andor-toggle">
               <button class="wct-src-andor-btn on" id="wct-src-and" title="${t('srcTipAndOr')}">${t('srcBtnAnd')}</button>
@@ -7844,14 +7908,16 @@ const buildOverlay=()=>{
             </div>
             <span class="wct-src-andor-lbl" style="font-size:0.75em;color:var(--wct-text2)">${t('srcTipAndOrLbl')}</span>
           </div>
-          <input id="wct-src-mte" class="wct-input" type="text" placeholder="…" style="width:100%" title="${t('srcTipMte')}">
+          <input id="wct-src-mte" class="wct-input" type="text" placeholder="${escHtml(t('srcLblMte'))}" style="width:100%" title="${t('srcTipMte')}">
         </div>
 
-        <div class="wct-src-section" title="${t('srcTipPartner')}">${t('srcSectionPartner')}</div>
-        <select id="wct-src-partner" class="wct-select" title="${t('srcTipPartner')}">
-          <option value="">${t('srcPartnerAll')}</option>
-        </select>
-        <div id="wct-src-partner-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px"></div>
+        <div class="wct-src-section wct-src-fold" data-sec="partner" title="${t('srcTipPartner')}">${t('srcSectionPartner')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
+        <div class="wct-src-secbody" data-sec="partner">
+          <select id="wct-src-partner" class="wct-select" title="${t('srcTipPartner')}">
+            <option value="">${t('srcPartnerAll')}</option>
+          </select>
+          <div id="wct-src-partner-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px"></div>
+        </div>
 
         <div class="wct-btn-row" style="margin-top:8px">
           <button id="wct-src-run"   class="wct-btn wct-btn-primary" style="flex:3;justify-content:center" title="${t('srcTipSearch')}">${t('srcBtnSearch')}</button>
@@ -8346,7 +8412,7 @@ const connectOverlay=ov=>{
             if(tab.dataset.tab==='turn') renderTurnsPane();
             // La liste du filtre partenaire est bâtie sur les fermetures chargées :
             // la rafraîchir à l'ouverture de l'onglet, la vue a pu bouger depuis.
-            if(tab.dataset.tab==='src') refreshSrcPartnerFilter();
+            if(tab.dataset.tab==='src'){ refreshSrcPartnerFilter(); refreshSrcFold(); }
         });
     });
 
@@ -8532,6 +8598,19 @@ const connectOverlay=ov=>{
             if(cbAll) cbAll.checked=allChecked;
         });
     }
+    // Sections repliables de la Recherche + marqueur ● de filtre actif.
+    // Délégué sur le volet : les en-têtes ne sont pas reconstruits, mais ça reste
+    // robuste si ça change, et un seul écouteur suffit pour les 6 sections.
+    $id('wct-pane-src')?.addEventListener('click',e=>{
+        const h=e.target.closest('.wct-src-fold');
+        if(!h) return;
+        _srcFold[h.dataset.sec]=!_srcFold[h.dataset.sec];
+        refreshSrcFold();
+    });
+    // Le marqueur doit suivre la saisie : un filtre posé puis replié DOIT rester signalé.
+    $id('wct-pane-src')?.addEventListener('input', refreshSrcFold);
+    $id('wct-pane-src')?.addEventListener('change', refreshSrcFold);
+
     $id('wct-src-run')?.addEventListener('click',runSearch);
     $id('wct-src-clear')?.addEventListener('click',()=>{
         ['wct-src-start-after','wct-src-start-before','wct-src-end-after','wct-src-end-before'].forEach(id=>{const el=$id(id);if(el)el.value='';});
@@ -8546,6 +8625,8 @@ const connectOverlay=ov=>{
         const res=$id('wct-src-results');if(res)res.innerHTML='';
         // Les cercles décrivent un résultat qui n'existe plus.
         _srcClearRings(); _srcFoundSegs=null; _srcFoundTurns=null;
+        // Plus aucun filtre actif : les marqueurs ● doivent s'éteindre.
+        refreshSrcFold();
     });
     $id('wct-src-go-cfg')?.addEventListener('click',()=>{
         // Délai pour laisser WME traiter la sélection avant de switcher l'onglet
