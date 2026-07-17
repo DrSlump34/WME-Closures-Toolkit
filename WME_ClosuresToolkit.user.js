@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.85.00
+// @version      0.85.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1364,6 +1364,7 @@ const t = (key, ...args) => {
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             tipCenter:'Centrer sur ce segment',
+            centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
             tipPresetSaveBtn:'Sauvegarder en pr\u00E9r\u00E9glage',
             errDateStart:'Date de d\u00E9but invalide',
             errDateEnd:'Date de fin avant date de d\u00E9but',
@@ -1758,6 +1759,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             defaultClosure:'Closure',
             selectAll:'Select all',
             tipCenter:'Center on this segment',
+            centerUnavailable: sid => `Cannot centre on segment ${sid}: it is not loaded and no coordinate is available.`,
             tipPresetSaveBtn:'Save as preset',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} segment(s) excluded \u2014 incompatible direction. They will not be processed. Click to download details.`,
@@ -2142,6 +2144,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultClosure:'Sperrung',
             selectAll:'Alle ausw\u00E4hlen',
             tipCenter:'Auf dieses Segment zentrieren',
+            centerUnavailable: sid => `Zentrieren auf Segment ${sid} nicht möglich: es ist nicht geladen und es liegt keine Koordinate vor.`,
             tipPresetSaveBtn:'Als Vorlage speichern',
             // Ausgeschlossene Segmente (Richtungskonflikt)
             exclWarnTitle: n => `${n} Segment(e) ausgeschlossen \u2014 unpassende Fahrtrichtung. Sie werden nicht verarbeitet. F\u00FCr Details klicken.`,
@@ -2525,6 +2528,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultClosure:'Cierre',
             selectAll:'Seleccionar todo',
             tipCenter:'Centrar en este segmento',
+            centerUnavailable: sid => `Imposible centrar en el segmento ${sid}: no está cargado y no hay ninguna coordenada disponible.`,
             tipPresetSaveBtn:'Guardar como preajuste',
             // Segmentos excluidos (conflicto de sentido)
             exclWarnTitle: n => `${n} segmento(s) excluido(s) — sentido incompatible. No se procesarán. Haz clic para descargar el detalle.`,
@@ -2908,6 +2912,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             defaultClosure:'Bloqueio',
             selectAll:'Selecionar tudo',
             tipCenter:'Centralizar neste segmento',
+            centerUnavailable: sid => `Impossível centralizar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Salvar como predefinição',
             // Segmentos excluídos (conflito de sentido)
             exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para baixar os detalhes.`,
@@ -3291,6 +3296,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             defaultClosure:'Corte',
             selectAll:'Selecionar tudo',
             tipCenter:'Centrar neste segmento',
+            centerUnavailable: sid => `Impossível centrar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Guardar como predefinição',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para transferir os detalhes.`,
@@ -5376,7 +5382,10 @@ const _srcBlockSegments=(resEl,F,zone)=>{
                         pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
                         W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),17);
                     }catch(err){ log('centrage zone: '+err.message); }
+                    return;
                 }
+                // Ne jamais rester muet : un bouton qui ne fait rien passe pour cassé.
+                showToast(t('centerUnavailable',row.sid),3500,'#f57c00');
             });
             tbody.appendChild(tr);
         });
@@ -5525,15 +5534,16 @@ const _srcBlockTurns=(resEl,F,zone)=>{
                 e.stopPropagation();
                 const nid=Number(e.currentTarget.dataset.node), sid=Number(e.currentTarget.dataset.sid);
                 const p=_segEndAt(sid,nid);
-                // ⚠️ sdk.Map.setMapCenter ne recentre PAS quand un segment est sélectionné
-                // (constaté en live) — passer par OpenLayers.
                 if(p?.at){
                     try{
                         const pt=new OpenLayers.Geometry.Point(p.at[0],p.at[1]);
                         pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
                         W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),18);
-                    }catch(err){}
+                    }catch(err){ log('centrage virage: '+err.message); }
+                    return;
                 }
+                // Segment du virage non chargé : le dire plutôt que de rester muet.
+                showToast(t('centerUnavailable',sid),3500,'#f57c00');
             });
             tbody.appendChild(tr);
         });
@@ -8370,7 +8380,21 @@ const buildQueueCard=(entry,idx)=>{
                 const sid=Number(e.target.dataset.sid);
                 const seg=getSegById(sid);
                 const coords=_getSegCoords(seg);
-                if(coords) centerOnSegmentBbox(coords);
+                if(coords){ centerOnSegmentBbox(coords); return; }
+                // ⚠️ Segment ABSENT du modèle — cas normal après un import CSV : le fichier
+                // vient d'une autre zone, rien n'y est chargé. Sans ce repli, le 🎯 ne
+                // faisait RIEN et sans le dire. Le lon/lat du nœud est justement dans le
+                // CSV : c'est pour ça qu'il y est.
+                if(entry.turnLonLat){
+                    try{
+                        const pt=new OpenLayers.Geometry.Point(entry.turnLonLat.lon,entry.turnLonLat.lat);
+                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
+                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),17);
+                    }catch(err){ log('centrage file: '+err.message); }
+                    return;
+                }
+                // Ni segment chargé ni coordonnée : le dire plutôt que de rester muet.
+                showToast(t('centerUnavailable',sid),3500,'#f57c00');
             });
             // Supprimer la ligne (poubelle)
             tr.querySelector('.wct-row-del')?.addEventListener('click',e=>{
