@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.84.00
+// @version      0.84.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -383,6 +383,14 @@ GM_addStyle(`
 /* Progress bar */
 .wct-pb-wrap { background: #e0e0e0; border-radius: 50px; height: 6px; overflow: hidden; margin-top: 6px; display: none; }
 .wct-pb-fill { height: 100%; background: var(--wct-blue); border-radius: 50px; transition: width .2s; width: 0%; }
+/* Barre INDÉTERMINÉE (recherche par zone). Une seule requête, aucun événement de
+   progression : une barre qui irait de 0 à 100 % serait une animation mensongère.
+   Celle-ci dit « ça travaille », pas « on en est à 40 % ». */
+.wct-src-busy { background:#e0e0e0; border-radius:50px; height:4px; overflow:hidden; margin:6px 0; position:relative; }
+.wct-src-busy::after { content:''; position:absolute; left:0; top:0; height:100%; width:40%;
+    background:var(--wct-blue); border-radius:50px; animation:wct-slide 1.1s ease-in-out infinite; }
+@keyframes wct-slide { 0%{left:-40%} 100%{left:100%} }
+#wct-overlay.wct-compact .wct-src-busy, #wct-overlay.wct-compact .wct-src-busy::after { border-radius:0; }
 .wct-pb-text { font-size: 0.833em; text-align: center; margin-top: 2px; color: var(--wct-text2); }
 
 /* Preview table */
@@ -1137,6 +1145,8 @@ const t = (key, ...args) => {
             srcLblDesc:'Description contient', srcLblMte:'\u00C9v\u00E9nement MTE contient',
             srcBtnAnd:'ET', srcBtnOr:'OU',
             srcBtnSearch:'Rechercher',
+            srcBtnSearching:'\u23F3 Recherche\u2026',
+            srcLoadingZone: km => `Recherche sur ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Effacer',
             srcNoResults:'Aucun segment trouv\u00E9 avec ces crit\u00E8res.',
             // Recherche : cibles segments / virages
@@ -1535,6 +1545,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcLblDesc:'Description contains', srcLblMte:'MTE event contains',
             srcBtnAnd:'AND', srcBtnOr:'OR',
             srcBtnSearch:'Search',
+            srcBtnSearching:'\u23F3 Searching\u2026',
+            srcLoadingZone: km => `Searching over ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Clear',
             srcNoResults:'No segments found matching these criteria.',
             // Search: segment / turn targets
@@ -1919,6 +1931,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcLblDesc:'Beschreibung enth\u00E4lt', srcLblMte:'MTE-Ereignis enth\u00E4lt',
             srcBtnAnd:'UND', srcBtnOr:'ODER',
             srcBtnSearch:'Suchen',
+            srcBtnSearching:'\u23F3 Suche\u2026',
+            srcLoadingZone: km => `Suche \u00FCber ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Zur\u00FCcksetzen',
             srcNoResults:'Keine Segmente gefunden, die diesen Kriterien entsprechen.',
             // Suche: Ziele Segmente / Abbieger
@@ -2302,6 +2316,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcLblDesc:'La descripción contiene', srcLblMte:'El evento MTE contiene',
             srcBtnAnd:'Y', srcBtnOr:'O',
             srcBtnSearch:'Buscar',
+            srcBtnSearching:'\u23F3 Buscando\u2026',
+            srcLoadingZone: km => `Buscando en ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Borrar',
             srcNoResults:'No se ha encontrado ningún segmento con estos criterios.',
             // Busqueda: objetivos segmentos / giros
@@ -2685,6 +2701,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcLblDesc:'Descrição contém', srcLblMte:'Evento MTE contém',
             srcBtnAnd:'E', srcBtnOr:'OU',
             srcBtnSearch:'Buscar',
+            srcBtnSearching:'\u23F3 Pesquisando\u2026',
+            srcLoadingZone: km => `Pesquisando em ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Limpar',
             srcNoResults:'Nenhum segmento encontrado com esses critérios.',
             // Pesquisa: alvos segmentos / conversoes
@@ -3068,6 +3086,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcLblDesc:'Descrição contém', srcLblMte:'Evento MTE contém',
             srcBtnAnd:'E', srcBtnOr:'OU',
             srcBtnSearch:'Pesquisar',
+            srcBtnSearching:'\u23F3 A pesquisar\u2026',
+            srcLoadingZone: km => `A pesquisar em ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Limpar',
             srcNoResults:'Nenhum segmento corresponde a estes critérios.',
             // Pesquisa: alvos segmentos / viragens
@@ -5207,12 +5227,31 @@ const refreshSrcFold = () => {
 let _srcFoundSegs  = null;   // Map(sid -> {closures:[]})
 let _srcFoundTurns = null;   // [{tc, fromSegId, toSegId, nodeId, turnId, arrow}]
 
+// Garde contre le double clic : une recherche par zone dure jusqu'à ~2 s, et rien
+// n'empêchait d'en relancer une par-dessus — deux réponses se seraient écrasées.
+let _srcRunning=false;
+const _srcBusy=(on,km)=>{
+    _srcRunning=on;
+    const b=$id('wct-src-run');
+    if(b){
+        b.disabled=on;
+        b.classList.toggle('wct-btn-dis',on);
+        b.textContent = on ? t('srcBtnSearching') : t('srcBtnSearch');
+    }
+    const res=$id('wct-src-results');
+    if(on && res){
+        // Barre indéterminée + le PÉRIMÈTRE cherché : « Recherche… » seul n'apprend rien.
+        res.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">`
+            + escHtml(km>0 ? t('srcLoadingZone',km) : t('srcLoading')) + `</p><div class="wct-src-busy"></div>`;
+    }
+};
+
 const runSearch=async()=>{
     const resEl=$id('wct-src-results');
     if(!resEl) return;
+    if(_srcRunning) return;                 // déjà en cours : ignorer le clic
     _srcClearRings();
     _srcFoundSegs=null; _srcFoundTurns=null;
-    resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcLoading')}</p>`;
 
     const wantSeg  = $id('wct-src-tgt-seg')?.checked;
     const wantTurn = $id('wct-src-tgt-turn')?.checked;
@@ -5221,19 +5260,25 @@ const runSearch=async()=>{
         return;
     }
     const F=_srcReadFilters();
+    _srcBusy(true,F.zoneKm);
 
     // ─── Source des fermetures : vue courante (modèle) ou zone (API Features) ───
     // ⚠️ En cas d'échec de l'API on RETOMBE sur la vue courante en le DISANT. Rendre
     // silencieusement 12 fermetures au lieu de 300 ferait croire à une zone vide.
     let zone=null;
-    if(F.zoneKm>0){
-        zone=await fetchZoneClosures(F.zoneKm);
-        if(!zone.ok){
-            log('recherche zone: '+zone.erreur);
-            showToast(t('srcZoneFail',zone.erreur),5000,'#e53935');
-            F.zoneKm=0; zone=null;
-            const sel=$id('wct-src-zone'); if(sel) sel.value='0';
+    try{
+        if(F.zoneKm>0){
+            zone=await fetchZoneClosures(F.zoneKm);
+            if(!zone.ok){
+                log('recherche zone: '+zone.erreur);
+                showToast(t('srcZoneFail',zone.erreur),5000,'#e53935');
+                F.zoneKm=0; zone=null;
+                const sel=$id('wct-src-zone'); if(sel) sel.value='0';
+            }
         }
+    } finally {
+        // Toujours réarmer : sinon une erreur laisserait le bouton grisé pour de bon.
+        _srcBusy(false,0);
     }
     resEl.innerHTML='';
 
