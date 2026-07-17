@@ -6,7 +6,7 @@
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.83.00
+// @version      0.84.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1143,6 +1143,14 @@ const t = (key, ...args) => {
             srcSectionTarget:'\uD83C\uDFAF Chercher quoi', srcTgtSeg:'Segments', srcTgtTurn:'Virages',
             srcTipTime:'Filtrer sur les dates de début et de fin des fermetures. Bornes facultatives, combinées en ET. Repliée par défaut : c’est le filtre le moins courant.',
             srcSecActive:'Un filtre est actif dans cette section.',
+            // Recherche par zone (API Features, hors SDK, lecture seule)
+            srcLblZone:'Zone \u00E0 chercher', srcZoneView:'Vue courante',
+            srcZoneKm: n => `${n} \u00D7 ${n} km autour du centre`,
+            srcTipZone:'\u00C9tendre la recherche au-del\u00E0 de la vue, sans d\u00E9placer la carte. \u26A0\uFE0F Au-del\u00E0 de la vue courante, les NOMS DE RUE ne sont pas charg\u00E9s (ils p\u00E8seraient plusieurs dizaines de Mo) : la colonne Rue affiche \u2014 et le \uD83C\uDFAF recadre pour aller voir.',
+            srcZoneHint:'\u26A0\uFE0F Zone \u00E9largie : les noms de rue ne seront pas affich\u00E9s (l\u2019ID du segment, lui, est complet).',
+            srcZoneNote: km => `\u2139\uFE0F R\u00E9sultats sur ${km} \u00D7 ${km} km autour du centre de la carte. Noms de rue non charg\u00E9s : cliquez \uD83C\uDFAF pour aller voir.`,
+            srcZoneFail: e => `\u274C Recherche par zone impossible (${e}) \u2014 repli sur la vue courante.`,
+            srcNameOffView:'Segment hors de la vue : son nom n\u2019est pas charg\u00E9. Cliquez \uD83C\uDFAF pour y aller.',
             srcTipTarget:'Choisir ce que la recherche doit remonter. Les deux par d\u00E9faut.',
             srcPickTarget:'\u26A0 Coche au moins une cible : Segments ou Virages.',
             srcResultsSeg: n => `${n} segment(s) avec fermeture`,
@@ -1533,6 +1541,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSectionTarget:'\uD83C\uDFAF What to search', srcTgtSeg:'Segments', srcTgtTurn:'Turns',
             srcTipTime:'Filter on the closures’ start and end dates. Bounds are optional and combined with AND. Collapsed by default: it is the least common filter.',
             srcSecActive:'A filter is active in this section.',
+            // Zone search (Features API, outside the SDK, read-only)
+            srcLblZone:'Area to search', srcZoneView:'Current view',
+            srcZoneKm: n => `${n} \u00D7 ${n} km around the centre`,
+            srcTipZone:'Extend the search beyond the view, without moving the map. \u26A0\uFE0F Past the current view, STREET NAMES are not loaded (they would weigh tens of MB): the Street column shows \u2014 and \uD83C\uDFAF re-centres so you can go and look.',
+            srcZoneHint:'\u26A0\uFE0F Wider area: street names will not be shown (the segment ID is complete though).',
+            srcZoneNote: km => `\u2139\uFE0F Results over ${km} \u00D7 ${km} km around the map centre. Street names not loaded: click \uD83C\uDFAF to go and look.`,
+            srcZoneFail: e => `\u274C Area search failed (${e}) \u2014 falling back to the current view.`,
+            srcNameOffView:'Segment outside the view: its name is not loaded. Click \uD83C\uDFAF to go there.',
             srcTipTarget:'Choose what the search should return. Both by default.',
             srcPickTarget:'\u26A0 Check at least one target: Segments or Turns.',
             srcResultsSeg: n => `${n} segment(s) with a closure`,
@@ -1909,6 +1925,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSectionTarget:'\uD83C\uDFAF Wonach suchen', srcTgtSeg:'Segmente', srcTgtTurn:'Abbieger',
             srcTipTime:'Nach Start- und Enddatum der Sperrungen filtern. Grenzen optional, mit UND verknüpft. Standardmäßig eingeklappt: der am seltensten genutzte Filter.',
             srcSecActive:'In diesem Abschnitt ist ein Filter aktiv.',
+            // Gebietssuche (Features-API, ausserhalb des SDK, nur lesend)
+            srcLblZone:'Suchgebiet', srcZoneView:'Aktuelle Ansicht',
+            srcZoneKm: n => `${n} \u00D7 ${n} km um die Mitte`,
+            srcTipZone:'Die Suche \u00FCber die Ansicht hinaus ausweiten, ohne die Karte zu bewegen. \u26A0\uFE0F Jenseits der aktuellen Ansicht werden STRASSENNAMEN nicht geladen (sie w\u00FCrden zig MB wiegen): die Spalte Stra\u00DFe zeigt \u2014, und \uD83C\uDFAF zentriert zum Nachsehen.',
+            srcZoneHint:'\u26A0\uFE0F Gr\u00F6\u00DFeres Gebiet: Stra\u00DFennamen werden nicht angezeigt (die Segment-ID hingegen schon).',
+            srcZoneNote: km => `\u2139\uFE0F Ergebnisse \u00FCber ${km} \u00D7 ${km} km um die Kartenmitte. Stra\u00DFennamen nicht geladen: auf \uD83C\uDFAF klicken, um nachzusehen.`,
+            srcZoneFail: e => `\u274C Gebietssuche fehlgeschlagen (${e}) \u2014 zur\u00FCck zur aktuellen Ansicht.`,
+            srcNameOffView:'Segment au\u00DFerhalb der Ansicht: sein Name ist nicht geladen. Auf \uD83C\uDFAF klicken, um hinzugehen.',
             srcTipTarget:'W\u00E4hle, was die Suche liefern soll. Standardm\u00E4\u00DFig beides.',
             srcPickTarget:'\u26A0 Kreuze mindestens ein Ziel an: Segmente oder Abbieger.',
             srcResultsSeg: n => `${n} Segment(e) mit Sperrung`,
@@ -2284,6 +2308,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSectionTarget:'\uD83C\uDFAF Qu\u00E9 buscar', srcTgtSeg:'Segmentos', srcTgtTurn:'Giros',
             srcTipTime:'Filtrar por las fechas de inicio y fin de los cierres. Límites opcionales, combinados con Y. Plegada por defecto: es el filtro menos habitual.',
             srcSecActive:'Hay un filtro activo en esta sección.',
+            // Busqueda por zona (API Features, fuera del SDK, solo lectura)
+            srcLblZone:'Zona a buscar', srcZoneView:'Vista actual',
+            srcZoneKm: n => `${n} \u00D7 ${n} km alrededor del centro`,
+            srcTipZone:'Ampliar la b\u00FAsqueda m\u00E1s all\u00E1 de la vista, sin mover el mapa. \u26A0\uFE0F M\u00E1s all\u00E1 de la vista actual, los NOMBRES DE CALLE no se cargan (pesar\u00EDan decenas de MB): la columna Calle muestra \u2014 y \uD83C\uDFAF centra para ir a verlo.',
+            srcZoneHint:'\u26A0\uFE0F Zona ampliada: no se mostrar\u00E1n los nombres de calle (el ID del segmento s\u00ED est\u00E1 completo).',
+            srcZoneNote: km => `\u2139\uFE0F Resultados sobre ${km} \u00D7 ${km} km alrededor del centro del mapa. Nombres de calle no cargados: pulsa \uD83C\uDFAF para ir a verlo.`,
+            srcZoneFail: e => `\u274C B\u00FAsqueda por zona imposible (${e}) \u2014 se vuelve a la vista actual.`,
+            srcNameOffView:'Segmento fuera de la vista: su nombre no est\u00E1 cargado. Pulsa \uD83C\uDFAF para ir all\u00ED.',
             srcTipTarget:'Elige qu\u00E9 debe devolver la b\u00FAsqueda. Ambos por defecto.',
             srcPickTarget:'\u26A0 Marca al menos un objetivo: Segmentos o Giros.',
             srcResultsSeg: n => `${n} segmento(s) con cierre`,
@@ -2659,6 +2691,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Convers\u00F5es',
             srcTipTime:'Filtrar pelas datas de início e fim dos bloqueios. Limites opcionais, combinados com E. Recolhida por padrão: é o filtro menos usado.',
             srcSecActive:'Há um filtro ativo nesta seção.',
+            // Pesquisa por zona (API Features, fora do SDK, somente leitura)
+            srcLblZone:'\u00C1rea a pesquisar', srcZoneView:'Visualiza\u00E7\u00E3o atual',
+            srcZoneKm: n => `${n} \u00D7 ${n} km em torno do centro`,
+            srcTipZone:'Ampliar a pesquisa para al\u00E9m da visualiza\u00E7\u00E3o, sem mover o mapa. \u26A0\uFE0F Al\u00E9m da visualiza\u00E7\u00E3o atual, os NOMES DE RUA n\u00E3o s\u00E3o carregados (pesariam dezenas de MB): a coluna Rua mostra \u2014 e o \uD83C\uDFAF centraliza para ir ver.',
+            srcZoneHint:'\u26A0\uFE0F \u00C1rea ampliada: os nomes de rua n\u00E3o ser\u00E3o exibidos (o ID do segmento, sim, est\u00E1 completo).',
+            srcZoneNote: km => `\u2139\uFE0F Resultados em ${km} \u00D7 ${km} km ao redor do centro do mapa. Nomes de rua n\u00E3o carregados: clique em \uD83C\uDFAF para ir ver.`,
+            srcZoneFail: e => `\u274C Pesquisa por zona imposs\u00EDvel (${e}) \u2014 voltando \u00E0 visualiza\u00E7\u00E3o atual.`,
+            srcNameOffView:'Segmento fora da visualiza\u00E7\u00E3o: o nome n\u00E3o est\u00E1 carregado. Clique em \uD83C\uDFAF para ir at\u00E9 l\u00E1.',
             srcTipTarget:'Escolha o que a pesquisa deve retornar. Ambos por padr\u00E3o.',
             srcPickTarget:'\u26A0 Marque pelo menos um alvo: Segmentos ou Convers\u00F5es.',
             srcResultsSeg: n => `${n} segmento(s) com bloqueio`,
@@ -3034,6 +3074,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Viragens',
             srcTipTime:'Filtrar pelas datas de início e fim dos cortes. Limites opcionais, combinados com E. Recolhida por omissão: é o filtro menos usado.',
             srcSecActive:'Há um filtro ativo nesta secção.',
+            // Pesquisa por zona (API Features, fora do SDK, apenas leitura)
+            srcLblZone:'\u00C1rea a pesquisar', srcZoneView:'Vista atual',
+            srcZoneKm: n => `${n} \u00D7 ${n} km em torno do centro`,
+            srcTipZone:'Alargar a pesquisa para al\u00E9m da vista, sem mover o mapa. \u26A0\uFE0F Para al\u00E9m da vista atual, os NOMES DE RUA n\u00E3o s\u00E3o carregados (pesariam dezenas de MB): a coluna Rua mostra \u2014 e o \uD83C\uDFAF centra para ires ver.',
+            srcZoneHint:'\u26A0\uFE0F \u00C1rea alargada: os nomes de rua n\u00E3o ser\u00E3o apresentados (o ID do segmento, esse, est\u00E1 completo).',
+            srcZoneNote: km => `\u2139\uFE0F Resultados em ${km} \u00D7 ${km} km em redor do centro do mapa. Nomes de rua n\u00E3o carregados: clica em \uD83C\uDFAF para ires ver.`,
+            srcZoneFail: e => `\u274C Pesquisa por zona imposs\u00EDvel (${e}) \u2014 a voltar \u00E0 vista atual.`,
+            srcNameOffView:'Segmento fora da vista: o nome n\u00E3o est\u00E1 carregado. Clica em \uD83C\uDFAF para l\u00E1 ires.',
             srcTipTarget:'Escolhe o que a pesquisa deve devolver. Ambos por omiss\u00E3o.',
             srcPickTarget:'\u26A0 Marca pelo menos um alvo: Segmentos ou Viragens.',
             srcResultsSeg: n => `${n} segmento(s) com corte`,
@@ -4957,6 +5005,8 @@ const _srcReadFilters=()=>{
         // Filtre partenaire : '' tous · '__none__' éditeur · nom exact. Appliqué à part
         // du bloc desc/MTE (ET implicite), car c'est un critère d'identité, pas un mot-clé.
         partner    : $id('wct-src-partner')?.value||'',
+        // Zone : 0 = vue courante (modèle/SDK) · >0 = km, via l'API Features.
+        zoneKm     : Number($id('wct-src-zone')?.value||0),
     };
 };
 // Cache des noms MTE (lookup SDK coûteux). {name, resolved} ; resolved=false ⇒ MTE non chargé.
@@ -5047,6 +5097,71 @@ const _srcPartnerMatch = (provider, want) => {
     return provider===want;
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  RECHERCHE PAR ZONE (au-delà de la vue courante)
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ HORS SDK, comme la Source — mais en LECTURE SEULE, donc bien moins risqué.
+//
+// La limite « WME ne charge qu'une vue à la fois » est une contrainte du MODÈLE
+// CLIENT, pas du serveur : l'API Features est bbox-dépendante et répond large.
+// MESURÉ le 2026-07-17 (Le Mans) : 100×100 km = 773 fermetures en 2,3 s, une seule
+// requête, sans bouger la carte. → NE PAS réintroduire un balayage de vues.
+//
+// ⚠️ Le coût, c'est le NOM DE RUE : les segments n'arrivent qu'avec `roadTypes`, et
+// c'est ce qui pèse (8,7 Mo à 25 km, 16,9 Mo à 50 km, ~60 Mo à 100 km). On ne les
+// demande donc PAS : hors de la vue, on affiche l'ID du segment et le 🎯 recadre.
+// Pour « sauvegarder une zone », c'est l'ID qu'on réimporte, pas le nom.
+const ZONE_KM = [0, 5, 20, 50];       // 0 = vue courante
+const _zoneBbox = (km) => {
+    const c = sdk.Map.getMapCenter();
+    const dLat = (km/2)/110.574;
+    const dLon = (km/2)/(111.32*Math.cos(c.lat*Math.PI/180));
+    return [c.lon-dLon, c.lat-dLat, c.lon+dLon, c.lat+dLat].map(x=>x.toFixed(6)).join(',');
+};
+// Adaptateur API → forme SDK. ⚠️ INDISPENSABLE : les deux formes ne partagent
+// presque aucun nom de champ (segID/segmentId, reason/description,
+// closureStatus/status, eventId/trafficEventId…). Sans lui, _srcMatch ne filtrerait
+// rien et échouerait EN SILENCE.
+// Bonus : `provider` arrive directement dans la réponse — pas besoin du modèle.
+const _apiToClosure = (o) => ({
+    id: o.id,
+    segmentId: o.segID,
+    description: o.reason,
+    status: o.closureStatus,
+    startDate: o.startDate,
+    endDate: o.endDate,
+    isForward: o.forward,
+    isPermanent: o.permanent,
+    trafficEventId: o.eventId || null,
+    _provider: (typeof o.provider === 'string' && o.provider.trim()) ? o.provider : null,
+    _fromSegID: o.fromSegID, _toSegID: o.toSegID, _closureType: o.closureType,
+    // Geometrie de la fermeture (LineString [lon,lat]) — presente sur 242/242 en test.
+    // C'est elle qui permet au 🎯 de recadrer sur un segment ABSENT du modele.
+    _geom: (o.geometry && Array.isArray(o.geometry.coordinates) && o.geometry.coordinates.length)
+             ? o.geometry.coordinates : null,
+});
+// Récupère les fermetures d'une zone. Rend {ok, closures, turns, erreur}.
+const fetchZoneClosures = async (km) => {
+    try{
+        const bbox = _zoneBbox(km);
+        // zoomLevel : purement indicatif pour le serveur, on ne charge pas de segments.
+        const z = km<=5 ? 15 : km<=20 ? 13 : 12;
+        const url = `/${_wmeEnv()}-Descartes/app/Features?bbox=${bbox}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
+        const r = await fetch(url, {credentials:'include'});
+        if(!r.ok) return {ok:false, erreur:'HTTP '+r.status};
+        const j = await r.json();
+        const rc = j?.roadClosures?.objects;
+        if(!Array.isArray(rc)) return {ok:false, erreur:'forme inattendue'};
+        // ⚠️ NON VÉRIFIÉ : aucune fermeture de virage n'a jamais pu être observée dans
+        // une réponse Features. La clé turnClosures existe ; les objets de roadClosures
+        // portent aussi un closureType ("SEGMENT"). On couvre les deux hypothèses.
+        const tc = Array.isArray(j?.turnClosures?.objects) ? j.turnClosures.objects : [];
+        const tousSeg  = rc.filter(o=>o.closureType!=='TURN').map(_apiToClosure);
+        const tousTurn = [...tc, ...rc.filter(o=>o.closureType==='TURN')].map(_apiToClosure);
+        return {ok:true, closures:tousSeg, turns:tousTurn};
+    }catch(e){ return {ok:false, erreur:e.message.slice(0,80)}; }
+};
+
 // ─── Sections repliables du volet Recherche ────────────────────────────────
 // État en variable (survit aux re-rendus, se remet à neuf au rechargement — c'est un
 // formulaire de filtres, repartir propre est le bon défaut).
@@ -5059,7 +5174,8 @@ let _srcFold = { tgt:false, status:false, time:true, kw:false, mte:false, partne
 const _srcSecActive = (sec) => {
     try{
         switch(sec){
-            case 'tgt':     return !($id('wct-src-tgt-seg')?.checked && $id('wct-src-tgt-turn')?.checked);
+            case 'tgt':     return !($id('wct-src-tgt-seg')?.checked && $id('wct-src-tgt-turn')?.checked)
+                                || Number($id('wct-src-zone')?.value||0) > 0;
             case 'status':  { const it=[...document.querySelectorAll('.wct-src-status-item')];
                               return it.length>0 && it.some(cb=>!cb.checked); }
             case 'time':    return ['wct-src-start-after','wct-src-start-before','wct-src-end-after','wct-src-end-before']
@@ -5091,7 +5207,7 @@ const refreshSrcFold = () => {
 let _srcFoundSegs  = null;   // Map(sid -> {closures:[]})
 let _srcFoundTurns = null;   // [{tc, fromSegId, toSegId, nodeId, turnId, arrow}]
 
-const runSearch=()=>{
+const runSearch=async()=>{
     const resEl=$id('wct-src-results');
     if(!resEl) return;
     _srcClearRings();
@@ -5105,46 +5221,72 @@ const runSearch=()=>{
         return;
     }
     const F=_srcReadFilters();
+
+    // ─── Source des fermetures : vue courante (modèle) ou zone (API Features) ───
+    // ⚠️ En cas d'échec de l'API on RETOMBE sur la vue courante en le DISANT. Rendre
+    // silencieusement 12 fermetures au lieu de 300 ferait croire à une zone vide.
+    let zone=null;
+    if(F.zoneKm>0){
+        zone=await fetchZoneClosures(F.zoneKm);
+        if(!zone.ok){
+            log('recherche zone: '+zone.erreur);
+            showToast(t('srcZoneFail',zone.erreur),5000,'#e53935');
+            F.zoneKm=0; zone=null;
+            const sel=$id('wct-src-zone'); if(sel) sel.value='0';
+        }
+    }
     resEl.innerHTML='';
 
-    const nSeg  = wantSeg  ? _srcBlockSegments(resEl,F) : 0;
-    const nTurn = wantTurn ? _srcBlockTurns(resEl,F)    : 0;
+    const nSeg  = wantSeg  ? _srcBlockSegments(resEl,F,zone) : 0;
+    const nTurn = wantTurn ? _srcBlockTurns(resEl,F,zone)    : 0;
 
     if(!nSeg && !nTurn){
         resEl.innerHTML=`<p style="color:var(--wct-text2);font-size:0.833em;margin-top:6px">${t('srcNoResults')}</p>`;
         return;
     }
-    // Rappel de périmètre : la recherche ne voit que ce qui est CHARGÉ dans la vue.
+    // Rappel de périmètre — il CHANGE selon la zone, donc le texte aussi.
     const note=make('p');
     note.className='wct-src-viewnote';
-    note.textContent=t('srcViewOnly');
+    note.textContent = F.zoneKm>0 ? t('srcZoneNote',F.zoneKm) : t('srcViewOnly');
     resEl.appendChild(note);
 
     // Sélection carte : uniquement les segments trouvés (un virage ne se sélectionne pas).
+    // ⚠️ En mode zone, la plupart des segments ne sont PAS chargés : setSelection lèverait
+    // un DataModelNotFoundError. On ne sélectionne donc que ceux réellement présents.
     try{
-        const segIds=_srcFoundSegs?[..._srcFoundSegs.keys()].map(Number).filter(id=>!isNaN(id)):[];
+        const segIds=_srcFoundSegs
+            ? [..._srcFoundSegs.keys()].map(Number).filter(id=>!isNaN(id) && getSegById(id))
+            : [];
         if(segIds.length) sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}});
     }catch(e){ console.warn('WCT search select:',e); }
 };
 
 // ─── BLOC SEGMENTS ─────────────────────────────────────────────────────────
 // Retourne le nombre de segments trouvés (0 = bloc non affiché).
-const _srcBlockSegments=(resEl,F)=>{
+const _srcBlockSegments=(resEl,F,zone)=>{
+    // Zone → liste déjà adaptée par l'API (provider inclus). Vue courante → SDK + modèle.
     let all=[];
-    try{ all=sdk.DataModel.RoadClosures.getAll(); }catch(e){}
+    if(zone){ all=zone.closures; }
+    else{
+        try{ all=sdk.DataModel.RoadClosures.getAll().map(c=>({...c,_provider:_providerOf(c.id,'seg')})); }catch(e){}
+    }
     const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId')
-        && _srcPartnerMatch(_providerOf(cl.id,'seg'), F.partner));
+        && _srcPartnerMatch(cl._provider??null, F.partner));
 
     const bySegId=new Map();
     matched.forEach(cl=>{
         const sid=cl.segmentId;
         if(!bySegId.has(sid)){
-            if(!getSegById(sid)) return; // segment absent du data model (hors vue) → ignorer
-            bySegId.set(sid,{closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set(),providers:new Set()});
+            // ⚠️ En vue courante on écarte les segments absents du modèle (données
+            // incomplètes). En mode ZONE c'est l'inverse : presque AUCUN n'est chargé,
+            // et les écarter viderait le résultat. On les garde, sans nom de rue.
+            if(!zone && !getSegById(sid)) return;
+            bySegId.set(sid,{closures:[],mtes:new Map(),statuses:new Set(),descriptions:new Set(),providers:new Set(),geom:null});
         }
         const entry=bySegId.get(sid);
         entry.closures.push(cl);
-        const prov=_providerOf(cl.id,'seg');
+        if(!entry.geom && cl._geom) entry.geom=cl._geom;   // repli du 🎯 hors vue
+        const prov=cl._provider??null;
         if(prov) entry.providers.add(prov);
         if(cl.trafficEventId){
             const m=_srcGetMte(cl.trafficEventId);
@@ -5164,7 +5306,10 @@ const _srcBlockSegments=(resEl,F)=>{
 
     const rows=[...bySegId.entries()].map(([sid,entry])=>({
         sid,
-        name:getSegName(sid),
+        // null = segment hors de la vue, nom INCONNU. À ne pas confondre avec « No name »
+        // (une rue réellement sans nom) : getSegName rendrait le second pour le premier.
+        name: getSegById(sid) ? getSegName(sid) : null,
+        geom: entry.geom,
         count:entry.closures.length,
         statuses:[...entry.statuses].sort(),
         descriptions:[...entry.descriptions].sort(),
@@ -5190,7 +5335,7 @@ const _srcBlockSegments=(resEl,F)=>{
         const sorted=[...rows].sort((a,b)=>{
             let va,vb;
             if(sortKey==='sid')    { va=a.sid;     vb=b.sid; }
-            else if(sortKey==='name')  { va=a.name.toLowerCase(); vb=b.name.toLowerCase(); }
+            else if(sortKey==='name')  { va=(a.name||'').toLowerCase(); vb=(b.name||'').toLowerCase(); }
             else if(sortKey==='count') { va=a.count; vb=b.count; }
             else if(sortKey==='status'){ va=a.statuses[0]||''; vb=b.statuses[0]||''; }
             else if(sortKey==='desc')  { va=(a.descriptions[0]||'').toLowerCase(); vb=(b.descriptions[0]||'').toLowerCase(); }
@@ -5232,12 +5377,15 @@ const _srcBlockSegments=(resEl,F)=>{
                     : `<div class="wct-src-mte-item wct-src-mte-unresolved" title="${escHtml(t('srcTipMteId'))}">${escHtml(m.label)}</div>`
                   ).join('')
                 : '—';
-            const nameEsc=escHtml(row.name);
+            // Nom inconnu (segment hors vue) : on le DIT, on ne l'invente pas.
+            const nameHtml = row.name!==null
+                ? `<span class="wct-src-name" title="${escHtml(row.name)}">${escHtml(row.name)}</span>`
+                : `<span class="wct-src-name wct-src-name-off" title="${escHtml(t('srcNameOffView'))}">—</span>`;
             const tr=make('tr');
             tr.innerHTML=`
                 <td><button class="wct-src-center" data-sid="${row.sid}" title="${escHtml(t('srcTipCenterRow'))}">&#x1F3AF;</button></td>
                 <td style="font-family:monospace" title="${row.sid}">${row.sid}</td>
-                <td><span class="wct-src-name" title="${nameEsc}">${nameEsc}</span></td>
+                <td>${nameHtml}</td>
                 <td style="text-align:center">${row.count}</td>
                 <td>${statusBadges||'—'}</td>
                 <td><div class="wct-src-desc-cell">${descHtml}</div></td>
@@ -5247,8 +5395,18 @@ const _srcBlockSegments=(resEl,F)=>{
                 e.stopPropagation();
                 const s=getSegById(Number(e.currentTarget.dataset.sid));
                 const coords=_getSegCoords(s);
-                if(coords) centerOnSegmentBbox(coords);
-                else console.warn('WCT: geometry introuvable pour sid',e.currentTarget.dataset.sid);
+                if(coords){ centerOnSegmentBbox(coords); return; }
+                // Segment hors du modèle (mode zone) : recadrer sur la géométrie que
+                // l'API a fournie AVEC la fermeture. ⚠️ setMapCenter du SDK ne recentre
+                // pas quand un segment est sélectionné → passer par OpenLayers.
+                if(row.geom){
+                    const p=row.geom[Math.floor(row.geom.length/2)];
+                    try{
+                        const pt=new OpenLayers.Geometry.Point(p[0],p[1]);
+                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
+                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),17);
+                    }catch(err){ log('centrage zone: '+err.message); }
+                }
             });
             tbody.appendChild(tr);
         });
@@ -5270,16 +5428,22 @@ const _srcBlockSegments=(resEl,F)=>{
 };
 
 // ─── BLOC VIRAGES ──────────────────────────────────────────────────────────
-const _srcBlockTurns=(resEl,F)=>{
+const _srcBlockTurns=(resEl,F,zone)=>{
+    // ⚠️ En mode ZONE, un virage n'est exploitable que si ses DEUX segments sont chargés
+    // (il faut le nœud commun et l'angle) — ce qui n'est presque jamais le cas hors vue.
+    // Le bloc se videra donc de lui-même, ce qui est le comportement correct : mieux vaut
+    // ne rien montrer que des virages sans nœud ni angle. À revoir si le besoin apparaît.
     let all=[];
-    try{ all=sdk.DataModel.TurnClosures.getAll(); }catch(e){}
-    // ⚠️ Le repo W.model.turnClosures existe, mais aucune fermeture de virage avec source
-    // n'a pu être observée : on ne sait pas si elles portent `provider`. _providerOf rend
-    // null si le champ est absent — le filtre « Aucun » les prendra donc, et un filtre par
-    // partenaire ne les rendra pas. Comportement prudent et cohérent, à revoir le jour où
-    // une vraie fermeture de virage partenaire sera rencontrée.
-    const matched=all.filter(cl=>_srcMatch(cl,F,'majorTrafficEventId')
-        && _srcPartnerMatch(_providerOf(cl.id,'turn'), F.partner));
+    if(zone){ all=zone.turns; }
+    else{ try{ all=sdk.DataModel.TurnClosures.getAll().map(c=>({...c,_provider:_providerOf(c.id,'turn')})); }catch(e){} }
+    // ⚠️ L'auteur a confirmé qu'on ne peut PAS mettre de Source sur un virage : _provider
+    // vaut donc null, le filtre « Aucun » les prend et un filtre par partenaire ne les
+    // rend pas — c'est correct, ne pas « améliorer ».
+    // ⚠️ Le champ MTE diffère : majorTrafficEventId (SDK) vs eventId (API, déjà mappé sur
+    // trafficEventId par _apiToClosure) → on choisit selon la provenance.
+    const champMte = zone ? 'trafficEventId' : 'majorTrafficEventId';
+    const matched=all.filter(cl=>_srcMatch(cl,F,champMte)
+        && _srcPartnerMatch(cl._provider??null, F.partner));
 
     // Regroupement par VIRAGE, c.-à-d. par couple (from,to) : l'objet TurnClosure ne
     // porte pas de turnId, seulement fromSegmentId / toSegmentId.
@@ -7862,7 +8026,18 @@ const buildOverlay=()=>{
         <div class="wct-src-secbody" data-sec="tgt"><div class="wct-src-tgt-grid" title="${t('srcTipTarget')}">
           <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-seg" checked> <span>${TARGET_ICON.seg} ${t('srcTgtSeg')}</span></label>
           <label class="wct-src-status-cb"><input type="checkbox" id="wct-src-tgt-turn" checked> <span>${TARGET_ICON.turn} ${t('srcTgtTurn')}</span></label>
-        </div></div>
+        </div>
+        <!-- La ZONE vit dans « Chercher quoi » : c'est la même question (quoi, et où),
+             et ça évite un 7e titre de section à 20 px. -->
+        <label class="wct-label" style="margin-top:4px" title="${t('srcTipZone')}">${t('srcLblZone')}</label>
+        <select id="wct-src-zone" class="wct-select" title="${t('srcTipZone')}">
+          <option value="0">${t('srcZoneView')}</option>
+          <option value="5">${t('srcZoneKm',5)}</option>
+          <option value="20">${t('srcZoneKm',20)}</option>
+          <option value="50">${t('srcZoneKm',50)}</option>
+        </select>
+        <div id="wct-src-zone-hint" style="display:none;font-size:0.75em;color:var(--wct-text2);font-style:italic;margin-top:2px">${t('srcZoneHint')}</div>
+        </div>
 
         <div class="wct-src-section wct-src-fold" data-sec="status" title="${t('srcTipStatus')}">${t('srcSectionStatus')}<span class="wct-src-mark"></span><span class="wct-src-chev">&#x25BC;</span></div>
         <div class="wct-src-secbody" data-sec="status"><div class="wct-src-status-grid" id="wct-src-status-grid">
@@ -8610,6 +8785,12 @@ const connectOverlay=ov=>{
     // Le marqueur doit suivre la saisie : un filtre posé puis replié DOIT rester signalé.
     $id('wct-pane-src')?.addEventListener('input', refreshSrcFold);
     $id('wct-pane-src')?.addEventListener('change', refreshSrcFold);
+    // Zone élargie : prévenir que les noms de rue ne suivront pas. Dit AVANT de chercher,
+    // pas après coup devant une colonne de tirets.
+    $id('wct-src-zone')?.addEventListener('change',()=>{
+        const h=$id('wct-src-zone-hint');
+        if(h) h.style.display = Number($id('wct-src-zone').value||0)>0 ? 'block' : 'none';
+    });
 
     $id('wct-src-run')?.addEventListener('click',runSearch);
     $id('wct-src-clear')?.addEventListener('click',()=>{
@@ -8618,8 +8799,9 @@ const connectOverlay=ov=>{
         // Remettre toutes les checkboxes à coché
         const cbAll=$id('wct-src-status-all');
         if(cbAll){cbAll.checked=true;cbAll.dispatchEvent(new Event('change'));}
-        // Remettre les deux cibles (état par défaut : on cherche les deux)
+        // Remettre les deux cibles (état par défaut : on cherche les deux) et la zone
         ['wct-src-tgt-seg','wct-src-tgt-turn'].forEach(id=>{const el=$id(id);if(el)el.checked=true;});
+        const zSel=$id('wct-src-zone'); if(zSel){ zSel.value='0'; zSel.dispatchEvent(new Event('change',{bubbles:true})); }
         const pSel=$id('wct-src-partner'); if(pSel) pSel.value='';
         refreshSrcPartnerFilter();
         const res=$id('wct-src-results');if(res)res.innerHTML='';
