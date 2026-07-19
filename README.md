@@ -9,7 +9,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_0.81.00_normal.png)
+![WME Closures Toolkit](capture_0.86.00_normal.png)
 
 ## Features
 
@@ -21,7 +21,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 - **Partner source** — record and display which partner a closure originates from.
 - **Major Traffic Event (MTE)** support.
 - **Public holidays** taken into account when scheduling recurrences.
-- **Six languages**: English, French, German, Spanish, Portuguese (PT and BR).
+- **Seven languages**: English, French, German, Spanish, Portuguese (PT and BR), and Hebrew — with full right-to-left (RTL) layout.
 
 ## Installation
 
