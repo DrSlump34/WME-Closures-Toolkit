@@ -5,8 +5,9 @@
 // @name:es      WME Closures Toolkit
 // @name:pt-BR   WME Closures Toolkit
 // @name:pt      WME Closures Toolkit
+// @name:he      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.85.01
+// @version      0.86.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -14,6 +15,7 @@
 // @description:es Cierres recurrentes avanzados con cola de espera — inspirado en WME Advanced Closures & waze.tech-informatique.fr
 // @description:pt-BR Bloqueios recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
 // @description:pt Cortes de via recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
+// @description:he חסימות חוזרות מתקדמות עם ניהול תור — בהשראת WME Advanced Closures & waze.tech-informatique.fr
 // @author       DrSlump34
 // @copyright    DrSlump34 2026
 // @license      MIT
@@ -229,7 +231,7 @@ GM_addStyle(`
 #wct-sel-strip.has-sel .wct-sel-dot { background: var(--wct-green); }
 .wct-sel-text { color: var(--wct-text2); }
 #wct-sel-strip.has-sel .wct-sel-text { color: #2e7d32; font-weight: 600; }
-.wct-gpx-layer-ctrl { margin-left:auto; display:flex; align-items:center; gap:4px; cursor:pointer; font-size:0.833em; color:var(--wct-text2); white-space:nowrap; user-select:none; }
+.wct-gpx-layer-ctrl { margin-inline-start:auto; display:flex; align-items:center; gap:4px; cursor:pointer; font-size:0.833em; color:var(--wct-text2); white-space:nowrap; user-select:none; }
 .wct-gpx-layer-ctrl input[type=checkbox] { margin:0; cursor:pointer; accent-color:#00897b; }
 
 /* Collapse */
@@ -395,7 +397,7 @@ GM_addStyle(`
 .wct-prev-table { width: 100%; border-collapse: collapse; font-size: 0.833em;  }
 .wct-prev-table th {
     background: var(--wct-blue); color: #fff; padding: 0.417em 0.583em;
-    text-align: left; font-size: 0.833em; font-weight: 700;
+    text-align: start; font-size: 0.833em; font-weight: 700;
     text-transform: uppercase; letter-spacing: .04em;
 }
 .wct-prev-table td { padding: 0.417em 0.583em; border-bottom: 1px solid var(--wct-border); vertical-align: middle; }
@@ -443,7 +445,7 @@ GM_addStyle(`
 .wct-prev-toggle { cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .wct-prev-toggle:hover { color:var(--wct-blue); }
 .wct-prev-chevron { font-size:0.9em; flex-shrink:0; }
-.wct-prev-box { text-align:left; margin-top:0.5em; max-height:130px; overflow-y:auto; border:1px solid var(--wct-border); border-radius:var(--wct-radius); background:var(--wct-bg2,#f7fafc); padding:5px 8px; font-size:0.833em; line-height:1.5; }
+.wct-prev-box { text-align:start; margin-top:0.5em; max-height:130px; overflow-y:auto; border:1px solid var(--wct-border); border-radius:var(--wct-radius); background:var(--wct-bg2,#f7fafc); padding:5px 8px; font-size:0.833em; line-height:1.5; }
 .wct-prev-head { font-weight:700; color:var(--wct-blue); margin-bottom:3px; position:sticky; top:-5px; background:inherit; padding:2px 0; }
 .wct-prev-row { font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--wct-text2); white-space:nowrap; }
 .wct-prev-more { color:var(--wct-grey); font-style:italic; margin-top:3px; }
@@ -477,31 +479,31 @@ GM_addStyle(`
 #wct-main-tabs { display:flex; flex-shrink:0; border-bottom:3px solid var(--wct-blue); }
 .wct-main-tab {
     flex:1; padding:0.667em 4px; font-size:0.917em; font-weight:700; cursor:pointer;
-    border:none; border-right:1px solid var(--wct-border);
+    border:none; border-inline-end:1px solid var(--wct-border);
     background:var(--wct-bg); color:var(--wct-text2);
     transition:background .15s, color .15s;
 }
-.wct-main-tab:last-child { border-right:none; }
+.wct-main-tab:last-child { border-inline-end:none; }
 .wct-main-tab.on { background:#fff; color:var(--wct-blue); border-bottom:3px solid var(--wct-blue); margin-bottom:-3px; }
 .wct-main-pane { display:none; padding:0.833em 0 0.333em; }
 .wct-main-pane.on { display:block; }
 /* Code couleur file d'attente */
-.wct-queue li.src-cfg { border-left:3px solid #2196f3; }
-.wct-queue li.src-csv { border-left:3px solid #43a047; }
-.wct-queue li.src-pre { border-left:3px solid #f57c00; }
+.wct-queue li.src-cfg { border-inline-start:3px solid #2196f3; }
+.wct-queue li.src-csv { border-inline-start:3px solid #43a047; }
+.wct-queue li.src-pre { border-inline-start:3px solid #f57c00; }
 
 
 /* ── Onglets principaux colorés ── */
 #wct-main-tabs { display:flex; flex-shrink:0; }
 .wct-main-tab {
     flex:1; padding:0.667em 4px; font-size:0.917em; font-weight:700; cursor:pointer;
-    border:none; border-right:1px solid var(--wct-border);
+    border:none; border-inline-end:1px solid var(--wct-border);
     border-top:3px solid transparent;
     border-bottom:none;
     background:var(--wct-bg); color:var(--wct-text2);
     transition:background .15s, color .15s, border-color .15s;
 }
-.wct-main-tab:last-child { border-right:none; }
+.wct-main-tab:last-child { border-inline-end:none; }
 .wct-main-tab[data-tab="cfg"] { --tc:#2196f3; }
 .wct-main-tab[data-tab="turn"] { --tc:#7b1fa2; }
 .wct-main-tab[data-tab="csv"] { --tc:#43a047; }
@@ -643,11 +645,11 @@ GM_addStyle(`
 
 /* ── Tableau GPX ── */
 .wct-gpx-table { width:100%; border-collapse:collapse; font-size:0.75em; }
-.wct-gpx-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:1px solid var(--wct-border); text-align:left; white-space:nowrap; }
+.wct-gpx-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:1px solid var(--wct-border); text-align:start; white-space:nowrap; }
 .wct-gpx-table td { padding:0.2em 0.333em; border-bottom:1px solid var(--wct-border); vertical-align:middle; }
 .wct-gpx-name { max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wct-gpx-time { color:var(--wct-text2); white-space:nowrap; }
-.wct-gpx-pts  { color:#2e7d32; white-space:nowrap; text-align:right; }
+.wct-gpx-pts  { color:#2e7d32; white-space:nowrap; text-align:end; }
 .wct-gpx-err  { white-space:nowrap; text-align:center; }
 .wct-gpx-has-err { color:#c62828; cursor:help; }
 .wct-gpx-swatch-cell { position:relative; }
@@ -670,7 +672,7 @@ GM_addStyle(`
 .wct-src-andor-lbl { font-size:0.75em; color:var(--wct-text2); }
 .wct-src-andor-toggle { display:flex; border:1px solid var(--wct-border); border-radius:3px; overflow:hidden; }
 .wct-src-andor-btn { padding:1px 7px; font-size:0.75em; font-weight:500; cursor:pointer; border:none; background:var(--wct-bg2); color:var(--wct-text2); transition:background .12s,color .12s; line-height:1.6; }
-.wct-src-andor-btn + .wct-src-andor-btn { border-left:1px solid var(--wct-border); }
+.wct-src-andor-btn + .wct-src-andor-btn { border-inline-start:1px solid var(--wct-border); }
 .wct-src-andor-btn.on { background:#6c8ebf; color:#fff; }
 /* Checkboxes statut */
 .wct-src-status-grid { display:flex; flex-wrap:wrap; gap:3px 6px; margin-top:3px; }
@@ -680,7 +682,7 @@ GM_addStyle(`
 /* Sections repliables du volet Recherche */
 .wct-src-fold { cursor:pointer; user-select:none; display:flex; align-items:center; gap:5px; }
 .wct-src-fold:hover { color:var(--wct-blue); }
-.wct-src-chev { margin-left:auto; font-size:0.9em; flex-shrink:0; }
+.wct-src-chev { margin-inline-start:auto; font-size:0.9em; flex-shrink:0; }
 /* ● = un filtre est actif dans cette section, même repliée. */
 .wct-src-mark { color:var(--wct-red,#e53935); font-size:0.9em; line-height:1; }
 .wct-src-results-hdr { font-size:0.833em; font-weight:600; color:#880e4f; margin:8px 0 4px; }
@@ -696,9 +698,9 @@ GM_addStyle(`
 .wct-src-exp-bar .wct-btn { flex:1; justify-content:center; }
 .wct-src-viewnote { font-size:0.75em; color:var(--wct-text2); font-style:italic; margin:8px 0 0; padding-top:5px; border-top:1px dashed var(--wct-border); }
 .wct-src-table { width:100%; border-collapse:collapse; font-size:0.75em; margin-top:4px; }
-.wct-src-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:left; white-space:nowrap; cursor:pointer; user-select:none; }
+.wct-src-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:start; white-space:nowrap; cursor:pointer; user-select:none; }
 .wct-src-table th:hover { color:var(--wct-blue); }
-.wct-src-table th .wct-sort-icon { font-size:0.75em; margin-left:2px; opacity:.5; }
+.wct-src-table th .wct-sort-icon { font-size:0.75em; margin-inline-start:2px; opacity:.5; }
 .wct-src-table th.sort-asc .wct-sort-icon::after  { content:'▲'; opacity:1; }
 .wct-src-table th.sort-desc .wct-sort-icon::after { content:'▼'; opacity:1; }
 .wct-src-table th:not(.sort-asc):not(.sort-desc) .wct-sort-icon::after { content:'⇅'; }
@@ -763,7 +765,7 @@ GM_addStyle(`
 /* Bandeau de cible Virages dans Configurer */
 .wct-tn-banner { display:flex; align-items:center; gap:6px; background:#f3e5f5; color:#6a1b9a;
     border:1px solid #ce93d8; border-radius:var(--wct-radius); padding:4px 8px; margin-bottom:8px; font-size:0.917em; font-weight:600; }
-.wct-tn-banner button { margin-left:auto; background:none; border:none; cursor:pointer; color:#6a1b9a; font-size:1.1em; padding:0 2px; line-height:1; }
+.wct-tn-banner button { margin-inline-start:auto; background:none; border:none; cursor:pointer; color:#6a1b9a; font-size:1.1em; padding:0 2px; line-height:1; }
 #wct-overlay.wct-compact .wct-tn-banner { background:#c0c0c0; color:#000; border:1px solid #808080; border-radius:0; }
 
 /* ══════════════════════════════════════════
@@ -858,7 +860,7 @@ GM_addStyle(`
 /* Onglets principaux */
 #wct-overlay.wct-compact .wct-main-tab {
     padding: 1px 4px; border-radius: 0;
-    border-top: none !important; border-right: 1px solid #808080;
+    border-top: none !important; border-inline-end: 1px solid #808080;
     background: #a0a0a0; color: #000; font-size: 0.833em;
     transition: none; line-height: 1.4;
 }
@@ -983,7 +985,7 @@ GM_addStyle(`
 #wct-overlay.wct-compact .wct-src-andor-toggle { border-radius: 0; border: 2px inset #808080; }
 #wct-overlay.wct-compact .wct-src-andor-btn { border-radius: 0; background: #c0c0c0; color: #000; }
 #wct-overlay.wct-compact .wct-src-andor-btn.on { background: #000080; color: #fff; }
-#wct-overlay.wct-compact .wct-src-andor-btn + .wct-src-andor-btn { border-left: 1px solid #808080; }
+#wct-overlay.wct-compact .wct-src-andor-btn + .wct-src-andor-btn { border-inline-start: 1px solid #808080; }
 #wct-overlay.wct-compact .wct-src-table { font-size: 0.833em; }
 #wct-overlay.wct-compact .wct-src-table th { border-bottom: 2px solid #808080; color: #000080; }
 #wct-overlay.wct-compact .wct-src-table th:hover { color: #0000a0; }
@@ -1051,13 +1053,20 @@ const LANGS = [
     { code:'es',    label:'Español'       },
     { code:'pt-BR', label:'Português (BR)'},
     { code:'pt-PT', label:'Português (PT)'},
+    { code:'he',    label:'עברית'          },
 ];
+// Langues à écriture droite-à-gauche : le panneau bascule en dir="rtl" quand l'une d'elles
+// est active (voir isRTL / buildOverlay). Ajouter ici toute future langue RTL (arabe…).
+const RTL_LANGS = ['he'];
+const isRTL = () => RTL_LANGS.includes(_lang);
 // Langue déduite de WME/navigateur. Le portugais est traité à part : seul « br » distingue
-// le brésilien ; « pt » nu ou « pt-PT » ⇒ portugais européen.
+// le brésilien ; « pt » nu ou « pt-PT » ⇒ portugais européen. L'hébreu porte le code ISO
+// « he », mais d'anciens navigateurs renvoient encore le code hérité « iw » : les deux mènent à 'he'.
 const detectLang = () => {
     try {
         const l = (W?.userscripts?.state?.locale || document.documentElement.lang || navigator.language || 'en').toLowerCase();
         if (l.startsWith('pt')) return l.includes('br') ? 'pt-BR' : 'pt-PT';
+        if (l.startsWith('he') || l.startsWith('iw')) return 'he';
         return LANGS.map(x => x.code).find(code => !code.includes('-') && l.startsWith(code)) || 'en';
     } catch(e) { return 'en'; }
 };
@@ -1853,6 +1862,390 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS4:'Click <b>\u2714 Validate and add to queue</b>',
             helpS5:'Repeat for other segments if needed',
             helpS6:'Click <b>\u25B6 Apply</b> to create closures in WME',
+        },
+        he: {
+            tabCfg:'⚙ הגדרה', tabCsv:'📂 CSV',
+            // Turn closures
+            tabTurn:'🔀 פניות',
+            turnStraight:'ישר', turnSlightRight:'ימינה קלה', turnRight:'ימינה',
+            turnUturn:'פניית פרסה', turnLeft:'שמאלה', turnSlightLeft:'שמאלה קלה',
+            tnNoSel:'בחר מקטע במפה כדי לראות את הפניות שלו.',
+            tnMultiSel:'בחר מקטע יחיד בכל פעם.',
+            tnSegLabel: n => `מקטע נבחר: ${n}`,
+            tnExtremity:'קצה', tnNodeA:'צומת A', tnNodeB:'צומת B',
+            tnNotEditable:'⚠ לא ניתן לערוך פניות בצומת זה',
+            tnTurnsFrom:'פניות מהמקטע הזה', tnAll:'הכול', tnNone:'כלום',
+            tnAllowed:'מותרת', tnForbidden:'אסורה',
+            tnNoTurns:'אין פנייה בקצה הזה.',
+            tnNotClosable:'לא ניתן לחסימה', tnNotClosableTip:'פנייה זו אינה קיימת במודל הנתונים של WME (בדרך כלל פניות פרסה): ה-SDK מסרב לחסום אותה.',
+            colTurn:'פנייה', colTurnTip:'קצה וכיוון של הפנייה החסומה',
+            csvTurnOnly:'⚠️ התור מכיל רק חסימות פנייה: פורמט WME Advanced Closures אינו יכול לייצג אותן. אין מה לייצא.',
+            btnCsvAc:'⬇ CSV AC', btnCsvAcTip:'ייצוא חסימות של מקטעים בפורמט WME Advanced Closures (מנות פניות מושמטות: הפורמט אינו יכול לייצג אותן).',
+            btnCsvTurn:'⬇ CSV פניות', btnCsvTurnTip:'ייצוא חסימות של פניות בפורמט WCT (ניתן לייבוא חוזר ל-WCT; אינו קריא ב-Advanced Closures).',
+            csvNoTurns:'אין חסימת פנייה לייצוא.',
+            csvNothing:'לא נותר מה לייצא: כל השורות נמחקו.',
+            // Tab and button tooltips
+            tipTabCfg:'הגדרת חסימה: תקופה, שעות, חזרתיות, סיבה.',
+            tipTabTurn:'חסימת פניות במקום מקטעים: בחר קצה של המקטע הנבחר, ואז את הפניות.',
+            tipTabCsv:'ייבוא חסימות מקובץ CSV (פורמט WME Advanced Closures).',
+            tipTabGpx:'טעינת מסלול (GPX, KML, KMZ, GeoJSON, Shapefile) ובחירה אוטומטית של המקטעים שהוא עובר בהם.',
+            tipTabPre:'שמירה ושליפה של הגדרות חסימה טיפוסיות.',
+            tipTabSrc:'חיפוש החסימות הקיימות בתצוגה: לפי מצב, תאריכים, סיבה או אירוע MTE.',
+            tipTabEach:'חסימה אחת ליום, באותן שעות.',
+            tipTabRepeat:'מספר חסימות ביום, החוזרות במרווח קבוע.',
+            tipBtnValidate:'בניית המופעים מההגדרה הזו והוספתם לתור. בשלב זה שום דבר לא נכתב למפה.',
+            tipBtnApply:'כתיבת כל החסימות שבתור אל המפה. פעולה אמיתית ונשמרת.',
+            tipBtnClear:'ריקון התור, היומן וסרגל ההתקדמות. אינו מסיר חסימות שכבר יושמו.',
+            tipBtnStop:'הפסקת היישום המתבצע. חסימות שכבר נכתבו נשארות במקומן. קיצור: Esc.',
+            tipSweepStop:'הפסקת הסריקה המתבצעת.',
+            tipTnAll:'סימון כל הפניות הניתנות לחסימה בקצה הזה.',
+            tipTnNone:'ביטול הסימון של כל הפניות.',
+            tipTnSend:'שליחת הפניות המסומנות אל ההגדרה כדי לקבוע שם תאריכים וחזרתיות.',
+            tipPresetConfirm:'שמירת ההגדרה הנוכחית בשם הזה.',
+            tipPresetCancel:'סגירה בלי לשמור.',
+            // Extremities with no closable turn
+            tnOrphan:'⚠ אף אחד מקצות המקטע אינו מאפשר חסימת פנייה.',
+            tnOrphanHint:'שני הקצוות הם ללא-מוצא, או מובילים רק לפניות פרסה, שאינן קיימות במודל הנתונים של WME.',
+            tnEndTip: (nid,n) => `צומת ${nid} · ${n} פניות ניתנות לחסימה`,
+            tnEndDead: lbl => `⚠ ${lbl} אינו מוביל לאף פנייה ניתנת לחסימה: הקצה מושבת.`,
+            tnEndDeadTip:'ללא-מוצא, או פניות פרסה בלבד: אין מה לחסום בקצה הזה.',
+            csvTurnDone: n => `📥 ${n} שורות פנייה יוצאו בפורמט WCT.`,
+            csvTurnAdded: (n,ko) => `✅ ${n} חסימות פנייה נוספו לתור${ko?', '+ko+' שורות דולגו':''}.`,
+            turnResolveFail: (sid,nid) => `❌ פנייה לא נמצאה בצומת ${nid} מהמקטע ${sid} — ייתכן שהצומת שורטט מחדש מאז הייצוא.`,
+            csvTurnSkipped: n => `⚠️ ${n} מנות פניות הושמטו מהייצוא: פורמט Advanced Closures מיועד למקטעים בלבד.`,
+            tgtSeg:'חסימת מקטעים', tgtTurn:'חסימת פניות',
+            tnNotApplicable:'לא רלוונטי לחסימת פנייה.',
+            tnCount: n => `${n} פניות נבחרו`,
+            tnSend:'🧲 שלח אל ההגדרה',
+            tnSent: n => `🔀 ${n} פניות נשלחו אל ההגדרה.`,
+            tnBanner: n => `🔀 יעד: ${n} פניות`,
+            tnBannerClear:'חזרה לחסימת מקטעים',
+            tnNoneSelected:'סמן לפחות פנייה אחת.',
+            tnEntryDetail: (nt,nc,st) => `${nt} פניות · ${nc} חסימות · ${st}`,
+            tabPre:'💾 תבניות', tabGpx:'🗺 מסלולים', tabSrc:'🔍 חיפוש', tabHelp:'❓', tabHelpTitle:'עזרה',
+            // Search tab
+            srcSectionTime:'📅 חלון זמן',
+            srcLblStartAfter:'מתחילה אחרי', srcLblStartBefore:'מתחילה לפני',
+            srcLblEndAfter:'מסתיימת אחרי', srcLblEndBefore:'מסתיימת לפני',
+            srcSectionKeywords:'🔍 מילות מפתח',
+            srcLblDesc:'התיאור מכיל', srcLblMte:'אירוע MTE מכיל',
+            srcBtnAnd:'וגם', srcBtnOr:'או',
+            srcBtnSearch:'חפש',
+            srcBtnSearching:'⏳ מחפש…',
+            srcLoadingZone: km => `מחפש בשטח ${km} × ${km} ק"מ…`,
+            srcBtnClear:'נקה',
+            srcNoResults:'לא נמצאו מקטעים התואמים לקריטריונים אלה.',
+            // Search: segment / turn targets
+            srcSectionTarget:'🎯 מה לחפש', srcTgtSeg:'מקטעים', srcTgtTurn:'פניות',
+            srcTipTime:'סינון לפי תאריכי ההתחלה והסיום של החסימות. הגבולות אופציונליים ומשולבים ב"וגם". מכווץ כברירת מחדל: זהו הסינון הפחות נפוץ.',
+            srcSecActive:'סינון פעיל במקטע זה.',
+            // Zone search (Features API, outside the SDK, read-only)
+            srcLblZone:'שטח לחיפוש', srcZoneView:'התצוגה הנוכחית',
+            srcZoneKm: n => `${n} × ${n} ק"מ סביב המרכז`,
+            srcTipZone:'הרחבת החיפוש מעבר לתצוגה, בלי להזיז את המפה. ⚠️ מעבר לתצוגה הנוכחית, שמות רחובות אינם נטענים (הם היו שוקלים עשרות MB): עמודת הרחוב מציגה — וכפתור 🎯 ממרכז כדי שתוכל לבדוק.',
+            srcZoneHint:'⚠️ שטח רחב יותר: שמות הרחובות לא יוצגו (אך מזהה המקטע מלא).',
+            srcZoneNote: km => `ℹ️ תוצאות בשטח ${km} × ${km} ק"מ סביב מרכז המפה. שמות רחובות לא נטענו: לחץ 🎯 כדי לבדוק.`,
+            srcZoneFail: e => `❌ חיפוש השטח נכשל (${e}) — חזרה לתצוגה הנוכחית.`,
+            srcNameOffView:'מקטע מחוץ לתצוגה: שמו אינו נטען. לחץ 🎯 כדי לעבור לשם.',
+            srcTipTarget:'בחר מה החיפוש יחזיר. שניהם כברירת מחדל.',
+            srcPickTarget:'⚠ סמן לפחות יעד אחד: מקטעים או פניות.',
+            srcResultsSeg: n => `${n} מקטעים עם חסימה`,
+            srcResultsTurn: n => `${n} פניות עם חסימה`,
+            srcColTurn:'פנייה', srcTipColTurn:'מיון לפי פנייה (חץ ורחובות)',
+            srcTipCenterTurn:'מרכוז המפה על צומת הפנייה',
+            srcBtnExportSeg:'⬇ ייצא מקטעים אלה (CSV AC)',
+            srcTipExportSeg:'ייצוא חסימות המקטעים שנמצאו, בפורמט WME Advanced Closures. אין קשר לתור. ⚠ דגל "צמתים חסומים" אינו ניתן לשחזור: ה-SDK אינו קורא אותו בחזרה.',
+            srcBtnExportTurn:'⬇ ייצא פניות אלה (CSV WCT)',
+            srcTipExportTurn:'ייצוא חסימות הפניות שנמצאו, בפורמט WCT. אין קשר לתור.',
+            srcExportedSeg: n => `📥 ${n} חסימות מקטע יוצאו.`,
+            srcExportedTurn: n => `📥 ${n} חסימות פנייה יוצאו.`,
+            srcNothingFound:'אין מה לייצא: הרץ חיפוש קודם.',
+            srcViewOnly:'ℹ️ החיפוש רואה רק את מה שטעון בתצוגה הנוכחית. ייצוא מתאר לפיכך את התצוגה הזו, ולא שטח שלם.',
+            // Closure source (partner)
+            lblSource:'מקור (שותף)', srcSelNone:'ללא',
+            tipSource:'ייחוס החסימה לשותף, בדיוק כמו הטופס המובנה של WME. הרשימה תלויה בשטח שבתצוגה. השאר "ללא" עבור חסימת עורך.',
+            srcSelTurn:'לא רלוונטי לחסימת פנייה: מקור הוא שדה של חסימת מקטע.',
+            srcSelOff_flag:'לא זמין: לחשבונך אין מעמד שותף (WME מעניק אותו, לא WCT).',
+            srcSelOff_feature:'לא זמין: WME השבית את ממשק השותפים בשרת זה.',
+            srcSelOff_api:'לא זמין: לא ניתן לטעון את רשימת השותפים.',
+            srcSelOff_schema:'לא זמין: WME שינה את מבנה החסימה. WCT מעדיף לשתוק מאשר לייחס מקור בטעות — אנא דווח למחבר.',
+            srcApplyFail:'המקור לא יושם: שום דבר לא נשמר. חסימה ללא המקור המבוקש הייתה ייחוס שגוי.',
+            // Search: partner filter
+            srcSectionPartner:'🏷️ מקור (שותף)',
+            srcSectionMte:'🎟️ אירוע MTE',
+            // Dropdown tooltips
+            tipRepUnit:'יחידת המרווח בין שני מופעים: ימים, שעות או דקות.',
+            tipPrevToggle:'כיווץ או הרחבה של רשימת המופעים. הספירה תמיד נשארת גלויה.',
+            tipRangeStart:'היום הראשון של הטווח שעליו החסימה חוזרת.',
+            tipRangeEnd:'היום האחרון של הטווח. מופע החורג מעבר לתאריך זה לא נוצר.',
+            tipStartTime:'השעה שבה החסימה מתחילה בכל יום. מעברי שעון קיץ/חורף מטופלים אוטומטית.',
+            tipDurTime:'משך כל חסימה (ש:דד). החלף עם שעת סיום באמצעות כפתור ⏱.',
+            tipEndTime:'שעת הסיום של כל חסימה. אם מוקדמת משעת ההתחלה, החסימה נמשכת ליום הבא (תג D+1).',
+            tipReason:'טקסט המוצג ב-WME לזיהוי החסימה. כפתור 📌 מוסיף אימוג\'י במיקום הסמן.',
+            tipMteSel:'קישור החסימות לאירוע תנועה גדול (MTE). 💡 הרשימה מתמלאת רק לאחר פתיחת לשונית האירועים של WME: פתח אותה, ואז לחץ ↻.',
+            tipNodeSel:'חסימת צמתים גם כן: ללא, רק אלה שבתוך הבחירה (מונע חסימת רחובות סמוכים), או כולם.',
+            tipLangSel:'שפת WCT. "אוטומטי" עוקב אחר שפת WME. השינוי מיידי — הפאנל נבנה מחדש.',
+            srcTipPartner:'סינון לפי השותף שהחסימה מיוחסת אליו. הרשימה מכילה רק שותפים הנמצאים בחסימות הטעונות — כך שהיא לא תציע בחירה שתחזיר כלום.',
+            srcPartnerAll:'הכול', srcPartnerNone:'ללא (חסימת עורך)',
+            srcPartnerEmpty:'אין חסימה עם שותף בתצוגה זו.',
+            srcColProv:'מקור', srcTipColProv:'מיון לפי שותף',
+            srcProvNoneTip:'חסימת עורך: לא יוחס שותף.',
+            srcNoClosures:'לא נטענו חסימות בתצוגה הנוכחית.',
+            srcResults: n => `${n} מקטעים נמצאו`,
+            srcBtnGoCfg:'⚙ עבור אל ההגדרה',
+            srcLoading:'מחפש…',
+            srcSectionStatus:'💡 מצב',
+            srcStatusAll:'הכול',
+            srcStatusLabels:{
+                ACTIVE:'פעילה',
+                NOT_STARTED:'ממתינה',
+                SUSPENDED:'מושהית',
+                FINISHED:'הסתיימה',
+                FINISHED_EARLY_DUE_TO_DELETION:'נמחקה',
+                FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES:'חפיפה',
+                UNVERIFIED:'לא מאומתת',
+                FAILED:'נכשלה',
+                UNKNOWN:'לא ידוע',
+            },
+            srcTipStatus:'סינון לפי מצב החסימה. סמן את המצבים שייכללו בתוצאות.',
+            srcTipStartAfter:'תאריך התחלת החסימה ≥ תאריך זה',
+            srcTipStartBefore:'תאריך התחלת החסימה ≤ תאריך זה',
+            srcTipEndAfter:'תאריך סיום החסימה ≥ תאריך זה',
+            srcTipEndBefore:'תאריך סיום החסימה ≤ תאריך זה',
+            srcTipDesc:'חיפוש בתיאור החסימה, ללא הבחנה בין אותיות גדולות לקטנות',
+            srcTipMte:'חיפוש בשם אירוע ה-MTE המשויך, ללא הבחנה בין אותיות גדולות לקטנות',
+            srcTipAndOr:'וגם: שני השדות חייבים להתאים — או: לפחות אחד חייב להתאים',
+            srcTipAndOrLbl:'בין התיאור ל-MTE',
+            srcTipSearch:'חיפוש חסימות הטעונות בתצוגת המפה הנוכחית',
+            srcTipClear:'איפוס כל הקריטריונים והתוצאות',
+            srcTipGoCfg:'בחירת מקטעים אלה ומעבר ללשונית ההגדרה כדי ליצור חסימות',
+            srcTipCenterRow:'מרכוז המפה על המקטע הזה (מוסט עבור השטח הגלוי)',
+            srcColId:'מזהה', srcColName:'שם', srcColClosures:'חס.', srcColStatus:'מצב', srcColDesc:'תיאור', srcColMte:'MTE',
+            srcTipColDesc:'מיון לפי תיאור',
+            srcTipMteId:'אירוע MTE לא נטען לזיכרון — רק המזהה זמין. פתח את לשונית האירועים של WME כדי לטעון שמות, ואז הרץ שוב את החיפוש.',
+            srcTipColId:'מיון לפי מזהה מקטע',
+            srcTipColName:'מיון לפי שם רחוב',
+            srcTipColClosures:'מיון לפי מספר החסימות התואמות',
+            srcTipColStatus:'מיון לפי מצב',
+            srcTipColMte:'מיון לפי שם אירוע MTE',
+            gpxLayerCtrl:'שכבת מסלולים',
+            // Tracks table
+            trkColTrack:'מסלול', trkColTime:'זמן',
+            trkTipFileColor:'צבע לכל המסלולים', trkTipColor:'שינוי צבע', trkTipColorCol:'צבע',
+            trkExpand:'הרחב', trkCollapse:'כווץ',
+            trkTipDelFile:'הסר קובץ', trkTipDel:'הסר', trkTipFocus:'התמקד',
+            trkTipLoadTime:'זמן טעינה', trkTipFormat:'פורמט הקובץ',
+            trkTipPts:'נקודות משורטטות (מדוגמות אם > 3,000)', trkTipStatus:'מצב',
+            sectionPeriod:'📅 תקופה',
+            lblStart:'התחלה', lblEnd:'סיום',
+            lblStartTime:'שעת התחלה', lblDurTime:'משך ש:דד', lblDurDay:'+ימים',
+            lblEndTime:'שעת סיום',
+            btnDur:'⏱ משך', btnEndTime:'⏱ שעת סיום',
+            lblToggleDur:'משך', lblToggleEnd:'סיום',
+            lblDuration:'משך',
+            jpnPrefix:'D+',
+            tipToggle:'מצב משך : הזן משך זמן (ש:דד) — מצב שעת סיום : הזן את שעת הסיום המדויקת. לחץ כדי להחליף.',
+            tabEachDay:'📆 כל יום', tabRepeat:'🔁 חזרה',
+            days:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],
+            scAll:'הכול', scWth:'ב׳–ה׳', scWd:'א׳–ה׳', scWe:'ו׳–ש׳', scNone:'כלום',
+            skipHolidays:'למעט חגים',
+            lblHolidays:'חגים:',
+            lblNtimes:'כמה פעמים?', lblEvery:'כל',
+            unitDay:'ימים', unitHour:'שעות', unitMin:'דקות',
+            sectionParams:'📝 פרמטרים',
+            lblDesc:'תיאור', lblDir:'כיוון',
+            dirBoth:'דו-כיווני', dirAtoB:'A ⇒ B', dirBtoA:'B ⇒ A',
+            lblMte:'MTE משויך',
+            lblMtePh:'ללא MTE',
+            mteRefresh:'↻',
+            mteRefreshTip:'טען מחדש MTE מלשונית האירועים של WME',
+            mteNone:'— ללא MTE —',
+            mteEmpty:'— לא נטען MTE —',
+            lblNodes:'חסימות צמתים',
+            nodeNone:'ללא (□—□—□—□)', nodeInner:'צמתים פנימיים (□—■—■—□)', nodeAll:'הכול (■—■—■—■)',
+            lblIT:'התעלם מתנועה',
+            tipIT:'אם מסומן, Waze לא תפתח מחדש את המקטע אוטומטית גם אם תזהה תנועה עוברת.',
+            tipHolSkip:'לא תוצע חסימה בחגים — מופעים אלה מוסרים מהרשימה.',
+            tipHolOnly:'חסימות יוצעו רק בחגים — כל שאר המופעים מתעלמים מהם.',
+            tipHolAdd:'מוסיף את החגים שבטווח על גבי ימי השבוע הנבחרים (איחוד).',
+            holidayModeAdd:'+ חגים',
+            holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
+            sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
+            btnValidate:'✔ אשר והוסף לתור',
+            btnStop:'⏹ עצור', btnStopping:'⏳ עוצר…', btnApply:'▶ החל', btnClear:'🗑 נקה',
+            dropText:'📄 לחץ או גרור קובץ CSV לכאן',
+            dropHint:'מתווסף ישירות לתור',
+            gpxDropText:'🗺 לחץ או גרור קובץ לכאן',
+            gpxDropHint:'פורמטים נתמכים : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — שכבות מצטברות',
+            // Coverage
+            covTitle:'בדוק אם יש מקטעי מסלול שלא נבחרו',
+            covResult: (pct,n) => n===0 ? `כיסוי: ${pct}% — כל המקטעים שנסעו בהם נבחרו ✅` : `כיסוי: ${pct}% — ${n} מקטעים שנסעו בהם לא נבחרו`,
+            covLegend:'🟣 מקווקו מגנטה: מקטעים שהמסלול עובר בהם אך לא נבחרו (לטיפול).',
+            covAllOk:'✅ המסלול אינו עובר באף מקטע נשכח.',
+            covZone: (n,k) => `אזור ${n} — ${k} מקטעים`,
+            covClear:'נקה',
+            covNoSel:'בחר תחילה את מקטעי המסלול.',
+            covNoPts:'לקובץ זה אין נקודות שמישות.',
+            covNoSeg:'לא נטענו מקטעי WME סמוך למסלול (הזז/הגדל את המפה על המסלול).',
+            covNoOverlap:'המסלול אינו חוצה את השטח הטעון (הזז את המפה על המסלול).',
+            covOutside: p => `${p}% מהמסלול נמצאים מחוץ לשטח הטעון — הזז את המפה כדי לבדוק אותו במלואו.`,
+            covFocus:'מרכז על אזור זה',
+            noSel:'לא נבחר מקטע',
+            hasSel: n => `✅ ${n} מקטעים נבחרו`,
+            newSel:'בחירה חדשה — התור נשמר.',
+            multiCountry: cc => `⚠️ ריבוי מדינות: ${cc} — סינון חגים לא זמין.`,
+            toastOk: (n,s,b) => b>0 ? `⚠️ ${n} חסימות עבור ${s} מקטעים תקינים — ${b} מקטעים דולגו` : `✅ ${n} חסימות נוספו עבור ${s} מקטעים.`,
+            errNone:'❌ לא נוצרה חסימה.',
+            fillForm:'מלא את הטופס…',
+            closuresN: n => `${n} חסימות הוגדרו`,
+            previewHead: n => `${n} חסימות ליישום:`,
+            previewMore: n => `… ועוד ${n}`,
+            confirmClear:'לנקות את התור?',
+            confirmApply: n => `להחיל ${n} מנות ב-WME?`,
+            confirmDel: n => `למחוק את “${n}”?`,
+            colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
+            colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
+            colStartTip:'תאריך/שעת התחלה', colEndTip:'תאריך/שעת סיום',
+            colStateTip:'🟢 תקין  🟠 מתמשך  🔴 חפיפה  ⚫ עבר',
+            stateOk:'תקין', stateOn:'מתמשך', stateOv:'חפיפה', statePast:'עבר',
+            stateNull:'המקטע לא נמצא במודל הנתונים — עריכה אחרונה טרם הופצה. ידולג ביישום.',
+            nullSegBadgeTip: n => `${n} מקטעים חסרים במודל הנתונים — עריכה אחרונה טרם הופצה. הוסף לתור לפרטים.`,
+            stateRecent:'המקטע נערך לאחר בניית האריחים האחרונה של Waze — החסימה עלולה להידחות ביישום. המתן לעדכון האריחים הבא (כל 24 שעות).',
+            recentSegBadgeTip: n => `${n} מקטעים נערכו לאחר בניית האריחים האחרונה — חסימות עלולות להידחות ביישום.`,
+            nodeIconNone:'⚪ ללא', nodeIconInner:'🟡 פנימי', nodeIconAll:'🔴 הכול',
+            noMte:'ללא MTE',
+            countBadge: (o,s) => `${o}×${s} מק'`,
+            tipCount: (o,s) => `${o} חסימות × ${s} מקטעים — לא כולל שורות שנמחקו והתנגשויות כיוון. חפיפות מזוהות רק ביישום.`,
+            tipDir:'כיוון החסימה: דו-כיווני, A ⇒ B או B ⇒ A. ⚠️ במקטעים ארוכים כיוון A ⇒ B יכול להשתנות ממקטע למקטע: מקטעים לא תואמים מוחרגים אוטומטית ומופיעים בכרטיס התור.',
+            tipITon:'מתעלם מתנועה — אין זיהוי', tipIToff:'מזהה תנועה',
+            tipNodes: n => `חסימות צמתים: ${n}`,
+            tipMte: n => `MTE משויך: ${n}`,
+            tipPresetLoad:'טען', tipPresetDel:'מחק',
+            fabNoSeg:'בחר מקטעים במפה',
+            btnCollapse:'כווץ', btnClose:'סגור',
+            presetColName:'שם', presetColDesc:'תיאור',
+            presetColTime:'לוח זמנים', presetColDir:'כיוון',
+            presetNamePh:'שם התבנית…',
+            presetPopupTitle:'💾 שמור תבנית',
+            btnSave:'שמור', btnCancel:'ביטול',
+            presetErrEmpty:'הזן שם.', presetErrDup:'שם זה כבר קיים.',
+            presetSaved: n => `✅ התבנית “${n}” נשמרה.`,
+            holidaysExcl: n => `ℹ️ ${n} חגים הוחרגו.`,
+            holidaysNone:'ℹ️ אין חגים בתקופה.',
+            holidayModeNone:'חגים: ללא סינון',
+            holidayModeSkip:'למעט חגים',
+            holidayModeOnly:'חגים בלבד',
+            holidaysOnly: n => `✅ ${n} מופעים בחגים נשמרו.`,
+            holidaysOnlyNone:'⚠️ אין חגים בתקופה — התור יהיה ריק.',
+            warnInt: (ev,dur) => `⚠️ המרווח (${ev} דק') < המשך (${dur} דק'): החסימות יחפפו.`,
+            warnOcc: (max,req) => `ℹ️ רק ${max} מופעים אפשריים בתקופה (${req} התבקשו).`,
+            warnZero:'⚠️ מרווח אפס.',
+            applyOk: (r,s) => `✅ ${r} ${s}`,
+            applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            errDateStart:'תאריך התחלה לא תקין',
+            errDateEnd:'תאריך הסיום לפני תאריך ההתחלה',
+            warnDatePast:'תאריך ההתחלה בעבר.',
+            warnDateEnd:'תאריך הסיום לפני תאריך ההתחלה.',
+            warnDateMax: n => `הטווח ייצור יותר מ-${n} חסימות. צמצם את התקופה.`,
+            errRepeat:'מספר חזרות לא תקין',
+            errMaxItems: n => `❌ הגעת למגבלה של ${n} חסימות — בדוק את טווח התאריכים או צמצם את התקופה.`,
+            defaultClosure:'חסימה',
+            selectAll:'בחר הכול',
+            tipCenter:'מרכז על מקטע זה',
+            centerUnavailable: sid => `לא ניתן למרכז על מקטע ${sid}: הוא לא טעון ואין קואורדינטה זמינה.`,
+            tipPresetSaveBtn:'שמור כתבנית',
+            // Excluded segments (direction conflict)
+            exclWarnTitle: n => `${n} מקטעים הוחרגו — כיוון לא תואם. הם לא יעובדו. לחץ להורדת פרטים.`,
+            dirConflictTip:'כיוון לא תואם — המקטע דולג',
+            toastNoCompatible: dir => `⚠️ אין מקטע תואם לכיוון ${dir} — המנה לא נוספה`,
+            exclTxtHeader: dir => `מקטעים שהוחרגו — כיוון לא תואם לחסימה ${dir}`,
+            exclTxtBatch:'מנה: ',
+            exclTxtFooter1:'מקטעים אלה לא נוספו לתור.',
+            exclTxtFooter2:'הגדר אותם במנה נפרדת עם הכיוון המתאים.',
+            exclTxtFilename:'מקטעים_שהוחרגו',
+            exclTxtDir:'כיוון',
+            // Row delete
+            tipRowDel:'הסר מופע זה',
+            // Header badge queue
+            queueBadge: n => n===1?'מנה אחת בתור':`${n} מנות בתור`,
+            // Batch delete tooltip
+            tipDelBatch:'הסר מנה זו',
+            tipEditLabel:'ערוך את תווית המנה',
+            // Apply done
+            applyStopping:'⏳ התבקשה עצירה — מסיים את החסימה הנוכחית, ואז מפסיק.',
+            applyStopped:(ok,ko)=>`⏹ נעצר — ${ok} יושמו, ${ko} נכשלו`,
+            applyDone: (ok,ko,total) => `✅ ${ok} תקין${ko?' — '+ko+' שגיאות':''} מתוך ${total} חסימות.`,
+            // Multi-country alert
+            multiCountryAlert: cc => `⚠️ בחירה מרובת-מדינות (${cc}).\nלא ניתן להשתמש בסינון חגים.\nבטל בחירת מקטעים ממדינה אחת בלבד.`,
+            // CSV import log
+            csvAdded: (ok,ko) => `✅ ${ok} חסימות נוספו לתור${ko?', '+ko+' שגיאות':''}.`,
+            csvBigConfirm: (seg,rows) => `⚠️ קובץ זה מכיל ${seg} מקטעים ב-${rows} שורות. ייבוא כמויות גדולות עלול להאט את הדפדפן, ו-WME יחסום רק מקטעים הטעונים בתצוגה הנוכחית. להמשיך?`,
+            csvImportCancelled:'הייבוא בוטל.',
+            sweepTitle:'בחר מקטעי מסלול (מזיז את המפה)',
+            sweepProgress: (done,total,n) => `סורק… ${done}/${total} — ${n} מקטעים`,
+            sweepDone: n => `✅ ${n} מקטעים נבחרו לאורך המסלול.`,
+            sweepStopped: n => `⏹ נעצר — ${n} מקטעים נבחרו.`,
+            sweepConfirm: (a,km) => `מסלול זה הוא כ-${km} ק"מ (${a} תזוזות מפה). הסריקה עלולה להימשך זמן מה ותזיז את התצוגה. להמשיך?`,
+            lotsBtnTitle:'פצל מסלול ארוך למנות חסימה (מזיז את המפה)',
+            lotsNeedConfig:'⚠️ הגדר תחילה את החסימה בלשונית ההגדרה (תקופה, שעות, כיוון…), ואז נסה שוב.',
+            lotsConfirm: n => `מסלול זה יפוצל ל-${n} מנות. המפה תזוז אוטומטית כדי לטעון כל שטח — זה תקין ועלול להימשך זמן מה. לייצר את החסימות בתור?`,
+            lotsProgress: (done,total,added,seg) => `מפצל למנות… ${done}/${total} — ${added} מנות, ${seg} מקטעים`,
+            lotsWhyMoving:'המפה זזה כדי לטעון את מקטעי כל מנה. אל תיגע במפה במהלך הפעולה.',
+            lotsDone: (added,seg) => `✅ ${added} מנות נוספו לתור (${seg} מקטעים). ראה את לשונית ההגדרה לבדיקה ויישום.`,
+            lotsStopped: (added,seg) => `⏹ נעצר — ${added} מנות כבר בתור (${seg} מקטעים).`,
+            applyLotFocus: (k,n) => `📦 מנה ${k}/${n}: ממרכז את המפה כדי לטעון את המקטעים…`,
+            applyLotDone: (k,n) => `📦 מנה ${k}/${n} יושמה. בדוק במפה, ואז המשך.`,
+            applyLotNext:'▶ המשך (מנה הבאה)',
+            lotRowLabel: (i,n) => `מנה ${i}/${n}`,
+            lotStatusTodo:'לביצוע',
+            lotStatusDone:'מוגדרת',
+            lotShowTitle:'הצג מנה זו במפה',
+            lotSelTitle:'בחר את מקטעי המנה (ואז הגדר את החסימה)',
+            lotSelecting: (i,n) => `מנה ${i}/${n}: טוען מקטעים…`,
+            lotSelected: seg => `✅ ${seg} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
+            lotNone:'לא נלכד מקטע במנה זו.',
+            lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
+            lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
+            lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
+            lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
+            lotPermaCopy:'העתק את הקישור הקבוע הזה:',
+            lotCsvTitle:'ייצא את המנות המוגדרות של מסלול זה ל-CSV (פורמט WME Advanced Closures)',
+            lotCsvNone:'אין מנה מוגדרת לייצוא עבור מסלול זה.',
+            lotCsvDone: n => `📥 ${n} מנות יוצאו ל-CSV.`,
+            shpNetworkNote:'⚠️ Shapefile של רשת (מקטעים רבים): לא מפוצל למנות. השתמש בבחירת המסלול השלם.',
+            shpNetworkHelp:'Shapefile של רשת (מקטעים רבים לא מסודרים, למשל רשת הכבישים של עיר) אינו מפוצל למנות — מקטעיו אינם יוצרים מסלול רציף. הוא נשאר ניתן להצגה ובחירה כמכלול (ה-🧲 של המסלול).',
+            // Queue entry detail
+            entryDetail: (segs,cl,dir,time) => `${segs} מק' · ${cl} חסימות · ${dir} · ${time}`,
+            sbHint:'בחר מקטעים במפה, ואז לחץ על כפתור 🚧 במפה כדי לפתוח את הכלי.',
+            sbToggle:'הפעל כלי',
+            emojiPickerTip:'הוסף אימוג\'י',
+            sbResetFab:'אפס את מיקום הכפתור',
+            sbDesc:'כפתור 🚧 תמיד גלוי במפה וניתן למקם אותו מחדש בחופשיות בגרירה.<br>הוא מציג בירוק את מספר המקטעים הנבחרים.<br>הפאנל ניתן לגרירה ולכיווץ.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">שרשור Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDisplayMode:'תצוגה',
+            sbModeCompact:'Windows 95',
+            sbModeNormal:'רגילה',
+            sbCardsCollapsed:'כרטיסי תור מכווצים כברירת מחדל',
+            sbLanguage:'שפה',
+            sbLangAuto: l => `אוטומטי — WME (${l})`,
+            sbDateFormat:'פורמט תאריך',
+            sbDateDmy:'DD/MM/YYYY (אירופה, עולמי)',
+            sbDateMdy:'MM/DD/YYYY (ארה"ב)',
+            sbDateIso:'YYYY-MM-DD (ISO)',
+            sbDateAuto:'(זוהה אוטומטית)',
+            helpH1:'🚀 התחלה מהירה', helpH2:'⚙️ הגדרת חסימה',
+            helpH3:'📋 תור', helpH4:'📂 ייבוא CSV',
+            helpH5:'💾 תבניות', helpH6:'⚠️ שגיאות נפוצות ומגבלות', helpH7:'🖥️ סרגל צד / העדפות',
+            helpH8:'🗺 מסלולים',
+            helpH9:'🔍 חיפוש חסימות',
+            helpH10:'📦 מסלולים ארוכים: מצב מנות',
+            helpH11:'🔀 חסימת פניות', helpH12:'⬇ שני ייצואי ה-CSV',
+            helpH13:'🏷️ מקור (שותף)',
+            helpS1:'<b>בחר</b> מקטע אחד או יותר במפת WME',
+            helpS2:'לחץ על כפתור 🚧 הגלוי במפה (גרור למיקום מחדש)',
+            helpS3:'בלשונית <b>⚙ הגדרה</b>, קבע את פרמטרי החסימה (תקופה, לוח זמנים, ימים…)',
+            helpS4:'לחץ <b>✔ אשר והוסף לתור</b>',
+            helpS5:'חזור על כך עבור מקטעים אחרים במידת הצורך',
+            helpS6:'לחץ <b>▶ החל</b> כדי ליצור את החסימות ב-WME',
         },
         de: {
             // Reiter
@@ -5801,7 +6194,7 @@ const _applyLotPause = (lotNo, total) => new Promise(resolve => {
     const log = $id('wct-apply-log');
     if(!log){ resolve(true); return; }
     const box = document.createElement('div');
-    box.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 6px;background:rgba(142,36,170,.12);border-left:3px solid #8e24aa;border-radius:3px';
+    box.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 6px;background:rgba(142,36,170,.12);border-inline-start:3px solid #8e24aa;border-radius:3px';
     const txt = document.createElement('span');
     txt.style.cssText = 'flex:1;color:#8e24aa;font-weight:600;font-size:0.917em';
     txt.textContent = t('applyLotDone', lotNo, total);
@@ -6087,6 +6480,7 @@ const showToast=(msg,duration=2500,color='#323232')=>{
     const el=$id('wct-toast');
     if(!el) return;
     clearTimeout(toastTimer);
+    el.dir=isRTL()?'rtl':'ltr';   // toast partagé : suit la langue à chaque affichage
     el.textContent=msg;
     el.style.background=color;
     el.classList.add('show');
@@ -7519,7 +7913,7 @@ const traceRenderTable = () => {
             <td class="wct-gpx-name" colspan="2" title="${escHtml(file.filename)}" style="font-weight:700;padding-left:2px">📄 ${escHtml(file.filename)}</td>
             <td class="wct-gpx-time">${timeStr}</td>
             <td class="wct-trace-col-type">${typeLabel}</td>
-            <td style="text-align:right;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
+            <td style="text-align:end;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
             <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">📥</button></td>
@@ -7536,7 +7930,7 @@ const traceRenderTable = () => {
                 <td class="wct-gpx-name" colspan="2" title="${escHtml(trk.name)}" style="padding-left:1.2em">↳ ${escHtml(trk.name)}</td>
                 <td class="wct-gpx-time"></td>
                 <td class="wct-trace-col-type" style="color:var(--wct-text2)">${typeLabel}</td>
-                <td style="text-align:right;color:#2e7d32">${okCount>0?okCount:'—'}</td>
+                <td style="text-align:end;color:#2e7d32">${okCount>0?okCount:'—'}</td>
                 <td class="wct-gpx-swatch-cell"><span class="wct-gpx-swatch" data-tid="${trk.trackId}" style="background:${trk.color}" title="${t('trkTipColor')}"></span></td>
                 <td class="wct-gpx-err ${errCount>0?'wct-gpx-has-err':''}" title="${escHtml(errTip)}">${errCount>0?'⚠️ '+errCount:'✅'}</td>
                 <td><button class="wct-trace-trk-pos wct-ico" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
@@ -7581,10 +7975,10 @@ const traceRenderTable = () => {
             <tr>
                 <th></th>
                 <th></th>
-                <th colspan="2" style="text-align:left">${t('trkColTrack')}</th>
+                <th colspan="2" style="text-align:start">${t('trkColTrack')}</th>
                 <th title="${t('trkTipLoadTime')}">${t('trkColTime')}</th>
-                <th style="text-align:left" title="${t('trkTipFormat')}">Type</th>
-                <th style="text-align:right" title="${t('trkTipPts')}">pts</th>
+                <th style="text-align:start" title="${t('trkTipFormat')}">Type</th>
+                <th style="text-align:end" title="${t('trkTipPts')}">pts</th>
                 <th title="${t('trkTipColorCol')}">🎨</th>
                 <th title="${t('trkTipStatus')}">⚡</th>
                 <th></th>
@@ -7734,6 +8128,10 @@ const buildOverlay=()=>{
     const days=t('days');
     const chips=[1,2,3,4,5,6,0].map(dow=>`<span class="wct-chip${[1,2,3,4,5].includes(dow)?' on':''}" data-dow="${dow}">${days[dow]}</span>`).join('');
     const ov=make('div',{id:'wct-overlay'});
+    // Écriture droite-à-gauche pour l'hébreu : dir="rtl" sur la racine cascade sur tout le
+    // panneau (flux du texte, axe des flex "row", alignements). Le bloc CSS #wct-overlay[dir="rtl"]
+    // corrige ensuite ce qui ne se retourne pas seul (positions absolues, transforms, toggles).
+    ov.dir = isRTL() ? 'rtl' : 'ltr';
     ov.innerHTML=`
     <div id="wct-hdr">
         <div class="wct-hdr-title">&#x1F6A7; WME Closures Toolkit <span class="wct-hdr-version">v${VERSION}</span>
@@ -7910,10 +8308,10 @@ const buildOverlay=()=>{
         <div id="wct-presets-empty" class="wct-queue-empty" style="display:none">${t('queueEmpty')}</div>
         <table id="wct-presets-table" style="width:100%;border-collapse:collapse;font-size:1em">
           <thead><tr>
-            <th style="text-align:left;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColName')}</th>
-            <th style="text-align:left;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColDesc')}</th>
-            <th style="text-align:left;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColTime')}</th>
-            <th style="text-align:left;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColDir')}</th>
+            <th style="text-align:start;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColName')}</th>
+            <th style="text-align:start;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColDesc')}</th>
+            <th style="text-align:start;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColTime')}</th>
+            <th style="text-align:start;padding:0.417em 0.583em;font-size:0.917em;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--wct-border);color:var(--wct-text2)">${t('presetColDir')}</th>
             <th style="padding:5px 7px;border-bottom:2px solid var(--wct-border)"></th>
           </tr></thead>
           <tbody id="wct-presets-tbody"></tbody>
@@ -8169,7 +8567,7 @@ const buildQueueCard=(entry,idx)=>{
 
     const card=document.createElement('div');
     card.className='wct-qcard';
-    card.style.cssText='border-radius:var(--wct-radius);margin-bottom:6px;overflow:hidden;border:1px solid var(--wct-border);border-left:3px solid '+color+';';
+    card.style.cssText='border-radius:var(--wct-radius);margin-bottom:6px;overflow:hidden;border:1px solid var(--wct-border);border-inline-start:3px solid '+color+';';
     // ── Header du lot ──
     const hdr=document.createElement('div');
     hdr.className='wct-qcard-hdr';
@@ -8341,7 +8739,7 @@ const buildQueueCard=(entry,idx)=>{
         trh.style.background='var(--wct-bg)';
         COLS.forEach(col=>{
             const th=document.createElement('th');
-            th.style.cssText='padding:4px 5px;text-align:left;border-bottom:1px solid var(--wct-border);width:'+col.w+';white-space:nowrap;overflow:hidden;';
+            th.style.cssText='padding:4px 5px;text-align:start;border-bottom:1px solid var(--wct-border);width:'+col.w+';white-space:nowrap;overflow:hidden;';
             th.title=col.title;
             if(col.key==='del'){
                 // Cellule vide — pas de contrôle global
@@ -9409,7 +9807,7 @@ const connectSidebar=()=>{
 };
 
 const buildSidebar=()=>`
-<div id="wct-sidebar">
+<div id="wct-sidebar" dir="${isRTL()?'rtl':'ltr'}">
     <h2>&#x1F6A7; WME Closures Toolkit <span style="font-size:11px;font-weight:400;color:var(--wct-grey)">v${VERSION}</span></h2>
     <p class="wct-sb-hint">${t('sbHint')}</p>
     <div class="wct-toggle-row">
