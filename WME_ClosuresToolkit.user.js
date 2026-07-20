@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.87.00
+// @version      0.87.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1189,6 +1189,7 @@ const t = (key, ...args) => {
             srcSelOff_feature:'Indisponible : WME a d\u00E9sactiv\u00E9 l\u2019API des partenaires sur ce serveur.',
             srcSelOff_api:'Indisponible : la liste des partenaires n\u2019a pas pu \u00EAtre charg\u00E9e.',
             srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
+            srcSelOff_nopartner:'Indisponible ici : aucun partenaire pour ton compte dans cette vue. Déplace la carte sur la zone d’un partenaire, ou laisse « Aucune ».',
             srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
             // Recherche : filtre par partenaire
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partenaire)',
@@ -1588,6 +1589,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSelOff_feature:'Unavailable: WME has disabled the partners API on this server.',
             srcSelOff_api:'Unavailable: the partner list could not be loaded.',
             srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
+            srcSelOff_nopartner:'Unavailable here: no partner for your account in this view. Pan the map to a partner’s area, or leave "None".',
             srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
             // Search: partner filter
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partner)',
@@ -1972,6 +1974,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_feature:'לא זמין: WME השבית את ממשק השותפים בשרת זה.',
             srcSelOff_api:'לא זמין: לא ניתן לטעון את רשימת השותפים.',
             srcSelOff_schema:'לא זמין: WME שינה את מבנה החסימה. WCT מעדיף לשתוק מאשר לייחס מקור בטעות — אנא דווח למחבר.',
+            srcSelOff_nopartner:'לא זמין כאן: אין שותף לחשבונך בתצוגה זו. הזז את המפה לאזור של שותף, או השאר "ללא".',
             srcApplyFail:'המקור לא יושם: שום דבר לא נשמר. חסימה ללא המקור המבוקש הייתה ייחוס שגוי.',
             // Search: partner filter
             srcSectionPartner:'🏷️ מקור (שותף)',
@@ -2356,6 +2359,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_feature:'Non disponibile: WME ha disabilitato l’API dei partner su questo server.',
             srcSelOff_api:'Non disponibile: impossibile caricare la lista dei partner.',
             srcSelOff_schema:'Non disponibile: WME ha modificato la struttura delle chiusure. WCT preferisce tacere piuttosto che attribuire una fonte sbagliata — segnalalo all’autore.',
+            srcSelOff_nopartner:'Non disponibile qui: nessun partner per il tuo account in questa vista. Sposta la mappa sull’area di un partner, oppure lascia "Nessuna".',
             srcApplyFail:'Fonte non applicata: nulla è stato salvato. Una chiusura senza la fonte richiesta sarebbe un’attribuzione falsa.',
             // Search: partner filter
             srcSectionPartner:'🏷️ Fonte (partner)',
@@ -2741,6 +2745,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_feature:'Nicht verf\u00FCgbar: WME hat die Partner-API auf diesem Server deaktiviert.',
             srcSelOff_api:'Nicht verf\u00FCgbar: die Partnerliste konnte nicht geladen werden.',
             srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
+            srcSelOff_nopartner:'Hier nicht verfügbar: kein Partner für dein Konto in dieser Ansicht. Verschiebe die Karte in das Gebiet eines Partners, oder lass „Keine".',
             srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
             // Suche: Partnerfilter
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
@@ -3125,6 +3130,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_feature:'No disponible: WME ha desactivado la API de socios en este servidor.',
             srcSelOff_api:'No disponible: no se ha podido cargar la lista de socios.',
             srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
+            srcSelOff_nopartner:'No disponible aquí: ningún socio para tu cuenta en esta vista. Mueve el mapa a la zona de un socio, o deja «Ninguna».',
             srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
             // Busqueda: filtro por socio
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fuente (socio)',
@@ -3509,6 +3515,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSelOff_feature:'Indispon\u00EDvel: o WME desativou a API de parceiros neste servidor.',
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
+            srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para sua conta nesta visão. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             // Pesquisa: filtro por parceiro
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
@@ -3893,6 +3900,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSelOff_feature:'Indispon\u00EDvel: o WME desativou a API de parceiros neste servidor.',
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
+            srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para a sua conta nesta vista. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             // Pesquisa: filtro por parceiro
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
@@ -5296,7 +5304,7 @@ const readConfig=()=>({
     mteId:$id('wct-mtesel')?.value||'',
     // Source : jamais lue si la capacité est tombée — sinon une valeur restée dans le DOM
     // pourrait repartir alors que le sélecteur est grisé.
-    partnerId:(_srcCap.ok && !_currentTurns) ? ($id('wct-sourcesel')?.value||'') : '',
+    partnerId:(_srcCap.ok && _partners.length>0 && !_currentTurns) ? ($id('wct-sourcesel')?.value||'') : '',
     holidayMode:($id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none'),
     days:[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c?.classList.contains('on')||false;}),
     activeTab:document.querySelector('#wct-body .wct-pane.on')?.id||'wct-tab-each',
@@ -5561,10 +5569,11 @@ const updateActionBtns=()=>{
 const PARTNERS_URL = env => `/${env}-Descartes/app/Partners`;
 const PARTNER_CHANNEL = 'WME_PARTNER_EDITOR';
 const PARTNER_USER_CHANNEL = 'PARTNER';
-// Capacite : {ok:bool, reason:'flag'|'feature'|'api'|'schema'|null}
-// Le PREMIER verrou qui tombe desactive la Source, avec sa cause. Tout le reste de
-// WCT continue de fonctionner : une fermeture ne doit JAMAIS partir avec une source
-// a moitie posee.
+// Capacite : {ok:bool, reason:'api'|'schema'|null}  (0.87.01 : 'flag'/'feature' retires,
+// gate desormais empirique sur l'API partenaires — cf. probeSourceCap). Le selecteur peut
+// aussi rester grise avec le motif 'nopartner' quand la vue n'a aucun partenaire.
+// Le verrou qui tombe desactive la Source, avec sa cause. Tout le reste de WCT continue
+// de fonctionner : une fermeture ne doit JAMAIS partir avec une source a moitie posee.
 let _srcCap = {ok:false, reason:'init', checked:false};
 const _wmeEnv = () => {
     try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || (W?.Config?.server?.baseUrl?.match(/\/(\w+)-Descartes/)||[])[1] || 'row'; }
@@ -5584,12 +5593,15 @@ const _srcSchemaOk = () => {
 const probeSourceCap = async () => {
     _srcCap = {ok:false, reason:null, checked:true};
     try{
-        if(W?.loginManager?.user?.attributes?.partnerUser !== true){ _srcCap.reason='flag'; return _srcCap; }
-        let cfg=null;
-        try{ cfg = await (await fetch(`/${_wmeEnv()}-Descartes/app/info/config`,{credentials:'include'})).json(); }catch(e){}
-        const ff = {...(cfg?.featureFlags||{}), ...(cfg?.frontendFeatureFlags||{})};
-        if(ff.GetPartnersAPI !== true){ _srcCap.reason='feature'; return _srcCap; }
+        // Le schema du modele porte-t-il encore la Source ? Si WME renomme/retire ces champs.
         if(!_srcSchemaOk()){ _srcCap.reason='schema'; return _srcCap; }
+        // ⚠️ On NE se fie PLUS au flag `partnerUser` (0.87.01) : verrou trop strict. Un editeur
+        // ajoute aux permissions d'un partenaire precis / au « partner hub » peut attribuer une
+        // source SANS ce flag (confirme en prod le 2026-07-20 : compte partnerUser=false dont
+        // l'API /app/Partners renvoie bien 5 partenaires). Le flag `GetPartnersAPI` n'est plus
+        // exige non plus : la capacite est desormais EMPIRIQUE — c'est l'appel /app/Partners de
+        // loadPartners() qui tranche (liste renvoyee ⇒ capable, erreur HTTP ⇒ reason='api'), et
+        // renderSourceSel n'active le selecteur que s'il y a des partenaires dans la vue.
         _srcCap.ok=true;
     }catch(e){ _srcCap.reason='schema'; log('probeSourceCap: '+e.message); }
     return _srcCap;
@@ -5627,11 +5639,16 @@ const renderSourceSel = () => {
     const prev=sel.value;
     // Sans objet pour un virage : la Source est un champ de fermeture de SEGMENT.
     const turnTarget = !!_currentTurns;
-    const dispo = _srcCap.ok && !turnTarget;
+    // La capacite (_srcCap.ok) dit que la feature marche ; la DISPONIBILITE reelle exige
+    // qu'il y ait des partenaires dans la vue (l'API en renvoie 0 hors zone partenaire, ou
+    // pour un compte sans droits). Le selecteur ne s'active donc que si la liste est non vide.
+    const hasPartners = _partners.length > 0;
+    const dispo = _srcCap.ok && hasPartners && !turnTarget;
     wrap.classList.toggle('wct-na', !dispo);
     const why = turnTarget ? t('srcSelTurn')
-              : _srcCap.ok ? ''
-              : t('srcSelOff_'+(_srcCap.reason||'schema'));
+              : !_srcCap.ok ? t('srcSelOff_'+(_srcCap.reason||'schema'))
+              : !hasPartners ? t('srcSelOff_nopartner')
+              : '';
     wrap.title = dispo ? t('tipSource') : why;
     const hint=$id('wct-source-hint');
     if(hint){ hint.textContent = dispo ? '' : why; hint.style.display = dispo ? 'none' : 'block'; }
