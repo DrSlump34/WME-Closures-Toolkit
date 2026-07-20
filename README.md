@@ -21,7 +21,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 - **Partner source** — record and display which partner a closure originates from.
 - **Major Traffic Event (MTE)** support.
 - **Public holidays** taken into account when scheduling recurrences.
-- **Seven languages**: English, French, German, Spanish, Portuguese (PT and BR), and Hebrew — with full right-to-left (RTL) layout.
+- **Eight languages**: English, French, German, Spanish, Italian, Portuguese (PT and BR), and Hebrew — with full right-to-left (RTL) layout for Hebrew.
 
 ## Installation
 
