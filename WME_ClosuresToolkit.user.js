@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.87.01
+// @version      0.87.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -9958,7 +9958,9 @@ const restoreClosuresLayer = () => {
     _closuresLayerForced = false;
 };
 
-const doInjectFab=()=>{
+// `silent` : utilisé par les reconstructions du filet de sécurité, qui logue déjà
+// son propre message (et de façon throttlée) — inutile de doubler chaque incident.
+const doInjectFab=(silent)=>{
     if($id('wct-fab-btn')) return;
 
     const wrap=document.createElement('div');
@@ -9993,7 +9995,7 @@ const doInjectFab=()=>{
     wrap.appendChild(wzBtn);
     // Docker le FAB dans le container natif WME (body en secours si pas encore prêt au boot)
     (_findOverlayContainer()||document.body).appendChild(wrap);
-    log('FAB injecté (docké container natif)');
+    if(!silent) log('FAB injecté (docké container natif)');
     // Clic : ouvrir / fermer l'overlay
     wzBtn.addEventListener('click', e=>{
         e.stopPropagation();
@@ -10027,9 +10029,42 @@ let _fabObserver=null, _fabObservedCont=null;
 // or injectFab() n'était appelé qu'une fois, à l'init. Résultat : si WME détruisait le
 // conteneur (il recrée ses boutons natifs à divers moments), le FAB ne revenait JAMAIS et
 // il fallait recharger WME. ensureFab() le reconstruit au lieu de renoncer.
+// ── Log throttlé ────────────────────────────────────────────────────────────
+// Chez au moins un utilisateur (Misterlogik, 22/07/2026), quelque chose retire le
+// FAB du DOM en continu : le filet le reconstruit à chaque tick d'onSel (2×/s) et
+// la console se remplissait de centaines de lignes [WCT] — illisible pour lui comme
+// pour le diagnostic, et ça masquait au passage les messages des autres scripts.
+// On garde donc les 5 premières reconstructions en clair — cinq lignes identiques
+// qui défilent, c'est le signal visuel immédiat qu'une boucle est en cours, sans
+// rien attendre —, puis on bascule en résumé : une ligne toutes les 30 s avec le
+// compte. La 5e ligne annonce la bascule, pour qu'un silence ne se lise pas comme
+// « c'est réglé ». Un incident isolé, lui, reste une ligne unique.
+const _FAB_LOG_THROTTLE_MS = 30000;
+const _FAB_LOG_VERBOSE_MAX = 5;
+let _fabRebuilds = 0, _fabRebuildsAtLastLog = 0, _fabLastLogTs = 0;
 const ensureFab=()=>{
     if(!$id('wct-fab-wrap')){
-        try{ doInjectFab(); log('FAB reconstruit (disparu du DOM)'); }catch(e){ log('ensureFab: '+e.message); }
+        try{
+            doInjectFab(true);   // silencieux : les messages ci-dessous suffisent
+            _fabRebuilds++;
+            const now = Date.now();
+            if(_fabRebuilds <= _FAB_LOG_VERBOSE_MAX){
+                log('FAB reconstruit (disparu du DOM)'
+                   +(_fabRebuilds === _FAB_LOG_VERBOSE_MAX
+                     ? ' — suite regroupée en 1 ligne / 30 s' : ''));
+                _fabLastLogTs = now; _fabRebuildsAtLastLog = _fabRebuilds;
+            } else if(now - _fabLastLogTs >= _FAB_LOG_THROTTLE_MS){
+                const since = _fabRebuilds - _fabRebuildsAtLastLog;   // depuis le dernier log
+                // 1 seule reconstruction sur la période : incident isolé, message simple.
+                // Plusieurs : c'est une boucle, on le dit et on donne de quoi la mesurer.
+                log(since === 1
+                    ? 'FAB reconstruit (disparu du DOM)'
+                    : `FAB reconstruit ${since}× en ${Math.round((now-_fabLastLogTs)/1000)} s `
+                     +`(${_fabRebuilds} au total) — il est retiré du DOM en boucle, `
+                     +`conflit probable avec WME ou un autre script`);
+                _fabLastLogTs = now; _fabRebuildsAtLastLog = _fabRebuilds;
+            }
+        }catch(e){ log('ensureFab: '+e.message); }
     }
     ensureFabDocked();
 };
