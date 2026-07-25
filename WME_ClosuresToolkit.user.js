@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.92.00
+// @version      0.93.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1105,8 +1105,8 @@ const t = (key, ...args) => {
             tnNotClosable:'non fermable', tnNotClosableTip:'Ce virage n\u2019existe pas dans le mod\u00E8le de donn\u00E9es de WME (cas courant des demi-tours) : le SDK refuse de le fermer.',
             colTurn:'Virage', colTurnTip:'Extr\u00E9mit\u00E9 et direction du virage ferm\u00E9',
             csvTurnOnly:'\u26A0\uFE0F La file ne contient que des fermetures de virage : le format WME Advanced Closures ne sait pas les repr\u00E9senter. Rien \u00E0 exporter.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
-            btnCsvTurn:'\u2B07 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
+            btnCsvAc:'\u2B07 File \u00B7 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
+            btnCsvTurn:'\u2B07 File \u00B7 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
             csvNoTurns:'Aucune fermeture de virage \u00E0 exporter.',
             csvNothing:'Plus rien \u00E0 exporter : toutes les lignes ont \u00E9t\u00E9 supprim\u00E9es.',
             // Infobulles des onglets et boutons
@@ -1178,9 +1178,9 @@ const t = (key, ...args) => {
             srcResultsTurn: n => `${n} virage(s) avec fermeture`,
             srcColTurn:'Virage', srcTipColTurn:'Trier par virage (fl\u00E8che et rues)',
             srcTipCenterTurn:'Centrer la carte sur le n\u0153ud de ce virage',
-            srcBtnExportSeg:'\u2B07 Exporter ces segments (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Résultats \u00B7 CSV AC',
             srcTipExportSeg:'Exporter les fermetures de segments TROUV\u00C9ES au format WME Advanced Closures. Rien \u00E0 voir avec la file d\u2019attente. \u26A0 Le drapeau « n\u0153uds ferm\u00E9s » ne peut pas \u00EAtre restitu\u00E9 : le SDK ne le relit pas.',
-            srcBtnExportTurn:'\u2B07 Exporter ces virages (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Résultats \u00B7 CSV Virages',
             srcTipExportTurn:'Exporter les fermetures de virages TROUV\u00C9ES au format WCT. Rien \u00E0 voir avec la file d\u2019attente.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} fermeture(s) de segment export\u00E9e(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} fermeture(s) de virage export\u00E9e(s).`,
@@ -1368,9 +1368,9 @@ const t = (key, ...args) => {
             presetColTime:'Horaire', presetColDir:'Dir',
             presetNamePh:'Nom du pr\u00E9r\u00E9glage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Sauvegarder le pr\u00E9r\u00E9glage',
-            btnPrefsExport:'⬇ Exporter', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
-            btnPrefsImport:'⬆ Importer', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
+            btnPrefsExport:'\u2B07 Préréglages', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
+            btnPrefsImport:'\u2B06 Préréglages', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
+            btnPrefsURL:'\u2B06 Préréglages \u00B7 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
             prefsURLPrompt:'Adresse du fichier de préréglages :',
             prefsExported: n => `✅ ${n} préréglage(s) exporté(s).`,
             prefsImported: n => `✅ Préréglages importés — vous en avez ${n} au total.`,
@@ -1481,13 +1481,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyTypesHint:'Libellés et types fournis par WME. Le nombre indique les segments de ce type dans la zone tracée.',
             polyTypesApplied: (n,tot) => `✅ ${n} segment(s) retenu(s) sur ${tot} dans la zone.`,
             polyTypesEmpty:'Aucun segment de ces types dans la zone.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Télécharger la zone tracée au format KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copier la zone tracée en POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Zone \u00B7 KML', tipPolyKmlBtn:'Télécharger la zone tracée au format KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Zone \u00B7 WKT', tipPolyWktBtn:'Copier la zone tracée en POLYGON(…) WKT',
             polyWktCopied: n => `✅ Zone copiée en WKT (${n} sommets).`,
             polyWktCopy:'Copier la zone au format WKT :',
             polyKmlDone: f => `✅ ${f} téléchargé.`,
             polyNoZone:'Aucune zone tracée.',
-            polyImportBtn:'📂 Importer',
+            polyImportBtn:'\u2B06 Zone',
             tipPolyImportBtn:'Recharger une zone depuis un POLYGON(…) WKT ou un fichier KML',
             polyImportTitle:'Importer une zone',
             polyImportWktLabel:'Coller un POLYGON(…) WKT',
@@ -1567,8 +1567,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnNotClosable:'not closable', tnNotClosableTip:'This turn does not exist in the WME data model (typically U-turns): the SDK refuses to close it.',
             colTurn:'Turn', colTurnTip:'Extremity and direction of the closed turn',
             csvTurnOnly:'\u26A0\uFE0F The queue only holds turn closures: the WME Advanced Closures format cannot represent them. Nothing to export.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
-            btnCsvTurn:'\u2B07 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
+            btnCsvAc:'\u2B07 Queue \u00B7 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
+            btnCsvTurn:'\u2B07 Queue \u00B7 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
             csvNoTurns:'No turn closure to export.',
             csvNothing:'Nothing left to export: all rows have been deleted.',
             // Tab and button tooltips
@@ -1640,9 +1640,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcResultsTurn: n => `${n} turn(s) with a closure`,
             srcColTurn:'Turn', srcTipColTurn:'Sort by turn (arrow and streets)',
             srcTipCenterTurn:'Center the map on this turn\u2019s node',
-            srcBtnExportSeg:'\u2B07 Export these segments (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Results \u00B7 CSV AC',
             srcTipExportSeg:'Export the segment closures FOUND, in the WME Advanced Closures format. Nothing to do with the queue. \u26A0 The "closed nodes" flag cannot be restored: the SDK does not read it back.',
-            srcBtnExportTurn:'\u2B07 Export these turns (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Results \u00B7 CSV Turns',
             srcTipExportTurn:'Export the turn closures FOUND, in the WCT format. Nothing to do with the queue.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} segment closure(s) exported.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} turn closure(s) exported.`,
@@ -1815,9 +1815,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             presetColTime:'Schedule', presetColDir:'Dir',
             presetNamePh:'Preset name\u2026',
             presetPopupTitle:'\uD83D\uDCBE Save preset',
-            btnPrefsExport:'⬇ Export', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
-            btnPrefsImport:'⬆ Import', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
+            btnPrefsExport:'\u2B07 Presets', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
+            btnPrefsImport:'\u2B06 Presets', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
+            btnPrefsURL:'\u2B06 Presets \u00B7 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
             prefsURLPrompt:'Address of the presets file:',
             prefsExported: n => `✅ ${n} preset(s) exported.`,
             prefsImported: n => `✅ Presets imported — you now have ${n}.`,
@@ -1930,13 +1930,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Labels and types come from WME. The number shows how many segments of that type are in the drawn area.',
             polyTypesApplied: (n,tot) => `✅ ${n} of ${tot} segment(s) kept in the area.`,
             polyTypesEmpty:'No segment of those types in the area.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Download the drawn area as KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copy the drawn area as POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Area \u00B7 KML', tipPolyKmlBtn:'Download the drawn area as KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Area \u00B7 WKT', tipPolyWktBtn:'Copy the drawn area as POLYGON(…) WKT',
             polyWktCopied: n => `✅ Area copied as WKT (${n} corners).`,
             polyWktCopy:'Copy the area as WKT:',
             polyKmlDone: f => `✅ ${f} downloaded.`,
             polyNoZone:'No area drawn.',
-            polyImportBtn:'📂 Import',
+            polyImportBtn:'\u2B06 Area',
             tipPolyImportBtn:'Reload an area from a POLYGON(…) WKT or a KML file',
             polyImportTitle:'Import an area',
             polyImportWktLabel:'Paste a POLYGON(…) WKT',
@@ -2014,8 +2014,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'לא ניתן לחסימה', tnNotClosableTip:'פנייה זו אינה קיימת במודל הנתונים של WME (בדרך כלל פניות פרסה): ה-SDK מסרב לחסום אותה.',
             colTurn:'פנייה', colTurnTip:'קצה וכיוון של הפנייה החסומה',
             csvTurnOnly:'⚠️ התור מכיל רק חסימות פנייה: פורמט WME Advanced Closures אינו יכול לייצג אותן. אין מה לייצא.',
-            btnCsvAc:'⬇ CSV AC', btnCsvAcTip:'ייצוא חסימות של מקטעים בפורמט WME Advanced Closures (מנות פניות מושמטות: הפורמט אינו יכול לייצג אותן).',
-            btnCsvTurn:'⬇ CSV פניות', btnCsvTurnTip:'ייצוא חסימות של פניות בפורמט WCT (ניתן לייבוא חוזר ל-WCT; אינו קריא ב-Advanced Closures).',
+            btnCsvAc:'\u2B07 תור \u00B7 CSV AC', btnCsvAcTip:'ייצוא חסימות של מקטעים בפורמט WME Advanced Closures (מנות פניות מושמטות: הפורמט אינו יכול לייצג אותן).',
+            btnCsvTurn:'\u2B07 תור \u00B7 CSV פניות', btnCsvTurnTip:'ייצוא חסימות של פניות בפורמט WCT (ניתן לייבוא חוזר ל-WCT; אינו קריא ב-Advanced Closures).',
             csvNoTurns:'אין חסימת פנייה לייצוא.',
             csvNothing:'לא נותר מה לייצא: כל השורות נמחקו.',
             // Tab and button tooltips
@@ -2087,9 +2087,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcResultsTurn: n => `${n} פניות עם חסימה`,
             srcColTurn:'פנייה', srcTipColTurn:'מיון לפי פנייה (חץ ורחובות)',
             srcTipCenterTurn:'מרכוז המפה על צומת הפנייה',
-            srcBtnExportSeg:'⬇ ייצא מקטעים אלה (CSV AC)',
+            srcBtnExportSeg:'\u2B07 תוצאות \u00B7 CSV AC',
             srcTipExportSeg:'ייצוא חסימות המקטעים שנמצאו, בפורמט WME Advanced Closures. אין קשר לתור. ⚠ דגל "צמתים חסומים" אינו ניתן לשחזור: ה-SDK אינו קורא אותו בחזרה.',
-            srcBtnExportTurn:'⬇ ייצא פניות אלה (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 תוצאות \u00B7 CSV פניות',
             srcTipExportTurn:'ייצוא חסימות הפניות שנמצאו, בפורמט WCT. אין קשר לתור.',
             srcExportedSeg: n => `📥 ${n} חסימות מקטע יוצאו.`,
             srcExportedTurn: n => `📥 ${n} חסימות פנייה יוצאו.`,
@@ -2262,9 +2262,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'לוח זמנים', presetColDir:'כיוון',
             presetNamePh:'שם התבנית…',
             presetPopupTitle:'💾 שמור תבנית',
-            btnPrefsExport:'⬇ ייצוא', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
-            btnPrefsImport:'⬆ ייבוא', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
-            btnPrefsURL:'🌐 כתובת', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
+            btnPrefsExport:'\u2B07 תבניות', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
+            btnPrefsImport:'\u2B06 תבניות', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
+            btnPrefsURL:'\u2B06 תבניות \u00B7 URL', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
             prefsURLPrompt:'כתובת קובץ התבניות:',
             prefsExported: n => `✅ ${n} תבניות יוצאו.`,
             prefsImported: n => `✅ התבניות יובאו — יש לך כעת ${n}.`,
@@ -2377,13 +2377,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'התוויות והסוגים מגיעים מ-WME. המספר מציין כמה מקטעים מסוג זה נמצאים באזור המשורטט.',
             polyTypesApplied: (n,tot) => `✅ ${n} מתוך ${tot} מקטעים נשמרו באזור.`,
             polyTypesEmpty:'אין מקטעים מסוגים אלה באזור.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'הורד את האזור המשורטט בפורמט KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'העתק את האזור המשורטט כ-POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 אזור \u00B7 KML', tipPolyKmlBtn:'הורד את האזור המשורטט בפורמט KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 אזור \u00B7 WKT', tipPolyWktBtn:'העתק את האזור המשורטט כ-POLYGON(…) WKT',
             polyWktCopied: n => `✅ האזור הועתק כ-WKT (${n} פינות).`,
             polyWktCopy:'העתק את האזור בפורמט WKT:',
             polyKmlDone: f => `✅ ${f} הורד.`,
             polyNoZone:'לא שורטט אזור.',
-            polyImportBtn:'📂 ייבוא',
+            polyImportBtn:'\u2B06 אזור',
             tipPolyImportBtn:'טען אזור מחדש מ-POLYGON(…) WKT או מקובץ KML',
             polyImportTitle:'ייבוא אזור',
             polyImportWktLabel:'הדבק POLYGON(…) WKT',
@@ -2461,8 +2461,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'non chiudibile', tnNotClosableTip:'Questa svolta non esiste nel modello dati di WME (tipico delle inversioni a U): l’SDK rifiuta di chiuderla.',
             colTurn:'Svolta', colTurnTip:'Estremità e direzione della svolta chiusa',
             csvTurnOnly:'⚠️ La coda contiene solo chiusure di svolta: il formato WME Advanced Closures non può rappresentarle. Niente da esportare.',
-            btnCsvAc:'⬇ CSV AC', btnCsvAcTip:'Esporta le chiusure di SEGMENTI nel formato WME Advanced Closures (i lotti di svolte sono esclusi: quel formato non può rappresentarli).',
-            btnCsvTurn:'⬇ CSV Svolte', btnCsvTurnTip:'Esporta le chiusure di SVOLTE nel formato WCT (reimportabile in WCT; non leggibile da Advanced Closures).',
+            btnCsvAc:'\u2B07 Coda \u00B7 CSV AC', btnCsvAcTip:'Esporta le chiusure di SEGMENTI nel formato WME Advanced Closures (i lotti di svolte sono esclusi: quel formato non può rappresentarli).',
+            btnCsvTurn:'\u2B07 Coda \u00B7 CSV Svolte', btnCsvTurnTip:'Esporta le chiusure di SVOLTE nel formato WCT (reimportabile in WCT; non leggibile da Advanced Closures).',
             csvNoTurns:'Nessuna chiusura di svolta da esportare.',
             csvNothing:'Non c’è più niente da esportare: tutte le righe sono state eliminate.',
             // Tab and button tooltips
@@ -2534,9 +2534,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcResultsTurn: n => `${n} svolta/e con una chiusura`,
             srcColTurn:'Svolta', srcTipColTurn:'Ordina per svolta (freccia e strade)',
             srcTipCenterTurn:'Centra la mappa sul nodo di questa svolta',
-            srcBtnExportSeg:'⬇ Esporta questi segmenti (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Risultati \u00B7 CSV AC',
             srcTipExportSeg:'Esporta le chiusure di segmento TROVATE, nel formato WME Advanced Closures. Niente a che vedere con la coda. ⚠ Il flag "nodi chiusi" non può essere ripristinato: l’SDK non lo rilegge.',
-            srcBtnExportTurn:'⬇ Esporta queste svolte (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Risultati \u00B7 CSV Svolte',
             srcTipExportTurn:'Esporta le chiusure di svolta TROVATE, nel formato WCT. Niente a che vedere con la coda.',
             srcExportedSeg: n => `📥 ${n} chiusura/e di segmento esportate.`,
             srcExportedTurn: n => `📥 ${n} chiusura/e di svolta esportate.`,
@@ -2709,9 +2709,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Orario', presetColDir:'Dir',
             presetNamePh:'Nome del preset…',
             presetPopupTitle:'💾 Salva preset',
-            btnPrefsExport:'⬇ Esporta', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
-            btnPrefsImport:'⬆ Importa', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
+            btnPrefsExport:'\u2B07 Preset', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
+            btnPrefsImport:'\u2B06 Preset', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
+            btnPrefsURL:'\u2B06 Preset \u00B7 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
             prefsURLPrompt:'Indirizzo del file dei preset:',
             prefsExported: n => `✅ ${n} preset esportati.`,
             prefsImported: n => `✅ Preset importati — ora ne hai ${n}.`,
@@ -2824,13 +2824,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Etichette e tipi forniti da WME. Il numero indica i segmenti di quel tipo nell’area disegnata.',
             polyTypesApplied: (n,tot) => `✅ ${n} segmento/i tenuti su ${tot} nell’area.`,
             polyTypesEmpty:'Nessun segmento di questi tipi nell’area.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Scarica l’area disegnata in formato KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copia l’area disegnata come POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Area \u00B7 KML', tipPolyKmlBtn:'Scarica l’area disegnata in formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Area \u00B7 WKT', tipPolyWktBtn:'Copia l’area disegnata come POLYGON(…) WKT',
             polyWktCopied: n => `✅ Area copiata come WKT (${n} vertici).`,
             polyWktCopy:'Copia l’area in formato WKT:',
             polyKmlDone: f => `✅ ${f} scaricato.`,
             polyNoZone:'Nessuna area disegnata.',
-            polyImportBtn:'📂 Importa',
+            polyImportBtn:'\u2B06 Area',
             tipPolyImportBtn:'Ricarica un’area da un POLYGON(…) WKT o da un file KML',
             polyImportTitle:'Importa un’area',
             polyImportWktLabel:'Incolla un POLYGON(…) WKT',
@@ -2909,8 +2909,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'nicht sperrbar', tnNotClosableTip:'Dieser Abbieger existiert nicht im WME-Datenmodell (typisch bei Wendem\u00F6glichkeiten): das SDK lehnt die Sperrung ab.',
             colTurn:'Abbieger', colTurnTip:'Ende und Richtung des gesperrten Abbiegers',
             csvTurnOnly:'\u26A0\uFE0F Die Warteschlange enth\u00E4lt nur Abbiegersperrungen: das Format WME Advanced Closures kann sie nicht abbilden. Nichts zu exportieren.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
-            btnCsvTurn:'\u2B07 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
+            btnCsvAc:'\u2B07 Liste \u00B7 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
+            btnCsvTurn:'\u2B07 Liste \u00B7 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
             csvNoTurns:'Keine Abbiegersperrung zum Exportieren.',
             csvNothing:'Nichts mehr zu exportieren: alle Zeilen wurden gel\u00F6scht.',
             // Tooltips der Reiter und Schaltflaechen
@@ -2982,9 +2982,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcResultsTurn: n => `${n} Abbieger mit Sperrung`,
             srcColTurn:'Abbieger', srcTipColTurn:'Nach Abbieger sortieren (Pfeil und Stra\u00DFen)',
             srcTipCenterTurn:'Karte auf den Knoten dieses Abbiegers zentrieren',
-            srcBtnExportSeg:'\u2B07 Diese Segmente exportieren (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Ergebnisse \u00B7 CSV AC',
             srcTipExportSeg:'Die GEFUNDENEN Segmentsperrungen im Format WME Advanced Closures exportieren. Hat nichts mit der Warteschlange zu tun. \u26A0 Das Kennzeichen «gesperrte Knoten» l\u00E4sst sich nicht wiederherstellen: das SDK liest es nicht zur\u00FCck.',
-            srcBtnExportTurn:'\u2B07 Diese Abbieger exportieren (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Ergebnisse \u00B7 CSV Abbieger',
             srcTipExportTurn:'Die GEFUNDENEN Abbiegersperrungen im WCT-Format exportieren. Hat nichts mit der Warteschlange zu tun.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} Segmentsperrung(en) exportiert.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} Abbiegersperrung(en) exportiert.`,
@@ -3157,9 +3157,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Zeitplan', presetColDir:'Richt.',
             presetNamePh:'Name der Vorlage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Vorlage speichern',
-            btnPrefsExport:'⬇ Export', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
-            btnPrefsImport:'⬆ Import', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
+            btnPrefsExport:'\u2B07 Vorlagen', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
+            btnPrefsImport:'\u2B06 Vorlagen', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
+            btnPrefsURL:'\u2B06 Vorlagen \u00B7 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
             prefsURLPrompt:'Adresse der Vorlagen-Datei:',
             prefsExported: n => `✅ ${n} Vorlage(n) exportiert.`,
             prefsImported: n => `✅ Vorlagen importiert — du hast jetzt ${n}.`,
@@ -3272,13 +3272,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Bezeichnungen und Typen kommen von WME. Die Zahl nennt die Segmente dieses Typs im gezeichneten Bereich.',
             polyTypesApplied: (n,tot) => `✅ ${n} von ${tot} Segment(en) im Bereich behalten.`,
             polyTypesEmpty:'Kein Segment dieser Typen im Bereich.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Den gezeichneten Bereich als KML herunterladen (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Den gezeichneten Bereich als POLYGON(…) WKT kopieren',
+            polyKmlBtn:'\u2B07 Bereich \u00B7 KML', tipPolyKmlBtn:'Den gezeichneten Bereich als KML herunterladen (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Bereich \u00B7 WKT', tipPolyWktBtn:'Den gezeichneten Bereich als POLYGON(…) WKT kopieren',
             polyWktCopied: n => `✅ Bereich als WKT kopiert (${n} Eckpunkte).`,
             polyWktCopy:'Bereich als WKT kopieren:',
             polyKmlDone: f => `✅ ${f} heruntergeladen.`,
             polyNoZone:'Kein Bereich gezeichnet.',
-            polyImportBtn:'📂 Import',
+            polyImportBtn:'\u2B06 Bereich',
             tipPolyImportBtn:'Einen Bereich aus einem POLYGON(…) WKT oder einer KML-Datei neu laden',
             polyImportTitle:'Bereich importieren',
             polyImportWktLabel:'Ein POLYGON(…) WKT einfügen',
@@ -3356,8 +3356,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnNotClosable:'no cerrable', tnNotClosableTip:'Este giro no existe en el modelo de datos de WME (t\u00EDpico en los cambios de sentido): el SDK se niega a cerrarlo.',
             colTurn:'Giro', colTurnTip:'Extremo y direcci\u00F3n del giro cerrado',
             csvTurnOnly:'\u26A0\uFE0F La cola solo contiene cierres de giro: el formato WME Advanced Closures no puede representarlos. Nada que exportar.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
-            btnCsvTurn:'\u2B07 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
+            btnCsvAc:'\u2B07 Cola \u00B7 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
+            btnCsvTurn:'\u2B07 Cola \u00B7 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
             csvNoTurns:'No hay ning\u00FAn cierre de giro que exportar.',
             csvNothing:'Ya no hay nada que exportar: se han eliminado todas las l\u00EDneas.',
             // Descripciones de pestanas y botones
@@ -3429,9 +3429,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcResultsTurn: n => `${n} giro(s) con cierre`,
             srcColTurn:'Giro', srcTipColTurn:'Ordenar por giro (flecha y calles)',
             srcTipCenterTurn:'Centrar el mapa en el nodo de este giro',
-            srcBtnExportSeg:'\u2B07 Exportar estos segmentos (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
             srcTipExportSeg:'Exportar los cierres de segmentos ENCONTRADOS, en formato WME Advanced Closures. Nada que ver con la cola. \u26A0 El indicador «nodos cerrados» no puede restaurarse: el SDK no lo relee.',
-            srcBtnExportTurn:'\u2B07 Exportar estos giros (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Giros',
             srcTipExportTurn:'Exportar los cierres de giros ENCONTRADOS, en formato WCT. Nada que ver con la cola.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} cierre(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} cierre(s) de giro exportado(s).`,
@@ -3604,9 +3604,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Horario', presetColDir:'Sent.',
             presetNamePh:'Nombre del preajuste…',
             presetPopupTitle:'💾 Guardar el preajuste',
-            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
-            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
+            btnPrefsExport:'\u2B07 Preajustes', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
+            btnPrefsImport:'\u2B06 Preajustes', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
+            btnPrefsURL:'\u2B06 Preajustes \u00B7 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
             prefsURLPrompt:'Dirección del archivo de preajustes:',
             prefsExported: n => `✅ ${n} preajuste(s) exportado(s).`,
             prefsImported: n => `✅ Preajustes importados — ahora tienes ${n}.`,
@@ -3719,13 +3719,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyTypesHint:'Las etiquetas y los tipos los proporciona WME. El número indica los segmentos de ese tipo en la zona dibujada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) conservados en la zona.`,
             polyTypesEmpty:'Ningún segmento de esos tipos en la zona.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Descargar la zona dibujada en formato KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar la zona dibujada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Zona \u00B7 KML', tipPolyKmlBtn:'Descargar la zona dibujada en formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Zona \u00B7 WKT', tipPolyWktBtn:'Copiar la zona dibujada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Zona copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar la zona en formato WKT:',
             polyKmlDone: f => `✅ ${f} descargado.`,
             polyNoZone:'No hay ninguna zona dibujada.',
-            polyImportBtn:'📂 Importar',
+            polyImportBtn:'\u2B06 Zona',
             tipPolyImportBtn:'Recargar una zona desde un POLYGON(…) WKT o un archivo KML',
             polyImportTitle:'Importar una zona',
             polyImportWktLabel:'Pegar un POLYGON(…) WKT',
@@ -3803,8 +3803,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnNotClosable:'n\u00E3o bloque\u00E1vel', tnNotClosableTip:'Esta convers\u00E3o n\u00E3o existe no modelo de dados do WME (t\u00EDpico dos retornos): o SDK se recusa a bloque\u00E1-la.',
             colTurn:'Convers\u00E3o', colTurnTip:'Extremidade e dire\u00E7\u00E3o da convers\u00E3o bloqueada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas bloqueios de convers\u00E3o: o formato WME Advanced Closures n\u00E3o sabe represent\u00E1-los. Nada a exportar.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
-            btnCsvTurn:'\u2B07 CSV Convers\u00F5es', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            btnCsvAc:'\u2B07 Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
+            btnCsvTurn:'\u2B07 Fila \u00B7 CSV Conversões', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum bloqueio de convers\u00E3o para exportar.',
             csvNothing:'N\u00E3o h\u00E1 mais nada para exportar: todas as linhas foram exclu\u00EDdas.',
             // Dicas das abas e botoes
@@ -3876,9 +3876,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcResultsTurn: n => `${n} convers\u00E3o(\u00F5es) com bloqueio`,
             srcColTurn:'Convers\u00E3o', srcTipColTurn:'Ordenar por convers\u00E3o (seta e ruas)',
             srcTipCenterTurn:'Centralizar o mapa no n\u00F3 desta convers\u00E3o',
-            srcBtnExportSeg:'\u2B07 Exportar estes segmentos (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
             srcTipExportSeg:'Exportar os bloqueios de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s bloqueados» n\u00E3o pode ser restaurado: o SDK n\u00E3o o rel\u00EA.',
-            srcBtnExportTurn:'\u2B07 Exportar estas convers\u00F5es (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Conversões',
             srcTipExportTurn:'Exportar os bloqueios de convers\u00F5es ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} bloqueio(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} bloqueio(s) de convers\u00E3o exportado(s).`,
@@ -4051,9 +4051,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Salvar predefinição',
-            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
-            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
+            btnPrefsExport:'\u2B07 Predefinições', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
+            btnPrefsImport:'\u2B06 Predefinições', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
+            btnPrefsURL:'\u2B06 Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
             prefsURLPrompt:'Endereço do arquivo de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — agora você tem ${n}.`,
@@ -4166,13 +4166,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyTypesHint:'Os rótulos e os tipos vêm do WME. O número indica os segmentos desse tipo na área desenhada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
             polyTypesEmpty:'Nenhum segmento desses tipos na área.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Baixar a área desenhada em formato KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Área \u00B7 KML', tipPolyKmlBtn:'Baixar a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} baixado.`,
             polyNoZone:'Nenhuma área desenhada.',
-            polyImportBtn:'📂 Importar',
+            polyImportBtn:'\u2B06 Área',
             tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um arquivo KML',
             polyImportTitle:'Importar uma área',
             polyImportWktLabel:'Colar um POLYGON(…) WKT',
@@ -4250,8 +4250,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnNotClosable:'n\u00E3o cort\u00E1vel', tnNotClosableTip:'Esta viragem n\u00E3o existe no modelo de dados do WME (t\u00EDpico das invers\u00F5es de marcha): o SDK recusa cort\u00E1-la.',
             colTurn:'Viragem', colTurnTip:'Extremidade e dire\u00E7\u00E3o da viragem cortada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas cortes de viragem: o formato WME Advanced Closures n\u00E3o os sabe representar. Nada a exportar.',
-            btnCsvAc:'\u2B07 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
-            btnCsvTurn:'\u2B07 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            btnCsvAc:'\u2B07 Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
+            btnCsvTurn:'\u2B07 Fila \u00B7 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum corte de viragem para exportar.',
             csvNothing:'J\u00E1 n\u00E3o h\u00E1 nada para exportar: todas as linhas foram eliminadas.',
             // Dicas dos separadores e botoes
@@ -4323,9 +4323,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcResultsTurn: n => `${n} viragem(ns) com corte`,
             srcColTurn:'Viragem', srcTipColTurn:'Ordenar por viragem (seta e ruas)',
             srcTipCenterTurn:'Centrar o mapa no n\u00F3 desta viragem',
-            srcBtnExportSeg:'\u2B07 Exportar estes segmentos (CSV AC)',
+            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
             srcTipExportSeg:'Exportar os cortes de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s cortados» n\u00E3o pode ser reposto: o SDK n\u00E3o o rel\u00EA.',
-            srcBtnExportTurn:'\u2B07 Exportar estas viragens (CSV WCT)',
+            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Viragens',
             srcTipExportTurn:'Exportar os cortes de viragens ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} corte(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} corte(s) de viragem exportado(s).`,
@@ -4498,9 +4498,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Guardar predefinição',
-            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
-            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
-            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
+            btnPrefsExport:'\u2B07 Predefinições', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
+            btnPrefsImport:'\u2B06 Predefinições', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
+            btnPrefsURL:'\u2B06 Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
             prefsURLPrompt:'Endereço do ficheiro de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — tem agora ${n}.`,
@@ -4613,13 +4613,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyTypesHint:'As etiquetas e os tipos são fornecidos pelo WME. O número indica os segmentos desse tipo na área desenhada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
             polyTypesEmpty:'Nenhum segmento desses tipos na área.',
-            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Transferir a área desenhada em formato KML (Google Earth, QGIS)',
-            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07 Área \u00B7 KML', tipPolyKmlBtn:'Transferir a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07 Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} transferido.`,
             polyNoZone:'Nenhuma área desenhada.',
-            polyImportBtn:'📂 Importar',
+            polyImportBtn:'\u2B06 Área',
             tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um ficheiro KML',
             polyImportTitle:'Importar uma área',
             polyImportWktLabel:'Colar um POLYGON(…) WKT',
@@ -5160,7 +5160,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Recadre la carte sur le lot.</td></tr>
             <tr><td><b>🔗</b></td><td>Après sélection : copie un permalien pour retrouver la sélection du lot.</td></tr>
             <tr><td><b>▶ Appliquer</b></td><td>Pose les fermetures : la carte se recadre sur chaque lot, avec une pause « Continuer » entre les lots.</td></tr>
-            <tr><td><b>📥</b></td><td>Exporte les lots configurés de la trace en CSV (format WME Advanced Closures).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exporte les lots configurés de la trace en CSV (format WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">Le calque <b>Fermetures</b> de WME est activé automatiquement à l'ouverture du panneau (pour détecter les chevauchements) et remis dans son état d'origine à la fermeture. Une trace courte, qui tient dans une vue, n'est pas découpée : le 🧲 de la trace la sélectionne d'un seul coup.</p>`, en:`
             <p>A track that exceeds one view (~4.5 km) is automatically <b>split into batches</b>, shown as sub-rows under the track. You handle them one by one:</p>
@@ -5170,7 +5170,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Centers the map on the batch.</td></tr>
             <tr><td><b>🔗</b></td><td>After selection: copies a permalink to restore the batch selection.</td></tr>
             <tr><td><b>▶ Apply</b></td><td>Creates the closures: the map re-centers on each batch, pausing on “Continue” between batches.</td></tr>
-            <tr><td><b>📥</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
             </table>
             <p style="margin-top:6px">WME's <b>Closures</b> layer is enabled automatically when the panel opens (to detect overlaps) and restored to its original state on close. A short track that fits in one view is not split: the track's 🧲 selects it all at once.</p>`, de:`
             <p>Ein Track, der über eine Ansicht hinausgeht (~4,5 km), wird automatisch <b>in Pakete aufgeteilt</b>, die als Unterzeilen unter dem Track erscheinen. Man bearbeitet sie einzeln:</p>
@@ -5180,7 +5180,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Zentriert die Karte auf das Paket.</td></tr>
             <tr><td><b>🔗</b></td><td>Nach der Auswahl: kopiert einen Permalink, um die Auswahl des Pakets wiederherzustellen.</td></tr>
             <tr><td><b>▶ Anwenden</b></td><td>Erstellt die Sperrungen: die Karte zentriert sich auf jedes Paket, mit einer Pause „Weiter“ zwischen den Paketen.</td></tr>
-            <tr><td><b>📥</b></td><td>Exportiert die konfigurierten Pakete des Tracks als CSV (Format WME Advanced Closures).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exportiert die konfigurierten Pakete des Tracks als CSV (Format WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">Der Kartenlayer <b>Sperrungen</b> von WME wird beim Öffnen des Panels automatisch aktiviert (zur Erkennung von Überschneidungen) und beim Schließen zurückgesetzt. Ein kurzer Track, der in eine Ansicht passt, wird nicht aufgeteilt: das 🧲 des Tracks wählt ihn auf einmal aus.</p>`, es:`
             <p>Una traza que supera una vista (~4,5 km) se <b>divide automáticamente en lotes</b>, mostrados como subfilas bajo la traza. Se tratan uno a uno:</p>
@@ -5190,7 +5190,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Centra el mapa en el lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Tras la selección: copia un permalink para recuperar la selección del lote.</td></tr>
             <tr><td><b>▶ Aplicar</b></td><td>Crea los cierres: el mapa se recentra en cada lote, con una pausa «Continuar» entre lotes.</td></tr>
-            <tr><td><b>📥</b></td><td>Exporta los lotes configurados de la traza a CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exporta los lotes configurados de la traza a CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">La capa <b>Cierres</b> de WME se activa automáticamente al abrir el panel (para detectar solapamientos) y se restaura a su estado original al cerrar. Una traza corta que cabe en una vista no se divide: el 🧲 de la traza la selecciona de una vez.</p>`, 'pt-BR':`
             <p>Um trajeto que ultrapassa uma visualização (~4,5 km) é <b>dividido automaticamente em lotes</b>, mostrados como sublinhas sob o trajeto. Você trata um por um:</p>
@@ -5200,7 +5200,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Centraliza o mapa no lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
             <tr><td><b>▶ Aplicar</b></td><td>Cria os bloqueios: o mapa recentraliza em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
-            <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">A camada <b>Bloqueios</b> do WME é ativada automaticamente ao abrir o painel (para detectar sobreposições) e restaurada ao estado original ao fechar. Um trajeto curto que cabe em uma visualização não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>`, 'pt-PT':`
             <p>Um trajeto que ultrapassa uma vista (~4,5 km) é <b>dividido automaticamente em lotes</b>, apresentados como sublinhas sob o trajeto. Trata-se um a um:</p>
@@ -5210,7 +5210,7 @@ const buildHelpHTML = () => {
             <tr><td><b>👁</b></td><td>Centra o mapa no lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
             <tr><td><b>▶ Aplicar</b></td><td>Cria os cortes: o mapa volta a centrar-se em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
-            <tr><td><b>📥</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>⬇</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) + `<p style="margin-top:6px;color:var(--wct-text2);font-style:italic">${t('shpNetworkHelp')}</p>` },
         { id:'h11', title:t('helpH11'), body: _L({ fr:`
@@ -5277,43 +5277,43 @@ const buildHelpHTML = () => {
         { id:'h12', title:t('helpH12'), body: _L({ fr:`
             <p>Les segments et les virages ne peuvent pas voyager dans le même fichier : le format de WME Advanced Closures n'a aucune colonne capable de désigner un virage. D'où <b>deux boutons</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td>Fermetures de <b>segments</b>, au format <b>WME Advanced Closures</b>. Réimportable dans AC comme dans WCT.</td></tr>
-            <tr><td><b>⬇ CSV Virages</b></td><td>Fermetures de <b>virages</b>, au format <b>WCT</b>. Réimportable dans WCT ; <b>illisible par Advanced Closures</b>, qui le rejettera proprement (les lignes commencent par <code>add-turn</code> et non <code>add</code>).</td></tr>
+            <tr><td><b>⬇ File · CSV AC</b></td><td>Fermetures de <b>segments</b>, au format <b>WME Advanced Closures</b>. Réimportable dans AC comme dans WCT.</td></tr>
+            <tr><td><b>⬇ File · CSV Virages</b></td><td>Fermetures de <b>virages</b>, au format <b>WCT</b>. Réimportable dans WCT ; <b>illisible par Advanced Closures</b>, qui le rejettera proprement (les lignes commencent par <code>add-turn</code> et non <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Chaque bouton ne s'allume que si la file contient de quoi l'alimenter. Les <b>lignes supprimées</b> à la main dans une carte de la file ne sont pas exportées : le fichier décrit ce qui reste, pas ce qui a été saisi.</p>
             <p style="margin-top:6px">Le CSV Virages enregistre l'identité complète du virage — segment d'origine, nœud, segment de destination — <b>en plus</b> de son identifiant. Cet identifiant dérive des segments : si un carrefour est retracé, il ne résout plus. Les trois autres colonnes permettront de retrouver le virage malgré tout.</p>`, en:`
             <p>Segments and turns cannot travel in the same file: the WME Advanced Closures format has no column able to designate a turn. Hence <b>two buttons</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td><b>Segment</b> closures, in the <b>WME Advanced Closures</b> format. Re-importable into AC as well as WCT.</td></tr>
-            <tr><td><b>⬇ CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
+            <tr><td><b>⬇ Queue · CSV AC</b></td><td><b>Segment</b> closures, in the <b>WME Advanced Closures</b> format. Re-importable into AC as well as WCT.</td></tr>
+            <tr><td><b>⬇ Queue · CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Each button only lights up if the queue holds something to feed it. Rows <b>deleted</b> by hand in a queue card are not exported: the file describes what is left, not what was entered.</p>
             <p style="margin-top:6px">The Turns CSV records the turn's full identity — source segment, node, destination segment — <b>on top of</b> its id. That id derives from the segments: if a junction is redrawn, it no longer resolves. The three other columns will let the turn be found anyway.</p>`, de:`
             <p>Segmente und Abbieger können nicht in derselben Datei reisen: das Format von WME Advanced Closures hat keine Spalte, die einen Abbieger bezeichnen könnte. Daher <b>zwei Schaltflächen</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
-            <tr><td><b>⬇ CSV Abbieger</b></td><td><b>Abbieger</b>-Sperrungen im <b>WCT</b>-Format. In WCT reimportierbar; <b>von Advanced Closures nicht lesbar</b> — es lehnt sie sauber ab (die Zeilen beginnen mit <code>add-turn</code> statt <code>add</code>).</td></tr>
+            <tr><td><b>⬇ Liste · CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
+            <tr><td><b>⬇ Liste · CSV Abbieger</b></td><td><b>Abbieger</b>-Sperrungen im <b>WCT</b>-Format. In WCT reimportierbar; <b>von Advanced Closures nicht lesbar</b> — es lehnt sie sauber ab (die Zeilen beginnen mit <code>add-turn</code> statt <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Jede Schaltfläche leuchtet nur, wenn die Warteschlange etwas dafür enthält. Von Hand <b>gelöschte Zeilen</b> einer Karte werden nicht exportiert: die Datei beschreibt, was übrig ist, nicht was eingegeben wurde.</p>
             <p style="margin-top:6px">Die Abbieger-CSV speichert die vollständige Identität des Abbiegers — Ausgangssegment, Knoten, Zielsegment — <b>zusätzlich</b> zu seiner Id. Diese Id leitet sich aus den Segmenten ab: wird eine Kreuzung neu gezeichnet, löst sie nicht mehr auf. Die drei anderen Spalten erlauben es, den Abbieger dennoch zu finden.</p>`, es:`
             <p>Los segmentos y los giros no pueden viajar en el mismo archivo: el formato de WME Advanced Closures no tiene ninguna columna capaz de designar un giro. De ahí <b>dos botones</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td>Cierres de <b>segmentos</b>, en formato <b>WME Advanced Closures</b>. Reimportable tanto en AC como en WCT.</td></tr>
-            <tr><td><b>⬇ CSV Giros</b></td><td>Cierres de <b>giros</b>, en formato <b>WCT</b>. Reimportable en WCT; <b>ilegible para Advanced Closures</b>, que lo rechazará limpiamente (las líneas empiezan por <code>add-turn</code> y no <code>add</code>).</td></tr>
+            <tr><td><b>⬇ Cola · CSV AC</b></td><td>Cierres de <b>segmentos</b>, en formato <b>WME Advanced Closures</b>. Reimportable tanto en AC como en WCT.</td></tr>
+            <tr><td><b>⬇ Cola · CSV Giros</b></td><td>Cierres de <b>giros</b>, en formato <b>WCT</b>. Reimportable en WCT; <b>ilegible para Advanced Closures</b>, que lo rechazará limpiamente (las líneas empiezan por <code>add-turn</code> y no <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botón solo se enciende si la cola contiene con qué alimentarlo. Las <b>líneas eliminadas</b> a mano en una tarjeta de la cola no se exportan: el archivo describe lo que queda, no lo que se introdujo.</p>
             <p style="margin-top:6px">El CSV de Giros guarda la identidad completa del giro — segmento de origen, nodo, segmento de destino — <b>además</b> de su identificador. Ese identificador deriva de los segmentos: si se vuelve a trazar un cruce, deja de resolver. Las otras tres columnas permitirán encontrar el giro igualmente.</p>`, 'pt-BR':`
             <p>Segmentos e conversões não podem viajar no mesmo arquivo: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma conversão. Daí <b>dois botões</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td>Bloqueios de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC quanto no WCT.</td></tr>
-            <tr><td><b>⬇ CSV Conversões</b></td><td>Bloqueios de <b>conversões</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam com <code>add-turn</code> e não <code>add</code>).</td></tr>
+            <tr><td><b>⬇ Fila · CSV AC</b></td><td>Bloqueios de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC quanto no WCT.</td></tr>
+            <tr><td><b>⬇ Fila · CSV Conversões</b></td><td>Bloqueios de <b>conversões</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam com <code>add-turn</code> e não <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botão só acende se a fila tiver com que alimentá-lo. As <b>linhas excluídas</b> à mão em um cartão da fila não são exportadas: o arquivo descreve o que resta, não o que foi digitado.</p>
             <p style="margin-top:6px">O CSV de Conversões grava a identidade completa da conversão — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, ele deixa de resolver. As outras três colunas permitirão encontrar a conversão mesmo assim.</p>`, 'pt-PT':`
             <p>Os segmentos e as viragens não podem viajar no mesmo ficheiro: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma viragem. Daí <b>dois botões</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ CSV AC</b></td><td>Cortes de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC como no WCT.</td></tr>
-            <tr><td><b>⬇ CSV Viragens</b></td><td>Cortes de <b>viragens</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam por <code>add-turn</code> e não <code>add</code>).</td></tr>
+            <tr><td><b>⬇ Fila · CSV AC</b></td><td>Cortes de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC como no WCT.</td></tr>
+            <tr><td><b>⬇ Fila · CSV Viragens</b></td><td>Cortes de <b>viragens</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam por <code>add-turn</code> e não <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botão só acende se a fila tiver com que o alimentar. As <b>linhas eliminadas</b> à mão num cartão da fila não são exportadas: o ficheiro descreve o que resta, não o que foi introduzido.</p>
             <p style="margin-top:6px">O CSV de Viragens guarda a identidade completa da viragem — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, deixa de resolver. As outras três colunas permitirão encontrar a viragem mesmo assim.</p>` }) },
@@ -5371,8 +5371,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Tracer</b></td><td>Onglet <b>⚙ Configurer</b>. Le panneau se replie, <b>un clic par sommet</b>, <b>double-clic</b> pour fermer. L'onglet reste accessible même sans sélection : c'est ce bouton qui la crée.</td></tr>
             <tr><td><b>🛣️ Types</b></td><td>Choisit les types de routes retenus, en affichant le <b>nombre de segments de chaque type</b> présents dans la zone. Réglable <b>après coup</b> : la sélection se recalcule sans retracer. Par défaut, les voies non carrossables sont écartées (voie ferrée, ferry, escaliers, piste d'aéroport, chemin piéton non routable).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporte <b>la zone seule</b> (pas les segments), pour l'archiver ou la partager : fichier KML, ou <code>POLYGON(…)</code> copié dans le presse-papiers.</td></tr>
-            <tr><td><b>📂 Importer</b></td><td>Recharge une zone : coller un WKT, ou choisir un fichier KML. Le format est reconnu tout seul.</td></tr>
+            <tr><td><b>⬇ Zone · KML</b> · <b>⬇ Zone · WKT</b></td><td>Exporte <b>la zone seule</b> (pas les segments), pour l'archiver ou la partager : fichier KML, ou <code>POLYGON(…)</code> copié dans le presse-papiers.</td></tr>
+            <tr><td><b>⬆ Zone</b></td><td>Recharge une zone : coller un WKT, ou choisir un fichier KML. Le format est reconnu tout seul.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quels segments sont pris ?</b> Ceux dont <b>plus de la moitié de la longueur</b> est à l'intérieur. Un segment qui effleure la zone est écarté ; un segment majoritairement dedans est retenu.</p>
             <p style="margin-top:6px">⚠️ <b>La fermeture porte sur le segment ENTIER</b>, pas sur la portion contenue dans la zone : Waze ne sait pas fermer un bout de segment. Un segment retenu à 60 % sera fermé sur toute sa longueur, y compris hors de la zone. Tracez au plus juste, et vérifiez la sélection avant de valider.</p>
@@ -5382,8 +5382,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Draw</b></td><td>Tab <b>⚙ Configure</b>. The panel folds away, <b>one click per corner</b>, <b>double-click</b> to close. The tab stays reachable even without a selection: this button is what creates one.</td></tr>
             <tr><td><b>🛣️ Types</b></td><td>Picks which road types are kept, showing <b>how many segments of each type</b> the area holds. Adjustable <b>afterwards</b>: the selection is recomputed without redrawing. By default the non-drivable ways are left out (railroad, ferry, stairway, runway, non-routable pedestrian path).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exports <b>the area alone</b> (not the segments), to archive or share it: a KML file, or <code>POLYGON(…)</code> copied to the clipboard.</td></tr>
-            <tr><td><b>📂 Import</b></td><td>Reloads an area: paste a WKT, or pick a KML file. The format is detected on its own.</td></tr>
+            <tr><td><b>⬇ Area · KML</b> · <b>⬇ Area · WKT</b></td><td>Exports <b>the area alone</b> (not the segments), to archive or share it: a KML file, or <code>POLYGON(…)</code> copied to the clipboard.</td></tr>
+            <tr><td><b>⬆ Area</b></td><td>Reloads an area: paste a WKT, or pick a KML file. The format is detected on its own.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Which segments are kept?</b> Those with <b>more than half their length</b> inside. A segment merely grazing the area is left out; one mostly inside is kept.</p>
             <p style="margin-top:6px">⚠️ <b>The closure covers the WHOLE segment</b>, not the part inside the area: Waze cannot close a piece of a segment. A segment kept at 60 % will be closed over its full length, outside the area included. Draw tightly, and check the selection before validating.</p>
@@ -5393,8 +5393,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ שרטוט</b></td><td>לשונית <b>⚙ הגדרה</b>. החלונית מתקפלת, <b>לחיצה אחת לכל פינה</b>, <b>לחיצה כפולה</b> לסגירה. הלשונית נגישה גם ללא בחירה: הכפתור הזה הוא שיוצר אותה.</td></tr>
             <tr><td><b>🛣️ סוגים</b></td><td>בוחר אילו סוגי דרכים נשמרים, ומציג <b>כמה מקטעים מכל סוג</b> יש באזור. ניתן לשינוי <b>בדיעבד</b>: הבחירה מחושבת מחדש בלי שרטוט נוסף. כברירת מחדל מושמטות הדרכים שאינן לנסיעה (מסילה, מעבורת, מדרגות, מסלול המראה, שביל להולכי רגל שאינו לניווט).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>מייצא <b>את האזור בלבד</b> (לא את המקטעים), לארכיון או לשיתוף: קובץ KML, או <code>POLYGON(…)</code> המועתק ללוח.</td></tr>
-            <tr><td><b>📂 ייבוא</b></td><td>טוען אזור מחדש: הדבקת WKT, או בחירת קובץ KML. הפורמט מזוהה אוטומטית.</td></tr>
+            <tr><td><b>⬇ אזור · KML</b> · <b>⬇ אזור · WKT</b></td><td>מייצא <b>את האזור בלבד</b> (לא את המקטעים), לארכיון או לשיתוף: קובץ KML, או <code>POLYGON(…)</code> המועתק ללוח.</td></tr>
+            <tr><td><b>⬆ אזור</b></td><td>טוען אזור מחדש: הדבקת WKT, או בחירת קובץ KML. הפורמט מזוהה אוטומטית.</td></tr>
             </table>
             <p style="margin-top:6px"><b>אילו מקטעים נבחרים?</b> אלה שיותר <b>ממחצית אורכם</b> נמצא בפנים. מקטע שרק נוגע באזור מושמט; מקטע שרובו בפנים נשמר.</p>
             <p style="margin-top:6px">⚠️ <b>החסימה חלה על המקטע כולו</b>, ולא על החלק שבתוך האזור: Waze אינו יודע לחסום קטע חלקי. מקטע שנשמר ב-60% ייחסם לכל אורכו, גם מחוץ לאזור. שרטט בדיוק, ובדוק את הבחירה לפני אישור.</p>
@@ -5404,8 +5404,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Disegna</b></td><td>Scheda <b>⚙ Configura</b>. Il pannello si richiude, <b>un clic per ogni vertice</b>, <b>doppio clic</b> per chiudere. La scheda resta accessibile anche senza selezione: è questo pulsante a crearla.</td></tr>
             <tr><td><b>🛣️ Tipi</b></td><td>Sceglie quali tipi di strada vengono tenuti, mostrando <b>quanti segmenti di ciascun tipo</b> ci sono nell’area. Modificabile <b>in seguito</b>: la selezione si ricalcola senza ridisegnare. Per impostazione predefinita sono escluse le vie non percorribili (ferrovia, traghetto, scale, pista aeroportuale, percorso pedonale non navigabile).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Esporta <b>la sola area</b> (non i segmenti), per archiviarla o condividerla: file KML, oppure <code>POLYGON(…)</code> copiato negli appunti.</td></tr>
-            <tr><td><b>📂 Importa</b></td><td>Ricarica un’area: incolla un WKT, o scegli un file KML. Il formato viene riconosciuto da solo.</td></tr>
+            <tr><td><b>⬇ Area · KML</b> · <b>⬇ Area · WKT</b></td><td>Esporta <b>la sola area</b> (non i segmenti), per archiviarla o condividerla: file KML, oppure <code>POLYGON(…)</code> copiato negli appunti.</td></tr>
+            <tr><td><b>⬆ Area</b></td><td>Ricarica un’area: incolla un WKT, o scegli un file KML. Il formato viene riconosciuto da solo.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quali segmenti vengono presi?</b> Quelli con <b>più di metà della lunghezza</b> all’interno. Un segmento che sfiora l’area viene escluso; uno per lo più dentro viene tenuto.</p>
             <p style="margin-top:6px">⚠️ <b>La chiusura riguarda il segmento INTERO</b>, non la porzione dentro l’area: Waze non sa chiudere un pezzo di segmento. Un segmento tenuto al 60 % sarà chiuso per tutta la sua lunghezza, anche fuori dall’area. Disegna con precisione e controlla la selezione prima di convalidare.</p>
@@ -5415,8 +5415,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Zeichnen</b></td><td>Reiter <b>⚙ Einrichten</b>. Das Fenster klappt zu, <b>ein Klick je Eckpunkt</b>, <b>Doppelklick</b> zum Schließen. Der Reiter bleibt auch ohne Auswahl erreichbar: dieser Knopf erzeugt sie ja gerade.</td></tr>
             <tr><td><b>🛣️ Typen</b></td><td>Legt fest, welche Straßentypen behalten werden, und zeigt <b>wie viele Segmente jedes Typs</b> im Bereich liegen. <b>Nachträglich</b> änderbar: die Auswahl wird ohne neues Zeichnen neu berechnet. Voreingestellt bleiben die nicht befahrbaren Wege außen vor (Bahn, Fähre, Treppe, Rollbahn, nicht routbarer Fußweg).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exportiert <b>nur den Bereich</b> (nicht die Segmente), zum Ablegen oder Weitergeben: KML-Datei oder <code>POLYGON(…)</code> in der Zwischenablage.</td></tr>
-            <tr><td><b>📂 Import</b></td><td>Lädt einen Bereich neu: WKT einfügen oder eine KML-Datei wählen. Das Format wird selbst erkannt.</td></tr>
+            <tr><td><b>⬇ Bereich · KML</b> · <b>⬇ Bereich · WKT</b></td><td>Exportiert <b>nur den Bereich</b> (nicht die Segmente), zum Ablegen oder Weitergeben: KML-Datei oder <code>POLYGON(…)</code> in der Zwischenablage.</td></tr>
+            <tr><td><b>⬆ Bereich</b></td><td>Lädt einen Bereich neu: WKT einfügen oder eine KML-Datei wählen. Das Format wird selbst erkannt.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Welche Segmente werden genommen?</b> Die, deren <b>Länge zu mehr als der Hälfte</b> innen liegt. Ein Segment, das den Bereich nur streift, fällt heraus; ein überwiegend innen liegendes wird behalten.</p>
             <p style="margin-top:6px">⚠️ <b>Die Sperrung gilt dem GANZEN Segment</b>, nicht dem Stück im Bereich: Waze kann kein Teilstück sperren. Ein zu 60 % erfasstes Segment wird auf voller Länge gesperrt, auch außerhalb. Zeichne knapp und prüfe die Auswahl vor dem Bestätigen.</p>
@@ -5426,8 +5426,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Dibujar</b></td><td>Pestaña <b>⚙ Configurar</b>. El panel se pliega, <b>un clic por vértice</b>, <b>doble clic</b> para cerrar. La pestaña sigue accesible aunque no haya selección: es este botón el que la crea.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Elige qué tipos de vía se conservan, mostrando <b>cuántos segmentos de cada tipo</b> hay en la zona. Ajustable <b>después</b>: la selección se recalcula sin volver a dibujar. Por defecto quedan fuera las vías no transitables (ferrocarril, ferry, escaleras, pista de aeropuerto, senda peatonal no enrutable).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>solo la zona</b> (no los segmentos), para archivarla o compartirla: archivo KML, o <code>POLYGON(…)</code> copiado al portapapeles.</td></tr>
-            <tr><td><b>📂 Importar</b></td><td>Recarga una zona: pega un WKT o elige un archivo KML. El formato se reconoce solo.</td></tr>
+            <tr><td><b>⬇ Zona · KML</b> · <b>⬇ Zona · WKT</b></td><td>Exporta <b>solo la zona</b> (no los segmentos), para archivarla o compartirla: archivo KML, o <code>POLYGON(…)</code> copiado al portapapeles.</td></tr>
+            <tr><td><b>⬆ Zona</b></td><td>Recarga una zona: pega un WKT o elige un archivo KML. El formato se reconoce solo.</td></tr>
             </table>
             <p style="margin-top:6px"><b>¿Qué segmentos entran?</b> Aquellos con <b>más de la mitad de su longitud</b> dentro. Un segmento que solo roza la zona queda fuera; uno mayoritariamente dentro se conserva.</p>
             <p style="margin-top:6px">⚠️ <b>El cierre afecta al segmento ENTERO</b>, no al tramo que está dentro de la zona: Waze no sabe cerrar un trozo de segmento. Un segmento tomado al 60 % se cerrará en toda su longitud, también fuera de la zona. Dibuja ajustado y revisa la selección antes de validar.</p>
@@ -5437,8 +5437,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Desenhar</b></td><td>Aba <b>⚙ Configurar</b>. O painel se recolhe, <b>um clique por vértice</b>, <b>clique duplo</b> para fechar. A aba continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Escolhe quais tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem redesenhar. Por padrão ficam de fora as vias não trafegáveis (ferrovia, balsa, escadaria, pista de aeroporto, caminho de pedestres não roteável).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou compartilhar: arquivo KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
-            <tr><td><b>📂 Importar</b></td><td>Recarrega uma área: cole um WKT ou escolha um arquivo KML. O formato é reconhecido sozinho.</td></tr>
+            <tr><td><b>⬇ Área · KML</b> · <b>⬇ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou compartilhar: arquivo KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>⬆ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um arquivo KML. O formato é reconhecido sozinho.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quais segmentos entram?</b> Aqueles com <b>mais da metade do comprimento</b> dentro. Um segmento que apenas encosta na área fica de fora; um majoritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O bloqueio vale para o segmento INTEIRO</b>, não para o trecho dentro da área: o Waze não sabe bloquear um pedaço de segmento. Um segmento pego a 60 % será bloqueado em todo o comprimento, inclusive fora da área. Desenhe justo e confira a seleção antes de validar.</p>
@@ -5448,8 +5448,8 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>✏️ Desenhar</b></td><td>Separador <b>⚙ Configurar</b>. O painel recolhe-se, <b>um clique por vértice</b>, <b>duplo clique</b> para fechar. O separador continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Escolhe que tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem desenhar de novo. Por predefinição ficam de fora as vias não transitáveis (via férrea, ferry, escadas, pista de aeroporto, caminho pedonal não navegável).</td></tr>
-            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou partilhar: ficheiro KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
-            <tr><td><b>📂 Importar</b></td><td>Recarrega uma área: cole um WKT ou escolha um ficheiro KML. O formato é reconhecido sozinho.</td></tr>
+            <tr><td><b>⬇ Área · KML</b> · <b>⬇ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou partilhar: ficheiro KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>⬆ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um ficheiro KML. O formato é reconhecido sozinho.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Que segmentos entram?</b> Aqueles com <b>mais de metade do comprimento</b> lá dentro. Um segmento que apenas toca a área fica de fora; um maioritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O corte abrange o segmento INTEIRO</b>, não o troço dentro da área: o Waze não sabe cortar um pedaço de segmento. Um segmento apanhado a 60 % será cortado em todo o comprimento, incluindo fora da área. Desenhe justo e verifique a seleção antes de validar.</p>
@@ -9855,7 +9855,7 @@ const traceRenderTable = () => {
             <td style="text-align:end;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">📥</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">⬇</button></td>
             <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
         </tr>`;
         // Lignes enfants — masquées si replié
