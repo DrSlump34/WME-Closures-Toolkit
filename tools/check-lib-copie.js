@@ -1,8 +1,16 @@
-// La bibliotheque est COPIEE dans WCT en attendant son depot. Deux copies qui
-// divergent en silence, c'est le pire des deux mondes : ce controle compare le
-// code reellement embarque a la source, et rejoue les tests SUR LA COPIE.
+// La bibliotheque WMEPrefs est COPIEE dans chaque userscript en attendant le passage
+// au @require. Deux copies qui divergent en silence, c'est le pire des deux mondes :
+// ce controle compare le code reellement embarque a la source, et rejoue les tests
+// SUR LA COPIE.
+//
+//   node check-lib-copie.js                        -> WCT (par defaut)
+//   node check-lib-copie.js ../../WME-Naming-Auditor/WME-Naming-Auditor.user.js
+//
+// A lancer sur CHAQUE script qui embarque la bibliotheque, pas seulement sur WCT.
 const fs = require('fs');
-const WCT = require('path').join(__dirname,'..','WME_ClosuresToolkit.user.js');
+const WCT = process.argv[2]
+    ? require('path').resolve(process.cwd(), process.argv[2])
+    : require('path').join(__dirname,'..','WME_ClosuresToolkit.user.js');
 const LIB = require('path').join(__dirname,'..','..','WME-Prefs','WMEPrefs.js');
 
 const extraire = (txt) => {
@@ -30,9 +38,19 @@ const chk = (n, c, d) => { if (c) console.log('  ok   ' + n); else { ko++; conso
 chk('bibliotheque trouvee dans WCT', !!dansWCT);
 chk('bibliotheque trouvee dans la source', !!source);
 if (dansWCT && source) {
-    const norm = s => s.replace(/\r\n/g, '\n').trim();
-    chk('la copie embarquee est IDENTIQUE a la source', norm(dansWCT) === norm(source),
-        'ecart de ' + Math.abs(norm(dansWCT).length - norm(source).length) + ' caracteres');
+    // ⚠️ Comparer le CODE, pas la mise en forme : une copie inseree dans un bloc
+    // indente differemment n'a pas diverge pour autant. Un controle qui crie au loup
+    // sur de l'indentation finit ignore — le jour ou l'ecart est reel, personne ne
+    // regarde. On compare donc ligne a ligne, espaces de bord retires, et on signale
+    // la mise en forme separement (informatif, pas bloquant).
+    const lignes = s => s.replace(/\r\n/g, '\n').trim().split('\n').map(l => l.trim()).filter(l => l);
+    const a = lignes(dansWCT), b = lignes(source);
+    const memeCode = a.length === b.length && a.every((l, i) => l === b[i]);
+    chk('le CODE de la copie est identique a la source', memeCode,
+        memeCode ? '' : a.length + ' lignes contre ' + b.length + ' — lancer diff-lib.js pour voir quoi');
+    const memeTexte = dansWCT.replace(/\r\n/g, '\n').trim() === source.replace(/\r\n/g, '\n').trim();
+    if (memeCode && !memeTexte)
+        console.log('  note  indentation differente (copie inseree dans un bloc) — sans consequence');
 }
 
 // Rejouer un scenario complet sur la copie EXTRAITE DE WCT
