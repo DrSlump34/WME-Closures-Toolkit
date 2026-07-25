@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.93.00
+// @version      0.94.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1089,7 +1089,11 @@ const t = (key, ...args) => {
     const D = {
         fr: {
             // Onglets
-            tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCC2 CSV',
+            tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCE5 Import',
+            impReconnu: (f,ty) => `✅ ${f} — reconnu : ${ty}`,
+            impInconnu: f => `❌ ${f} — format non reconnu. Acceptés : CSV de fermetures, GPX, KML, KMZ, GeoJSON, Shapefile, préréglages WCT, ou POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Ce fichier contient ${p} polygone(s) ET ${l} tracé(s).\n\nOK = en faire une ZONE de sélection.\nAnnuler = les charger comme TRACÉS.`,
+            impTypeCsv:'fermetures (CSV)', impTypeTrace:'tracé', impTypeZone:'zone', impTypePrefs:'préréglages',
             // Virages (turn closures)
             tabTurn:'\uD83D\uDD00 Virages',
             turnStraight:'tout droit', turnSlightRight:'droite l\u00E9g\u00E8re', turnRight:'\u00E0 droite',
@@ -1308,8 +1312,8 @@ const t = (key, ...args) => {
             btnValidate:'\u2714 Valider et ajouter \u00E0 la file',
             btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6 Appliquer', btnClear:'\uD83D\uDDD1 Vider',
             // CSV
-            dropText:'\uD83D\uDCC4 Cliquer ou glisser un fichier CSV ici',
-            dropHint:'Ajout direct en file d\u2019attente',
+            dropText:'\uD83D\uDCE5 Cliquer ou glisser un fichier ici',
+            dropHint:'Le format est reconnu tout seul',
             gpxDropText:'\uD83D\uDDFA Cliquer ou glisser un fichier ici',
             gpxDropHint:'Formats accept\u00e9s\u00a0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 cumul des calques',
             // Couverture
@@ -1536,7 +1540,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sbDateAuto:'(détecté automatiquement)',
             // Aide
             helpH1:'\uD83D\uDE80 D\u00E9marrage rapide', helpH2:'\u2699\uFE0F Configurer une fermeture',
-            helpH3:'\uD83D\uDCCB File d\u2019attente', helpH4:'\uD83D\uDCC2 Import CSV',
+            helpH3:'\uD83D\uDCCB File d\u2019attente', helpH4:'\uD83D\uDCE5 Importer un fichier',
             helpH5:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', helpH6:'\u26A0\uFE0F Erreurs fr\u00E9quentes & limites', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Pr\u00E9f\u00E9rences',
             helpH8:'\uD83D\uDDFA Trac\u00e9s',
             helpH9:'\uD83D\uDD0D Recherche de fermetures',
@@ -1551,7 +1555,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpS6:'Cliquez <b>\u25B6 Appliquer</b> pour cr\u00E9er les fermetures dans WME',
         },
         en: {
-            tabCfg:'\u2699 Configure', tabCsv:'\uD83D\uDCC2 CSV',
+            tabCfg:'\u2699 Configure', tabCsv:'\uD83D\uDCE5 Import',
+            impReconnu: (f,ty) => `✅ ${f} — recognised: ${ty}`,
+            impInconnu: f => `❌ ${f} — format not recognised. Accepted: closure CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT presets, or POLYGON(…) WKT.`,
+            impMixte: (p,l) => `This file holds ${p} polygon(s) AND ${l} track(s).\n\nOK = make it a selection AREA.\nCancel = load them as TRACKS.`,
+            impTypeCsv:'closures (CSV)', impTypeTrace:'track', impTypeZone:'area', impTypePrefs:'presets',
             // Turn closures
             tabTurn:'\uD83D\uDD00 Turns',
             turnStraight:'straight', turnSlightRight:'slight right', turnRight:'right',
@@ -1761,8 +1769,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
             btnValidate:'\u2714 Validate and add to queue',
             btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6 Apply', btnClear:'\uD83D\uDDD1 Clear',
-            dropText:'\uD83D\uDCC4 Click or drag a CSV file here',
-            dropHint:'Added directly to queue',
+            dropText:'\uD83D\uDCE5 Click or drag a file here',
+            dropHint:'The format is detected on its own',
             gpxDropText:'\uD83D\uDDFA Click or drag a file here',
             gpxDropHint:'Accepted formats\u00a0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 layers are cumulative',
             // Coverage
@@ -1983,7 +1991,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateIso:'YYYY-MM-DD (ISO)',
             sbDateAuto:'(auto-detected)',
             helpH1:'\uD83D\uDE80 Quick start', helpH2:'\u2699\uFE0F Configure a closure',
-            helpH3:'\uD83D\uDCCB Queue', helpH4:'\uD83D\uDCC2 Import CSV',
+            helpH3:'\uD83D\uDCCB Queue', helpH4:'\uD83D\uDCE5 Import a file',
             helpH5:'\uD83D\uDCBE Presets', helpH6:'\u26A0\uFE0F Common errors & limits', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Preferences',
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Closure search',
@@ -1998,7 +2006,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS6:'Click <b>\u25B6 Apply</b> to create closures in WME',
         },
         he: {
-            tabCfg:'⚙ הגדרה', tabCsv:'📂 CSV',
+            tabCfg:'⚙ הגדרה', tabCsv:'\uD83D\uDCE5 ייבוא',
+            impReconnu: (f,ty) => `✅ ${f} — זוהה: ${ty}`,
+            impInconnu: f => `❌ ${f} — הפורמט לא זוהה. מתקבלים: CSV של חסימות, GPX, KML, KMZ, GeoJSON, Shapefile, תבניות WCT, או POLYGON(…) WKT.`,
+            impMixte: (p,l) => `הקובץ מכיל ${p} מצולעים וגם ${l} מסלולים.\n\nאישור = ליצור אזור בחירה.\nביטול = לטעון כמסלולים.`,
+            impTypeCsv:'חסימות (CSV)', impTypeTrace:'מסלול', impTypeZone:'אזור', impTypePrefs:'תבניות',
             // Turn closures
             tabTurn:'🔀 פניות',
             turnStraight:'ישר', turnSlightRight:'ימינה קלה', turnRight:'ימינה',
@@ -2208,8 +2220,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
             btnValidate:'✔ אשר והוסף לתור',
             btnStop:'⏹ עצור', btnStopping:'⏳ עוצר…', btnApply:'▶ החל', btnClear:'🗑 נקה',
-            dropText:'📄 לחץ או גרור קובץ CSV לכאן',
-            dropHint:'מתווסף ישירות לתור',
+            dropText:'📥 לחץ או גרור קובץ לכאן',
+            dropHint:'הפורמט מזוהה אוטומטית',
             gpxDropText:'🗺 לחץ או גרור קובץ לכאן',
             gpxDropHint:'פורמטים נתמכים : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — שכבות מצטברות',
             // Coverage
@@ -2430,7 +2442,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateIso:'YYYY-MM-DD (ISO)',
             sbDateAuto:'(זוהה אוטומטית)',
             helpH1:'🚀 התחלה מהירה', helpH2:'⚙️ הגדרת חסימה',
-            helpH3:'📋 תור', helpH4:'📂 ייבוא CSV',
+            helpH3:'📋 תור', helpH4:'📥 ייבוא קובץ',
             helpH5:'💾 תבניות', helpH6:'⚠️ שגיאות נפוצות ומגבלות', helpH7:'🖥️ סרגל צד / העדפות',
             helpH8:'🗺 מסלולים',
             helpH9:'🔍 חיפוש חסימות',
@@ -2445,7 +2457,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS6:'לחץ <b>▶ החל</b> כדי ליצור את החסימות ב-WME',
         },
         it: {
-            tabCfg:'⚙ Configura', tabCsv:'📂 CSV',
+            tabCfg:'⚙ Configura', tabCsv:'\uD83D\uDCE5 Importa',
+            impReconnu: (f,ty) => `✅ ${f} — riconosciuto: ${ty}`,
+            impInconnu: f => `❌ ${f} — formato non riconosciuto. Accettati: CSV di chiusure, GPX, KML, KMZ, GeoJSON, Shapefile, preset WCT o POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Questo file contiene ${p} poligono/i E ${l} tracciato/i.\n\nOK = farne un’AREA di selezione.\nAnnulla = caricarli come TRACCIATI.`,
+            impTypeCsv:'chiusure (CSV)', impTypeTrace:'tracciato', impTypeZone:'area', impTypePrefs:'preset',
             // Turn closures
             tabTurn:'🔀 Svolte',
             turnStraight:'dritto', turnSlightRight:'leggermente a destra', turnRight:'a destra',
@@ -2655,8 +2671,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
             btnValidate:'✔ Convalida e aggiungi alla coda',
             btnStop:'⏹ Ferma', btnStopping:'⏳ Arresto…', btnApply:'▶ Applica', btnClear:'🗑 Cancella',
-            dropText:'📄 Clicca o trascina qui un file CSV',
-            dropHint:'Aggiunto direttamente alla coda',
+            dropText:'📥 Clicca o trascina qui un file',
+            dropHint:'Il formato viene riconosciuto da solo',
             gpxDropText:'🗺 Clicca o trascina qui un file',
             gpxDropHint:'Formati accettati : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — i livelli sono cumulativi',
             // Coverage
@@ -2877,7 +2893,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateIso:'AAAA-MM-GG (ISO)',
             sbDateAuto:'(rilevato automaticamente)',
             helpH1:'🚀 Avvio rapido', helpH2:'⚙️ Configura una chiusura',
-            helpH3:'📋 Coda', helpH4:'📂 Importa CSV',
+            helpH3:'📋 Coda', helpH4:'📥 Importare un file',
             helpH5:'💾 Preset', helpH6:'⚠️ Errori comuni e limiti', helpH7:'🖥️ Barra laterale / Preferenze',
             helpH8:'🗺 Tracciati',
             helpH9:'🔍 Ricerca chiusure',
@@ -2893,7 +2909,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
         },
         de: {
             // Reiter
-            tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCC2 CSV',
+            tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCE5 Import',
+            impReconnu: (f,ty) => `✅ ${f} — erkannt: ${ty}`,
+            impInconnu: f => `❌ ${f} — Format nicht erkannt. Angenommen: Sperrungs-CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT-Vorlagen oder POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Diese Datei enthält ${p} Polygon(e) UND ${l} Track(s).\n\nOK = daraus einen Auswahl-BEREICH machen.\nAbbrechen = als TRACKS laden.`,
+            impTypeCsv:'Sperrungen (CSV)', impTypeTrace:'Track', impTypeZone:'Bereich', impTypePrefs:'Vorlagen',
             // Abbiegersperrungen
             tabTurn:'\uD83D\uDD00 Abbieger',
             turnStraight:'geradeaus', turnSlightRight:'leicht rechts', turnRight:'rechts',
@@ -3103,8 +3123,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
             btnValidate:'\u2714 Best\u00E4tigen und zur Warteschlange',
             btnStop:'\u23F9 Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6 Anwenden', btnClear:'\uD83D\uDDD1 Leeren',
-            dropText:'\uD83D\uDCC4 CSV-Datei hier klicken oder ablegen',
-            dropHint:'Wird direkt in die Warteschlange \u00FCbernommen',
+            dropText:'\uD83D\uDCE5 Datei hier klicken oder ablegen',
+            dropHint:'Das Format wird selbst erkannt',
             gpxDropText:'\uD83D\uDDFA Datei hier klicken oder ablegen',
             gpxDropHint:'Zul\u00E4ssige Formate\u00A0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 Ebenen summieren sich',
             // Abdeckung
@@ -3325,7 +3345,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateIso:'JJJJ-MM-TT (ISO)',
             sbDateAuto:'(automatisch erkannt)',
             helpH1:'\uD83D\uDE80 Schnellstart', helpH2:'\u2699\uFE0F Eine Sperrung einrichten',
-            helpH3:'\uD83D\uDCCB Warteschlange', helpH4:'\uD83D\uDCC2 CSV-Import',
+            helpH3:'\uD83D\uDCCB Warteschlange', helpH4:'\uD83D\uDCE5 Datei importieren',
             helpH5:'\uD83D\uDCBE Vorlagen', helpH6:'\u26A0\uFE0F H\u00E4ufige Fehler & Grenzen', helpH7:'\uD83D\uDDA5\uFE0F Seitenleiste / Einstellungen',
             helpH8:'\uD83D\uDDFA Tracks',
             helpH9:'\uD83D\uDD0D Sperrungssuche',
@@ -3340,7 +3360,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpS6:'Klicke auf <b>\u25B6 Anwenden</b>, um die Sperrungen in WME anzulegen',
         },
         es: {
-            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            impReconnu: (f,ty) => `✅ ${f} — reconocido: ${ty}`,
+            impInconnu: f => `❌ ${f} — formato no reconocido. Se aceptan: CSV de cierres, GPX, KML, KMZ, GeoJSON, Shapefile, preajustes WCT o POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Este archivo contiene ${p} polígono(s) Y ${l} traza(s).\n\nAceptar = convertirlo en una ZONA de selección.\nCancelar = cargarlas como TRAZAS.`,
+            impTypeCsv:'cierres (CSV)', impTypeTrace:'traza', impTypeZone:'zona', impTypePrefs:'preajustes',
             // Cierres de giro
             tabTurn:'\uD83D\uDD00 Giros',
             turnStraight:'recto', turnSlightRight:'ligera derecha', turnRight:'derecha',
@@ -3550,8 +3574,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
             btnValidate:'✔ Validar y añadir a la cola',
             btnStop:'⏹ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶ Aplicar', btnClear:'🗑 Vaciar',
-            dropText:'📄 Haz clic o arrastra aquí un archivo CSV',
-            dropHint:'Se añade directamente a la cola',
+            dropText:'📥 Haz clic o arrastra aquí un archivo',
+            dropHint:'El formato se reconoce solo',
             gpxDropText:'🗺 Haz clic o arrastra aquí un archivo',
             gpxDropHint:'Formatos admitidos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — las capas se acumulan',
             // Cobertura
@@ -3772,7 +3796,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detectado automáticamente)',
             helpH1:'🚀 Inicio rápido', helpH2:'⚙️ Configurar un cierre',
-            helpH3:'📋 Cola', helpH4:'📂 Importar CSV',
+            helpH3:'📋 Cola', helpH4:'📥 Importar un archivo',
             helpH5:'💾 Preajustes', helpH6:'⚠️ Errores frecuentes y límites', helpH7:'🖥️ Barra lateral / Preferencias',
             helpH8:'🗺 Trazas',
             helpH9:'🔍 Búsqueda de cierres',
@@ -3787,7 +3811,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpS6:'Haz clic en <b>▶ Aplicar</b> para crear los cierres en WME',
         },
         'pt-BR': {
-            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
+            impInconnu: f => `❌ ${f} — formato não reconhecido. Aceitos: CSV de bloqueios, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Este arquivo contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar em ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
+            impTypeCsv:'bloqueios (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
             // Bloqueios de conversao
             tabTurn:'\uD83D\uDD00 Convers\u00F5es',
             turnStraight:'em frente', turnSlightRight:'leve \u00E0 direita', turnRight:'\u00E0 direita',
@@ -3997,8 +4025,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             btnValidate:'✔ Validar e adicionar à fila',
             btnStop:'⏹ Parar', btnStopping:'⏳ Parando…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
-            dropText:'📄 Clique ou arraste um arquivo CSV aqui',
-            dropHint:'Adicionado diretamente à fila',
+            dropText:'📥 Clique ou arraste um arquivo aqui',
+            dropHint:'O formato é reconhecido sozinho',
             gpxDropText:'🗺 Clique ou arraste um arquivo aqui',
             gpxDropHint:'Formatos aceitos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
             // Cobertura
@@ -4219,7 +4247,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detectado automaticamente)',
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um bloqueio',
-            helpH3:'📋 Fila', helpH4:'📂 Importar CSV',
+            helpH3:'📋 Fila', helpH4:'📥 Importar um arquivo',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Busca de bloqueios',
@@ -4234,7 +4262,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpS6:'Clique em <b>▶ Aplicar</b> para criar os bloqueios no WME',
         },
         'pt-PT': {
-            tabCfg:'⚙ Configurar', tabCsv:'📂 CSV',
+            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
+            impInconnu: f => `❌ ${f} — formato não reconhecido. Aceites: CSV de cortes, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
+            impMixte: (p,l) => `Este ficheiro contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar numa ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
+            impTypeCsv:'cortes (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
             // Cortes de viragem
             tabTurn:'\uD83D\uDD00 Viragens',
             turnStraight:'em frente', turnSlightRight:'ligeira \u00E0 direita', turnRight:'\u00E0 direita',
@@ -4444,8 +4476,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             btnValidate:'✔ Validar e adicionar à fila',
             btnStop:'⏹ Parar', btnStopping:'⏳ A parar…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
-            dropText:'📄 Clique ou arraste um ficheiro CSV para aqui',
-            dropHint:'Adicionado diretamente à fila',
+            dropText:'📥 Clique ou arraste um ficheiro para aqui',
+            dropHint:'O formato é reconhecido sozinho',
             gpxDropText:'🗺 Clique ou arraste um ficheiro para aqui',
             gpxDropHint:'Formatos aceites : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
             // Coverage
@@ -4666,7 +4698,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detetado automaticamente)',
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um corte',
-            helpH3:'📋 Fila', helpH4:'📂 Importar CSV',
+            helpH3:'📋 Fila', helpH4:'📥 Importar um ficheiro',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
             helpH8:'🗺 Trajetos',
             helpH9:'🔍 Pesquisa de cortes',
@@ -4846,13 +4878,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Margem colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             </table>` }) },
-        { id:'h4', title:t('helpH4'), body: _L({ fr:`
-            <p>Importe un fichier CSV au format <b>WME Advanced Closures</b> directement dans la file d\u2019attente.</p>
-            <p>Colonnes attendues\u00A0:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>Le format export\u00E9 par ce script est compatible avec le script WME Advanced Closures original.</p>`, en:`
-            <p>Imports a CSV file in <b>WME Advanced Closures</b> format directly into the queue.</p>
-            <p>Expected columns:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>The format exported by this script is compatible with the original WME Advanced Closures script.</p>`, de:`
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺 Tracés, ou une zone par <b>⬆ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺 Tracks tab, or an area through <b>⬆ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, de:`
             <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
             <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
             <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>`, es:`
@@ -10247,7 +10273,7 @@ const buildOverlay=()=>{
         <div class="wct-dropzone" id="wct-dropzone">
           ${t('dropText')}<br>
           <small style="color:var(--wct-text2)">${t('dropHint')}</small>
-          <input type="file" id="wct-file-input" accept=".csv,.txt" style="display:none">
+          <input type="file" id="wct-file-input" accept=".csv,.txt,.gpx,.kml,.kmz,.geojson,.json,.zip" multiple style="display:none">
         </div>
         <div id="wct-csv-log" class="wct-log"></div>
       </div>
@@ -11395,10 +11421,10 @@ const connectOverlay=ov=>{
     const dz=$id('wct-dropzone'),fi=$id('wct-file-input');
     dz?.addEventListener('click',e=>{if(e.target!==fi)fi?.click();});
     fi?.addEventListener('click',e=>e.stopPropagation());
-    fi?.addEventListener('change',()=>{handleCSV(fi.files);fi.value='';});
+    fi?.addEventListener('change',()=>{_impFichiers(fi.files);fi.value='';});
     dz?.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--wct-green)';});
     dz?.addEventListener('dragleave',()=>{dz.style.borderColor='';});
-    dz?.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';handleCSV(e.dataTransfer.files);});
+    dz?.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';_impFichiers(e.dataTransfer.files);});
     // Drop zone GPX
     const gpxDz=$id('wct-gpx-drop'),gpxFi=$id('wct-gpx-file');
     gpxDz?.addEventListener('click',e=>{if(e.target!==gpxFi)gpxFi?.click();});
@@ -11456,6 +11482,140 @@ class CsvClosure{
         addClosure({segments:this.segIDs,reason:this.reason,direction:dir,startDate:this.startDate,endDate:this.endDate,permanent:this.permanent==='Yes',eventId:this.eventId},ok,e=>ko&&ko({errors:[{attributes:{details:String(e)}}]}));
     }
 }
+// ═══════════════════════════════════════════════════════════════════════════
+//  IMPORT UNIVERSEL — un seul point d'entrée pour tous les fichiers
+// ═══════════════════════════════════════════════════════════════════════════
+// Un EXPORT part d'un contexte (la file, les résultats, la zone) : son bouton doit
+// vivre dans ce contexte. Un IMPORT, lui, arrive de l'extérieur SANS contexte —
+// c'est le fichier qui décide où il va. D'où ce point d'entrée unique, qui ne
+// contredit pas la règle « la place dit la portée » mais la complète.
+// Les entrées locales (dépôt dans Tracés, ⬆ Zone) restent : quand on est déjà dans
+// l'onglet, y déposer son fichier est le geste naturel.
+
+// ─── Import universel : reconnaître le fichier avant de le router ────────────
+// Le CONTENU prime toujours sur l'extension : un .json peut être un GeoJSON ou des
+// préférences, un .kml un tracé ou une zone. L'extension ne sert que de repli quand
+// le contenu ne tranche pas (cas des binaires, qu'on ne lit pas en texte).
+//
+// Rend { type, lignes, polygones } où type vaut :
+//   'csv'     → fermetures (AC ou virages) : handleCSV sait distinguer les deux
+//   'prefs'   → préférences / préréglages WMEPrefs
+//   'trace'   → géométrie linéaire → onglet Tracés
+//   'zone'    → polygone → sélection par zone
+//   'mixte'   → lignes ET polygones : on ne devine pas, on demande
+//   'inconnu' → rien de reconnaissable, on le dit franchement
+const _impDetecter = (nom, texte) => {
+    const ext = String(nom || '').toLowerCase().split('.').pop();
+    const t = String(texte || '');
+    const vide = { lignes: 0, polygones: 0 };
+
+    // 1. Binaires : jamais lus en texte. « PK » = signature ZIP (kmz, shapefile
+    //    zippé) — traceHandleFiles sait déjà démêler les deux.
+    if (ext === 'kmz' || ext === 'zip' || ext === 'shp' || t.startsWith('PK'))
+        return { type: 'trace', ...vide };
+
+    // 2. Préférences : l'enveloppe est explicite, elle passe avant l'analyse JSON.
+    if (t.includes('wme-userscript-prefs/')) return { type: 'prefs', ...vide };
+
+    // 3. WKT collé ou déposé
+    if (/^\s*(srid\s*=\s*\d+\s*;)?\s*(multi)?polygon\s*z?\s*m?\s*\(/i.test(t))
+        return { type: 'zone', lignes: 0, polygones: 1 };
+
+    // 4. GPX : toujours des tracés
+    if (ext === 'gpx' || /<gpx[\s>]/i.test(t)) return { type: 'trace', ...vide };
+
+    // 5. GeoJSON — compter les géométries, la nature du fichier en dépend
+    if (/^\s*[{[]/.test(t)) {
+        let j = null;
+        try { j = JSON.parse(t); } catch (e) { return { type: 'inconnu', ...vide }; }
+        const c = { lignes: 0, polygones: 0 };
+        const compter = g => {
+            if (!g || typeof g !== 'object') return;
+            const ty = g.type;
+            if (ty === 'FeatureCollection' && Array.isArray(g.features)) g.features.forEach(compter);
+            else if (ty === 'Feature') compter(g.geometry);
+            else if (ty === 'GeometryCollection' && Array.isArray(g.geometries)) g.geometries.forEach(compter);
+            else if (ty === 'LineString' || ty === 'MultiLineString') c.lignes++;
+            else if (ty === 'Polygon' || ty === 'MultiPolygon') c.polygones++;
+        };
+        compter(j);
+        if (c.lignes && c.polygones) return { type: 'mixte', ...c };
+        if (c.polygones) return { type: 'zone', ...c };
+        if (c.lignes) return { type: 'trace', ...c };
+        return { type: 'inconnu', ...c };   // JSON valide mais sans géométrie exploitable
+    }
+
+    // 6. KML — même raisonnement, sur les balises
+    if (/<kml[\s>]/i.test(t) || ext === 'kml') {
+        const c = { lignes: (t.match(/<LineString[\s>]/gi) || []).length,
+                    polygones: (t.match(/<Polygon[\s>]/gi) || []).length };
+        if (c.lignes && c.polygones) return { type: 'mixte', ...c };
+        if (c.polygones) return { type: 'zone', ...c };
+        if (c.lignes) return { type: 'trace', ...c };
+        return { type: 'inconnu', ...c };
+    }
+
+    // 7. CSV : une ligne d'action reconnue suffit. handleCSV distingue ensuite
+    //    `add-turn` (virages, format WCT) de `add`/`remove` (segments, format AC).
+    if (/(^|\n)\s*"?(add-turn|add|remove)"?\s*,/i.test(t)) return { type: 'csv', ...vide };
+    // Repli par extension — volontairement STRICT : « Bonjour, ceci est une note. »
+    // dans un .txt contient une virgule sans être pour autant un tableau. On exige
+    // la signature d'un vrai tableau : plusieurs lignes de même largeur, ≥ 3 colonnes.
+    if (ext === 'csv' || ext === 'txt') {
+        const l = t.split(/\r?\n/).filter(x => x.trim()).slice(0, 5).map(x => x.split(',').length);
+        if (l.length >= 2 && l[0] >= 3 && l.every(n => n === l[0])) return { type: 'csv', ...vide };
+    }
+
+    return { type: 'inconnu', ...vide };
+};
+
+// Lecture texte, sauf pour les binaires qu'on ne lit jamais ainsi (kmz, zip, shp).
+const _impLire = (f) => new Promise(resolve => {
+    const ext = String(f.name || '').toLowerCase().split('.').pop();
+    if(['kmz','zip','shp'].includes(ext)) return resolve('');
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || '').slice(0, 200000)); // l'en-tête suffit à décider
+    fr.onerror = () => resolve('');
+    fr.readAsText(f.slice(0, 200000));
+});
+const _impVersOnglet = (tab) => document.querySelector(`#wct-main-tabs .wct-main-tab[data-tab="${tab}"]`)?.click();
+const _impLog = (html) => { const el = $id('wct-csv-log'); if(el) el.innerHTML = html; };
+const _impNomType = (t) => t === 'csv' ? t('impTypeCsv') : t === 'trace' ? t('impTypeTrace')
+                         : t === 'zone' ? t('impTypeZone') : t === 'prefs' ? t('impTypePrefs') : '?';
+
+// Reconnaît un fichier, le confie au bon module, puis amène l'utilisateur là où la
+// suite se passe — c'est tout l'intérêt : après un import, on ne cherche pas où aller.
+const _impUnFichier = async (f) => {
+    const texte = await _impLire(f);
+    const det = _impDetecter(f.name, texte);
+    let type = det.type;
+    // ⚠️ Lignes ET polygones : les deux usages sont légitimes (un parcours et son
+    // périmètre). Deviner serait pire que demander — le décompte accompagne la question.
+    if(type === 'mixte')
+        type = confirm(t('impMixte', det.polygones, det.lignes)) ? 'zone' : 'trace';
+    if(type === 'inconnu'){
+        _impLog(`<span style="color:var(--wct-red)">${escHtml(t('impInconnu', f.name))}</span>`);
+        showToast(t('impInconnu', f.name), 5000, '#e53935');
+        return false;
+    }
+    _impLog(`<span style="color:var(--wct-green,#2e7d32)">${escHtml(t('impReconnu', f.name, _impNomType(type)))}</span>`);
+    try {
+        if(type === 'csv'){ handleCSV([f]); _impVersOnglet('cfg'); }
+        else if(type === 'trace'){ traceHandleFiles([f]); _impVersOnglet('gpx'); }
+        else if(type === 'zone'){ _impVersOnglet('cfg'); await _polyImportTexte(texte); }
+        else if(type === 'prefs'){
+            if(!_prefs) return false;
+            const r = await _prefs.importFromFile(f, { mode:'merge' });
+            if(r.ok){ _appliquerPrefs(await _prefs.load()); renderPresetsTable();
+                      showToast(t('prefsImported', presets.length), 3500, '#43a047'); }
+            else showToast(t('prefsImportBad', r.raison), 5000, '#e53935');
+            _impVersOnglet('pre');
+        }
+    } catch(e){ log('import: ' + e.message); showToast(t('impInconnu', f.name), 5000, '#e53935'); }
+    return true;
+};
+const _impFichiers = async (files) => { for(const f of Array.from(files || [])) await _impUnFichier(f); };
+
 const parseCSV=text=>{
     const rows=CSVtoArray(text).filter(r=>r.length>=1&&['add','remove'].includes(r[0]));
     let fb='';
