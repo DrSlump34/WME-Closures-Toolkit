@@ -14,6 +14,10 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 ## Features
 
 - **Recurring closures with a queue** — build up a batch, review it, apply it in one pass.
+- **Draw an area** — outline a neighbourhood on the map and every segment more than half inside
+  it is selected, ready to close. The scan does not depend on zoom, so nothing is missed on a
+  large area; road types are filterable after the fact, and the area itself can be exported to
+  KML / WKT and imported back.
 - **Segment *and* turn closures** — including the geometry helpers needed to target turns reliably.
 - **Route import** — GPX, KML, KMZ, GeoJSON and shapefiles (with reprojection).
 - **Search** — find existing closures across segments and turns, filter by partner.

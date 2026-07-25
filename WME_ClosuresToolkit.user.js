@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.90.00
+// @version      0.91.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1481,6 +1481,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyImportHint:'Le format est reconnu tout seul. Dans un KML à plusieurs polygones, seul le premier est lu.',
             polyImportBad:'Zone illisible : il faut un POLYGON(…) WKT ou un KML contenant un polygone.',
             polyImportOk: n => `Zone importée (${n} sommets).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segment(s) de ce type dans la zone tracée`,
+            tipPolyTypesAll:'Cocher tous les types', tipPolyTypesNone:'Décocher tous les types',
+            tipPolyTypesReset:'Revenir au réglage par défaut (tout sauf les voies non carrossables)',
+            tipPolyTypesApply:'Recalculer la sélection avec ces types, sans retracer la zone',
+            tipPolyImportWkt:'Coller ici un POLYGON(…) WKT — minuscules, sauts de ligne et préfixe SRID acceptés',
+            tipPolyImportLoad:'Lire le WKT collé et en faire la zone courante',
+            tipPolyImportKml:'Choisir un fichier KML contenant un polygone (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Zone tracée : ${n} segment(s) — ${m} écarté(s)`,
+            tipPolyBannerFiltered:'Ces segments sont dans la zone mais leur type est décoché. Bouton 🛣️ Types pour les reprendre.',
+            helpH14:'✏️ Zone (polygone)',
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -1910,6 +1920,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'The format is detected on its own. In a KML with several polygons, only the first one is read.',
             polyImportBad:'Unreadable area: a POLYGON(…) WKT, or a KML holding a polygon, is required.',
             polyImportOk: n => `Area imported (${n} corners).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segment(s) of this type in the drawn area`,
+            tipPolyTypesAll:'Tick every type', tipPolyTypesNone:'Untick every type',
+            tipPolyTypesReset:'Back to the default setting (everything but the non-drivable ways)',
+            tipPolyTypesApply:'Recompute the selection with these types, without redrawing the area',
+            tipPolyImportWkt:'Paste a POLYGON(…) WKT here — lowercase, line breaks and an SRID prefix are accepted',
+            tipPolyImportLoad:'Read the pasted WKT and make it the current area',
+            tipPolyImportKml:'Pick a KML file holding a polygon (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Area drawn: ${n} segment(s) — ${m} left out`,
+            tipPolyBannerFiltered:'These segments are inside the area but their type is unticked. Use 🛣️ Types to bring them back.',
+            helpH14:'✏️ Area (polygon)',
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2337,6 +2357,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'הפורמט מזוהה אוטומטית. בקובץ KML עם כמה מצולעים ייקרא רק הראשון.',
             polyImportBad:'האזור אינו קריא: נדרש POLYGON(…) WKT או KML המכיל מצולע.',
             polyImportOk: n => `האזור יובא (${n} פינות).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} מקטעים מסוג זה באזור המשורטט`,
+            tipPolyTypesAll:'סמן את כל הסוגים', tipPolyTypesNone:'בטל את כל הסוגים',
+            tipPolyTypesReset:'חזרה לברירת המחדל (הכול פרט לדרכים שאינן נסיעות)',
+            tipPolyTypesApply:'חשב מחדש את הבחירה עם סוגים אלה, בלי לשרטט שוב',
+            tipPolyImportWkt:'הדבק כאן POLYGON(…) WKT — אותיות קטנות, שורות חדשות וקידומת SRID מתקבלים',
+            tipPolyImportLoad:'קרא את ה-WKT שהודבק והפוך אותו לאזור הנוכחי',
+            tipPolyImportKml:'בחר קובץ KML המכיל מצולע (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ אזור משורטט: ${n} מקטעים — ${m} הושמטו`,
+            tipPolyBannerFiltered:'מקטעים אלה נמצאים באזור אך הסוג שלהם אינו מסומן. לחץ 🛣️ סוגים כדי להחזירם.',
+            helpH14:'✏️ אזור (מצולע)',
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -2764,6 +2794,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'Il formato viene riconosciuto da solo. In un KML con più poligoni viene letto solo il primo.',
             polyImportBad:'Area illeggibile: serve un POLYGON(…) WKT o un KML che contenga un poligono.',
             polyImportOk: n => `Area importata (${n} vertici).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento/i di questo tipo nell’area disegnata`,
+            tipPolyTypesAll:'Spunta tutti i tipi', tipPolyTypesNone:'Togli la spunta a tutti i tipi',
+            tipPolyTypesReset:'Torna all’impostazione predefinita (tutto tranne le vie non percorribili)',
+            tipPolyTypesApply:'Ricalcola la selezione con questi tipi, senza ridisegnare l’area',
+            tipPolyImportWkt:'Incolla qui un POLYGON(…) WKT — minuscole, a capo e prefisso SRID sono accettati',
+            tipPolyImportLoad:'Leggi il WKT incollato e rendilo l’area corrente',
+            tipPolyImportKml:'Scegli un file KML che contenga un poligono (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Area disegnata: ${n} segmento/i — ${m} esclusi`,
+            tipPolyBannerFiltered:'Questi segmenti sono nell’area ma il loro tipo non è spuntato. Usa 🛣️ Tipi per riprenderli.',
+            helpH14:'✏️ Area (poligono)',
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -3192,6 +3232,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'Das Format wird von selbst erkannt. Bei einer KML mit mehreren Polygonen wird nur das erste gelesen.',
             polyImportBad:'Bereich nicht lesbar: nötig ist ein POLYGON(…) WKT oder eine KML mit einem Polygon.',
             polyImportOk: n => `Bereich importiert (${n} Eckpunkte).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} Segment(e) dieses Typs im gezeichneten Bereich`,
+            tipPolyTypesAll:'Alle Typen ankreuzen', tipPolyTypesNone:'Alle Typen abwählen',
+            tipPolyTypesReset:'Zurück zur Voreinstellung (alles außer den nicht befahrbaren Wegen)',
+            tipPolyTypesApply:'Auswahl mit diesen Typen neu berechnen, ohne den Bereich neu zu zeichnen',
+            tipPolyImportWkt:'Hier ein POLYGON(…) WKT einfügen — Kleinschreibung, Zeilenumbrüche und SRID-Präfix sind erlaubt',
+            tipPolyImportLoad:'Das eingefügte WKT lesen und daraus den aktuellen Bereich machen',
+            tipPolyImportKml:'Eine KML-Datei mit einem Polygon wählen (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Bereich gezeichnet: ${n} Segment(e) — ${m} ausgelassen`,
+            tipPolyBannerFiltered:'Diese Segmente liegen im Bereich, ihr Typ ist aber abgewählt. Über 🛣️ Typen zurückholen.',
+            helpH14:'✏️ Bereich (Polygon)',
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -3619,6 +3669,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyImportHint:'El formato se reconoce solo. En un KML con varios polígonos solo se lee el primero.',
             polyImportBad:'Zona ilegible: hace falta un POLYGON(…) WKT o un KML que contenga un polígono.',
             polyImportOk: n => `Zona importada (${n} vértices).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) de este tipo en la zona dibujada`,
+            tipPolyTypesAll:'Marcar todos los tipos', tipPolyTypesNone:'Desmarcar todos los tipos',
+            tipPolyTypesReset:'Volver al ajuste por defecto (todo salvo las vías no transitables)',
+            tipPolyTypesApply:'Recalcular la selección con estos tipos, sin volver a dibujar la zona',
+            tipPolyImportWkt:'Pega aquí un POLYGON(…) WKT — se aceptan minúsculas, saltos de línea y prefijo SRID',
+            tipPolyImportLoad:'Leer el WKT pegado y convertirlo en la zona actual',
+            tipPolyImportKml:'Elegir un archivo KML que contenga un polígono (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Zona dibujada: ${n} segmento(s) — ${m} descartado(s)`,
+            tipPolyBannerFiltered:'Estos segmentos están en la zona pero su tipo está desmarcado. Usa 🛣️ Tipos para recuperarlos.',
+            helpH14:'✏️ Zona (polígono)',
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4046,6 +4106,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyImportHint:'O formato é reconhecido sozinho. Em um KML com vários polígonos, só o primeiro é lido.',
             polyImportBad:'Área ilegível: é preciso um POLYGON(…) WKT ou um KML contendo um polígono.',
             polyImportOk: n => `Área importada (${n} vértices).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) desse tipo na área desenhada`,
+            tipPolyTypesAll:'Marcar todos os tipos', tipPolyTypesNone:'Desmarcar todos os tipos',
+            tipPolyTypesReset:'Voltar ao padrão (tudo menos as vias não trafegáveis)',
+            tipPolyTypesApply:'Recalcular a seleção com esses tipos, sem redesenhar a área',
+            tipPolyImportWkt:'Cole aqui um POLYGON(…) WKT — minúsculas, quebras de linha e prefixo SRID são aceitos',
+            tipPolyImportLoad:'Ler o WKT colado e torná-lo a área atual',
+            tipPolyImportKml:'Escolher um arquivo KML contendo um polígono (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Área desenhada: ${n} segmento(s) — ${m} descartado(s)`,
+            tipPolyBannerFiltered:'Esses segmentos estão na área, mas o tipo deles está desmarcado. Use 🛣️ Tipos para retomá-los.',
+            helpH14:'✏️ Área (polígono)',
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4473,6 +4543,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyImportHint:'O formato é reconhecido sozinho. Num KML com vários polígonos, só o primeiro é lido.',
             polyImportBad:'Área ilegível: é necessário um POLYGON(…) WKT ou um KML que contenha um polígono.',
             polyImportOk: n => `Área importada (${n} vértices).`,
+            tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) deste tipo na área desenhada`,
+            tipPolyTypesAll:'Marcar todos os tipos', tipPolyTypesNone:'Desmarcar todos os tipos',
+            tipPolyTypesReset:'Voltar à predefinição (tudo menos as vias não transitáveis)',
+            tipPolyTypesApply:'Recalcular a seleção com estes tipos, sem desenhar a área de novo',
+            tipPolyImportWkt:'Cole aqui um POLYGON(…) WKT — minúsculas, quebras de linha e prefixo SRID são aceites',
+            tipPolyImportLoad:'Ler o WKT colado e torná-lo a área atual',
+            tipPolyImportKml:'Escolher um ficheiro KML que contenha um polígono (Google Earth, QGIS…)',
+            polyBannerFiltered: (n,m) => `✏️ Área desenhada: ${n} segmento(s) — ${m} descartado(s)`,
+            tipPolyBannerFiltered:'Estes segmentos estão na área, mas o seu tipo está desmarcado. Use 🛣️ Tipos para os retomar.',
+            helpH14:'✏️ Área (polígono)',
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -5195,6 +5275,95 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>estatuto de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esbatido, a dica indica o motivo exato. É uma relação de confiança: atribuir um corte a um parceiro é afirmar que ele é a sua fonte.</p>
             <p style="margin-top:6px"><b>Se o Waze mudar:</b> o WCT verifica no arranque se está tudo no lugar (estatuto, API, estrutura dos dados). À menor dúvida o campo desativa-se e explica porquê, em vez de arriscar uma atribuição errada. E se a aplicação falhar a meio, <b>nada é guardado</b>: melhor nenhum corte do que um falsamente atribuído.</p>
             <p style="margin-top:6px"><i>A Fonte não se aplica às viragens: é um campo do corte de segmento.</i></p>` }) },
+        { id:'h14', title:t('helpH14'), body: _L({ fr:`
+            <p>Fermer <b>tout un quartier</b> sans cliquer les segments un par un : on trace une zone sur la carte, WCT sélectionne ce qu'elle contient, puis la fermeture se règle comme d'habitude.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Tracer</b></td><td>Onglet <b>⚙ Configurer</b>. Le panneau se replie, <b>un clic par sommet</b>, <b>double-clic</b> pour fermer. L'onglet reste accessible même sans sélection : c'est ce bouton qui la crée.</td></tr>
+            <tr><td><b>🛣️ Types</b></td><td>Choisit les types de routes retenus, en affichant le <b>nombre de segments de chaque type</b> présents dans la zone. Réglable <b>après coup</b> : la sélection se recalcule sans retracer. Par défaut, les voies non carrossables sont écartées (voie ferrée, ferry, escaliers, piste d'aéroport, chemin piéton non routable).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporte <b>la zone seule</b> (pas les segments), pour l'archiver ou la partager : fichier KML, ou <code>POLYGON(…)</code> copié dans le presse-papiers.</td></tr>
+            <tr><td><b>📂 Importer</b></td><td>Recharge une zone : coller un WKT, ou choisir un fichier KML. Le format est reconnu tout seul.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Quels segments sont pris ?</b> Ceux dont <b>plus de la moitié de la longueur</b> est à l'intérieur. Un segment qui effleure la zone est écarté ; un segment majoritairement dedans est retenu.</p>
+            <p style="margin-top:6px">⚠️ <b>La fermeture porte sur le segment ENTIER</b>, pas sur la portion contenue dans la zone : Waze ne sait pas fermer un bout de segment. Un segment retenu à 60 % sera fermé sur toute sa longueur, y compris hors de la zone. Tracez au plus juste, et vérifiez la sélection avant de valider.</p>
+            <p style="margin-top:6px"><b>Grandes zones.</b> L'inventaire <b>ne dépend pas du zoom</b> : la carte est interrogée par tuiles, donc rien n'est oublié même très dézoomé. En revanche WME ne garde en mémoire que ce qu'il affiche : la carte se déplace donc vue par vue pour charger les segments (progression, bouton <b>Stop</b> ou touche <b>Échap</b>). La zone part ensuite dans la file <b>en lots</b>, et la carte se recadre sur chacun au moment d'appliquer.</p>
+            <p style="margin-top:6px"><i>La zone ne sélectionne que des <b>segments</b> : les fermetures de virage passent par l'onglet 🔀 Virages. Si l'inventaire est indisponible, WCT le signale et se replie sur les segments déjà chargés — il ne rend jamais moins en silence.</i></p>`, en:`
+            <p>Close <b>a whole neighbourhood</b> without clicking segments one by one: draw an area on the map, WCT selects what it holds, then the closure is set up as usual.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Draw</b></td><td>Tab <b>⚙ Configure</b>. The panel folds away, <b>one click per corner</b>, <b>double-click</b> to close. The tab stays reachable even without a selection: this button is what creates one.</td></tr>
+            <tr><td><b>🛣️ Types</b></td><td>Picks which road types are kept, showing <b>how many segments of each type</b> the area holds. Adjustable <b>afterwards</b>: the selection is recomputed without redrawing. By default the non-drivable ways are left out (railroad, ferry, stairway, runway, non-routable pedestrian path).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exports <b>the area alone</b> (not the segments), to archive or share it: a KML file, or <code>POLYGON(…)</code> copied to the clipboard.</td></tr>
+            <tr><td><b>📂 Import</b></td><td>Reloads an area: paste a WKT, or pick a KML file. The format is detected on its own.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Which segments are kept?</b> Those with <b>more than half their length</b> inside. A segment merely grazing the area is left out; one mostly inside is kept.</p>
+            <p style="margin-top:6px">⚠️ <b>The closure covers the WHOLE segment</b>, not the part inside the area: Waze cannot close a piece of a segment. A segment kept at 60 % will be closed over its full length, outside the area included. Draw tightly, and check the selection before validating.</p>
+            <p style="margin-top:6px"><b>Large areas.</b> The scan <b>does not depend on zoom</b>: the map is queried tile by tile, so nothing is missed even far out. WME, however, only keeps in memory what it displays: the map therefore moves view by view to load the segments (progress bar, <b>Stop</b> button or <b>Esc</b> key). The area then enters the queue <b>as batches</b>, and the map re-centres on each one when applying.</p>
+            <p style="margin-top:6px"><i>An area only selects <b>segments</b>: turn closures go through the 🔀 Turns tab. If the scan is unavailable, WCT says so and falls back on the already-loaded segments — it never returns less in silence.</i></p>`, he:`
+            <p>לסגור <b>שכונה שלמה</b> בלי ללחוץ על כל מקטע בנפרד: משרטטים אזור על המפה, WCT בוחר את מה שנמצא בתוכו, ואז מגדירים את החסימה כרגיל.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ שרטוט</b></td><td>לשונית <b>⚙ הגדרה</b>. החלונית מתקפלת, <b>לחיצה אחת לכל פינה</b>, <b>לחיצה כפולה</b> לסגירה. הלשונית נגישה גם ללא בחירה: הכפתור הזה הוא שיוצר אותה.</td></tr>
+            <tr><td><b>🛣️ סוגים</b></td><td>בוחר אילו סוגי דרכים נשמרים, ומציג <b>כמה מקטעים מכל סוג</b> יש באזור. ניתן לשינוי <b>בדיעבד</b>: הבחירה מחושבת מחדש בלי שרטוט נוסף. כברירת מחדל מושמטות הדרכים שאינן לנסיעה (מסילה, מעבורת, מדרגות, מסלול המראה, שביל להולכי רגל שאינו לניווט).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>מייצא <b>את האזור בלבד</b> (לא את המקטעים), לארכיון או לשיתוף: קובץ KML, או <code>POLYGON(…)</code> המועתק ללוח.</td></tr>
+            <tr><td><b>📂 ייבוא</b></td><td>טוען אזור מחדש: הדבקת WKT, או בחירת קובץ KML. הפורמט מזוהה אוטומטית.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>אילו מקטעים נבחרים?</b> אלה שיותר <b>ממחצית אורכם</b> נמצא בפנים. מקטע שרק נוגע באזור מושמט; מקטע שרובו בפנים נשמר.</p>
+            <p style="margin-top:6px">⚠️ <b>החסימה חלה על המקטע כולו</b>, ולא על החלק שבתוך האזור: Waze אינו יודע לחסום קטע חלקי. מקטע שנשמר ב-60% ייחסם לכל אורכו, גם מחוץ לאזור. שרטט בדיוק, ובדוק את הבחירה לפני אישור.</p>
+            <p style="margin-top:6px"><b>אזורים גדולים.</b> הסריקה <b>אינה תלויה בזום</b>: המפה נסרקת באריחים, ולכן דבר לא נשכח גם בתצוגה רחוקה. אך WME שומר בזיכרון רק את מה שמוצג: המפה נעה אפוא מתצוגה לתצוגה כדי לטעון את המקטעים (סרגל התקדמות, כפתור <b>עצור</b> או מקש <b>Esc</b>). לאחר מכן האזור נכנס לתור <b>במנות</b>, והמפה מתמקדת בכל אחת בעת ההחלה.</p>
+            <p style="margin-top:6px"><i>אזור בוחר <b>מקטעים</b> בלבד: חסימות פנייה נעשות בלשונית 🔀 פניות. אם הסריקה אינה זמינה, WCT מודיע על כך ונסוג למקטעים שכבר נטענו — הוא לעולם אינו מחזיר פחות בשקט.</i></p>`, it:`
+            <p>Chiudere <b>un intero quartiere</b> senza cliccare i segmenti uno a uno: si disegna un’area sulla mappa, WCT seleziona ciò che contiene, poi la chiusura si imposta come sempre.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Disegna</b></td><td>Scheda <b>⚙ Configura</b>. Il pannello si richiude, <b>un clic per ogni vertice</b>, <b>doppio clic</b> per chiudere. La scheda resta accessibile anche senza selezione: è questo pulsante a crearla.</td></tr>
+            <tr><td><b>🛣️ Tipi</b></td><td>Sceglie quali tipi di strada vengono tenuti, mostrando <b>quanti segmenti di ciascun tipo</b> ci sono nell’area. Modificabile <b>in seguito</b>: la selezione si ricalcola senza ridisegnare. Per impostazione predefinita sono escluse le vie non percorribili (ferrovia, traghetto, scale, pista aeroportuale, percorso pedonale non navigabile).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Esporta <b>la sola area</b> (non i segmenti), per archiviarla o condividerla: file KML, oppure <code>POLYGON(…)</code> copiato negli appunti.</td></tr>
+            <tr><td><b>📂 Importa</b></td><td>Ricarica un’area: incolla un WKT, o scegli un file KML. Il formato viene riconosciuto da solo.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Quali segmenti vengono presi?</b> Quelli con <b>più di metà della lunghezza</b> all’interno. Un segmento che sfiora l’area viene escluso; uno per lo più dentro viene tenuto.</p>
+            <p style="margin-top:6px">⚠️ <b>La chiusura riguarda il segmento INTERO</b>, non la porzione dentro l’area: Waze non sa chiudere un pezzo di segmento. Un segmento tenuto al 60 % sarà chiuso per tutta la sua lunghezza, anche fuori dall’area. Disegna con precisione e controlla la selezione prima di convalidare.</p>
+            <p style="margin-top:6px"><b>Aree grandi.</b> La scansione <b>non dipende dallo zoom</b>: la mappa viene interrogata a riquadri, quindi non si perde nulla nemmeno molto rimpiccioliti. WME però tiene in memoria solo ciò che mostra: la mappa si sposta vista per vista per caricare i segmenti (barra di avanzamento, pulsante <b>Stop</b> o tasto <b>Esc</b>). L’area entra poi in coda <b>a lotti</b>, e la mappa si ricentra su ciascuno al momento di applicare.</p>
+            <p style="margin-top:6px"><i>Un’area seleziona solo <b>segmenti</b>: le chiusure di svolta passano dalla scheda 🔀 Svolte. Se la scansione non è disponibile, WCT lo segnala e ripiega sui segmenti già caricati — non restituisce mai meno in silenzio.</i></p>`, de:`
+            <p><b>Ein ganzes Viertel</b> sperren, ohne die Segmente einzeln anzuklicken: Du zeichnest einen Bereich auf der Karte, WCT wählt aus, was darin liegt, und die Sperrung richtest du wie gewohnt ein.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Zeichnen</b></td><td>Reiter <b>⚙ Einrichten</b>. Das Fenster klappt zu, <b>ein Klick je Eckpunkt</b>, <b>Doppelklick</b> zum Schließen. Der Reiter bleibt auch ohne Auswahl erreichbar: dieser Knopf erzeugt sie ja gerade.</td></tr>
+            <tr><td><b>🛣️ Typen</b></td><td>Legt fest, welche Straßentypen behalten werden, und zeigt <b>wie viele Segmente jedes Typs</b> im Bereich liegen. <b>Nachträglich</b> änderbar: die Auswahl wird ohne neues Zeichnen neu berechnet. Voreingestellt bleiben die nicht befahrbaren Wege außen vor (Bahn, Fähre, Treppe, Rollbahn, nicht routbarer Fußweg).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exportiert <b>nur den Bereich</b> (nicht die Segmente), zum Ablegen oder Weitergeben: KML-Datei oder <code>POLYGON(…)</code> in der Zwischenablage.</td></tr>
+            <tr><td><b>📂 Import</b></td><td>Lädt einen Bereich neu: WKT einfügen oder eine KML-Datei wählen. Das Format wird selbst erkannt.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Welche Segmente werden genommen?</b> Die, deren <b>Länge zu mehr als der Hälfte</b> innen liegt. Ein Segment, das den Bereich nur streift, fällt heraus; ein überwiegend innen liegendes wird behalten.</p>
+            <p style="margin-top:6px">⚠️ <b>Die Sperrung gilt dem GANZEN Segment</b>, nicht dem Stück im Bereich: Waze kann kein Teilstück sperren. Ein zu 60 % erfasstes Segment wird auf voller Länge gesperrt, auch außerhalb. Zeichne knapp und prüfe die Auswahl vor dem Bestätigen.</p>
+            <p style="margin-top:6px"><b>Große Bereiche.</b> Die Erfassung <b>hängt nicht vom Zoom ab</b>: die Karte wird kachelweise abgefragt, es geht also auch weit herausgezoomt nichts verloren. WME behält jedoch nur im Speicher, was es anzeigt: die Karte wandert daher Ansicht für Ansicht, um die Segmente zu laden (Fortschritt, Knopf <b>Stopp</b> oder Taste <b>Esc</b>). Danach geht der Bereich <b>paketweise</b> in die Warteschlange, und die Karte richtet sich beim Anwenden auf jedes Paket neu aus.</p>
+            <p style="margin-top:6px"><i>Ein Bereich wählt nur <b>Segmente</b>: Abbiegersperrungen laufen über den Reiter 🔀 Abbieger. Ist die Erfassung nicht verfügbar, sagt WCT es und weicht auf die bereits geladenen Segmente aus — es liefert nie stillschweigend weniger.</i></p>`, es:`
+            <p>Cerrar <b>todo un barrio</b> sin ir pinchando segmento a segmento: dibujas una zona en el mapa, WCT selecciona lo que contiene y el cierre se configura como siempre.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Dibujar</b></td><td>Pestaña <b>⚙ Configurar</b>. El panel se pliega, <b>un clic por vértice</b>, <b>doble clic</b> para cerrar. La pestaña sigue accesible aunque no haya selección: es este botón el que la crea.</td></tr>
+            <tr><td><b>🛣️ Tipos</b></td><td>Elige qué tipos de vía se conservan, mostrando <b>cuántos segmentos de cada tipo</b> hay en la zona. Ajustable <b>después</b>: la selección se recalcula sin volver a dibujar. Por defecto quedan fuera las vías no transitables (ferrocarril, ferry, escaleras, pista de aeropuerto, senda peatonal no enrutable).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>solo la zona</b> (no los segmentos), para archivarla o compartirla: archivo KML, o <code>POLYGON(…)</code> copiado al portapapeles.</td></tr>
+            <tr><td><b>📂 Importar</b></td><td>Recarga una zona: pega un WKT o elige un archivo KML. El formato se reconoce solo.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>¿Qué segmentos entran?</b> Aquellos con <b>más de la mitad de su longitud</b> dentro. Un segmento que solo roza la zona queda fuera; uno mayoritariamente dentro se conserva.</p>
+            <p style="margin-top:6px">⚠️ <b>El cierre afecta al segmento ENTERO</b>, no al tramo que está dentro de la zona: Waze no sabe cerrar un trozo de segmento. Un segmento tomado al 60 % se cerrará en toda su longitud, también fuera de la zona. Dibuja ajustado y revisa la selección antes de validar.</p>
+            <p style="margin-top:6px"><b>Zonas grandes.</b> El rastreo <b>no depende del zoom</b>: el mapa se consulta por teselas, así que no se pierde nada ni muy alejado. Pero WME solo guarda en memoria lo que muestra: el mapa se desplaza vista a vista para cargar los segmentos (progreso, botón <b>Parar</b> o tecla <b>Esc</b>). Después la zona entra en la cola <b>por lotes</b>, y el mapa se recentra en cada uno al aplicar.</p>
+            <p style="margin-top:6px"><i>Una zona solo selecciona <b>segmentos</b>: los cierres de giro van por la pestaña 🔀 Giros. Si el rastreo no está disponible, WCT lo avisa y recurre a los segmentos ya cargados — nunca devuelve menos en silencio.</i></p>`, 'pt-BR':`
+            <p>Bloquear <b>um bairro inteiro</b> sem clicar segmento por segmento: você desenha uma área no mapa, o WCT seleciona o que ela contém e o bloqueio é configurado como sempre.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Desenhar</b></td><td>Aba <b>⚙ Configurar</b>. O painel se recolhe, <b>um clique por vértice</b>, <b>clique duplo</b> para fechar. A aba continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
+            <tr><td><b>🛣️ Tipos</b></td><td>Escolhe quais tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem redesenhar. Por padrão ficam de fora as vias não trafegáveis (ferrovia, balsa, escadaria, pista de aeroporto, caminho de pedestres não roteável).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou compartilhar: arquivo KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>📂 Importar</b></td><td>Recarrega uma área: cole um WKT ou escolha um arquivo KML. O formato é reconhecido sozinho.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Quais segmentos entram?</b> Aqueles com <b>mais da metade do comprimento</b> dentro. Um segmento que apenas encosta na área fica de fora; um majoritariamente dentro é mantido.</p>
+            <p style="margin-top:6px">⚠️ <b>O bloqueio vale para o segmento INTEIRO</b>, não para o trecho dentro da área: o Waze não sabe bloquear um pedaço de segmento. Um segmento pego a 60 % será bloqueado em todo o comprimento, inclusive fora da área. Desenhe justo e confira a seleção antes de validar.</p>
+            <p style="margin-top:6px"><b>Áreas grandes.</b> A varredura <b>não depende do zoom</b>: o mapa é consultado por blocos, então nada se perde mesmo bem afastado. Mas o WME só guarda na memória o que exibe: o mapa se desloca vista a vista para carregar os segmentos (progresso, botão <b>Parar</b> ou tecla <b>Esc</b>). Depois a área entra na fila <b>em lotes</b>, e o mapa se recentra em cada um ao aplicar.</p>
+            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os bloqueios de conversão passam pela aba 🔀 Conversões. Se a varredura estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>`, 'pt-PT':`
+            <p>Cortar <b>um bairro inteiro</b> sem clicar segmento a segmento: desenha uma área no mapa, o WCT seleciona o que ela contém e o corte configura-se como sempre.</p>
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Desenhar</b></td><td>Separador <b>⚙ Configurar</b>. O painel recolhe-se, <b>um clique por vértice</b>, <b>duplo clique</b> para fechar. O separador continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
+            <tr><td><b>🛣️ Tipos</b></td><td>Escolhe que tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem desenhar de novo. Por predefinição ficam de fora as vias não transitáveis (via férrea, ferry, escadas, pista de aeroporto, caminho pedonal não navegável).</td></tr>
+            <tr><td><b>🌍 KML · 📐 WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou partilhar: ficheiro KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>📂 Importar</b></td><td>Recarrega uma área: cole um WKT ou escolha um ficheiro KML. O formato é reconhecido sozinho.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Que segmentos entram?</b> Aqueles com <b>mais de metade do comprimento</b> lá dentro. Um segmento que apenas toca a área fica de fora; um maioritariamente dentro é mantido.</p>
+            <p style="margin-top:6px">⚠️ <b>O corte abrange o segmento INTEIRO</b>, não o troço dentro da área: o Waze não sabe cortar um pedaço de segmento. Um segmento apanhado a 60 % será cortado em todo o comprimento, incluindo fora da área. Desenhe justo e verifique a seleção antes de validar.</p>
+            <p style="margin-top:6px"><b>Áreas grandes.</b> A análise <b>não depende do zoom</b>: o mapa é consultado por mosaicos, pelo que nada se perde mesmo muito afastado. Mas o WME só guarda em memória o que mostra: o mapa desloca-se vista a vista para carregar os segmentos (progresso, botão <b>Parar</b> ou tecla <b>Esc</b>). Depois a área entra na fila <b>em lotes</b>, e o mapa recentra-se em cada um ao aplicar.</p>
+            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os cortes de viragem passam pelo separador 🔀 Viragens. Se a análise estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -9032,7 +9201,12 @@ const renderPolyBanner = () => {
     const el = make('div');
     el.id = 'wct-poly-banner';
     el.className = 'wct-tn-banner';
-    el.innerHTML = `<span>${escHtml(t('polyBanner', _polyZone.ids.length))}</span>
+    // ⚠️ Un segment peut être DANS la zone et pourtant absent de la sélection, parce que
+    // son type est décoché. Le taire donnerait l'impression d'un oubli du script : le
+    // bandeau annonce donc le nombre d'écartés, et l'infobulle dit par quoi.
+    const ecartes = (_polyZone.tous || []).filter(s => !_polyTypesSet().has(Number(s.roadType))).length;
+    el.innerHTML = `<span title="${escHtml(ecartes ? t('tipPolyBannerFiltered') : '')}">${
+        escHtml(ecartes ? t('polyBannerFiltered', _polyZone.ids.length, ecartes) : t('polyBanner', _polyZone.ids.length))}</span>
         <span style="flex:1"></span>
         <button type="button" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
     el.querySelector('button').addEventListener('click', () => {
@@ -9189,6 +9363,7 @@ const _polyBox = (id, titre) => {
 // Rangée de boutons à colonnes égales.
 const _polyBtnRow = (boutons, marge) => `<div style="display:grid;grid-template-columns:repeat(${boutons.length},1fr);gap:6px;${marge || ''}">`
     + boutons.map(b => `<button type="button" class="wct-btn wct-btn-sm${b.primaire ? ' wct-btn-primary' : ''}" data-act="${b.act}"${b.off ? ' disabled' : ''}
+        title="${escHtml(b.tip || b.txt)}"
         style="width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(b.txt)}</button>`).join('')
     + '</div>';
 
@@ -9204,17 +9379,21 @@ const renderPolyTypesPanel = () => {
     const box = _polyBox('wct-poly-types', t('polyTypesTitle'));
     const lignes = Object.keys(libelles).map(Number).sort((a, b) => a - b).map(rt => {
         const n = comptes[rt] || 0;
-        return `<label style="display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:4px;font-size:0.917em;cursor:pointer${(aZone && !n) ? ';opacity:.45' : ''}">
+        return `<label title="${escHtml(t('tipPolyTypeRow', libelles[rt], n))}"
+            style="display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:4px;font-size:0.917em;cursor:pointer${(aZone && !n) ? ';opacity:.45' : ''}">
             <input type="checkbox" class="wct-poly-type" value="${rt}"${coches.has(rt) ? ' checked' : ''} style="flex:0 0 auto;margin:0">
             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(libelles[rt])}</span>
             <span style="flex:0 0 auto;min-width:2.5em;text-align:end;color:var(--wct-text2);font-variant-numeric:tabular-nums">${n || '—'}</span>
         </label>`;
     }).join('');
     box.insertAdjacentHTML('beforeend',
-        _polyBtnRow([{ act:'all', txt:t('polyTypesAll') }, { act:'none', txt:t('polyTypesNone') }, { act:'reset', txt:t('polyTypesReset') }], 'margin-bottom:8px')
+        _polyBtnRow([{ act:'all', txt:t('polyTypesAll'), tip:t('tipPolyTypesAll') },
+                     { act:'none', txt:t('polyTypesNone'), tip:t('tipPolyTypesNone') },
+                     { act:'reset', txt:t('polyTypesReset'), tip:t('tipPolyTypesReset') }], 'margin-bottom:8px')
         + `<div style="border-top:1px solid var(--wct-border);border-bottom:1px solid var(--wct-border);padding:4px 0;margin-bottom:6px">${lignes}</div>`
         + `<div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:8px">${escHtml(t('polyTypesHint'))}</div>`
-        + _polyBtnRow([{ act:'apply', txt:t('polyTypesApply'), primaire:true, off:!aZone }, { act:'close', txt:t('polyTypesClose') }]));
+        + _polyBtnRow([{ act:'apply', txt:t('polyTypesApply'), tip:t(aZone ? 'tipPolyTypesApply' : 'polyNoZone'), primaire:true, off:!aZone },
+                       { act:'close', txt:t('polyTypesClose'), tip:t('polyTypesClose') }]));
     const lire = () => {
         _polyTypes = new Set([...box.querySelectorAll('.wct-poly-type')].filter(c => c.checked).map(c => Number(c.value)));
         save();
@@ -9239,16 +9418,18 @@ const renderPolyImportPanel = () => {
     if($id('wct-poly-import')){ $id('wct-poly-import').remove(); return; }
     const box = _polyBox('wct-poly-import', t('polyImportTitle'));
     box.insertAdjacentHTML('beforeend',
-        `<label class="wct-label" style="display:block;margin-bottom:4px">${escHtml(t('polyImportWktLabel'))}</label>
+        `<label class="wct-label" for="wct-poly-wkt-in" style="display:block;margin-bottom:4px">${escHtml(t('polyImportWktLabel'))}</label>
          <textarea id="wct-poly-wkt-in" class="wct-input" rows="4" spellcheck="false"
+           title="${escHtml(t('tipPolyImportWkt'))}"
            placeholder="POLYGON((4.30 43.79, 4.31 43.79, 4.31 43.80, 4.30 43.79))"
            style="width:100%;box-sizing:border-box;font-family:monospace;font-size:0.833em;resize:vertical"></textarea>
-         <div style="margin:8px 0 10px">${_polyBtnRow([{ act:'wkt', txt:t('polyImportLoad'), primaire:true }])}</div>
-         <label class="wct-label" style="display:block;margin-bottom:4px">${escHtml(t('polyImportKmlLabel'))}</label>
+         <div style="margin:8px 0 10px">${_polyBtnRow([{ act:'wkt', txt:t('polyImportLoad'), tip:t('tipPolyImportLoad'), primaire:true }])}</div>
+         <label class="wct-label" for="wct-poly-kml-in" style="display:block;margin-bottom:4px">${escHtml(t('polyImportKmlLabel'))}</label>
          <input type="file" id="wct-poly-kml-in" accept=".kml,.xml,text/xml"
+           title="${escHtml(t('tipPolyImportKml'))}"
            style="width:100%;box-sizing:border-box;font-size:0.833em">
          <div style="font-size:0.833em;color:var(--wct-text2);margin-top:8px">${escHtml(t('polyImportHint'))}</div>
-         <div style="margin-top:10px">${_polyBtnRow([{ act:'close', txt:t('polyTypesClose') }])}</div>`);
+         <div style="margin-top:10px">${_polyBtnRow([{ act:'close', txt:t('polyTypesClose'), tip:t('polyTypesClose') }])}</div>`);
     box.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
         if(b.dataset.act === 'close'){ box.remove(); return; }
         _polyImportTexte($id('wct-poly-wkt-in')?.value || '');
