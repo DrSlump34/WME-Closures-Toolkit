@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.95.00
+// @version      0.96.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1200,6 +1200,7 @@ const t = (key, ...args) => {
             srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
             srcSelOff_nopartner:'Indisponible ici : aucun partenaire pour ton compte dans cette vue. Déplace la carte sur la zone d’un partenaire, ou laisse « Aucune ».',
             srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
+            srcApplyFailNoUndo:'❌ La Source n’a pas pu être posée ET l’annulation a échoué : vérifiez les fermetures de ce segment dans WME avant de recommencer.',
             // Recherche : filtre par partenaire
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partenaire)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F \u00C9v\u00E9nement MTE',
@@ -1667,6 +1668,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
             srcSelOff_nopartner:'Unavailable here: no partner for your account in this view. Pan the map to a partner’s area, or leave "None".',
             srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
+            srcApplyFailNoUndo:'❌ The Source could not be set AND the rollback failed: check this segment’s closures in WME before trying again.',
             // Search: partner filter
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Source (partner)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F MTE event',
@@ -2119,6 +2121,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'לא זמין: WME שינה את מבנה החסימה. WCT מעדיף לשתוק מאשר לייחס מקור בטעות — אנא דווח למחבר.',
             srcSelOff_nopartner:'לא זמין כאן: אין שותף לחשבונך בתצוגה זו. הזז את המפה לאזור של שותף, או השאר "ללא".',
             srcApplyFail:'המקור לא יושם: שום דבר לא נשמר. חסימה ללא המקור המבוקש הייתה ייחוס שגוי.',
+            srcApplyFailNoUndo:'❌ לא ניתן היה להגדיר את המקור וגם הביטול נכשל: בדוק את החסימות של מקטע זה ב-WME לפני ניסיון נוסף.',
             // Search: partner filter
             srcSectionPartner:'🏷️ מקור (שותף)',
             srcSectionMte:'🎟️ אירוע MTE',
@@ -2571,6 +2574,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'Non disponibile: WME ha modificato la struttura delle chiusure. WCT preferisce tacere piuttosto che attribuire una fonte sbagliata — segnalalo all’autore.',
             srcSelOff_nopartner:'Non disponibile qui: nessun partner per il tuo account in questa vista. Sposta la mappa sull’area di un partner, oppure lascia "Nessuna".',
             srcApplyFail:'Fonte non applicata: nulla è stato salvato. Una chiusura senza la fonte richiesta sarebbe un’attribuzione falsa.',
+            srcApplyFailNoUndo:'❌ Impossibile impostare la Sorgente E l’annullamento non è riuscito: controlla le chiusure di questo segmento in WME prima di riprovare.',
             // Search: partner filter
             srcSectionPartner:'🏷️ Fonte (partner)',
             srcSectionMte:'🎟️ Evento MTE',
@@ -3024,6 +3028,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
             srcSelOff_nopartner:'Hier nicht verfügbar: kein Partner für dein Konto in dieser Ansicht. Verschiebe die Karte in das Gebiet eines Partners, oder lass „Keine".',
             srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
+            srcApplyFailNoUndo:'❌ Die Quelle konnte nicht gesetzt werden UND das Rückgängigmachen schlug fehl: prüfe die Sperrungen dieses Segments in WME, bevor du es erneut versuchst.',
             // Suche: Partnerfilter
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F MTE-Ereignis',
@@ -3476,6 +3481,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
             srcSelOff_nopartner:'No disponible aquí: ningún socio para tu cuenta en esta vista. Mueve el mapa a la zona de un socio, o deja «Ninguna».',
             srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
+            srcApplyFailNoUndo:'❌ No se pudo aplicar la Fuente Y la anulación falló: revisa los cierres de este segmento en WME antes de volver a intentarlo.',
             // Busqueda: filtro por socio
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fuente (socio)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
@@ -3928,6 +3934,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
             srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para sua conta nesta visão. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
+            srcApplyFailNoUndo:'❌ Não foi possível definir a Fonte E o desfazer falhou: verifique os bloqueios deste segmento no WME antes de tentar de novo.',
             // Pesquisa: filtro por parceiro
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
@@ -4380,6 +4387,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
             srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para a sua conta nesta vista. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
+            srcApplyFailNoUndo:'❌ Não foi possível definir a Fonte E a anulação falhou: verifique os cortes deste segmento no WME antes de tentar de novo.',
             // Pesquisa: filtro por parceiro
             srcSectionPartner:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
             srcSectionMte:'\uD83C\uDF9F\uFE0F Evento MTE',
@@ -6054,7 +6062,9 @@ const _appliquerPrefs = d => {
 const save = () => {
     const d = _prefsData();
     if(_prefs){ _prefs.save(d).catch(e => log('save: ' + e.message)); return; }
-    try { localStorage.WCT_v1 = JSON.stringify(d); } catch(e) {}   // avant l'init
+    // Avant l'init (ou si la bibliothèque n'a pas pu se créer). Un stockage plein ou
+    // bloqué ferait perdre les réglages : on le dit plutôt que de le taire.
+    try { localStorage.WCT_v1 = JSON.stringify(d); } catch(e) { log('save (repli localStorage) : ' + e.message); }
 };
 // ⚠️ ASYNCHRONE désormais : init() doit l'attendre AVANT resolveLang(), sinon la
 // langue est décidée sur des préférences pas encore chargées.
@@ -6364,6 +6374,9 @@ const connectTurnsPane = (seg) => {
             turns: rows.map(r => ({ id: r.tn.id, to: r.to, toSegId: r.tn.toSegmentId,
                 arrow: r.geom ? r.geom.arrow : '•', dirKey: r.geom ? r.geom.key : null })),
         };
+        // ⚠️ Une seule cible à la fois : viser des virages annule la zone en cours,
+        // sinon Valider n'en traiterait qu'une et l'autre resterait affichée pour rien.
+        if(_polyZone){ _polyZone = null; renderPolyBanner(); }
         renderTurnBanner();
         document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
         showToast(t('tnSent', rows.length), 3000, '#7b1fa2');
@@ -7407,8 +7420,13 @@ const addClosure=(options,okCb,koCb)=>{
             if(pose!==nouvelles.length) throw new Error(`source posée sur ${pose}/${nouvelles.length} fermeture(s)`);
         }catch(e){
             log('addClosure/source: '+e.message);
-            try{ sdk.Editing.undoAll(); }catch(err){}
-            koCb&&koCb([t('srcApplyFail')]);
+            // ⚠️ C'EST LE FILET : la pose de la Source a échoué, donc on annule tout —
+            // une fermeture faussement attribuée à un partenaire n'est pas un détail
+            // cosmétique. Si l'annulation elle-même échoue, le taire laisserait
+            // l'éditeur croire que rien n'a été écrit alors que si.
+            let annule = true;
+            try{ sdk.Editing.undoAll(); }catch(err){ annule = false; log('addClosure/undoAll: '+err.message); }
+            koCb&&koCb([annule ? t('srcApplyFail') : t('srcApplyFailNoUndo')]);
             return;
         }
     }
@@ -9472,6 +9490,7 @@ const _polyProcessRings = async (rings) => {
         const res = await _polyLoadAndSelect(cible);
         try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
         _polyZone = { rings, bbox, tous: retenus, ids: res.ids, groupes: res.groupes || [] };
+        if(_currentTurns){ _currentTurns = null; renderTurnBanner(); }   // cible unique, cf. ci-dessus
         const stop = _sweepAborted;
         _sweepRunning = false; _sweepHideFooter();
         renderPolyBanner();
