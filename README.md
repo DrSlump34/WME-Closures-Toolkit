@@ -9,7 +9,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_0.91.00_normal.png)
+![WME Closures Toolkit](capture_0.96.00_normal.png)
 
 ## Features
 
@@ -18,6 +18,12 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
   it is selected, ready to close. The scan does not depend on zoom, so nothing is missed on a
   large area; road types are filterable after the fact, and the area itself can be exported to
   KML / WKT and imported back.
+- **One import tab for everything** — drop any file and WCT recognises it, handles it, and takes
+  you where the next step happens: closure CSV, GPX, KML, KMZ, GeoJSON, shapefile, a `POLYGON(…)`
+  WKT, or your own presets. Content decides, not the file extension.
+- **Settings that survive** — presets and preferences live in the script manager's storage, not in
+  the site's `localStorage`: clearing your browsing data no longer wipes them. Export, import, or
+  load them from a URL to share presets with other editors.
 - **Segment *and* turn closures** — including the geometry helpers needed to target turns reliably.
 - **Route import** — GPX, KML, KMZ, GeoJSON and shapefiles (with reprojection).
 - **Search** — find existing closures across segments and turns, filter by partner.
