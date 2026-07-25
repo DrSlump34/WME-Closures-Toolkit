@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.91.00
+// @version      0.91.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1528,7 +1528,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpH10:'📦 Longs tracés : le mode lots',
             helpH11:'\uD83D\uDD00 Fermer des virages', helpH12:'\u2B07 Les deux exports CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Source (partenaire)',
-            helpS1:'<b>S\u00E9lectionnez</b> un ou plusieurs segments sur la carte WME',
+            helpS1:'<b>Sélectionnez</b> un ou plusieurs segments sur la carte WME — ou <b>tracez une zone</b> depuis l’onglet ⚙ Configurer',
             helpS2:'Cliquez sur le bouton \uD83D\uDEA7 visible sur la carte (d\u00E9pla\u00E7able par glisser-d\u00E9poser)',
             helpS3:'Dans l\u2019onglet <b>\u2699 Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
             helpS4:'Cliquez <b>\u2714 Valider et ajouter \u00E0 la file</b>',
@@ -1965,7 +1965,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH10:'📦 Long tracks: batch mode',
             helpH11:'\uD83D\uDD00 Closing turns', helpH12:'\u2B07 The two CSV exports',
             helpH13:'\uD83C\uDFF7\uFE0F Source (partner)',
-            helpS1:'<b>Select</b> one or more segments on the WME map',
+            helpS1:'<b>Select</b> one or more segments on the WME map — or <b>draw an area</b> from the ⚙ Configure tab',
             helpS2:'Click the \uD83D\uDEA7 button visible on the map (drag and drop to reposition)',
             helpS3:'In the <b>\u2699 Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
             helpS4:'Click <b>\u2714 Validate and add to queue</b>',
@@ -2402,7 +2402,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH10:'📦 מסלולים ארוכים: מצב מנות',
             helpH11:'🔀 חסימת פניות', helpH12:'⬇ שני ייצואי ה-CSV',
             helpH13:'🏷️ מקור (שותף)',
-            helpS1:'<b>בחר</b> מקטע אחד או יותר במפת WME',
+            helpS1:'<b>בחר</b> מקטע אחד או יותר במפת WME — או <b>שרטט אזור</b> מלשונית ⚙ הגדרה',
             helpS2:'לחץ על כפתור 🚧 הגלוי במפה (גרור למיקום מחדש)',
             helpS3:'בלשונית <b>⚙ הגדרה</b>, קבע את פרמטרי החסימה (תקופה, לוח זמנים, ימים…)',
             helpS4:'לחץ <b>✔ אשר והוסף לתור</b>',
@@ -2839,7 +2839,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH10:'📦 Tracciati lunghi: modalità lotti',
             helpH11:'🔀 Chiudere svolte', helpH12:'⬇ Le due esportazioni CSV',
             helpH13:'🏷️ Fonte (partner)',
-            helpS1:'<b>Seleziona</b> uno o più segmenti sulla mappa WME',
+            helpS1:'<b>Seleziona</b> uno o più segmenti sulla mappa WME — oppure <b>disegna un’area</b> dalla scheda ⚙ Configura',
             helpS2:'Clicca il pulsante 🚧 visibile sulla mappa (trascina per riposizionarlo)',
             helpS3:'Nella scheda <b>⚙ Configura</b>, imposta i parametri della chiusura (periodo, orario, giorni…)',
             helpS4:'Clicca <b>✔ Convalida e aggiungi alla coda</b>',
@@ -3277,7 +3277,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH10:'📦 Lange Tracks: Paket-Modus',
             helpH11:'\uD83D\uDD00 Abbieger sperren', helpH12:'\u2B07 Die zwei CSV-Exporte',
             helpH13:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
-            helpS1:'<b>W\u00E4hle</b> ein oder mehrere Segmente auf der WME-Karte aus',
+            helpS1:'<b>Wähle</b> ein oder mehrere Segmente auf der WME-Karte aus — oder <b>zeichne einen Bereich</b> im Reiter ⚙ Einrichten',
             helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
             helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
             helpS4:'Klicke auf <b>\u2714 Best\u00E4tigen und zur Warteschlange</b>',
@@ -3714,7 +3714,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpH10:'📦 Trazas largas: modo por lotes',
             helpH11:'\uD83D\uDD00 Cerrar giros', helpH12:'\u2B07 Las dos exportaciones CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fuente (socio)',
-            helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME',
+            helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME — o <b>dibuja una zona</b> desde la pestaña ⚙ Configurar',
             helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
             helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
             helpS4:'Haz clic en <b>✔ Validar y añadir a la cola</b>',
@@ -4151,7 +4151,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH10:'📦 Trajetos longos: modo em lotes',
             helpH11:'\uD83D\uDD00 Bloquear convers\u00F5es', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
-            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> na aba ⚙ Configurar',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
             helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
             helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
@@ -4588,7 +4588,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH10:'📦 Trajetos longos: modo por lotes',
             helpH11:'\uD83D\uDD00 Cortar viragens', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
-            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> no separador ⚙ Configurar',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
             helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
             helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
@@ -4611,6 +4611,7 @@ const buildHelpHTML = () => {
             </ol>` },
         { id:'h2', title:t('helpH2'), body: _L({ fr:`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Zone</b></td><td>Bouton <b>Tracer une zone</b>, en haut de l’onglet : délimitez un secteur sur la carte et tous les segments dont plus de la moitié est à l’intérieur sont sélectionnés. Détail dans la section <b>✏️ Zone (polygone)</b>.</td></tr>
             <tr><td><b>D\u00E9but / Fin</b></td><td>Plage de dates sur laquelle r\u00E9p\u00E9ter la fermeture</td></tr>
             <tr><td><b>Heure d\u00E9but</b></td><td>Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement \u2014 voir Limites connues.</td></tr>
             <tr><td><b>\u23F1 Dur\u00E9e / Heure fin</b></td><td>Bascule entre dur\u00E9e (ex\u00A0: 08:00) ou heure de fin explicite. Si heure fin &lt; heure d\u00E9but\u00A0: fermeture jusqu\u2019au lendemain (badge J+1)</td></tr>
@@ -4626,6 +4627,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Ignorer le trafic</b></td><td>Si coch\u00e9, la fermeture s\u2019applique sans tenir compte du trafic r\u00e9el. Waze ne r\u00e9ouvre pas automatiquement le segment m\u00eame s\u2019il d\u00e9tecte du trafic passant.</td></tr>
             </table>`, en:`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Area</b></td><td><b>Draw an area</b> button, at the top of the tab: outline a sector on the map and every segment more than half inside it is selected. Details in the <b>✏️ Area (polygon)</b> section.</td></tr>
             <tr><td><b>Start / End</b></td><td>Date range over which to repeat the closure</td></tr>
             <tr><td><b>Start time</b></td><td>Time at which the closure starts each day. DST transitions are handled automatically \u2014 see Known limits.</td></tr>
             <tr><td><b>\u23F1 Duration / End time</b></td><td>Toggle between duration (e.g. 08:00) or explicit end time. If end &lt; start: closure runs to next day (J+1 badge)</td></tr>
@@ -4641,6 +4643,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Ignore traffic</b></td><td>If checked, closure applies regardless of actual traffic. Waze will not automatically reopen the segment even if it detects traffic passing through.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Bereich</b></td><td>Schaltfläche <b>Bereich zeichnen</b>, oben im Reiter: einen Sektor auf der Karte umreißen, und jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt. Näheres im Abschnitt <b>✏️ Bereich (Polygon)</b>.</td></tr>
             <tr><td><b>Beginn / Ende</b></td><td>Zeitraum, über den die Sperrung wiederholt wird</td></tr>
             <tr><td><b>Startzeit</b></td><td>Uhrzeit, zu der die Sperrung täglich beginnt. Zeitumstellungen werden automatisch berücksichtigt — siehe Bekannte Grenzen.</td></tr>
             <tr><td><b>⏱ Dauer / Endzeit</b></td><td>Umschalten zwischen Dauer (z. B. 08:00) und ausdrücklicher Endzeit. Liegt die Endzeit vor der Startzeit, läuft die Sperrung bis zum Folgetag (Kennzeichnung T+1)</td></tr>
@@ -4656,6 +4659,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Verkehr ignorieren</b></td><td>Wenn aktiviert, gilt die Sperrung unabhängig vom tatsächlichen Verkehr. Waze öffnet das Segment nicht automatisch wieder, selbst wenn Verkehr darauf erkannt wird.</td></tr>
             </table>`, es:`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Zona</b></td><td>Botón <b>Dibujar una zona</b>, arriba en la pestaña: delimita un sector en el mapa y se selecciona todo segmento que quede dentro en más de la mitad. Detalle en la sección <b>✏️ Zona (polígono)</b>.</td></tr>
             <tr><td><b>Inicio / Fin</b></td><td>Intervalo de fechas en el que se repite el cierre</td></tr>
             <tr><td><b>Hora de inicio</b></td><td>Hora a la que empieza el cierre cada día. Los cambios de hora se gestionan automáticamente — consulta Límites conocidos.</td></tr>
             <tr><td><b>⏱ Duración / Hora de fin</b></td><td>Alterna entre duración (p. ej. 08:00) y hora de fin explícita. Si la hora de fin &lt; la de inicio: el cierre se prolonga hasta el día siguiente (indicador D+1)</td></tr>
@@ -4671,6 +4675,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Ignorar el tráfico</b></td><td>Si se marca, el cierre se aplica sin tener en cuenta el tráfico real. Waze no reabrirá automáticamente el segmento aunque detecte tráfico circulando por él.</td></tr>
             </table>`, 'pt-BR':`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo da aba: delimite um setor no mapa e todo segmento com mais da metade dentro é selecionado. Detalhes na seção <b>✏️ Área (polígono)</b>.</td></tr>
             <tr><td><b>Início / Fim</b></td><td>Intervalo de datas em que o bloqueio será repetido</td></tr>
             <tr><td><b>Hora de início</b></td><td>Hora em que o bloqueio começa a cada dia. As mudanças de horário de verão são tratadas automaticamente — veja Limites conhecidos.</td></tr>
             <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim for menor que a de início, o bloqueio segue até o dia seguinte (selo D+1)</td></tr>
@@ -4686,6 +4691,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Ignorar o tráfego</b></td><td>Se marcado, o bloqueio se aplica independentemente do tráfego real. O Waze não reabrirá o segmento automaticamente, mesmo que detecte tráfego passando por ele.</td></tr>
             </table>`, 'pt-PT':`
             <table class="wct-help-table">
+            <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo do separador: delimite um setor no mapa e é selecionado todo o segmento com mais de metade no interior. Detalhes na secção <b>✏️ Área (polígono)</b>.</td></tr>
             <tr><td><b>Início / Fim</b></td><td>Intervalo de datas no qual o corte é repetido</td></tr>
             <tr><td><b>Hora de início</b></td><td>Hora a que o corte começa todos os dias. As mudanças de hora são geridas automaticamente — ver Limites conhecidos.</td></tr>
             <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim &lt; hora de início: o corte prolonga-se até ao dia seguinte (indicador D+1)</td></tr>
