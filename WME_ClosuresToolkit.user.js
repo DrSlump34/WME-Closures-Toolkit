@@ -1458,6 +1458,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyManyViews: (n,m) => `${m} segments restent à charger : ${n} déplacements de carte. Continuer ?`,
             polyApiFallback:'Inventaire de zone indisponible : seuls les segments déjà chargés sont examinés.',
             polyError: m => `Échec de la sélection par zone : ${m}`,
+            polyTypesBtn:'🛣️ Types',
+            tipPolyTypesBtn:'Choisir les types de routes que la zone doit retenir (recalcul immédiat, sans retracer)',
+            polyTypesTitle:'Types de routes à retenir',
+            polyTypesAll:'Tout', polyTypesNone:'Aucun', polyTypesReset:'Par défaut',
+            polyTypesApply:'Appliquer', polyTypesClose:'Fermer',
+            polyTypesHint:'Libellés et types fournis par WME. Le nombre indique les segments de ce type dans la zone tracée.',
+            polyTypesApplied: (n,tot) => `✅ ${n} segment(s) retenu(s) sur ${tot} dans la zone.`,
+            polyTypesEmpty:'Aucun segment de ces types dans la zone.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Télécharger la zone tracée au format KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copier la zone tracée en POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Zone copiée en WKT (${n} sommets).`,
+            polyWktCopy:'Copier la zone au format WKT :',
+            polyKmlDone: f => `✅ ${f} téléchargé.`,
+            polyNoZone:'Aucune zone tracée.',
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -1864,6 +1878,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyManyViews: (n,m) => `${m} segments still to load: ${n} map moves. Continue?`,
             polyApiFallback:'Area scan unavailable: only the segments already loaded are examined.',
             polyError: m => `Area selection failed: ${m}`,
+            polyTypesBtn:'🛣️ Types',
+            tipPolyTypesBtn:'Choose which road types the area keeps (recalculated at once, no need to redraw)',
+            polyTypesTitle:'Road types to keep',
+            polyTypesAll:'All', polyTypesNone:'None', polyTypesReset:'Default',
+            polyTypesApply:'Apply', polyTypesClose:'Close',
+            polyTypesHint:'Labels and types come from WME. The number shows how many segments of that type are in the drawn area.',
+            polyTypesApplied: (n,tot) => `✅ ${n} of ${tot} segment(s) kept in the area.`,
+            polyTypesEmpty:'No segment of those types in the area.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Download the drawn area as KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copy the drawn area as POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Area copied as WKT (${n} corners).`,
+            polyWktCopy:'Copy the area as WKT:',
+            polyKmlDone: f => `✅ ${f} downloaded.`,
+            polyNoZone:'No area drawn.',
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2268,6 +2296,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyManyViews: (n,m) => `${m} מקטעים עוד לא נטענו: ${n} תזוזות מפה. להמשיך?`,
             polyApiFallback:'סריקת האזור אינה זמינה: רק המקטעים שכבר נטענו נבדקים.',
             polyError: m => `בחירת האזור נכשלה: ${m}`,
+            polyTypesBtn:'🛣️ סוגים',
+            tipPolyTypesBtn:'בחר אילו סוגי דרכים האזור ישמור (חישוב מחדש מיידי, בלי לשרטט שוב)',
+            polyTypesTitle:'סוגי דרכים לשמירה',
+            polyTypesAll:'הכול', polyTypesNone:'כלום', polyTypesReset:'ברירת מחדל',
+            polyTypesApply:'החל', polyTypesClose:'סגור',
+            polyTypesHint:'התוויות והסוגים מגיעים מ-WME. המספר מציין כמה מקטעים מסוג זה נמצאים באזור המשורטט.',
+            polyTypesApplied: (n,tot) => `✅ ${n} מתוך ${tot} מקטעים נשמרו באזור.`,
+            polyTypesEmpty:'אין מקטעים מסוגים אלה באזור.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'הורד את האזור המשורטט בפורמט KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'העתק את האזור המשורטט כ-POLYGON(…) WKT',
+            polyWktCopied: n => `✅ האזור הועתק כ-WKT (${n} פינות).`,
+            polyWktCopy:'העתק את האזור בפורמט WKT:',
+            polyKmlDone: f => `✅ ${f} הורד.`,
+            polyNoZone:'לא שורטט אזור.',
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -2672,6 +2714,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyManyViews: (n,m) => `${m} segmenti ancora da caricare: ${n} spostamenti della mappa. Continuare?`,
             polyApiFallback:'Scansione dell’area non disponibile: vengono considerati solo i segmenti già caricati.',
             polyError: m => `Selezione dell’area non riuscita: ${m}`,
+            polyTypesBtn:'🛣️ Tipi',
+            tipPolyTypesBtn:'Scegli quali tipi di strada l’area deve tenere (ricalcolo immediato, senza ridisegnare)',
+            polyTypesTitle:'Tipi di strada da tenere',
+            polyTypesAll:'Tutti', polyTypesNone:'Nessuno', polyTypesReset:'Predefiniti',
+            polyTypesApply:'Applica', polyTypesClose:'Chiudi',
+            polyTypesHint:'Etichette e tipi forniti da WME. Il numero indica i segmenti di quel tipo nell’area disegnata.',
+            polyTypesApplied: (n,tot) => `✅ ${n} segmento/i tenuti su ${tot} nell’area.`,
+            polyTypesEmpty:'Nessun segmento di questi tipi nell’area.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Scarica l’area disegnata in formato KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copia l’area disegnata come POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Area copiata come WKT (${n} vertici).`,
+            polyWktCopy:'Copia l’area in formato WKT:',
+            polyKmlDone: f => `✅ ${f} scaricato.`,
+            polyNoZone:'Nessuna area disegnata.',
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -3077,6 +3133,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyManyViews: (n,m) => `${m} Segmente sind noch zu laden: ${n} Kartenbewegungen. Fortfahren?`,
             polyApiFallback:'Bereichserfassung nicht verfügbar: nur die bereits geladenen Segmente werden geprüft.',
             polyError: m => `Bereichsauswahl fehlgeschlagen: ${m}`,
+            polyTypesBtn:'🛣️ Typen',
+            tipPolyTypesBtn:'Wähle, welche Straßentypen der Bereich behält (sofortige Neuberechnung, ohne neu zu zeichnen)',
+            polyTypesTitle:'Zu behaltende Straßentypen',
+            polyTypesAll:'Alle', polyTypesNone:'Keine', polyTypesReset:'Standard',
+            polyTypesApply:'Anwenden', polyTypesClose:'Schließen',
+            polyTypesHint:'Bezeichnungen und Typen kommen von WME. Die Zahl nennt die Segmente dieses Typs im gezeichneten Bereich.',
+            polyTypesApplied: (n,tot) => `✅ ${n} von ${tot} Segment(en) im Bereich behalten.`,
+            polyTypesEmpty:'Kein Segment dieser Typen im Bereich.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Den gezeichneten Bereich als KML herunterladen (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Den gezeichneten Bereich als POLYGON(…) WKT kopieren',
+            polyWktCopied: n => `✅ Bereich als WKT kopiert (${n} Eckpunkte).`,
+            polyWktCopy:'Bereich als WKT kopieren:',
+            polyKmlDone: f => `✅ ${f} heruntergeladen.`,
+            polyNoZone:'Kein Bereich gezeichnet.',
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -3481,6 +3551,20 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyManyViews: (n,m) => `Quedan ${m} segmentos por cargar: ${n} desplazamientos del mapa. ¿Continuar?`,
             polyApiFallback:'Exploración de zona no disponible: solo se examinan los segmentos ya cargados.',
             polyError: m => `Error en la selección por zona: ${m}`,
+            polyTypesBtn:'🛣️ Tipos',
+            tipPolyTypesBtn:'Elige qué tipos de vía conserva la zona (recálculo inmediato, sin volver a dibujar)',
+            polyTypesTitle:'Tipos de vía que conservar',
+            polyTypesAll:'Todos', polyTypesNone:'Ninguno', polyTypesReset:'Por defecto',
+            polyTypesApply:'Aplicar', polyTypesClose:'Cerrar',
+            polyTypesHint:'Las etiquetas y los tipos los proporciona WME. El número indica los segmentos de ese tipo en la zona dibujada.',
+            polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) conservados en la zona.`,
+            polyTypesEmpty:'Ningún segmento de esos tipos en la zona.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Descargar la zona dibujada en formato KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar la zona dibujada como POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Zona copiada como WKT (${n} vértices).`,
+            polyWktCopy:'Copiar la zona en formato WKT:',
+            polyKmlDone: f => `✅ ${f} descargado.`,
+            polyNoZone:'No hay ninguna zona dibujada.',
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -3885,6 +3969,20 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyManyViews: (n,m) => `Faltam ${m} segmentos a carregar: ${n} deslocamentos do mapa. Continuar?`,
             polyApiFallback:'Varredura da área indisponível: apenas os segmentos já carregados são examinados.',
             polyError: m => `Falha na seleção por área: ${m}`,
+            polyTypesBtn:'🛣️ Tipos',
+            tipPolyTypesBtn:'Escolha quais tipos de via a área mantém (recálculo imediato, sem redesenhar)',
+            polyTypesTitle:'Tipos de via a manter',
+            polyTypesAll:'Todos', polyTypesNone:'Nenhum', polyTypesReset:'Padrão',
+            polyTypesApply:'Aplicar', polyTypesClose:'Fechar',
+            polyTypesHint:'Os rótulos e os tipos vêm do WME. O número indica os segmentos desse tipo na área desenhada.',
+            polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
+            polyTypesEmpty:'Nenhum segmento desses tipos na área.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Baixar a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
+            polyWktCopy:'Copiar a área em formato WKT:',
+            polyKmlDone: f => `✅ ${f} baixado.`,
+            polyNoZone:'Nenhuma área desenhada.',
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4289,6 +4387,20 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyManyViews: (n,m) => `Faltam ${m} segmentos a carregar: ${n} deslocações do mapa. Continuar?`,
             polyApiFallback:'Análise da área indisponível: apenas os segmentos já carregados são examinados.',
             polyError: m => `Falha na seleção por área: ${m}`,
+            polyTypesBtn:'🛣️ Tipos',
+            tipPolyTypesBtn:'Escolha que tipos de via a área mantém (recálculo imediato, sem desenhar de novo)',
+            polyTypesTitle:'Tipos de via a manter',
+            polyTypesAll:'Todos', polyTypesNone:'Nenhum', polyTypesReset:'Predefinição',
+            polyTypesApply:'Aplicar', polyTypesClose:'Fechar',
+            polyTypesHint:'As etiquetas e os tipos são fornecidos pelo WME. O número indica os segmentos desse tipo na área desenhada.',
+            polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
+            polyTypesEmpty:'Nenhum segmento desses tipos na área.',
+            polyKmlBtn:'🌍 KML', tipPolyKmlBtn:'Transferir a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'📐 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
+            polyWktCopy:'Copiar a área em formato WKT:',
+            polyKmlDone: f => `✅ ${f} transferido.`,
+            polyNoZone:'Nenhuma área desenhada.',
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -5328,8 +5440,8 @@ const waitMapLoaded=()=>new Promise(resolve=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
-const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault,langPref:_langPref});}catch(e){}};
-const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;if(d.langPref==='auto'||LANGS.some(x=>x.code===d.langPref))_langPref=d.langPref;}}catch(e){}};
+const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault,langPref:_langPref,polyTypes:_polyTypes?[..._polyTypes]:null});}catch(e){}};
+const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;if(d.langPref==='auto'||LANGS.some(x=>x.code===d.langPref))_langPref=d.langPref;if(Array.isArray(d.polyTypes))_polyTypes=new Set(d.polyTypes.map(Number));}}catch(e){}};
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -8567,7 +8679,8 @@ const _polyFromModel = () => {
     let out = [];
     try {
         out = W.model.segments.getObjectArray().map(s => ({
-            id: Number(s.attributes.id), geometry: s.attributes.geoJSONGeometry
+            id: Number(s.attributes.id), geometry: s.attributes.geoJSONGeometry,
+            roadType: s.attributes.roadType
         })).filter(s => s.geometry && Array.isArray(s.geometry.coordinates));
     } catch(e){}
     return out;
@@ -8719,7 +8832,7 @@ const polyDrawAndSelect = async () => {
             catch(err){ apiKo = true; log('poly inventaire: ' + err.message); break; }
             for(const s of lot){
                 if(s && s.id != null && s.geometry && Array.isArray(s.geometry.coordinates) && !vus.has(s.id))
-                    vus.set(s.id, { id: Number(s.id), geometry: s.geometry });
+                    vus.set(s.id, { id: Number(s.id), geometry: s.geometry, roadType: s.roadType });
             }
         }
         segs = [...vus.values()];
@@ -8727,22 +8840,33 @@ const polyDrawAndSelect = async () => {
         // ferait croire à une zone vide.
         if(apiKo){ segs = _polyFromModel(); showToast(t('polyApiFallback'), 5000, '#f57c00'); }
 
+        // Inventaire GEOMETRIQUE complet : ce qui est dans le polygone, tous types
+        // confondus. Il est conserve dans _polyZone.tous pour que changer les types
+        // plus tard ne demande pas de retracer.
         const retenus = _sweepAborted ? [] : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
         if(_sweepAborted){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
         if(!retenus.length){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyNone'), 3500, '#f57c00'); return; }
-        if(retenus.length > POLY_WARN_SEGMENTS && !confirm(t('polyBigConfirm', retenus.length))){
+        // Le filtre par type ne decide QUE de ce qu'on selectionne et charge.
+        const cible = retenus.filter(s => _polyTypesSet().has(Number(s.roadType)));
+        if(!cible.length){
+            _polyZone = { rings, bbox, tous: retenus, ids: [], groupes: [] };
+            _sweepRunning = false; _sweepHideFooter();
+            renderPolyBanner(); refreshCfgGate();
+            showToast(t('polyTypesEmpty'), 4500, '#f57c00'); return;
+        }
+        if(cible.length > POLY_WARN_SEGMENTS && !confirm(t('polyBigConfirm', cible.length))){
             _sweepRunning = false; _sweepHideFooter(); return;
         }
         const savedCenter = sdk.Map.getMapCenter(), savedZoom = sdk.Map.getZoomLevel();
-        const res = await _polyLoadAndSelect(retenus);
+        const res = await _polyLoadAndSelect(cible);
         try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
-        _polyZone = { rings, bbox, ids: res.ids, groupes: res.groupes || [] };
+        _polyZone = { rings, bbox, tous: retenus, ids: res.ids, groupes: res.groupes || [] };
         const stop = _sweepAborted;
         _sweepRunning = false; _sweepHideFooter();
         renderPolyBanner();
         refreshCfgGate();
         if(stop) showToast(t('polyStopped', res.ids.length), 4000, '#f57c00');
-        else if(res.ids.length < retenus.length) showToast(t('polyPartial', res.ids.length, retenus.length), 6000, '#f57c00');
+        else if(res.ids.length < cible.length) showToast(t('polyPartial', res.ids.length, cible.length), 6000, '#f57c00');
         else showToast(t('polyDone', res.ids.length), 4000, '#43a047');
         updateFab(); updateCountryInfo();
     } catch(e){
@@ -8787,6 +8911,168 @@ const refreshCfgGate = () => {
     document.querySelector('.wct-validate-footer')?.classList.toggle('wct-na', !pret);
     const hint = $id('wct-poly-hint');
     if(hint) hint.style.display = pret ? 'none' : '';
+};
+// ─── Filtre par TYPE DE ROUTE + exports de la zone ────────────────────────────
+// Les libellés des types ne sont PAS traduits ici : ils viennent de WME lui-même
+// (I18n.translations[locale].segment.road_types), donc l'éditeur lit exactement les
+// mêmes mots que dans son panneau natif. ⚠️ I18n est posé TARD par WME : ne jamais le
+// lire au niveau racine du script, seulement dans une fonction appelée après l'init.
+// Conséquence assumée : ces libellés suivent la langue de WME, pas celle choisie dans WCT.
+const POLY_TYPES_HORS_DEFAUT = [10, 15, 16, 18, 19]; // piéton non routable, ferry, escaliers, voie ferrée, piste d'aéroport
+const POLY_TYPES_REPLI = { 1:'Street', 2:'Primary Street', 3:'Freeway', 4:'Ramp', 5:'Walking Trail',
+    6:'Major Highway', 7:'Minor Highway', 8:'Dirt road', 9:'Boardwalk', 10:'Non-routable pedestrian path',
+    15:'Ferry', 16:'Stairway', 17:'Private road', 18:'Railroad', 19:'Runway', 20:'Parking lot road', 22:'Narrow street' };
+let _polyTypes = null;   // Set des roadType retenus ; null tant qu'il n'a pas été initialisé
+
+const _polyRoadTypes = () => {
+    try {
+        const rt = I18n.translations[I18n.locale].segment.road_types;
+        if(rt && Object.keys(rt).length) return rt;
+    } catch(e){}
+    return POLY_TYPES_REPLI;
+};
+// Set courant, initialisé à la demande (défaut : tout sauf les non carrossables).
+const _polyTypesSet = () => {
+    if(!_polyTypes){
+        _polyTypes = new Set(Object.keys(_polyRoadTypes()).map(Number)
+            .filter(rt => !POLY_TYPES_HORS_DEFAUT.includes(rt)));
+    }
+    return _polyTypes;
+};
+
+// ── Exports de la zone tracée ────────────────────────────────────────────────
+// WKT : POLYGON((ext), (trou), …) — l'anneau extérieur d'abord, les trous ensuite.
+const _polyToWKT = (rings) => 'POLYGON((' +
+    rings.map(r => r.map(p => p[0].toFixed(6) + ' ' + p[1].toFixed(6)).join(', ')).join('), (') + '))';
+const _polyToKML = (rings, nom) => {
+    const coords = r => r.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6) + ',0').join(' ');
+    const trous = rings.slice(1).map(r =>
+        `        <innerBoundaryIs><LinearRing><coordinates>${coords(r)}</coordinates></LinearRing></innerBoundaryIs>`).join('\n');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${escHtml(nom)}</name>
+    <Style id="wct">
+      <LineStyle><color>ff0000ff</color><width>2</width></LineStyle>
+      <PolyStyle><color>330000ff</color></PolyStyle>
+    </Style>
+    <Placemark>
+      <name>${escHtml(nom)}</name>
+      <styleUrl>#wct</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing><coordinates>${coords(rings[0])}</coordinates></LinearRing></outerBoundaryIs>
+${trous}
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>`;
+};
+// Téléchargement par Blob : l'helper historique passe par une data URL, où un « ? » ou
+// un « # » du contenu casserait le fichier. Repli sur lui en cas de souci.
+const _polyDownload = (contenu, nomFichier, mime) => {
+    try {
+        const url = URL.createObjectURL(new Blob([contenu], { type: mime || 'text/plain;charset=utf-8' }));
+        const a = make('a'); a.style.display = 'none'; a.href = url; a.download = nomFichier;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch(e){ download(contenu, nomFichier); }
+};
+const _polyZoneNom = () => 'WCT_zone_' + todayStr();
+const polyExportWKT = () => {
+    if(!_polyZone?.rings?.length){ showToast(t('polyNoZone'), 3000, '#f57c00'); return; }
+    const wkt = _polyToWKT(_polyZone.rings);
+    const ok = () => showToast(t('polyWktCopied', _polyZone.rings[0].length - 1), 3500, '#43a047');
+    if(navigator.clipboard?.writeText) navigator.clipboard.writeText(wkt).then(ok, () => prompt(t('polyWktCopy'), wkt));
+    else prompt(t('polyWktCopy'), wkt);
+};
+const polyExportKML = () => {
+    if(!_polyZone?.rings?.length){ showToast(t('polyNoZone'), 3000, '#f57c00'); return; }
+    const nom = _polyZoneNom();
+    _polyDownload(_polyToKML(_polyZone.rings, nom), nom + '.kml', 'application/vnd.google-earth.kml+xml');
+    showToast(t('polyKmlDone', nom + '.kml'), 3500, '#43a047');
+};
+
+// ── Recalcul de la sélection après changement de types ───────────────────────
+// L'inventaire géométrique complet est conservé dans _polyZone.tous : changer les types
+// n'exige donc PAS de retracer. Si les types rajoutés portent des segments hors mémoire,
+// _polyLoadAndSelect va les chercher (elle ne visite que les vues qui en contiennent).
+const _polyApplyTypes = async () => {
+    if(!_polyZone?.tous?.length){ showToast(t('polyNoZone'), 3000, '#f57c00'); return; }
+    if(_sweepRunning) return;
+    const types = _polyTypesSet();
+    const cible = _polyZone.tous.filter(s => types.has(Number(s.roadType)));
+    if(!cible.length){ showToast(t('polyTypesEmpty'), 3500, '#f57c00'); return; }
+    _sweepRunning = true; _sweepAborted = false;
+    const savedCenter = sdk.Map.getMapCenter(), savedZoom = sdk.Map.getZoomLevel();
+    try {
+        const res = await _polyLoadAndSelect(cible);
+        try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
+        _polyZone.ids = res.ids; _polyZone.groupes = res.groupes || [];
+        showToast(t('polyTypesApplied', res.ids.length, _polyZone.tous.length), 4000, '#43a047');
+    } catch(e){
+        log('polyApplyTypes: ' + e.message);
+        showToast(t('polyError', e.message), 4000, '#e53935');
+    }
+    _sweepRunning = false; _sweepHideFooter();
+    renderPolyBanner(); refreshCfgGate(); updateFab();
+};
+
+// ── Panneau des types ────────────────────────────────────────────────────────
+// Panneau dédié plutôt qu'une rangée de cases dans Configurer : 17 types tiendraient
+// une demi-fenêtre pour un réglage qu'on touche rarement (demande de l'auteur).
+const renderPolyTypesPanel = () => {
+    const ov = $id('wct-overlay'); if(!ov) return;
+    if($id('wct-poly-types')){ $id('wct-poly-types').remove(); return; }   // 2e clic = fermer
+    const libelles = _polyRoadTypes();
+    const coches = _polyTypesSet();
+    // Compte par type DANS LA ZONE : sans lui, on coche à l'aveugle.
+    const comptes = {};
+    (_polyZone?.tous || []).forEach(s => { const rt = Number(s.roadType); comptes[rt] = (comptes[rt] || 0) + 1; });
+    const aZone = !!(_polyZone?.tous?.length);
+    const box = make('div');
+    box.id = 'wct-poly-types';
+    box.dir = isRTL() ? 'rtl' : 'ltr';
+    box.style.cssText = 'position:absolute;top:64px;left:12px;right:12px;max-height:64%;overflow:auto;'
+        + 'background:var(--wct-surface);border:2px solid var(--wct-blue);border-radius:8px;padding:10px;'
+        + 'box-shadow:var(--wct-shadow);z-index:120';
+    const lignes = Object.keys(libelles).map(Number).sort((a, b) => a - b).map(rt => {
+        const n = comptes[rt] || 0;
+        return `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:0.917em${(aZone && !n) ? ';opacity:.5' : ''}">
+            <input type="checkbox" class="wct-poly-type" value="${rt}"${coches.has(rt) ? ' checked' : ''}>
+            <span style="flex:1">${escHtml(libelles[rt])}</span>
+            <span style="color:var(--wct-text2);font-variant-numeric:tabular-nums">${n || ''}</span>
+        </label>`;
+    }).join('');
+    box.innerHTML = `<div style="font-weight:700;color:var(--wct-blue);margin-bottom:6px">${escHtml(t('polyTypesTitle'))}</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+          <button type="button" class="wct-btn wct-btn-sm" data-act="all">${escHtml(t('polyTypesAll'))}</button>
+          <button type="button" class="wct-btn wct-btn-sm" data-act="none">${escHtml(t('polyTypesNone'))}</button>
+          <button type="button" class="wct-btn wct-btn-sm" data-act="reset">${escHtml(t('polyTypesReset'))}</button>
+        </div>
+        ${lignes}
+        <div style="font-size:0.833em;color:var(--wct-text2);margin-top:6px">${escHtml(t('polyTypesHint'))}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button type="button" class="wct-btn wct-btn-primary wct-btn-sm" data-act="apply" style="flex:1"${aZone ? '' : ' disabled'}>${escHtml(t('polyTypesApply'))}</button>
+          <button type="button" class="wct-btn wct-btn-sm" data-act="close">${escHtml(t('polyTypesClose'))}</button>
+        </div>`;
+    const lire = () => {
+        _polyTypes = new Set([...box.querySelectorAll('.wct-poly-type')]
+            .filter(c => c.checked).map(c => Number(c.value)));
+        save();
+    };
+    box.querySelectorAll('.wct-poly-type').forEach(c => c.addEventListener('change', lire));
+    box.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+        const act = b.dataset.act;
+        if(act === 'close'){ box.remove(); return; }
+        if(act === 'apply'){ lire(); box.remove(); _polyApplyTypes(); return; }
+        const tous = Object.keys(libelles).map(Number);
+        const cible = act === 'all' ? tous
+                    : act === 'none' ? []
+                    : tous.filter(rt => !POLY_TYPES_HORS_DEFAUT.includes(rt));
+        box.querySelectorAll('.wct-poly-type').forEach(c => { c.checked = cible.includes(Number(c.value)); });
+        lire();
+    }));
+    ov.appendChild(box);
 };
 
 const traceUpdateStripCtrl = () => {
@@ -9097,6 +9383,9 @@ const buildOverlay=()=>{
              C'est lui qui produit la sélection que tout le reste de l'onglet attend. -->
         <div id="wct-poly-bar" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
           <button id="wct-poly-btn" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyBtn')}">${t('polyBtn')}</button>
+          <button id="wct-poly-types-btn" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyTypesBtn')}">${t('polyTypesBtn')}</button>
+          <button id="wct-poly-kml" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyKmlBtn')}">${t('polyKmlBtn')}</button>
+          <button id="wct-poly-wkt" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyWktBtn')}">${t('polyWktBtn')}</button>
           <span id="wct-poly-hint" style="flex:1;min-width:140px;font-size:0.833em;color:var(--wct-text2)">${t('polyGateHint')}</span>
         </div>
         <div class="wct-cfg-grid">
@@ -9809,6 +10098,9 @@ const connectOverlay=ov=>{
     const sig = _ovAbort.signal;
     makeDraggable(ov,$id('wct-hdr'));
     $id('wct-poly-btn')?.addEventListener('click',()=>{ polyDrawAndSelect(); });
+    $id('wct-poly-types-btn')?.addEventListener('click',()=>{ renderPolyTypesPanel(); });
+    $id('wct-poly-kml')?.addEventListener('click',()=>{ polyExportKML(); });
+    $id('wct-poly-wkt')?.addEventListener('click',()=>{ polyExportWKT(); });
     $id('wct-btn-collapse')?.addEventListener('click',()=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
