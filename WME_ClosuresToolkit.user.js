@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.96.01
+// @version      0.97.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1456,6 +1456,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotShowTitle:'Afficher ce lot sur la carte',
             lotSelTitle:'Sélectionner les segments de ce lot (puis configurer la fermeture)',
             lotSelecting: (i,n) => `Lot ${i}/${n} : chargement des segments…`,
+            lotLoading: (i,n,f,tot) => `Lot ${i}/${n} : chargement de la zone… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
             lotNone:'Aucun segment capté dans ce lot.',
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
@@ -1911,6 +1912,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotShowTitle:'Show this batch on the map',
             lotSelTitle:'Select this batch’s segments (then configure the closure)',
             lotSelecting: (i,n) => `Batch ${i}/${n}: loading segments…`,
+            lotLoading: (i,n,f,tot) => `Batch ${i}/${n}: loading the area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
             lotNone:'No segment captured in this batch.',
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
@@ -2364,6 +2366,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotShowTitle:'הצג מנה זו במפה',
             lotSelTitle:'בחר את מקטעי המנה (ואז הגדר את החסימה)',
             lotSelecting: (i,n) => `מנה ${i}/${n}: טוען מקטעים…`,
+            lotLoading: (i,n,f,tot) => `מנה ${i}/${n}: טוען את האזור… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
             lotNone:'לא נלכד מקטע במנה זו.',
             lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
@@ -2817,6 +2820,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotShowTitle:'Mostra questo lotto sulla mappa',
             lotSelTitle:'Seleziona i segmenti di questo lotto (poi configura la chiusura)',
             lotSelecting: (i,n) => `Lotto ${i}/${n}: caricamento segmenti…`,
+            lotLoading: (i,n,f,tot) => `Lotto ${i}/${n}: caricamento dell’area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento/i selezionati. Imposta la chiusura, poi “Convalida”.`,
             lotNone:'Nessun segmento catturato in questo lotto.',
             lotNextHint: (i,n) => `📦 Prossimo lotto da gestire: ${i}/${n}.`,
@@ -3271,6 +3275,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotShowTitle:'Dieses Paket auf der Karte anzeigen',
             lotSelTitle:'Segmente dieses Pakets auswählen (dann Sperrung einrichten)',
             lotSelecting: (i,n) => `Paket ${i}/${n}: Segmente werden geladen…`,
+            lotLoading: (i,n,f,tot) => `Paket ${i}/${n}: Bereich wird geladen… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
             lotNone:'Kein Segment in diesem Paket erfasst.',
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
@@ -3724,6 +3729,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotShowTitle:'Mostrar este lote en el mapa',
             lotSelTitle:'Seleccionar los segmentos de este lote (luego configurar el cierre)',
             lotSelecting: (i,n) => `Lote ${i}/${n}: cargando segmentos…`,
+            lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: cargando la zona… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
             lotNone:'Ningún segmento captado en este lote.',
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
@@ -4177,6 +4183,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotShowTitle:'Mostrar este lote no mapa',
             lotSelTitle:'Selecionar os segmentos deste lote (depois configurar o bloqueio)',
             lotSelecting: (i,n) => `Lote ${i}/${n}: carregando segmentos…`,
+            lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: carregando a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
@@ -4630,6 +4637,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotShowTitle:'Mostrar este lote no mapa',
             lotSelTitle:'Selecionar os segmentos deste lote (depois configurar o corte)',
             lotSelecting: (i,n) => `Lote ${i}/${n}: a carregar segmentos…`,
+            lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: a carregar a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
@@ -7572,10 +7580,9 @@ const applyQueue=async()=>{
             if(isLot){
                 lotNo++;
                 logApply(t('applyLotFocus',lotNo,totalLots),'#8e24aa');
-                const b=e.lotBbox;
-                try{sdk.Map.setMapCenter({lonLat:{lon:(b.minLon+b.maxLon)/2,lat:(b.minLat+b.maxLat)/2},zoomLevel:SWEEP_ZOOM});}catch(err){}
-                await _sweepSleep(SWEEP_SETTLE_MS);
-                await waitMapLoaded();
+                // ⚠️ Charger TOUTE l'emprise du lot, pas seulement son centre : les
+                // segments absents du modèle sont sautés en silence à l'application.
+                try{ await _chargerEmprise(e.lotBbox); }catch(err){ log('applyQueue/chargerEmprise: '+err.message); }
                 await _sweepSleep(150);
                 if(_applyAborted) break;
             }
@@ -8890,8 +8897,14 @@ const traceUpdateCoverageBtns = () => {
 // ça : on longe le tracé par tronçons, on matche les segments locaux, et on re-sélectionne
 // le cumul à chaque étape — ce qui maintient en mémoire les segments déjà captés.
 const SWEEP_STEP_M    = 1000; // longueur de tracé traitée par tronçon (balayage trace courte)
-const SWEEP_ZOOM      = 15;   // zoom de chargement : mesuré, WME charge bien les segments
-                             // sur ~7,4×5,7 km à z15 (4× z16) ; z14 sous-échantillonne, à éviter
+// ⚠️⚠️ 16 ET NON 15 — corrigé le 2026-07-25, l'ancienne valeur était un BUG SILENCIEUX.
+// Mesuré sur une emprise urbaine (Avignon, ~1 × 0,8 km), l'API servant de vérité :
+//   z15 → 52 segments chargés sur 145 : 93 MANQUANTS (64 %), dont 92 rues (type 1) sur 92
+//   z16 → 145 sur 145 : aucun manquant
+// Autrement dit, à z15 WME ne charge QUE les axes : le balayage d'un tracé ratait toutes
+// les rues ordinaires, sans rien signaler. Le commentaire d'origine (« mesuré, WME charge
+// bien les segments à z15 ») était faux. NE PAS revenir en arrière sans refaire la mesure.
+const SWEEP_ZOOM      = 16;
 const SWEEP_SETTLE_MS = 350;  // délai après recentrage avant d'attendre le chargement
 const SWEEP_WARN_ANCHORS = 60;// au-delà de ce nombre de sauts, on demande confirmation
 
@@ -9122,7 +9135,41 @@ const _lotFocus = (lot) => {
         setTimeout(() => _shiftCenterToFreeZone(cLon, cLat), 160); // décale dans la zone visible
     }catch(e){}
 };
-// Sélectionne les segments d'un lot : recadre à zoom 16 (le lot tient dans la vue →
+// Charge TOUTE une emprise en la parcourant vue par vue, et attend chaque chargement.
+// Un simple recadrage ne charge que ce que la vue montre : une emprise plus grande
+// qu'un écran restait partiellement vide, et les segments absents étaient ensuite
+// sautés en silence (getSegById → null). La taille de la vue est RELEVÉE sur place :
+// elle dépend de la fenêtre de l'éditeur, la figer serait un pari.
+const _chargerEmprise = async (bbox, onProgress) => {
+    const cLon = (bbox.minLon + bbox.maxLon) / 2, cLat = (bbox.minLat + bbox.maxLat) / 2;
+    sdk.Map.setMapCenter({ lonLat: { lon: cLon, lat: cLat }, zoomLevel: SWEEP_ZOOM });
+    await _sweepSleep(SWEEP_SETTLE_MS);
+    await waitMapLoaded();
+    const e = sdk.Map.getMapExtent();
+    const vueW = Math.max((e[2] - e[0]) * 0.8, 0.002), vueH = Math.max((e[3] - e[1]) * 0.8, 0.002);
+    const nx = Math.max(1, Math.ceil((bbox.maxLon - bbox.minLon) / vueW));
+    const ny = Math.max(1, Math.ceil((bbox.maxLat - bbox.minLat) / vueH));
+    if(nx === 1 && ny === 1) return 1;                 // déjà tout chargé par le recadrage
+    const total = nx * ny;
+    let fait = 0;
+    for(let j = 0; j < ny; j++){
+        for(let i = 0; i < nx; i++){
+            if(_sweepAborted) return fait;
+            const ii = (j % 2 === 0) ? i : (nx - 1 - i);   // serpentin : trajets minimaux
+            sdk.Map.setMapCenter({ lonLat: {
+                lon: bbox.minLon + (ii + 0.5) * (bbox.maxLon - bbox.minLon) / nx,
+                lat: bbox.minLat + (j + 0.5) * (bbox.maxLat - bbox.minLat) / ny }, zoomLevel: SWEEP_ZOOM });
+            await _sweepSleep(SWEEP_SETTLE_MS);
+            await waitMapLoaded();
+            await _sweepSleep(80);
+            fait++;
+            if(onProgress) onProgress(fait, total);
+        }
+    }
+    return fait;
+};
+// Sélectionne les segments d'un lot : charge son emprise vue par vue (le lot est plus
+// grand qu'un écran), matche, sélectionne, puis bascule vers Configurer.
 // tous ses segments chargés), matche, sélectionne, puis bascule vers Configurer.
 const _lotSelect = async (trackId, lotIdx) => {
     if(_sweepRunning) return;
@@ -9132,9 +9179,7 @@ const _lotSelect = async (trackId, lotIdx) => {
     _sweepRunning = true; _sweepAborted = false;
     _sweepShowText(escHtml(t('lotSelecting', lotIdx, trk.lots.length)));
     try {
-        sdk.Map.setMapCenter({lonLat:{lon:(lot.bbox.minLon+lot.bbox.maxLon)/2, lat:(lot.bbox.minLat+lot.bbox.maxLat)/2}, zoomLevel:SWEEP_ZOOM});
-        await _sweepSleep(SWEEP_SETTLE_MS);
-        await waitMapLoaded();
+        await _chargerEmprise(lot.bbox, (f, n) => _sweepShowText(escHtml(t('lotLoading', lotIdx, trk.lots.length, f, n))));
         await _sweepSleep(150);
         const cand = _covCandidateSegments(_covBBox(lot.pts), 0.0008);
         const acc = _covNewAcc();
