@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.94.00
+// @version      0.95.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -43,7 +43,6 @@
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
 // @connect      gist.githubusercontent.com
-// @grant        GM_xmlhttpRequest
 // @connect      date.nager.at
 // @connect      cdn.jsdelivr.net
 // @connect      storage.googleapis.com
@@ -1094,6 +1093,7 @@ const t = (key, ...args) => {
             impInconnu: f => `❌ ${f} — format non reconnu. Acceptés : CSV de fermetures, GPX, KML, KMZ, GeoJSON, Shapefile, préréglages WCT, ou POLYGON(…) WKT.`,
             impMixte: (p,l) => `Ce fichier contient ${p} polygone(s) ET ${l} tracé(s).\n\nOK = en faire une ZONE de sélection.\nAnnuler = les charger comme TRACÉS.`,
             impTypeCsv:'fermetures (CSV)', impTypeTrace:'tracé', impTypeZone:'zone', impTypePrefs:'préréglages',
+            impColFormat:'Format', impColQuoi:'Contenu', impColOu:'Traité dans',
             // Virages (turn closures)
             tabTurn:'\uD83D\uDD00 Virages',
             turnStraight:'tout droit', turnSlightRight:'droite l\u00E9g\u00E8re', turnRight:'\u00E0 droite',
@@ -1432,7 +1432,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             multiCountryAlert: cc => `\u26A0\uFE0F S\u00e9lection multi-pays (${cc}).\nImpossible d\u2019utiliser le filtre jours f\u00e9ri\u00e9s.\nD\u00e9s\u00e9lectionnez les segments d\u2019un seul pays.`,
             // CSV import log
             csvAdded: (ok,ko) => `\u2705 ${ok} fermeture(s) ajout\u00e9e(s) \u00e0 la file${ko?', '+ko+' erreur(s)':''}.`,
-            csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L'import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
+            csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L’import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
             csvImportCancelled:'Import annulé.',
             sweepTitle:'Sélectionner les segments du tracé (balaie la carte)',
             sweepProgress: (done,total,n) => `Balayage… ${done}/${total} — ${n} segment(s)`,
@@ -1560,6 +1560,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             impInconnu: f => `❌ ${f} — format not recognised. Accepted: closure CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT presets, or POLYGON(…) WKT.`,
             impMixte: (p,l) => `This file holds ${p} polygon(s) AND ${l} track(s).\n\nOK = make it a selection AREA.\nCancel = load them as TRACKS.`,
             impTypeCsv:'closures (CSV)', impTypeTrace:'track', impTypeZone:'area', impTypePrefs:'presets',
+            impColFormat:'Format', impColQuoi:'Content', impColOu:'Handled in',
             // Turn closures
             tabTurn:'\uD83D\uDD00 Turns',
             turnStraight:'straight', turnSlightRight:'slight right', turnRight:'right',
@@ -2011,6 +2012,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             impInconnu: f => `❌ ${f} — הפורמט לא זוהה. מתקבלים: CSV של חסימות, GPX, KML, KMZ, GeoJSON, Shapefile, תבניות WCT, או POLYGON(…) WKT.`,
             impMixte: (p,l) => `הקובץ מכיל ${p} מצולעים וגם ${l} מסלולים.\n\nאישור = ליצור אזור בחירה.\nביטול = לטעון כמסלולים.`,
             impTypeCsv:'חסימות (CSV)', impTypeTrace:'מסלול', impTypeZone:'אזור', impTypePrefs:'תבניות',
+            impColFormat:'פורמט', impColQuoi:'תוכן', impColOu:'מטופל ב',
             // Turn closures
             tabTurn:'🔀 פניות',
             turnStraight:'ישר', turnSlightRight:'ימינה קלה', turnRight:'ימינה',
@@ -2462,6 +2464,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             impInconnu: f => `❌ ${f} — formato non riconosciuto. Accettati: CSV di chiusure, GPX, KML, KMZ, GeoJSON, Shapefile, preset WCT o POLYGON(…) WKT.`,
             impMixte: (p,l) => `Questo file contiene ${p} poligono/i E ${l} tracciato/i.\n\nOK = farne un’AREA di selezione.\nAnnulla = caricarli come TRACCIATI.`,
             impTypeCsv:'chiusure (CSV)', impTypeTrace:'tracciato', impTypeZone:'area', impTypePrefs:'preset',
+            impColFormat:'Formato', impColQuoi:'Contenuto', impColOu:'Gestito in',
             // Turn closures
             tabTurn:'🔀 Svolte',
             turnStraight:'dritto', turnSlightRight:'leggermente a destra', turnRight:'a destra',
@@ -2914,6 +2917,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             impInconnu: f => `❌ ${f} — Format nicht erkannt. Angenommen: Sperrungs-CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT-Vorlagen oder POLYGON(…) WKT.`,
             impMixte: (p,l) => `Diese Datei enthält ${p} Polygon(e) UND ${l} Track(s).\n\nOK = daraus einen Auswahl-BEREICH machen.\nAbbrechen = als TRACKS laden.`,
             impTypeCsv:'Sperrungen (CSV)', impTypeTrace:'Track', impTypeZone:'Bereich', impTypePrefs:'Vorlagen',
+            impColFormat:'Format', impColQuoi:'Inhalt', impColOu:'Verarbeitet in',
             // Abbiegersperrungen
             tabTurn:'\uD83D\uDD00 Abbieger',
             turnStraight:'geradeaus', turnSlightRight:'leicht rechts', turnRight:'rechts',
@@ -3365,6 +3369,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             impInconnu: f => `❌ ${f} — formato no reconocido. Se aceptan: CSV de cierres, GPX, KML, KMZ, GeoJSON, Shapefile, preajustes WCT o POLYGON(…) WKT.`,
             impMixte: (p,l) => `Este archivo contiene ${p} polígono(s) Y ${l} traza(s).\n\nAceptar = convertirlo en una ZONA de selección.\nCancelar = cargarlas como TRAZAS.`,
             impTypeCsv:'cierres (CSV)', impTypeTrace:'traza', impTypeZone:'zona', impTypePrefs:'preajustes',
+            impColFormat:'Formato', impColQuoi:'Contenido', impColOu:'Se trata en',
             // Cierres de giro
             tabTurn:'\uD83D\uDD00 Giros',
             turnStraight:'recto', turnSlightRight:'ligera derecha', turnRight:'derecha',
@@ -3816,6 +3821,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceitos: CSV de bloqueios, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
             impMixte: (p,l) => `Este arquivo contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar em ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
             impTypeCsv:'bloqueios (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
+            impColFormat:'Formato', impColQuoi:'Conteúdo', impColOu:'Tratado em',
             // Bloqueios de conversao
             tabTurn:'\uD83D\uDD00 Convers\u00F5es',
             turnStraight:'em frente', turnSlightRight:'leve \u00E0 direita', turnRight:'\u00E0 direita',
@@ -4267,6 +4273,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceites: CSV de cortes, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
             impMixte: (p,l) => `Este ficheiro contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar numa ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
             impTypeCsv:'cortes (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
+            impColFormat:'Formato', impColQuoi:'Conteúdo', impColOu:'Tratado em',
             // Cortes de viragem
             tabTurn:'\uD83D\uDD00 Viragens',
             turnStraight:'em frente', turnSlightRight:'ligeira \u00E0 direita', turnRight:'\u00E0 direita',
@@ -9605,6 +9612,13 @@ const renderPolyBanner = () => {
 const refreshCfgGate = () => {
     const pane = $id('wct-pane-cfg'); if(!pane) return;
     const pret = hasSel();
+    // ⚠️ La zone SURVIT à la validation : on peut vouloir enchaîner deux fermetures
+    // sur le même périmètre, ou l'exporter APRÈS l'avoir mise en file. Elle ne
+    // disparaît que lorsque l'éditeur défait lui-même la sélection sur la carte —
+    // le seul geste qui dise vraiment « j'en ai fini avec cette zone ».
+    // Le garde `_sweepRunning` évite de l'effacer pendant le balayage, où la
+    // sélection est momentanément vide.
+    if(_polyZone && !pret && !_sweepRunning){ _polyZone = null; renderPolyBanner(); }
     pane.querySelectorAll('.wct-cfg-grid').forEach(el => {
         el.classList.toggle('wct-na', !pret);
         if(!pret) el.title = t('polyGateWhy'); else el.removeAttribute('title');
@@ -9612,6 +9626,15 @@ const refreshCfgGate = () => {
     document.querySelector('.wct-validate-footer')?.classList.toggle('wct-na', !pret);
     const hint = $id('wct-poly-hint');
     if(hint) hint.style.display = pret ? 'none' : '';
+    // Exporter une zone qui n'existe pas n'a aucun sens : les deux exports restent
+    // grisés tant qu'aucune zone n'est tracée ni chargée. L'IMPORT, lui, ne se grise
+    // jamais — c'est précisément lui qui crée la zone qui manque.
+    const aZone = !!(_polyZone?.rings?.length);
+    [['wct-poly-kml','tipPolyKmlBtn'], ['wct-poly-wkt','tipPolyWktBtn']].forEach(([id, tip]) => {
+        const b = $id(id); if(!b) return;
+        b.classList.toggle('wct-na', !aZone);
+        b.title = aZone ? t(tip) : t('polyNoZone');
+    });
 };
 // ─── Filtre par TYPE DE ROUTE + exports de la zone ────────────────────────────
 // Les libellés des types ne sont PAS traduits ici : ils viennent de WME lui-même
@@ -9719,11 +9742,11 @@ const _polyApplyTypes = async () => {
 };
 
 // ── Boîtes flottantes du secteur Zone ────────────────────────────────────────
-// Une seule fabrique pour les deux panneaux : même cadre, même en-tête, mêmes
-// gabarits de boutons. Les rangées de boutons sont en GRILLE à colonnes égales
-// (et non en flex libre) — sans quoi leur largeur suit la longueur du texte et
-// change d'une langue à l'autre.
-const _polyBoxCSS = 'position:absolute;top:64px;left:12px;right:12px;max-height:64%;overflow:auto;'
+// Colonne flex : en-tête et pied restent VISIBLES, seule la liste défile. Sans ça,
+// « Appliquer » disparaissait sous le pli dès que la liste des types s'allongeait —
+// or c'est le seul bouton qui valide le réglage.
+const _polyBoxCSS = 'position:absolute;top:56px;left:12px;right:12px;'
+    + 'max-height:calc(100% - 76px);display:flex;flex-direction:column;'
     + 'background:var(--wct-surface);border:2px solid var(--wct-blue);border-radius:8px;padding:10px;'
     + 'box-shadow:var(--wct-shadow);z-index:120';
 const _polyBox = (id, titre) => {
@@ -9732,18 +9755,26 @@ const _polyBox = (id, titre) => {
     box.id = id;
     box.dir = isRTL() ? 'rtl' : 'ltr';
     box.style.cssText = _polyBoxCSS;
-    box.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    box.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:0 0 auto">
         <div style="flex:1;font-weight:700;color:var(--wct-blue)">${escHtml(titre)}</div>
         <button type="button" class="wct-ico" data-act="close" title="${escHtml(t('polyTypesClose'))}">✕</button>
       </div>`;
     return box;
 };
-// Rangée de boutons à colonnes égales.
-const _polyBtnRow = (boutons, marge) => `<div style="display:grid;grid-template-columns:repeat(${boutons.length},1fr);gap:6px;${marge || ''}">`
-    + boutons.map(b => `<button type="button" class="wct-btn wct-btn-sm${b.primaire ? ' wct-btn-primary' : ''}" data-act="${b.act}"${b.off ? ' disabled' : ''}
-        title="${escHtml(b.tip || b.txt)}"
-        style="width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(b.txt)}</button>`).join('')
-    + '</div>';
+// Rangée de boutons. Par défaut en GRILLE à colonnes égales (leur largeur ne doit pas
+// suivre la longueur du texte, qui change d'une langue à l'autre). `compact` passe en
+// flex : les boutons ne prennent que leur place, utile quand il n'y en a qu'un ou deux
+// — un bouton unique étiré sur toute la largeur donne un pavé disgracieux.
+const _polyBtnRow = (boutons, style, compact) => {
+    const cadre = compact
+        ? `display:flex;gap:6px;justify-content:flex-end;${style || ''}`
+        : `display:grid;grid-template-columns:repeat(${boutons.length},1fr);gap:6px;${style || ''}`;
+    return `<div style="${cadre};flex:0 0 auto">`
+        + boutons.map(b => `<button type="button" class="wct-btn wct-btn-sm${b.primaire ? ' wct-btn-primary' : ''}" data-act="${b.act}"${b.off ? ' disabled' : ''}
+            title="${escHtml(b.tip || b.txt)}"
+            style="${compact ? 'padding:0.25em 0.9em;' : 'width:100%;'}text-align:center;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(b.txt)}</button>`).join('')
+        + '</div>';
+};
 
 const renderPolyTypesPanel = () => {
     const ov = $id('wct-overlay'); if(!ov) return;
@@ -9768,8 +9799,10 @@ const renderPolyTypesPanel = () => {
         _polyBtnRow([{ act:'all', txt:t('polyTypesAll'), tip:t('tipPolyTypesAll') },
                      { act:'none', txt:t('polyTypesNone'), tip:t('tipPolyTypesNone') },
                      { act:'reset', txt:t('polyTypesReset'), tip:t('tipPolyTypesReset') }], 'margin-bottom:8px')
-        + `<div style="border-top:1px solid var(--wct-border);border-bottom:1px solid var(--wct-border);padding:4px 0;margin-bottom:6px">${lignes}</div>`
-        + `<div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:8px">${escHtml(t('polyTypesHint'))}</div>`
+        // Seule cette zone défile : la fenêtre s'étire d'abord autant que le panneau
+        // le permet, et l'ascenseur n'apparaît que sur un écran vraiment court.
+        + `<div style="flex:1 1 auto;overflow-y:auto;min-height:0;border-top:1px solid var(--wct-border);border-bottom:1px solid var(--wct-border);padding:4px 0">${lignes}</div>`
+        + `<div style="font-size:0.833em;color:var(--wct-text2);margin:6px 0 8px;flex:0 0 auto">${escHtml(t('polyTypesHint'))}</div>`
         + _polyBtnRow([{ act:'apply', txt:t('polyTypesApply'), tip:t(aZone ? 'tipPolyTypesApply' : 'polyNoZone'), primaire:true, off:!aZone },
                        { act:'close', txt:t('polyTypesClose'), tip:t('polyTypesClose') }]));
     const lire = () => {
@@ -9796,18 +9829,20 @@ const renderPolyImportPanel = () => {
     if($id('wct-poly-import')){ $id('wct-poly-import').remove(); return; }
     const box = _polyBox('wct-poly-import', t('polyImportTitle'));
     box.insertAdjacentHTML('beforeend',
-        `<label class="wct-label" for="wct-poly-wkt-in" style="display:block;margin-bottom:4px">${escHtml(t('polyImportWktLabel'))}</label>
+        `<div style="flex:1 1 auto;overflow-y:auto;min-height:0">
+         <label class="wct-label" for="wct-poly-wkt-in" style="display:block;margin-bottom:4px">${escHtml(t('polyImportWktLabel'))}</label>
          <textarea id="wct-poly-wkt-in" class="wct-input" rows="4" spellcheck="false"
            title="${escHtml(t('tipPolyImportWkt'))}"
            placeholder="POLYGON((4.30 43.79, 4.31 43.79, 4.31 43.80, 4.30 43.79))"
            style="width:100%;box-sizing:border-box;font-family:monospace;font-size:0.833em;resize:vertical"></textarea>
-         <div style="margin:8px 0 10px">${_polyBtnRow([{ act:'wkt', txt:t('polyImportLoad'), tip:t('tipPolyImportLoad'), primaire:true }])}</div>
+         ${_polyBtnRow([{ act:'wkt', txt:t('polyImportLoad'), tip:t('tipPolyImportLoad'), primaire:true }], 'margin:6px 0 10px', true)}
          <label class="wct-label" for="wct-poly-kml-in" style="display:block;margin-bottom:4px">${escHtml(t('polyImportKmlLabel'))}</label>
          <input type="file" id="wct-poly-kml-in" accept=".kml,.xml,text/xml"
            title="${escHtml(t('tipPolyImportKml'))}"
            style="width:100%;box-sizing:border-box;font-size:0.833em">
          <div style="font-size:0.833em;color:var(--wct-text2);margin-top:8px">${escHtml(t('polyImportHint'))}</div>
-         <div style="margin-top:10px">${_polyBtnRow([{ act:'close', txt:t('polyTypesClose'), tip:t('polyTypesClose') }])}</div>`);
+         </div>`
+        + _polyBtnRow([{ act:'close', txt:t('polyTypesClose'), tip:t('polyTypesClose') }], 'margin-top:10px', true));
     box.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
         if(b.dataset.act === 'close'){ box.remove(); return; }
         _polyImportTexte($id('wct-poly-wkt-in')?.value || '');
@@ -10276,6 +10311,23 @@ const buildOverlay=()=>{
           <input type="file" id="wct-file-input" accept=".csv,.txt,.gpx,.kml,.kmz,.geojson,.json,.zip" multiple style="display:none">
         </div>
         <div id="wct-csv-log" class="wct-log"></div>
+        <!-- Récapitulatif : la place est disponible, autant dire ce que WCT sait lire
+             plutôt que de laisser l'éditeur l'apprendre par essais. -->
+        <table class="wct-help-table" style="margin-top:10px;font-size:0.833em">
+          <thead><tr>
+            <th style="text-align:start;color:var(--wct-text2);font-weight:700;padding:2px 4px">${t('impColFormat')}</th>
+            <th style="text-align:start;color:var(--wct-text2);font-weight:700;padding:2px 4px">${t('impColQuoi')}</th>
+            <th style="text-align:start;color:var(--wct-text2);font-weight:700;padding:2px 4px">${t('impColOu')}</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><b>CSV</b></td><td>${t('impTypeCsv')}</td><td>${t('tabCfg')}</td></tr>
+            <tr><td><b>GPX · KMZ · SHP</b></td><td>${t('impTypeTrace')}</td><td>${t('tabGpx')}</td></tr>
+            <tr><td><b>KML · GeoJSON</b></td><td>${t('impTypeTrace')} / ${t('impTypeZone')}</td><td>${t('tabGpx')} / ${t('tabCfg')}</td></tr>
+            <tr><td><b>WKT</b></td><td>${t('impTypeZone')}</td><td>${t('tabCfg')}</td></tr>
+            <tr><td><b>JSON</b></td><td>${t('impTypePrefs')}</td><td>${t('tabPre')}</td></tr>
+          </tbody>
+        </table>
+
       </div>
 
       <!-- ONGLET PREREGLAGES -->
@@ -11278,7 +11330,7 @@ const connectOverlay=ov=>{
                 });
                 renderQueue();
                 showToast(t('toastOk',rc.list.length,validIds.length,0),3000,'#43a047');
-                _polyZone=null; renderPolyBanner(); refreshCfgGate();
+                renderPolyBanner(); refreshCfgGate();   // la zone reste : voir refreshCfgGate
                 return;
             }
         }
@@ -11408,7 +11460,7 @@ const connectOverlay=ov=>{
         // Cible virages en cours : sans objet une fois la file vidée.
         _currentTurns=null; renderTurnBanner();
         // Idem pour la zone tracee : la file videe, elle ne decrit plus rien.
-        _polyZone=null; renderPolyBanner(); refreshCfgGate();
+        renderPolyBanner(); refreshCfgGate();   // idem : seule la désélection sur la carte l'efface
     });
     $id('wct-btn-apply')?.addEventListener('click',async()=>{if(!confirm(t('confirmApply',queue.length)))return;await applyQueue();});
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
