@@ -10679,11 +10679,15 @@ const updateFab=()=>{
         strip.classList.toggle('has-sel',hasSeg);
         text.textContent=hasSeg?t('hasSel',sel.ids.length):t('noSel');
     }
-    // Onglets : griser Configurer et Préréglages si pas de sélection
+    // Onglets : griser Préréglages si pas de sélection.
+    // ⚠️ Configurer N'EST PLUS grisé depuis la 0.88.00 : il héberge « Tracer une zone »,
+    // seul moyen de PRODUIRE une sélection — le condamner faute de sélection fermait la
+    // porte de l'intérieur. C'est son CONTENU qui est grisé (refreshCfgGate), pas l'accès.
     const cfgTab=document.querySelector('.wct-main-tab[data-tab="cfg"]');
     const preTab=document.querySelector('.wct-main-tab[data-tab="pre"]');
-    if(cfgTab) cfgTab.classList.toggle('disabled',!hasSeg);
+    if(cfgTab) cfgTab.classList.remove('disabled');
     if(preTab) preTab.classList.toggle('disabled',!hasSeg);
+    refreshCfgGate();
     // Aide toujours accessible
     document.querySelector('.wct-main-tab[data-tab="help"]')?.classList.remove('disabled');
     // Boutons couverture (onglet Tracés) : visibles seulement si segments sélectionnés
@@ -10767,7 +10771,7 @@ const setLang=pref=>{
     const ov=buildOverlay();
     connectOverlay(ov);
     // Le verrou de Configurer et le bandeau de zone vivent en VARIABLES : le DOM
-    // vient d’'etre reconstruit, il faut les y reposer.
+    // vient d’être reconstruit, il faut les y reposer.
     renderPolyBanner(); refreshCfgGate();
     if(pos){ov.style.left=pos.left;ov.style.top=pos.top;ov.style.right=pos.right;ov.style.bottom=pos.bottom;}
     applyDisplayMode(_displayMode);
@@ -10887,7 +10891,7 @@ const init=async()=>{
     const ov=buildOverlay();
     connectOverlay(ov);
     // Le verrou de Configurer et le bandeau de zone vivent en VARIABLES : le DOM
-    // vient d’'etre reconstruit, il faut les y reposer.
+    // vient d’être reconstruit, il faut les y reposer.
     renderPolyBanner(); refreshCfgGate();
     // Appliquer le mode d'affichage sauvegardé
     applyDisplayMode(_displayMode);
