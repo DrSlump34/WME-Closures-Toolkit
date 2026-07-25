@@ -8764,7 +8764,10 @@ const renderPolyBanner = () => {
         <button type="button" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
     el.querySelector('button').addEventListener('click', () => {
         _polyZone = null;
-        try { sdk.Editing.setSelection(null); } catch(e){}
+        // ⚠️ setSelection(null) ne vide pas de façon fiable (vérifié en live : la
+        // sélection restait en place). unselectAll, si — avec le SDK en repli.
+        try { W.selectionManager.unselectAll(); }
+        catch(e){ try { sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
         renderPolyBanner(); refreshCfgGate(); updateFab();
     });
     pane.insertBefore(el, pane.firstChild);
