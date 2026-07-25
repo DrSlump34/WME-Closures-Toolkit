@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.87.02
+// @version      0.88.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1439,6 +1439,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
             lotNone:'Aucun segment capté dans ce lot.',
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
+            polyBtn:'✏️ Tracer une zone',
+            tipPolyBtn:'Tracer un polygone sur la carte : tous les segments dont plus de la moitié est à l’intérieur seront sélectionnés',
+            polyGateHint:'Sélectionnez des segments sur la carte, ou tracez une zone.',
+            polyGateWhy:'Sélectionnez des segments (ou tracez une zone) pour configurer une fermeture.',
+            polyDrawHint:'Tracez la zone : un clic par sommet, double-clic pour fermer.',
+            polyCancelled:'Tracé abandonné.',
+            polyZoomIn:'Zoomez un peu avant de tracer : la zone serait bien trop vaste.',
+            polyInvent: (i,n,k) => `Inventaire de la zone… ${i}/${n} (${k} segments)`,
+            polyLoading: (i,n,k) => `Chargement… vue ${i}/${n} — ${k} segment(s) sélectionné(s)`,
+            polyNone:'Aucun segment dans cette zone.',
+            polyDone: n => `✅ ${n} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
+            polyStopped: n => `Interrompu — ${n} segment(s) sélectionné(s).`,
+            polyPartial: (a,b) => `${a} segment(s) sélectionné(s) sur ${b} : les autres n’ont pas pu être chargés.`,
+            polyBanner: n => `✏️ Zone tracée : ${n} segment(s)`,
+            polyBannerClear:'Effacer la zone et la sélection',
+            polyBigConfirm: n => `${n} segments sont dans cette zone. Les sélectionner peut prendre un moment. Continuer ?`,
+            polyManyViews: (n,m) => `${m} segments restent à charger : ${n} déplacements de carte. Continuer ?`,
+            polyApiFallback:'Inventaire de zone indisponible : seuls les segments déjà chargés sont examinés.',
+            polyError: m => `Échec de la sélection par zone : ${m}`,
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -1826,6 +1845,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
             lotNone:'No segment captured in this batch.',
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
+            polyBtn:'✏️ Draw an area',
+            tipPolyBtn:'Draw a polygon on the map: every segment more than half inside it will be selected',
+            polyGateHint:'Select segments on the map, or draw an area.',
+            polyGateWhy:'Select segments (or draw an area) to set up a closure.',
+            polyDrawHint:'Draw the area: one click per corner, double-click to close.',
+            polyCancelled:'Drawing cancelled.',
+            polyZoomIn:'Zoom in a little before drawing: the area would be far too large.',
+            polyInvent: (i,n,k) => `Scanning the area… ${i}/${n} (${k} segments)`,
+            polyLoading: (i,n,k) => `Loading… view ${i}/${n} — ${k} segment(s) selected`,
+            polyNone:'No segment inside this area.',
+            polyDone: n => `✅ ${n} segment(s) selected. Set up the closure, then “Validate”.`,
+            polyStopped: n => `Stopped — ${n} segment(s) selected.`,
+            polyPartial: (a,b) => `${a} of ${b} segment(s) selected: the others could not be loaded.`,
+            polyBanner: n => `✏️ Area drawn: ${n} segment(s)`,
+            polyBannerClear:'Clear the area and the selection',
+            polyBigConfirm: n => `${n} segments lie inside this area. Selecting them may take a while. Continue?`,
+            polyManyViews: (n,m) => `${m} segments still to load: ${n} map moves. Continue?`,
+            polyApiFallback:'Area scan unavailable: only the segments already loaded are examined.',
+            polyError: m => `Area selection failed: ${m}`,
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2211,6 +2249,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelected: seg => `✅ ${seg} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
             lotNone:'לא נלכד מקטע במנה זו.',
             lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
+            polyBtn:'✏️ שרטט אזור',
+            tipPolyBtn:'שרטט מצולע על המפה: כל מקטע שיותר ממחציתו בתוכו ייבחר',
+            polyGateHint:'בחר מקטעים במפה, או שרטט אזור.',
+            polyGateWhy:'בחר מקטעים (או שרטט אזור) כדי להגדיר חסימה.',
+            polyDrawHint:'שרטט את האזור: לחיצה אחת לכל פינה, לחיצה כפולה לסגירה.',
+            polyCancelled:'השרטוט בוטל.',
+            polyZoomIn:'התקרב מעט לפני השרטוט: האזור יהיה גדול מדי.',
+            polyInvent: (i,n,k) => `סורק את האזור… ${i}/${n} (${k} מקטעים)`,
+            polyLoading: (i,n,k) => `טוען… תצוגה ${i}/${n} — ${k} מקטעים נבחרו`,
+            polyNone:'אין מקטעים באזור זה.',
+            polyDone: n => `✅ ${n} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
+            polyStopped: n => `הופסק — ${n} מקטעים נבחרו.`,
+            polyPartial: (a,b) => `${a} מתוך ${b} מקטעים נבחרו: את היתר לא ניתן היה לטעון.`,
+            polyBanner: n => `✏️ אזור משורטט: ${n} מקטעים`,
+            polyBannerClear:'נקה את האזור ואת הבחירה',
+            polyBigConfirm: n => `${n} מקטעים נמצאים באזור זה. הבחירה עשויה להימשך זמן מה. להמשיך?`,
+            polyManyViews: (n,m) => `${m} מקטעים עוד לא נטענו: ${n} תזוזות מפה. להמשיך?`,
+            polyApiFallback:'סריקת האזור אינה זמינה: רק המקטעים שכבר נטענו נבדקים.',
+            polyError: m => `בחירת האזור נכשלה: ${m}`,
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -2596,6 +2653,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelected: seg => `✅ ${seg} segmento/i selezionati. Imposta la chiusura, poi “Convalida”.`,
             lotNone:'Nessun segmento catturato in questo lotto.',
             lotNextHint: (i,n) => `📦 Prossimo lotto da gestire: ${i}/${n}.`,
+            polyBtn:'✏️ Disegna un’area',
+            tipPolyBtn:'Disegna un poligono sulla mappa: verrà selezionato ogni segmento che vi si trova per più di metà',
+            polyGateHint:'Seleziona i segmenti sulla mappa, oppure disegna un’area.',
+            polyGateWhy:'Seleziona dei segmenti (o disegna un’area) per impostare una chiusura.',
+            polyDrawHint:'Disegna l’area: un clic per ogni vertice, doppio clic per chiudere.',
+            polyCancelled:'Disegno annullato.',
+            polyZoomIn:'Ingrandisci un po’ prima di disegnare: l’area sarebbe troppo vasta.',
+            polyInvent: (i,n,k) => `Scansione dell’area… ${i}/${n} (${k} segmenti)`,
+            polyLoading: (i,n,k) => `Caricamento… vista ${i}/${n} — ${k} segmento/i selezionati`,
+            polyNone:'Nessun segmento in quest’area.',
+            polyDone: n => `✅ ${n} segmento/i selezionati. Imposta la chiusura, poi “Convalida”.`,
+            polyStopped: n => `Interrotto — ${n} segmento/i selezionati.`,
+            polyPartial: (a,b) => `${a} segmento/i selezionati su ${b}: gli altri non si sono potuti caricare.`,
+            polyBanner: n => `✏️ Area disegnata: ${n} segmento/i`,
+            polyBannerClear:'Cancella l’area e la selezione',
+            polyBigConfirm: n => `${n} segmenti si trovano in quest’area. La selezione può richiedere tempo. Continuare?`,
+            polyManyViews: (n,m) => `${m} segmenti ancora da caricare: ${n} spostamenti della mappa. Continuare?`,
+            polyApiFallback:'Scansione dell’area non disponibile: vengono considerati solo i segmenti già caricati.',
+            polyError: m => `Selezione dell’area non riuscita: ${m}`,
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -2982,6 +3058,25 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
             lotNone:'Kein Segment in diesem Paket erfasst.',
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
+            polyBtn:'✏️ Bereich zeichnen',
+            tipPolyBtn:'Zeichne ein Polygon auf der Karte: Jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt',
+            polyGateHint:'Wähle Segmente auf der Karte aus oder zeichne einen Bereich.',
+            polyGateWhy:'Wähle Segmente aus (oder zeichne einen Bereich), um eine Sperrung einzurichten.',
+            polyDrawHint:'Zeichne den Bereich: ein Klick je Eckpunkt, Doppelklick zum Schließen.',
+            polyCancelled:'Zeichnen abgebrochen.',
+            polyZoomIn:'Zoome etwas näher heran: der Bereich wäre viel zu groß.',
+            polyInvent: (i,n,k) => `Bereich wird erfasst… ${i}/${n} (${k} Segmente)`,
+            polyLoading: (i,n,k) => `Wird geladen… Ansicht ${i}/${n} — ${k} Segment(e) ausgewählt`,
+            polyNone:'Kein Segment in diesem Bereich.',
+            polyDone: n => `✅ ${n} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
+            polyStopped: n => `Abgebrochen — ${n} Segment(e) ausgewählt.`,
+            polyPartial: (a,b) => `${a} von ${b} Segment(en) ausgewählt: die übrigen ließen sich nicht laden.`,
+            polyBanner: n => `✏️ Bereich gezeichnet: ${n} Segment(e)`,
+            polyBannerClear:'Bereich und Auswahl löschen',
+            polyBigConfirm: n => `${n} Segmente liegen in diesem Bereich. Die Auswahl kann etwas dauern. Fortfahren?`,
+            polyManyViews: (n,m) => `${m} Segmente sind noch zu laden: ${n} Kartenbewegungen. Fortfahren?`,
+            polyApiFallback:'Bereichserfassung nicht verfügbar: nur die bereits geladenen Segmente werden geprüft.',
+            polyError: m => `Bereichsauswahl fehlgeschlagen: ${m}`,
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -3367,6 +3462,25 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
             lotNone:'Ningún segmento captado en este lote.',
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
+            polyBtn:'✏️ Dibujar una zona',
+            tipPolyBtn:'Dibuja un polígono en el mapa: se seleccionará todo segmento que quede dentro en más de la mitad',
+            polyGateHint:'Selecciona segmentos en el mapa, o dibuja una zona.',
+            polyGateWhy:'Selecciona segmentos (o dibuja una zona) para configurar un cierre.',
+            polyDrawHint:'Dibuja la zona: un clic por vértice, doble clic para cerrar.',
+            polyCancelled:'Dibujo cancelado.',
+            polyZoomIn:'Acércate un poco antes de dibujar: la zona sería demasiado extensa.',
+            polyInvent: (i,n,k) => `Explorando la zona… ${i}/${n} (${k} segmentos)`,
+            polyLoading: (i,n,k) => `Cargando… vista ${i}/${n} — ${k} segmento(s) seleccionado(s)`,
+            polyNone:'Ningún segmento en esta zona.',
+            polyDone: n => `✅ ${n} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
+            polyStopped: n => `Interrumpido — ${n} segmento(s) seleccionado(s).`,
+            polyPartial: (a,b) => `${a} de ${b} segmento(s) seleccionado(s): los demás no se pudieron cargar.`,
+            polyBanner: n => `✏️ Zona dibujada: ${n} segmento(s)`,
+            polyBannerClear:'Borrar la zona y la selección',
+            polyBigConfirm: n => `${n} segmentos están en esta zona. Seleccionarlos puede tardar. ¿Continuar?`,
+            polyManyViews: (n,m) => `Quedan ${m} segmentos por cargar: ${n} desplazamientos del mapa. ¿Continuar?`,
+            polyApiFallback:'Exploración de zona no disponible: solo se examinan los segmentos ya cargados.',
+            polyError: m => `Error en la selección por zona: ${m}`,
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -3752,6 +3866,25 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
+            polyBtn:'✏️ Desenhar uma área',
+            tipPolyBtn:'Desenhe um polígono no mapa: todo segmento com mais da metade dentro dele será selecionado',
+            polyGateHint:'Selecione segmentos no mapa, ou desenhe uma área.',
+            polyGateWhy:'Selecione segmentos (ou desenhe uma área) para configurar um bloqueio.',
+            polyDrawHint:'Desenhe a área: um clique por vértice, clique duplo para fechar.',
+            polyCancelled:'Desenho cancelado.',
+            polyZoomIn:'Aproxime um pouco antes de desenhar: a área ficaria grande demais.',
+            polyInvent: (i,n,k) => `Varrendo a área… ${i}/${n} (${k} segmentos)`,
+            polyLoading: (i,n,k) => `Carregando… vista ${i}/${n} — ${k} segmento(s) selecionado(s)`,
+            polyNone:'Nenhum segmento nesta área.',
+            polyDone: n => `✅ ${n} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
+            polyStopped: n => `Interrompido — ${n} segmento(s) selecionado(s).`,
+            polyPartial: (a,b) => `${a} de ${b} segmento(s) selecionado(s): os demais não puderam ser carregados.`,
+            polyBanner: n => `✏️ Área desenhada: ${n} segmento(s)`,
+            polyBannerClear:'Limpar a área e a seleção',
+            polyBigConfirm: n => `${n} segmentos estão nesta área. Selecioná-los pode demorar. Continuar?`,
+            polyManyViews: (n,m) => `Faltam ${m} segmentos a carregar: ${n} deslocamentos do mapa. Continuar?`,
+            polyApiFallback:'Varredura da área indisponível: apenas os segmentos já carregados são examinados.',
+            polyError: m => `Falha na seleção por área: ${m}`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4137,6 +4270,25 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
+            polyBtn:'✏️ Desenhar uma área',
+            tipPolyBtn:'Desenhe um polígono no mapa: será selecionado todo o segmento que fique no interior em mais de metade',
+            polyGateHint:'Selecione segmentos no mapa, ou desenhe uma área.',
+            polyGateWhy:'Selecione segmentos (ou desenhe uma área) para configurar um corte.',
+            polyDrawHint:'Desenhe a área: um clique por vértice, duplo clique para fechar.',
+            polyCancelled:'Desenho cancelado.',
+            polyZoomIn:'Aproxime um pouco antes de desenhar: a área ficaria demasiado extensa.',
+            polyInvent: (i,n,k) => `A analisar a área… ${i}/${n} (${k} segmentos)`,
+            polyLoading: (i,n,k) => `A carregar… vista ${i}/${n} — ${k} segmento(s) selecionado(s)`,
+            polyNone:'Nenhum segmento nesta área.',
+            polyDone: n => `✅ ${n} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
+            polyStopped: n => `Interrompido — ${n} segmento(s) selecionado(s).`,
+            polyPartial: (a,b) => `${a} de ${b} segmento(s) selecionado(s): os restantes não puderam ser carregados.`,
+            polyBanner: n => `✏️ Área desenhada: ${n} segmento(s)`,
+            polyBannerClear:'Limpar a área e a seleção',
+            polyBigConfirm: n => `${n} segmentos encontram-se nesta área. A seleção pode demorar. Continuar?`,
+            polyManyViews: (n,m) => `Faltam ${m} segmentos a carregar: ${n} deslocações do mapa. Continuar?`,
+            polyApiFallback:'Análise da área indisponível: apenas os segmentos já carregados são examinados.',
+            polyError: m => `Falha na seleção por área: ${m}`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -8263,6 +8415,377 @@ const _lotPermalink = (lot) => {
     else prompt(t('lotPermaCopy'),url);
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  SÉLECTION PAR POLYGONE — tracer une zone, sélectionner ce qu'elle contient
+// ═══════════════════════════════════════════════════════════════════════════
+// Répond à « fermer tout un quartier » sans cliquer les segments un par un.
+// Trois étapes, et chacune existe pour une raison mesurée :
+//  1. TRACÉ    — sdk.Map.drawPolygon() : outil interactif de WME, rend une promesse
+//                qui ne résout qu'au double-clic de fermeture.
+//  2. INVENTAIRE — l'API app/Features par TUILES. C'est elle qui garantit « aucun
+//                oubli » : elle lit une emprise arbitraire SANS dépendre du zoom, là
+//                où la carte ne charge que ce qu'elle affiche.
+//  3. SÉLECTION — setSelection n'accepte QUE des segments chargés (un seul id absent
+//                et l'appel entier lève). D'où le balayage : on recadre pour charger,
+//                et la sélection se cumule (mesuré : elle survit à 25 km de trajet).
+const POLY_INSIDE_FRAC   = 0.5;  // part de la LONGUEUR d'un segment à l'intérieur pour le retenir
+const POLY_SAMPLE_M      = 5;    // pas d'échantillonnage le long d'une arête
+const POLY_SAMPLE_MAX    = 200;  // borne par arête
+// ⚠️ MESURÉ le 2026-07-25 : l'API bascule en détail grossier au-delà d'environ 8 km de
+// côté (une emprise de 10 km rend 1956 segments quand ses 4 quarts de 5 km en rendent
+// 9087). À 5 km elle est exhaustive : subdiviser en 4, 16 ou 64 tuiles n'ajoute AUCUN
+// segment. Ne pas augmenter cette valeur sans refaire cette mesure.
+const POLY_TILE_KM       = 5;
+// ⚠️ z15 laisse des segments non chargés (mesuré ailleurs : 47 manquants sur 76) ;
+// z16 est complet. La promesse « aucun oubli » impose donc 16, pas SWEEP_ZOOM.
+const POLY_LOAD_ZOOM     = 16;
+const POLY_WARN_SEGMENTS = 1200; // au-delà, on demande confirmation avant de continuer
+const POLY_WARN_TILES    = 40;   // idem pour le nombre de vues à parcourir
+const POLY_ZOOM_MIN      = 12;   // sous ce zoom, le tracé couvrirait un pays entier
+
+// Mercator sphérique → WGS84 : le tracé peut arriver en coordonnées projetées.
+const _polyDeproj = (x, y) => [
+    x / 20037508.34 * 180,
+    Math.atan(Math.exp((y / 20037508.34 * 180) * Math.PI / 180)) * 360 / Math.PI - 90
+];
+const _polyClose = (rings) => rings.filter(r => r && r.length >= 3).map(r => {
+    const f = r[0], l = r[r.length - 1];
+    return (f[0] === l[0] && f[1] === l[1]) ? r : r.concat([[f[0], f[1]]]);
+});
+const _polyNorm = (rings) => _polyClose(rings.map(r => r.map(p => {
+    const x = Array.isArray(p) ? p[0] : p.x, y = Array.isArray(p) ? p[1] : p.y;
+    return Math.abs(x) > 180 ? _polyDeproj(x, y) : [x, y];
+})));
+// Normalise ce que rend le tracé en anneaux [[ [lon,lat], … ], …] (extérieur puis trous).
+// Défensif à dessein : la forme exacte dépend de la version du SDK, et une forme
+// inconnue doit se voir tout de suite plutôt que produire une sélection vide en silence.
+const _polyRingsOf = (res) => {
+    if(!res) return [];
+    if(res.type === 'Feature' && res.geometry) return _polyRingsOf(res.geometry);
+    if(res.geometry && !res.type && !Array.isArray(res)) return _polyRingsOf(res.geometry);
+    if(res.type === 'Polygon' && Array.isArray(res.coordinates)) return _polyNorm(res.coordinates);
+    if(res.type === 'MultiPolygon' && Array.isArray(res.coordinates)) return _polyNorm(res.coordinates.flat());
+    if(res.CLASS_NAME && Array.isArray(res.components)){
+        const rings = [];
+        for(const c of res.components){
+            const pts = Array.isArray(c.components) ? c.components : null;
+            if(!pts) continue;
+            rings.push(pts.map(p => (Math.abs(p.x) > 180 ? _polyDeproj(p.x, p.y) : [p.x, p.y])));
+        }
+        return _polyClose(rings);
+    }
+    if(Array.isArray(res)){
+        if(res.length && Array.isArray(res[0]) && typeof res[0][0] === 'number') return _polyNorm([res]);
+        if(res.length && Array.isArray(res[0])) return _polyNorm(res);
+    }
+    return [];
+};
+// Point dans polygone — lancer de rayon. La PARITÉ cumulée sur tous les anneaux gère
+// les trous gratuitement : un point dans un trou traverse un nombre pair de bords.
+const _polyPtIn = (x, y, rings) => {
+    let inside = false;
+    for(const ring of rings){
+        for(let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+            const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+            if(((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+        }
+    }
+    return inside;
+};
+const _polyBBoxOf = (rings) => {
+    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    for(const r of rings) for(const p of r){
+        if(p[0] < minLon) minLon = p[0]; if(p[0] > maxLon) maxLon = p[0];
+        if(p[1] < minLat) minLat = p[1]; if(p[1] > maxLat) maxLat = p[1];
+    }
+    return { minLon, minLat, maxLon, maxLat };
+};
+// Fraction de la longueur d'une polyligne située dans le polygone, dans [0,1].
+// On juge en LONGUEUR et non en nombre de points : un segment à 2 sommets et un
+// segment à 40 sommets doivent être jugés pareil. Chaque arête est découpée en
+// sous-arêtes d'environ POLY_SAMPLE_M mètres et c'est le milieu de chacune qui décide —
+// méthode préférée à un calcul d'intersection exact parce qu'elle ne connaît aucun cas
+// dégénéré (sommet pile sur un bord, arête colinéaire au bord).
+const _polyInsideFrac = (coords, rings) => {
+    if(!Array.isArray(coords) || coords.length < 2 || !rings.length) return 0;
+    let total = 0, dedans = 0;
+    for(let i = 0; i < coords.length - 1; i++){
+        const a = coords[i], b = coords[i + 1];
+        if(!a || !b) continue;
+        const lat0 = (a[1] + b[1]) / 2 * Math.PI / 180;
+        const mLon = Math.cos(lat0) * 111320, mLat = 110540;
+        const len = Math.hypot((b[0] - a[0]) * mLon, (b[1] - a[1]) * mLat);
+        if(!(len > 0)) continue;
+        total += len;
+        const n = Math.max(1, Math.min(POLY_SAMPLE_MAX, Math.ceil(len / POLY_SAMPLE_M)));
+        let nIn = 0;
+        for(let k = 0; k < n; k++){
+            const f = (k + 0.5) / n;
+            if(_polyPtIn(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, rings)) nIn++;
+        }
+        dedans += len * (nIn / n);
+    }
+    return total > 0 ? dedans / total : 0;
+};
+
+// Zone tracée en cours : {rings, bbox, ids:[…]}. Vit en variable et non dans le DOM —
+// même raison que _currentTurns : l'overlay est reconstruit à chaque changement de langue.
+let _polyZone = null;
+
+// Découpe une emprise en tuiles d'au plus POLY_TILE_KM de côté.
+const _polyTiles = (bb, tileKm) => {
+    const midLat = (bb.minLat + bb.maxLat) / 2;
+    const kmLat = 1 / 110.574, kmLon = 1 / (111.320 * Math.cos(midLat * Math.PI / 180));
+    const nx = Math.max(1, Math.ceil((bb.maxLon - bb.minLon) / (tileKm * kmLon)));
+    const ny = Math.max(1, Math.ceil((bb.maxLat - bb.minLat) / (tileKm * kmLat)));
+    const w = (bb.maxLon - bb.minLon) / nx, h = (bb.maxLat - bb.minLat) / ny;
+    const out = [];
+    for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
+        // serpentin : la ligne impaire repart en sens inverse → déplacements minimaux
+        const ii = (j % 2 === 0) ? i : (nx - 1 - i);
+        out.push({ minLon: bb.minLon + ii * w,       minLat: bb.minLat + j * h,
+                   maxLon: bb.minLon + (ii + 1) * w, maxLat: bb.minLat + (j + 1) * h });
+    }
+    return out;
+};
+// Un appel d'inventaire. ⚠️ Le chemin vient de W.Config.paths, JAMAIS écrit en dur
+// (il diffère entre ROW et NA).
+const _polyFetchTile = async (bb) => {
+    const base = W?.Config?.paths?.features || '/row-Descartes/app/Features';
+    const url = base + '?bbox=' + [bb.minLon, bb.minLat, bb.maxLon, bb.maxLat].map(v => v.toFixed(6)).join(',')
+        + '&language=' + (_lang || 'en') + '&v=2&apiV2=true&roadClosures=false&zoomLevel=17'
+        + '&roadTypes=1,2,3,4,5,6,7,8,9,10,15,16,17,18,19,20,22';
+    const r = await fetch(url, { credentials: 'include' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    return (j.segments && j.segments.objects) || j.segments || [];
+};
+// Repli quand l'API tombe : ce que le modèle a déjà chargé. Rend beaucoup moins, d'où
+// le message explicite qui l'accompagne — rendre 12 segments au lieu de 300 en silence
+// ferait croire à une zone vide.
+const _polyFromModel = () => {
+    let out = [];
+    try {
+        out = W.model.segments.getObjectArray().map(s => ({
+            id: Number(s.attributes.id), geometry: s.attributes.geoJSONGeometry
+        })).filter(s => s.geometry && Array.isArray(s.geometry.coordinates));
+    } catch(e){}
+    return out;
+};
+// Progression dans le pied fixe partagé avec le balayage des tracés (hors défilement).
+const _polyShowProgress = (txt, pct) => {
+    const f = _sweepFooter(); if(!f) return;
+    f.style.display = 'block';
+    f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <b style="flex:1">${escHtml(txt)}</b>
+        <button class="wct-poly-stop wct-btn wct-btn-danger wct-btn-sm" title="${escHtml(t('tipSweepStop'))}">${escHtml(t('btnStop'))}</button>
+      </div>
+      <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
+    f.querySelector('.wct-poly-stop')?.addEventListener('click', requestSweepAbort);
+};
+// Replie/déplie l'overlay : pendant le tracé il masquerait la carte (620 px de large).
+const _polySetCollapsed = (v) => {
+    const ov = $id('wct-overlay'); if(!ov) return;
+    collapsed = v;
+    ov.classList.toggle('collapsed', v);
+    const b = $id('wct-btn-collapse'); if(b) b.textContent = v ? '□' : '—';
+};
+
+// Charge les segments retenus encore absents du modèle, en recadrant vue par vue, et
+// cumule la sélection. Produit AUSSI le découpage en lots : c'est lui qui permettra à
+// l'application de recadrer avant chaque paquet. Ne visite que les vues qui contiennent
+// réellement un segment manquant — sur une zone à moitié vide (eau, campagne, forêt),
+// c'est ce qui évite des dizaines de recadrages pour rien.
+const _polyLoadAndSelect = async (retenus) => {
+    const dansLeModele = () => {
+        const set = new Set();
+        try { W.model.segments.getObjectArray().forEach(s => set.add(Number(s.attributes.id))); } catch(e){}
+        return set;
+    };
+    // ⚠️ setSelection est tout ou rien : un seul id absent du modèle et l'appel ENTIER
+    // lève. D'où le repli sur ce qui est réellement chargé plutôt qu'une sélection perdue.
+    const selectionner = (ids) => {
+        if(!ids.length) return [];
+        try { sdk.Editing.setSelection({ selection: { ids, objectType: 'segment' } }); return ids; }
+        catch(e){
+            const dispo = ids.filter(id => getSegById(id));
+            try { if(dispo.length) sdk.Editing.setSelection({ selection: { ids: dispo, objectType: 'segment' } }); }
+            catch(e2){ log('poly setSelection: ' + e2.message); return []; }
+            return dispo;
+        }
+    };
+    let charges = dansLeModele();
+    const selectionnes = new Set(selectionner(retenus.filter(s => charges.has(s.id)).map(s => s.id)));
+
+    // Taille RÉELLE d'une vue au zoom de chargement : relevée sur place, jamais devinée
+    // — elle dépend de la taille de la fenêtre de l'utilisateur.
+    const c0 = _polySegCentre(retenus[0]);
+    sdk.Map.setMapCenter({ lonLat: { lon: c0[0], lat: c0[1] }, zoomLevel: POLY_LOAD_ZOOM });
+    await _sweepSleep(SWEEP_SETTLE_MS);
+    await waitMapLoaded();
+    const ex = sdk.Map.getMapExtent();
+    // 75 % de la vue : un segment collé au bord n'est pas toujours chargé
+    const vueW = Math.max((ex[2] - ex[0]) * 0.75, 0.002), vueH = Math.max((ex[3] - ex[1]) * 0.75, 0.002);
+
+    // Pavage glouton du sud-ouest vers le nord-est, sur TOUS les segments retenus.
+    const groupes = [];
+    const restants = new Map(retenus.map(s => [s.id, s]));
+    let garde = 0;
+    while(restants.size && garde++ < 500){
+        let ancre = null;
+        for(const s of restants.values()){
+            const c = _polySegCentre(s);
+            if(!ancre || c[1] < ancre[1] || (c[1] === ancre[1] && c[0] < ancre[0])) ancre = c;
+        }
+        const cx = ancre[0] + vueW / 2 - 0.0002, cy = ancre[1] + vueH / 2 - 0.0002;
+        const dedans = [];
+        for(const [id, s] of [...restants]){
+            const c = _polySegCentre(s);
+            if(Math.abs(c[0] - cx) <= vueW / 2 && Math.abs(c[1] - cy) <= vueH / 2){ dedans.push(s); restants.delete(id); }
+        }
+        if(!dedans.length) break;
+        let mnLon = Infinity, mxLon = -Infinity, mnLat = Infinity, mxLat = -Infinity;
+        dedans.forEach(s => s.geometry.coordinates.forEach(p => {
+            if(p[0] < mnLon) mnLon = p[0]; if(p[0] > mxLon) mxLon = p[0];
+            if(p[1] < mnLat) mnLat = p[1]; if(p[1] > mxLat) mxLat = p[1];
+        }));
+        groupes.push({ centre: [cx, cy], bbox: { minLon: mnLon, minLat: mnLat, maxLon: mxLon, maxLat: mxLat },
+                       ids: dedans.map(s => s.id) });
+    }
+    const aVisiter = groupes.filter(g => g.ids.some(id => !charges.has(id)));
+    if(aVisiter.length > POLY_WARN_TILES && !confirm(t('polyManyViews', aVisiter.length, retenus.length)))
+        return { ids: [...selectionnes], groupes, vues: 0, partiel: true };
+
+    for(let k = 0; k < aVisiter.length; k++){
+        if(_sweepAborted) break;
+        const g = aVisiter[k];
+        sdk.Map.setMapCenter({ lonLat: { lon: g.centre[0], lat: g.centre[1] }, zoomLevel: POLY_LOAD_ZOOM });
+        await _sweepSleep(SWEEP_SETTLE_MS);
+        await waitMapLoaded();
+        await _sweepSleep(120);
+        if(_sweepAborted) break;
+        charges = dansLeModele();
+        retenus.forEach(s => { if(charges.has(s.id)) selectionnes.add(s.id); });
+        const poses = selectionner([...selectionnes]);
+        poses.forEach(id => selectionnes.add(id));
+        _polyShowProgress(t('polyLoading', k + 1, aVisiter.length, selectionnes.size),
+                          Math.round((k + 1) * 100 / aVisiter.length));
+    }
+    const ids = [...selectionnes];
+    // Les lots ne gardent que des segments réellement retenus ET sélectionnables
+    const retenusSet = new Set(ids);
+    const lots = groupes.map(g => ({ bbox: g.bbox, ids: g.ids.filter(id => retenusSet.has(id)) }))
+                        .filter(g => g.ids.length);
+    return { ids, groupes: lots, vues: aVisiter.length, partiel: ids.length < retenus.length };
+};
+// Centre approximatif d'un segment (milieu de sa polyligne) — sert à l'affectation aux vues.
+const _polySegCentre = (s) => {
+    const c = s.geometry.coordinates;
+    const m = c[Math.floor(c.length / 2)];
+    return [m[0], m[1]];
+};
+
+// Orchestration complète, déclenchée par le bouton de l'onglet Configurer.
+const polyDrawAndSelect = async () => {
+    if(_sweepRunning) return;
+    if(sdk.Map.getZoomLevel() < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
+    const etaitReplie = collapsed;
+    let rings = [];
+    _polySetCollapsed(true);                       // libérer la carte pour tracer
+    showToast(t('polyDrawHint'), 5000, '#1565c0');
+    try {
+        rings = _polyRingsOf(await sdk.Map.drawPolygon());
+    } catch(e){
+        _polySetCollapsed(etaitReplie);
+        log('drawPolygon: ' + (e && e.message));
+        showToast(t('polyCancelled'), 2500, '#f57c00');
+        return;
+    }
+    _polySetCollapsed(etaitReplie);
+    if(rings.length < 1 || rings[0].length < 4){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
+
+    const bbox = _polyBBoxOf(rings);
+    const tuiles = _polyTiles(bbox, POLY_TILE_KM);
+    _sweepRunning = true; _sweepAborted = false;
+    let segs = [], apiKo = false;
+    try {
+        const vus = new Map();
+        for(let k = 0; k < tuiles.length; k++){
+            if(_sweepAborted) break;
+            _polyShowProgress(t('polyInvent', k + 1, tuiles.length, vus.size),
+                              Math.round((k + 1) * 100 / tuiles.length));
+            let lot = [];
+            try { lot = await _polyFetchTile(tuiles[k]); }
+            catch(err){ apiKo = true; log('poly inventaire: ' + err.message); break; }
+            for(const s of lot){
+                if(s && s.id != null && s.geometry && Array.isArray(s.geometry.coordinates) && !vus.has(s.id))
+                    vus.set(s.id, { id: Number(s.id), geometry: s.geometry });
+            }
+        }
+        segs = [...vus.values()];
+        // ⚠️ Ne jamais rester silencieux sur un repli : rendre moins sans le dire
+        // ferait croire à une zone vide.
+        if(apiKo){ segs = _polyFromModel(); showToast(t('polyApiFallback'), 5000, '#f57c00'); }
+
+        const retenus = _sweepAborted ? [] : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
+        if(_sweepAborted){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
+        if(!retenus.length){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyNone'), 3500, '#f57c00'); return; }
+        if(retenus.length > POLY_WARN_SEGMENTS && !confirm(t('polyBigConfirm', retenus.length))){
+            _sweepRunning = false; _sweepHideFooter(); return;
+        }
+        const savedCenter = sdk.Map.getMapCenter(), savedZoom = sdk.Map.getZoomLevel();
+        const res = await _polyLoadAndSelect(retenus);
+        try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
+        _polyZone = { rings, bbox, ids: res.ids, groupes: res.groupes || [] };
+        const stop = _sweepAborted;
+        _sweepRunning = false; _sweepHideFooter();
+        renderPolyBanner();
+        refreshCfgGate();
+        if(stop) showToast(t('polyStopped', res.ids.length), 4000, '#f57c00');
+        else if(res.ids.length < retenus.length) showToast(t('polyPartial', res.ids.length, retenus.length), 6000, '#f57c00');
+        else showToast(t('polyDone', res.ids.length), 4000, '#43a047');
+        updateFab(); updateCountryInfo();
+    } catch(e){
+        _sweepRunning = false; _sweepHideFooter();
+        log('polyDrawAndSelect: ' + e.message);
+        showToast(t('polyError', e.message), 5000, '#e53935');
+    }
+};
+// Bandeau de zone dans Configurer — même famille que le bandeau de cible des virages.
+const renderPolyBanner = () => {
+    const pane = $id('wct-pane-cfg'); if(!pane) return;
+    $id('wct-poly-banner')?.remove();
+    if(!_polyZone) return;
+    const el = make('div');
+    el.id = 'wct-poly-banner';
+    el.className = 'wct-tn-banner';
+    el.innerHTML = `<span>${escHtml(t('polyBanner', _polyZone.ids.length))}</span>
+        <span style="flex:1"></span>
+        <button type="button" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
+    el.querySelector('button').addEventListener('click', () => {
+        _polyZone = null;
+        try { sdk.Editing.setSelection(null); } catch(e){}
+        renderPolyBanner(); refreshCfgGate(); updateFab();
+    });
+    pane.insertBefore(el, pane.firstChild);
+};
+// Verrou de l'onglet Configurer : ses réglages n'ont de sens qu'avec une cible. Sans
+// sélection, tout est GRISÉ sauf le bouton de tracé — seul geste encore possible, et
+// qui produit justement la sélection manquante. Griser plutôt que masquer : c'est le
+// même langage visuel que les champs sans objet pour un virage, décidé une fois pour
+// toutes. L'onglet, lui, reste cliquable (on doit pouvoir venir voir pourquoi).
+const refreshCfgGate = () => {
+    const pane = $id('wct-pane-cfg'); if(!pane) return;
+    const pret = hasSel();
+    pane.querySelectorAll('.wct-cfg-grid').forEach(el => {
+        el.classList.toggle('wct-na', !pret);
+        if(!pret) el.title = t('polyGateWhy'); else el.removeAttribute('title');
+    });
+    document.querySelector('.wct-validate-footer')?.classList.toggle('wct-na', !pret);
+    const hint = $id('wct-poly-hint');
+    if(hint) hint.style.display = pret ? 'none' : '';
+};
+
 const traceUpdateStripCtrl = () => {
     const ctrl = document.getElementById('wct-gpx-layer-ctrl');
     const chk  = document.getElementById('wct-gpx-layer-chk');
@@ -8567,6 +9090,12 @@ const buildOverlay=()=>{
 
       <!-- ONGLET CONFIGURER -->
       <div id="wct-pane-cfg" class="wct-main-pane on">
+        <!-- Tracé d'une zone : seul contrôle actif tant qu'il n'y a pas de sélection.
+             C'est lui qui produit la sélection que tout le reste de l'onglet attend. -->
+        <div id="wct-poly-bar" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+          <button id="wct-poly-btn" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyBtn')}">${t('polyBtn')}</button>
+          <span id="wct-poly-hint" style="flex:1;min-width:140px;font-size:0.833em;color:var(--wct-text2)">${t('polyGateHint')}</span>
+        </div>
         <div class="wct-cfg-grid">
           <div>
             <div class="wct-section" style="margin-top:0">${t('sectionPeriod')}</div>
@@ -9276,6 +9805,7 @@ const connectOverlay=ov=>{
     _ovAbort = new AbortController();
     const sig = _ovAbort.signal;
     makeDraggable(ov,$id('wct-hdr'));
+    $id('wct-poly-btn')?.addEventListener('click',()=>{ polyDrawAndSelect(); });
     $id('wct-btn-collapse')?.addEventListener('click',()=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
@@ -9663,6 +10193,40 @@ const connectOverlay=ov=>{
             showToast(t('toastNoCompatible',dirLabel),3500,'#f57c00');
             return;
         }
+        // ─── Entrée ZONE (polygone) ───
+        // Une zone plus large qu'une vue ne peut PAS partir d'un bloc : à l'application,
+        // WCT saute tout segment absent du data model (getSegById → null). Elle est donc
+        // découpée en lots calqués sur les vues qui ont servi à la charger, chacun portant
+        // sa bbox pour que la carte s'y recadre le moment venu — exactement le mécanisme
+        // déjà rodé sur les lots de tracés.
+        if(_polyZone?.groupes?.length){
+            const valides=new Set(validIds.map(Number));
+            const lots=_polyZone.groupes
+                .map(g=>({bbox:g.bbox, ids:g.ids.map(Number).filter(id=>valides.has(id))}))
+                .filter(g=>g.ids.length);
+            if(lots.length){
+                const lastTB=await fetchLastTileBuild();
+                lots.forEach((g,i)=>{
+                    const e2={...makeEntry(g.ids,cfg,rc.list),source:'sweep',lotBbox:g.bbox,lotIndex:i+1,
+                        label:lots.length>1
+                            ? `\u270F\uFE0F ${cfg.reason||t('defaultClosure')} \u00B7 ${t('lotRowLabel',i+1,lots.length)}`
+                            : `\u270F\uFE0F ${cfg.reason||t('defaultClosure')}`};
+                    if(dirConflicts.length) e2.excludedSegs=dirConflicts;
+                    // ⚠️ nullSegs VOLONTAIREMENT vide : un segment hors vue sera rechargé par
+                    // le recadrage du lot. L'y inscrire le ferait SAUTER à l'application.
+                    e2.nullSegs=new Set(); e2.recentSegs=new Set();
+                    if(lastTB>0) g.ids.map(Number).forEach(id=>{
+                        const seg=getSegById(id);
+                        if(seg&&seg.modificationData?.updatedOn>lastTB) e2.recentSegs.add(id);
+                    });
+                    queue.push(e2);
+                });
+                renderQueue();
+                showToast(t('toastOk',rc.list.length,validIds.length,0),3000,'#43a047');
+                _polyZone=null; renderPolyBanner(); refreshCfgGate();
+                return;
+            }
+        }
         const entry={...makeEntry(validIds,cfg,rc.list),source:'cfg'};
         // Pont Tracés → Configurer → file : si la sélection vient d'un lot, l'entrée
         // porte la bbox du lot (pour le recadrage à l'application) et devient 'sweep'.
@@ -9753,6 +10317,8 @@ const connectOverlay=ov=>{
         if(pbt)pbt.textContent='';
         // Cible virages en cours : sans objet une fois la file vidée.
         _currentTurns=null; renderTurnBanner();
+        // Idem pour la zone tracee : la file videe, elle ne decrit plus rien.
+        _polyZone=null; renderPolyBanner(); refreshCfgGate();
     });
     $id('wct-btn-apply')?.addEventListener('click',async()=>{if(!confirm(t('confirmApply',queue.length)))return;await applyQueue();});
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
@@ -10197,6 +10763,9 @@ const setLang=pref=>{
 
     const ov=buildOverlay();
     connectOverlay(ov);
+    // Le verrou de Configurer et le bandeau de zone vivent en VARIABLES : le DOM
+    // vient d’'etre reconstruit, il faut les y reposer.
+    renderPolyBanner(); refreshCfgGate();
     if(pos){ov.style.left=pos.left;ov.style.top=pos.top;ov.style.right=pos.right;ov.style.bottom=pos.bottom;}
     applyDisplayMode(_displayMode);
     if(cfg)applyConfig(cfg);
@@ -10314,6 +10883,9 @@ const init=async()=>{
     // Overlay
     const ov=buildOverlay();
     connectOverlay(ov);
+    // Le verrou de Configurer et le bandeau de zone vivent en VARIABLES : le DOM
+    // vient d’'etre reconstruit, il faut les y reposer.
+    renderPolyBanner(); refreshCfgGate();
     // Appliquer le mode d'affichage sauvegardé
     applyDisplayMode(_displayMode);
     // FAB
@@ -10352,6 +10924,7 @@ const init=async()=>{
             if(sig!==_lastSelSig){
                 _lastSelSig=sig;
                 if($id('wct-pane-turn')?.classList.contains('on')) renderTurnsPane();
+                refreshCfgGate();
             }
         }catch(e){ log('onSel/turnsPane: '+e.message); }
     };
