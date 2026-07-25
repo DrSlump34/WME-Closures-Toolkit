@@ -10712,16 +10712,13 @@ const updateFab=()=>{
             }
         }
     }
-    // Si pas de sélection et overlay ouvert → basculer sur CSV
-    if(!hasSeg){
-        const ov=$id('wct-overlay');
-        if(ov&&ov.classList.contains('open')){
-            const cfgPane=$id('wct-pane-cfg');
-            if(cfgPane&&cfgPane.classList.contains('on')){
-                document.querySelector('.wct-main-tab[data-tab="csv"]')?.click();
-            }
-        }
-    }
+    // ⚠️ SUPPRIMÉ en 0.88.00 : « si pas de sélection, quitter Configurer pour CSV ».
+    // Ce renvoi automatique se déclenchait 2×/s et rendait l'onglet inutilisable — on
+    // cliquait dessus, il rebasculait aussitôt. Il avait un sens tant que Configurer
+    // n'offrait rien sans sélection ; il en a perdu un depuis qu'il héberge « Tracer
+    // une zone », qui est précisément le moyen d'OBTENIR une sélection.
+    // Le renvoi INVERSE (une sélection arrive alors qu'on est sur CSV → aller sur
+    // Configurer) est conservé juste au-dessus : lui rend toujours service.
     _lastSelIds=[...sel.ids];
 };
 // ═══════════════════════════════════════════════════════════════════════════
