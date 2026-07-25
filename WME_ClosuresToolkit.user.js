@@ -1472,6 +1472,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyWktCopy:'Copier la zone au format WKT :',
             polyKmlDone: f => `✅ ${f} téléchargé.`,
             polyNoZone:'Aucune zone tracée.',
+            polyImportBtn:'📂 Importer',
+            tipPolyImportBtn:'Recharger une zone depuis un POLYGON(…) WKT ou un fichier KML',
+            polyImportTitle:'Importer une zone',
+            polyImportWktLabel:'Coller un POLYGON(…) WKT',
+            polyImportLoad:'Charger',
+            polyImportKmlLabel:'…ou choisir un fichier KML',
+            polyImportHint:'Le format est reconnu tout seul. Dans un KML à plusieurs polygones, seul le premier est lu.',
+            polyImportBad:'Zone illisible : il faut un POLYGON(…) WKT ou un KML contenant un polygone.',
+            polyImportOk: n => `Zone importée (${n} sommets).`,
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -1892,6 +1901,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyWktCopy:'Copy the area as WKT:',
             polyKmlDone: f => `✅ ${f} downloaded.`,
             polyNoZone:'No area drawn.',
+            polyImportBtn:'📂 Import',
+            tipPolyImportBtn:'Reload an area from a POLYGON(…) WKT or a KML file',
+            polyImportTitle:'Import an area',
+            polyImportWktLabel:'Paste a POLYGON(…) WKT',
+            polyImportLoad:'Load',
+            polyImportKmlLabel:'…or pick a KML file',
+            polyImportHint:'The format is detected on its own. In a KML with several polygons, only the first one is read.',
+            polyImportBad:'Unreadable area: a POLYGON(…) WKT, or a KML holding a polygon, is required.',
+            polyImportOk: n => `Area imported (${n} corners).`,
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2310,6 +2328,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyWktCopy:'העתק את האזור בפורמט WKT:',
             polyKmlDone: f => `✅ ${f} הורד.`,
             polyNoZone:'לא שורטט אזור.',
+            polyImportBtn:'📂 ייבוא',
+            tipPolyImportBtn:'טען אזור מחדש מ-POLYGON(…) WKT או מקובץ KML',
+            polyImportTitle:'ייבוא אזור',
+            polyImportWktLabel:'הדבק POLYGON(…) WKT',
+            polyImportLoad:'טען',
+            polyImportKmlLabel:'…או בחר קובץ KML',
+            polyImportHint:'הפורמט מזוהה אוטומטית. בקובץ KML עם כמה מצולעים ייקרא רק הראשון.',
+            polyImportBad:'האזור אינו קריא: נדרש POLYGON(…) WKT או KML המכיל מצולע.',
+            polyImportOk: n => `האזור יובא (${n} פינות).`,
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -2728,6 +2755,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyWktCopy:'Copia l’area in formato WKT:',
             polyKmlDone: f => `✅ ${f} scaricato.`,
             polyNoZone:'Nessuna area disegnata.',
+            polyImportBtn:'📂 Importa',
+            tipPolyImportBtn:'Ricarica un’area da un POLYGON(…) WKT o da un file KML',
+            polyImportTitle:'Importa un’area',
+            polyImportWktLabel:'Incolla un POLYGON(…) WKT',
+            polyImportLoad:'Carica',
+            polyImportKmlLabel:'…oppure scegli un file KML',
+            polyImportHint:'Il formato viene riconosciuto da solo. In un KML con più poligoni viene letto solo il primo.',
+            polyImportBad:'Area illeggibile: serve un POLYGON(…) WKT o un KML che contenga un poligono.',
+            polyImportOk: n => `Area importata (${n} vertici).`,
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -3147,6 +3183,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyWktCopy:'Bereich als WKT kopieren:',
             polyKmlDone: f => `✅ ${f} heruntergeladen.`,
             polyNoZone:'Kein Bereich gezeichnet.',
+            polyImportBtn:'📂 Import',
+            tipPolyImportBtn:'Einen Bereich aus einem POLYGON(…) WKT oder einer KML-Datei neu laden',
+            polyImportTitle:'Bereich importieren',
+            polyImportWktLabel:'Ein POLYGON(…) WKT einfügen',
+            polyImportLoad:'Laden',
+            polyImportKmlLabel:'…oder eine KML-Datei wählen',
+            polyImportHint:'Das Format wird von selbst erkannt. Bei einer KML mit mehreren Polygonen wird nur das erste gelesen.',
+            polyImportBad:'Bereich nicht lesbar: nötig ist ein POLYGON(…) WKT oder eine KML mit einem Polygon.',
+            polyImportOk: n => `Bereich importiert (${n} Eckpunkte).`,
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -3565,6 +3610,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyWktCopy:'Copiar la zona en formato WKT:',
             polyKmlDone: f => `✅ ${f} descargado.`,
             polyNoZone:'No hay ninguna zona dibujada.',
+            polyImportBtn:'📂 Importar',
+            tipPolyImportBtn:'Recargar una zona desde un POLYGON(…) WKT o un archivo KML',
+            polyImportTitle:'Importar una zona',
+            polyImportWktLabel:'Pegar un POLYGON(…) WKT',
+            polyImportLoad:'Cargar',
+            polyImportKmlLabel:'…o elegir un archivo KML',
+            polyImportHint:'El formato se reconoce solo. En un KML con varios polígonos solo se lee el primero.',
+            polyImportBad:'Zona ilegible: hace falta un POLYGON(…) WKT o un KML que contenga un polígono.',
+            polyImportOk: n => `Zona importada (${n} vértices).`,
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -3983,6 +4037,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} baixado.`,
             polyNoZone:'Nenhuma área desenhada.',
+            polyImportBtn:'📂 Importar',
+            tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um arquivo KML',
+            polyImportTitle:'Importar uma área',
+            polyImportWktLabel:'Colar um POLYGON(…) WKT',
+            polyImportLoad:'Carregar',
+            polyImportKmlLabel:'…ou escolher um arquivo KML',
+            polyImportHint:'O formato é reconhecido sozinho. Em um KML com vários polígonos, só o primeiro é lido.',
+            polyImportBad:'Área ilegível: é preciso um POLYGON(…) WKT ou um KML contendo um polígono.',
+            polyImportOk: n => `Área importada (${n} vértices).`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4401,6 +4464,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} transferido.`,
             polyNoZone:'Nenhuma área desenhada.',
+            polyImportBtn:'📂 Importar',
+            tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um ficheiro KML',
+            polyImportTitle:'Importar uma área',
+            polyImportWktLabel:'Colar um POLYGON(…) WKT',
+            polyImportLoad:'Carregar',
+            polyImportKmlLabel:'…ou escolher um ficheiro KML',
+            polyImportHint:'O formato é reconhecido sozinho. Num KML com vários polígonos, só o primeiro é lido.',
+            polyImportBad:'Área ilegível: é necessário um POLYGON(…) WKT ou um KML que contenha um polígono.',
+            polyImportOk: n => `Área importada (${n} vértices).`,
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -8798,25 +8870,11 @@ const _polySegCentre = (s) => {
     return [m[0], m[1]];
 };
 
-// Orchestration complète, déclenchée par le bouton de l'onglet Configurer.
-const polyDrawAndSelect = async () => {
-    if(_sweepRunning) return;
-    if(sdk.Map.getZoomLevel() < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
-    const etaitReplie = collapsed;
-    let rings = [];
-    _polySetCollapsed(true);                       // libérer la carte pour tracer
-    showToast(t('polyDrawHint'), 5000, '#1565c0');
-    try {
-        rings = _polyRingsOf(await sdk.Map.drawPolygon());
-    } catch(e){
-        _polySetCollapsed(etaitReplie);
-        log('drawPolygon: ' + (e && e.message));
-        showToast(t('polyCancelled'), 2500, '#f57c00');
-        return;
-    }
-    _polySetCollapsed(etaitReplie);
-    if(rings.length < 1 || rings[0].length < 4){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
-
+// Orchestration commune : une fois les anneaux obtenus — tracés à la main OU importés
+// d'un KML / d'un WKT — la suite est rigoureusement la même. D'où cette fonction, que
+// les deux points d'entrée appellent.
+const _polyProcessRings = async (rings) => {
+    if(!rings || rings.length < 1 || rings[0].length < 4){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
     const bbox = _polyBBoxOf(rings);
     const tuiles = _polyTiles(bbox, POLY_TILE_KM);
     _sweepRunning = true; _sweepAborted = false;
@@ -8840,13 +8898,12 @@ const polyDrawAndSelect = async () => {
         // ferait croire à une zone vide.
         if(apiKo){ segs = _polyFromModel(); showToast(t('polyApiFallback'), 5000, '#f57c00'); }
 
-        // Inventaire GEOMETRIQUE complet : ce qui est dans le polygone, tous types
-        // confondus. Il est conserve dans _polyZone.tous pour que changer les types
-        // plus tard ne demande pas de retracer.
+        // Inventaire GÉOMÉTRIQUE complet : ce qui est dans le polygone, tous types
+        // confondus. Conservé dans _polyZone.tous pour que changer les types plus tard
+        // ne demande pas de retracer.
         const retenus = _sweepAborted ? [] : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
         if(_sweepAborted){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
         if(!retenus.length){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyNone'), 3500, '#f57c00'); return; }
-        // Le filtre par type ne decide QUE de ce qu'on selectionne et charge.
         const cible = retenus.filter(s => _polyTypesSet().has(Number(s.roadType)));
         if(!cible.length){
             _polyZone = { rings, bbox, tous: retenus, ids: [], groupes: [] };
@@ -8871,10 +8928,102 @@ const polyDrawAndSelect = async () => {
         updateFab(); updateCountryInfo();
     } catch(e){
         _sweepRunning = false; _sweepHideFooter();
-        log('polyDrawAndSelect: ' + e.message);
+        log('polyProcessRings: ' + e.message);
         showToast(t('polyError', e.message), 5000, '#e53935');
     }
 };
+
+// Tracé à la main, puis traitement commun.
+const polyDrawAndSelect = async () => {
+    if(_sweepRunning) return;
+    if(sdk.Map.getZoomLevel() < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
+    const etaitReplie = collapsed;
+    let rings = [];
+    _polySetCollapsed(true);                       // libérer la carte pour tracer
+    showToast(t('polyDrawHint'), 5000, '#1565c0');
+    try {
+        rings = _polyRingsOf(await sdk.Map.drawPolygon());
+    } catch(e){
+        _polySetCollapsed(etaitReplie);
+        log('drawPolygon: ' + (e && e.message));
+        showToast(t('polyCancelled'), 2500, '#f57c00');
+        return;
+    }
+    _polySetCollapsed(etaitReplie);
+    await _polyProcessRings(rings);
+};
+
+// ── Réimport d'une zone ──────────────────────────────────────────────────────
+// Ce qu'on exporte, on doit savoir le relire : les deux parseurs ci-dessous sont
+// couverts par un test d'ALLER-RETOUR (export → import → mêmes anneaux). C'est ce
+// type de test qui avait révélé, sur le CSV, que WCT ne relisait pas son propre export.
+const _polyFromWKT = (txt) => {
+    if(!txt) return [];
+    // POLYGON((x y, x y, …), (trou…))  —  tolère MULTIPOLYGON en prenant le 1er polygone,
+    // les espaces surnuméraires, la casse, et un éventuel préfixe SRID=4326;
+    let s = String(txt).trim().replace(/^srid\s*=\s*\d+\s*;/i, '').trim();
+    const multi = /^multipolygon/i.test(s);
+    const m = s.match(/^(multi)?polygon\s*z?\s*m?\s*\((.*)\)\s*$/is);
+    if(!m) return [];
+    let corps = m[2].trim();
+    if(multi){                                  // garder le premier polygone seulement
+        const p = corps.match(/^\s*\((.*?)\)\s*(?:,\s*\(|$)/s);
+        if(!p) return [];
+        corps = p[1];
+    }
+    const anneaux = [];
+    const re = /\(([^()]*)\)/g;
+    let g;
+    while((g = re.exec(corps)) !== null){
+        const pts = g[1].trim().split(',').map(c => {
+            const v = c.trim().split(/\s+/);
+            return [parseFloat(v[0]), parseFloat(v[1])];
+        }).filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+        if(pts.length >= 3) anneaux.push(pts);
+    }
+    return _polyClose(anneaux);
+};
+const _polyFromKML = (txt) => {
+    if(!txt) return [];
+    let doc;
+    try { doc = new DOMParser().parseFromString(String(txt), 'text/xml'); } catch(e){ return []; }
+    if(!doc || doc.querySelector('parsererror')) return [];
+    const poly = doc.getElementsByTagName('Polygon')[0];
+    if(!poly) return [];
+    const lire = (el) => {
+        const c = el && el.getElementsByTagName('coordinates')[0];
+        if(!c) return null;
+        const pts = (c.textContent || '').trim().split(/\s+/).map(tri => {
+            const v = tri.split(',');
+            return [parseFloat(v[0]), parseFloat(v[1])];
+        }).filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+        return pts.length >= 3 ? pts : null;
+    };
+    const anneaux = [];
+    const ext = lire(poly.getElementsByTagName('outerBoundaryIs')[0]);
+    if(!ext) return [];
+    anneaux.push(ext);
+    const trous = poly.getElementsByTagName('innerBoundaryIs');
+    for(let i = 0; i < trous.length; i++){ const r = lire(trous[i]); if(r) anneaux.push(r); }
+    return _polyClose(anneaux);
+};
+// Devine le format et rend les anneaux — l'utilisateur n'a pas à le préciser.
+const _polyParseZone = (txt) => {
+    const s = String(txt || '').trim();
+    if(!s) return [];
+    if(/^\s*</.test(s)) return _polyFromKML(s);            // commence par une balise
+    if(/polygon/i.test(s)) return _polyFromWKT(s);
+    return [];
+};
+const _polyImportTexte = async (txt) => {
+    const rings = _polyParseZone(txt);
+    if(!rings.length || rings[0].length < 4){ showToast(t('polyImportBad'), 5000, '#e53935'); return false; }
+    showToast(t('polyImportOk', rings[0].length - 1), 3000, '#43a047');
+    $id('wct-poly-import')?.remove();
+    await _polyProcessRings(rings);
+    return true;
+};
+
 // Bandeau de zone dans Configurer — même famille que le bandeau de cible des virages.
 const renderPolyBanner = () => {
     const pane = $id('wct-pane-cfg'); if(!pane) return;
@@ -9017,9 +9166,32 @@ const _polyApplyTypes = async () => {
     renderPolyBanner(); refreshCfgGate(); updateFab();
 };
 
-// ── Panneau des types ────────────────────────────────────────────────────────
-// Panneau dédié plutôt qu'une rangée de cases dans Configurer : 17 types tiendraient
-// une demi-fenêtre pour un réglage qu'on touche rarement (demande de l'auteur).
+// ── Boîtes flottantes du secteur Zone ────────────────────────────────────────
+// Une seule fabrique pour les deux panneaux : même cadre, même en-tête, mêmes
+// gabarits de boutons. Les rangées de boutons sont en GRILLE à colonnes égales
+// (et non en flex libre) — sans quoi leur largeur suit la longueur du texte et
+// change d'une langue à l'autre.
+const _polyBoxCSS = 'position:absolute;top:64px;left:12px;right:12px;max-height:64%;overflow:auto;'
+    + 'background:var(--wct-surface);border:2px solid var(--wct-blue);border-radius:8px;padding:10px;'
+    + 'box-shadow:var(--wct-shadow);z-index:120';
+const _polyBox = (id, titre) => {
+    document.getElementById(id)?.remove();
+    const box = make('div');
+    box.id = id;
+    box.dir = isRTL() ? 'rtl' : 'ltr';
+    box.style.cssText = _polyBoxCSS;
+    box.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="flex:1;font-weight:700;color:var(--wct-blue)">${escHtml(titre)}</div>
+        <button type="button" class="wct-ico" data-act="close" title="${escHtml(t('polyTypesClose'))}">✕</button>
+      </div>`;
+    return box;
+};
+// Rangée de boutons à colonnes égales.
+const _polyBtnRow = (boutons, marge) => `<div style="display:grid;grid-template-columns:repeat(${boutons.length},1fr);gap:6px;${marge || ''}">`
+    + boutons.map(b => `<button type="button" class="wct-btn wct-btn-sm${b.primaire ? ' wct-btn-primary' : ''}" data-act="${b.act}"${b.off ? ' disabled' : ''}
+        style="width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(b.txt)}</button>`).join('')
+    + '</div>';
+
 const renderPolyTypesPanel = () => {
     const ov = $id('wct-overlay'); if(!ov) return;
     if($id('wct-poly-types')){ $id('wct-poly-types').remove(); return; }   // 2e clic = fermer
@@ -9029,35 +9201,22 @@ const renderPolyTypesPanel = () => {
     const comptes = {};
     (_polyZone?.tous || []).forEach(s => { const rt = Number(s.roadType); comptes[rt] = (comptes[rt] || 0) + 1; });
     const aZone = !!(_polyZone?.tous?.length);
-    const box = make('div');
-    box.id = 'wct-poly-types';
-    box.dir = isRTL() ? 'rtl' : 'ltr';
-    box.style.cssText = 'position:absolute;top:64px;left:12px;right:12px;max-height:64%;overflow:auto;'
-        + 'background:var(--wct-surface);border:2px solid var(--wct-blue);border-radius:8px;padding:10px;'
-        + 'box-shadow:var(--wct-shadow);z-index:120';
+    const box = _polyBox('wct-poly-types', t('polyTypesTitle'));
     const lignes = Object.keys(libelles).map(Number).sort((a, b) => a - b).map(rt => {
         const n = comptes[rt] || 0;
-        return `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:0.917em${(aZone && !n) ? ';opacity:.5' : ''}">
-            <input type="checkbox" class="wct-poly-type" value="${rt}"${coches.has(rt) ? ' checked' : ''}>
-            <span style="flex:1">${escHtml(libelles[rt])}</span>
-            <span style="color:var(--wct-text2);font-variant-numeric:tabular-nums">${n || ''}</span>
+        return `<label style="display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:4px;font-size:0.917em;cursor:pointer${(aZone && !n) ? ';opacity:.45' : ''}">
+            <input type="checkbox" class="wct-poly-type" value="${rt}"${coches.has(rt) ? ' checked' : ''} style="flex:0 0 auto;margin:0">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(libelles[rt])}</span>
+            <span style="flex:0 0 auto;min-width:2.5em;text-align:end;color:var(--wct-text2);font-variant-numeric:tabular-nums">${n || '—'}</span>
         </label>`;
     }).join('');
-    box.innerHTML = `<div style="font-weight:700;color:var(--wct-blue);margin-bottom:6px">${escHtml(t('polyTypesTitle'))}</div>
-        <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-          <button type="button" class="wct-btn wct-btn-sm" data-act="all">${escHtml(t('polyTypesAll'))}</button>
-          <button type="button" class="wct-btn wct-btn-sm" data-act="none">${escHtml(t('polyTypesNone'))}</button>
-          <button type="button" class="wct-btn wct-btn-sm" data-act="reset">${escHtml(t('polyTypesReset'))}</button>
-        </div>
-        ${lignes}
-        <div style="font-size:0.833em;color:var(--wct-text2);margin-top:6px">${escHtml(t('polyTypesHint'))}</div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button type="button" class="wct-btn wct-btn-primary wct-btn-sm" data-act="apply" style="flex:1"${aZone ? '' : ' disabled'}>${escHtml(t('polyTypesApply'))}</button>
-          <button type="button" class="wct-btn wct-btn-sm" data-act="close">${escHtml(t('polyTypesClose'))}</button>
-        </div>`;
+    box.insertAdjacentHTML('beforeend',
+        _polyBtnRow([{ act:'all', txt:t('polyTypesAll') }, { act:'none', txt:t('polyTypesNone') }, { act:'reset', txt:t('polyTypesReset') }], 'margin-bottom:8px')
+        + `<div style="border-top:1px solid var(--wct-border);border-bottom:1px solid var(--wct-border);padding:4px 0;margin-bottom:6px">${lignes}</div>`
+        + `<div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:8px">${escHtml(t('polyTypesHint'))}</div>`
+        + _polyBtnRow([{ act:'apply', txt:t('polyTypesApply'), primaire:true, off:!aZone }, { act:'close', txt:t('polyTypesClose') }]));
     const lire = () => {
-        _polyTypes = new Set([...box.querySelectorAll('.wct-poly-type')]
-            .filter(c => c.checked).map(c => Number(c.value)));
+        _polyTypes = new Set([...box.querySelectorAll('.wct-poly-type')].filter(c => c.checked).map(c => Number(c.value)));
         save();
     };
     box.querySelectorAll('.wct-poly-type').forEach(c => c.addEventListener('change', lire));
@@ -9066,14 +9225,45 @@ const renderPolyTypesPanel = () => {
         if(act === 'close'){ box.remove(); return; }
         if(act === 'apply'){ lire(); box.remove(); _polyApplyTypes(); return; }
         const tous = Object.keys(libelles).map(Number);
-        const cible = act === 'all' ? tous
-                    : act === 'none' ? []
-                    : tous.filter(rt => !POLY_TYPES_HORS_DEFAUT.includes(rt));
+        const cible = act === 'all' ? tous : act === 'none' ? [] : tous.filter(rt => !POLY_TYPES_HORS_DEFAUT.includes(rt));
         box.querySelectorAll('.wct-poly-type').forEach(c => { c.checked = cible.includes(Number(c.value)); });
         lire();
     }));
     ov.appendChild(box);
 };
+
+// Réimport d'une zone : coller un WKT, ou choisir un fichier KML. Le format est
+// deviné — l'éditeur n'a pas à le déclarer.
+const renderPolyImportPanel = () => {
+    const ov = $id('wct-overlay'); if(!ov) return;
+    if($id('wct-poly-import')){ $id('wct-poly-import').remove(); return; }
+    const box = _polyBox('wct-poly-import', t('polyImportTitle'));
+    box.insertAdjacentHTML('beforeend',
+        `<label class="wct-label" style="display:block;margin-bottom:4px">${escHtml(t('polyImportWktLabel'))}</label>
+         <textarea id="wct-poly-wkt-in" class="wct-input" rows="4" spellcheck="false"
+           placeholder="POLYGON((4.30 43.79, 4.31 43.79, 4.31 43.80, 4.30 43.79))"
+           style="width:100%;box-sizing:border-box;font-family:monospace;font-size:0.833em;resize:vertical"></textarea>
+         <div style="margin:8px 0 10px">${_polyBtnRow([{ act:'wkt', txt:t('polyImportLoad'), primaire:true }])}</div>
+         <label class="wct-label" style="display:block;margin-bottom:4px">${escHtml(t('polyImportKmlLabel'))}</label>
+         <input type="file" id="wct-poly-kml-in" accept=".kml,.xml,text/xml"
+           style="width:100%;box-sizing:border-box;font-size:0.833em">
+         <div style="font-size:0.833em;color:var(--wct-text2);margin-top:8px">${escHtml(t('polyImportHint'))}</div>
+         <div style="margin-top:10px">${_polyBtnRow([{ act:'close', txt:t('polyTypesClose') }])}</div>`);
+    box.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+        if(b.dataset.act === 'close'){ box.remove(); return; }
+        _polyImportTexte($id('wct-poly-wkt-in')?.value || '');
+    }));
+    box.querySelector('#wct-poly-kml-in')?.addEventListener('change', e => {
+        const f = e.target.files && e.target.files[0];
+        if(!f) return;
+        const fr = new FileReader();
+        fr.onload = () => _polyImportTexte(String(fr.result || ''));
+        fr.onerror = () => showToast(t('polyImportBad'), 5000, '#e53935');
+        fr.readAsText(f);
+    });
+    ov.appendChild(box);
+};
+
 
 const traceUpdateStripCtrl = () => {
     const ctrl = document.getElementById('wct-gpx-layer-ctrl');
@@ -9386,6 +9576,7 @@ const buildOverlay=()=>{
           <button id="wct-poly-types-btn" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyTypesBtn')}">${t('polyTypesBtn')}</button>
           <button id="wct-poly-kml" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyKmlBtn')}">${t('polyKmlBtn')}</button>
           <button id="wct-poly-wkt" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyWktBtn')}">${t('polyWktBtn')}</button>
+          <button id="wct-poly-import-btn" type="button" class="wct-btn wct-btn-sm" title="${t('tipPolyImportBtn')}">${t('polyImportBtn')}</button>
           <span id="wct-poly-hint" style="flex:1;min-width:140px;font-size:0.833em;color:var(--wct-text2)">${t('polyGateHint')}</span>
         </div>
         <div class="wct-cfg-grid">
@@ -10101,6 +10292,7 @@ const connectOverlay=ov=>{
     $id('wct-poly-types-btn')?.addEventListener('click',()=>{ renderPolyTypesPanel(); });
     $id('wct-poly-kml')?.addEventListener('click',()=>{ polyExportKML(); });
     $id('wct-poly-wkt')?.addEventListener('click',()=>{ polyExportWKT(); });
+    $id('wct-poly-import-btn')?.addEventListener('click',()=>{ renderPolyImportPanel(); });
     $id('wct-btn-collapse')?.addEventListener('click',()=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
