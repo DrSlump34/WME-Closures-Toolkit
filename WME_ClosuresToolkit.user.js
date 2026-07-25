@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.91.01
+// @version      0.92.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -38,6 +38,11 @@
 // @require      https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.js
 // @grant        unsafeWindow
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+// @connect      raw.githubusercontent.com
+// @connect      gist.githubusercontent.com
 // @grant        GM_xmlhttpRequest
 // @connect      date.nager.at
 // @connect      cdn.jsdelivr.net
@@ -1363,6 +1368,16 @@ const t = (key, ...args) => {
             presetColTime:'Horaire', presetColDir:'Dir',
             presetNamePh:'Nom du pr\u00E9r\u00E9glage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Sauvegarder le pr\u00E9r\u00E9glage',
+            btnPrefsExport:'⬇ Exporter', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
+            btnPrefsImport:'⬆ Importer', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
+            prefsURLPrompt:'Adresse du fichier de préréglages :',
+            prefsExported: n => `✅ ${n} préréglage(s) exporté(s).`,
+            prefsImported: n => `✅ Préréglages importés — vous en avez ${n} au total.`,
+            prefsImportBad: r => `❌ Import refusé : ${r}`,
+            prefsRefusJson:'fichier illisible', prefsRefusFormat:'ce n’est pas un fichier de préréglages WCT',
+            prefsRefusAutre:'ce fichier appartient à un autre script', prefsRefusVide:'fichier sans contenu',
+            prefsSafe: s => `Réglages conservés dans : ${s}`,
             btnSave:'Sauvegarder', btnCancel:'Annuler',
             presetErrEmpty:'Entrez un nom.', presetErrDup:'Ce nom existe d\u00E9j\u00E0.',
             presetSaved: n => `\u2705 Pr\u00E9r\u00E9glage \u00AB\u00A0${n}\u00A0\u00BB sauvegard\u00E9.`,
@@ -1800,6 +1815,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             presetColTime:'Schedule', presetColDir:'Dir',
             presetNamePh:'Preset name\u2026',
             presetPopupTitle:'\uD83D\uDCBE Save preset',
+            btnPrefsExport:'⬇ Export', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
+            btnPrefsImport:'⬆ Import', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
+            prefsURLPrompt:'Address of the presets file:',
+            prefsExported: n => `✅ ${n} preset(s) exported.`,
+            prefsImported: n => `✅ Presets imported — you now have ${n}.`,
+            prefsImportBad: r => `❌ Import refused: ${r}`,
+            prefsRefusJson:'unreadable file', prefsRefusFormat:'this is not a WCT presets file',
+            prefsRefusAutre:'this file belongs to another script', prefsRefusVide:'file without content',
+            prefsSafe: s => `Settings kept in: ${s}`,
             btnSave:'Save', btnCancel:'Cancel',
             presetErrEmpty:'Enter a name.', presetErrDup:'This name already exists.',
             presetSaved: n => `\u2705 Preset \u201C${n}\u201D saved.`,
@@ -2237,6 +2262,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'לוח זמנים', presetColDir:'כיוון',
             presetNamePh:'שם התבנית…',
             presetPopupTitle:'💾 שמור תבנית',
+            btnPrefsExport:'⬇ ייצוא', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
+            btnPrefsImport:'⬆ ייבוא', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
+            btnPrefsURL:'🌐 כתובת', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
+            prefsURLPrompt:'כתובת קובץ התבניות:',
+            prefsExported: n => `✅ ${n} תבניות יוצאו.`,
+            prefsImported: n => `✅ התבניות יובאו — יש לך כעת ${n}.`,
+            prefsImportBad: r => `❌ הייבוא נדחה: ${r}`,
+            prefsRefusJson:'קובץ לא קריא', prefsRefusFormat:'זה אינו קובץ תבניות של WCT',
+            prefsRefusAutre:'הקובץ שייך לסקריפט אחר', prefsRefusVide:'קובץ ללא תוכן',
+            prefsSafe: s => `ההגדרות נשמרות ב: ${s}`,
             btnSave:'שמור', btnCancel:'ביטול',
             presetErrEmpty:'הזן שם.', presetErrDup:'שם זה כבר קיים.',
             presetSaved: n => `✅ התבנית “${n}” נשמרה.`,
@@ -2674,6 +2709,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Orario', presetColDir:'Dir',
             presetNamePh:'Nome del preset…',
             presetPopupTitle:'💾 Salva preset',
+            btnPrefsExport:'⬇ Esporta', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
+            btnPrefsImport:'⬆ Importa', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
+            prefsURLPrompt:'Indirizzo del file dei preset:',
+            prefsExported: n => `✅ ${n} preset esportati.`,
+            prefsImported: n => `✅ Preset importati — ora ne hai ${n}.`,
+            prefsImportBad: r => `❌ Importazione rifiutata: ${r}`,
+            prefsRefusJson:'file illeggibile', prefsRefusFormat:'non è un file di preset WCT',
+            prefsRefusAutre:'questo file appartiene a un altro script', prefsRefusVide:'file senza contenuto',
+            prefsSafe: s => `Impostazioni conservate in: ${s}`,
             btnSave:'Salva', btnCancel:'Annulla',
             presetErrEmpty:'Inserisci un nome.', presetErrDup:'Questo nome esiste già.',
             presetSaved: n => `✅ Preset “${n}” salvato.`,
@@ -3112,6 +3157,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Zeitplan', presetColDir:'Richt.',
             presetNamePh:'Name der Vorlage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Vorlage speichern',
+            btnPrefsExport:'⬇ Export', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
+            btnPrefsImport:'⬆ Import', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
+            prefsURLPrompt:'Adresse der Vorlagen-Datei:',
+            prefsExported: n => `✅ ${n} Vorlage(n) exportiert.`,
+            prefsImported: n => `✅ Vorlagen importiert — du hast jetzt ${n}.`,
+            prefsImportBad: r => `❌ Import abgelehnt: ${r}`,
+            prefsRefusJson:'Datei nicht lesbar', prefsRefusFormat:'das ist keine WCT-Vorlagendatei',
+            prefsRefusAutre:'diese Datei gehört einem anderen Skript', prefsRefusVide:'Datei ohne Inhalt',
+            prefsSafe: s => `Einstellungen gespeichert in: ${s}`,
             btnSave:'Speichern', btnCancel:'Abbrechen',
             presetErrEmpty:'Gib einen Namen ein.', presetErrDup:'Dieser Name existiert bereits.',
             presetSaved: n => `\u2705 Vorlage \u201E${n}\u201C gespeichert.`,
@@ -3549,6 +3604,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetColTime:'Horario', presetColDir:'Sent.',
             presetNamePh:'Nombre del preajuste…',
             presetPopupTitle:'💾 Guardar el preajuste',
+            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
+            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
+            prefsURLPrompt:'Dirección del archivo de preajustes:',
+            prefsExported: n => `✅ ${n} preajuste(s) exportado(s).`,
+            prefsImported: n => `✅ Preajustes importados — ahora tienes ${n}.`,
+            prefsImportBad: r => `❌ Importación rechazada: ${r}`,
+            prefsRefusJson:'archivo ilegible', prefsRefusFormat:'no es un archivo de preajustes de WCT',
+            prefsRefusAutre:'este archivo pertenece a otro script', prefsRefusVide:'archivo sin contenido',
+            prefsSafe: s => `Ajustes guardados en: ${s}`,
             btnSave:'Guardar', btnCancel:'Cancelar',
             presetErrEmpty:'Introduce un nombre.', presetErrDup:'Ese nombre ya existe.',
             presetSaved: n => `✅ Preajuste “${n}” guardado.`,
@@ -3986,6 +4051,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Salvar predefinição',
+            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
+            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
+            prefsURLPrompt:'Endereço do arquivo de predefinições:',
+            prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
+            prefsImported: n => `✅ Predefinições importadas — agora você tem ${n}.`,
+            prefsImportBad: r => `❌ Importação recusada: ${r}`,
+            prefsRefusJson:'arquivo ilegível', prefsRefusFormat:'este não é um arquivo de predefinições do WCT',
+            prefsRefusAutre:'este arquivo pertence a outro script', prefsRefusVide:'arquivo sem conteúdo',
+            prefsSafe: s => `Configurações guardadas em: ${s}`,
             btnSave:'Salvar', btnCancel:'Cancelar',
             presetErrEmpty:'Informe um nome.', presetErrDup:'Esse nome já existe.',
             presetSaved: n => `✅ Predefinição “${n}” salva.`,
@@ -4423,6 +4498,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Guardar predefinição',
+            btnPrefsExport:'⬇ Exportar', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
+            btnPrefsImport:'⬆ Importar', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
+            btnPrefsURL:'🌐 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
+            prefsURLPrompt:'Endereço do ficheiro de predefinições:',
+            prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
+            prefsImported: n => `✅ Predefinições importadas — tem agora ${n}.`,
+            prefsImportBad: r => `❌ Importação recusada: ${r}`,
+            prefsRefusJson:'ficheiro ilegível', prefsRefusFormat:'este não é um ficheiro de predefinições do WCT',
+            prefsRefusAutre:'este ficheiro pertence a outro script', prefsRefusVide:'ficheiro sem conteúdo',
+            prefsSafe: s => `Definições guardadas em: ${s}`,
             btnSave:'Guardar', btnCancel:'Cancelar',
             presetErrEmpty:'Introduza um nome.', presetErrDup:'Este nome já existe.',
             presetSaved: n => `✅ Predefinição “${n}” guardada.`,
@@ -5687,8 +5772,269 @@ const waitMapLoaded=()=>new Promise(resolve=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
-const save=()=>{try{localStorage.WCT_v1=JSON.stringify({presets,closeNodes,enabled,displayMode:_displayMode,dateFormat:_dateFormat,cardsCollapsedDefault:_cardsCollapsedDefault,langPref:_langPref,polyTypes:_polyTypes?[..._polyTypes]:null});}catch(e){}};
-const load=()=>{try{if(localStorage.WCT_v1){const d=JSON.parse(localStorage.WCT_v1);presets=d.presets||[];closeNodes=d.closeNodes||NODE_CL.none;enabled=d.enabled!==false;_displayMode=d.displayMode==='compact'?'compact':'normal';if(d.dateFormat&&['dmy','mdy','iso'].includes(d.dateFormat))_dateFormat=d.dateFormat;_cardsCollapsedDefault=d.cardsCollapsedDefault===true;if(d.langPref==='auto'||LANGS.some(x=>x.code===d.langPref))_langPref=d.langPref;if(Array.isArray(d.polyTypes))_polyTypes=new Set(d.polyTypes.map(Number));}}catch(e){}};
+// ═══════════════════════════════════════════════════════════════════════════
+//  WMEPrefs — persistance partagée (copie de la bibliothèque autonome)
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ Copie CONFORME de C:\Users\drslu\Projets\WME-Prefs\WMEPrefs.js, destinée à
+// passer en `@require` dès que la bibliothèque aura son dépôt. Ne pas la modifier
+// ici : corriger la source, puis recopier — sinon les deux divergent en silence.
+// Elle sort les réglages de localStorage (effacé par « Effacer les données de
+// navigation ») vers le stockage du gestionnaire de scripts, qui y survit.
+var WMEPrefs = (function () {
+    'use strict';
+
+    const FORMAT = 'wme-userscript-prefs/1';   // enveloppe des fichiers échangés
+
+    // ── Accès au stockage du gestionnaire, quelle que soit sa génération ─────
+    // Tampermonkey expose GM_getValue (synchrone), les autres GM.getValue
+    // (promesse). On normalise tout en promesse, et on retombe sur localStorage
+    // si aucun n'est accordé — un script sans @grant doit continuer de marcher.
+    const _gm = {
+        get disponible() {
+            return (typeof GM_getValue === 'function' && typeof GM_setValue === 'function')
+                || (typeof GM !== 'undefined' && GM && typeof GM.getValue === 'function');
+        },
+        async get(cle) {
+            if (typeof GM_getValue === 'function') return GM_getValue(cle, undefined);
+            if (typeof GM !== 'undefined' && GM?.getValue) return await GM.getValue(cle, undefined);
+            return undefined;
+        },
+        async set(cle, val) {
+            if (typeof GM_setValue === 'function') return GM_setValue(cle, val);
+            if (typeof GM !== 'undefined' && GM?.setValue) return await GM.setValue(cle, val);
+        },
+    };
+
+    const _ls = {
+        get(cle) { try { return localStorage.getItem(cle) ?? undefined; } catch (e) { return undefined; } },
+        set(cle, val) { try { localStorage.setItem(cle, val); return true; } catch (e) { return false; } },
+    };
+
+    const _parse = (txt) => {
+        if (typeof txt !== 'string' || !txt.trim()) return undefined;
+        try { return JSON.parse(txt); } catch (e) { return undefined; }
+    };
+    const _estObjet = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+    // Fusion en profondeur. L'objet ENTRANT gagne sur les conflits de feuilles,
+    // mais ne supprime jamais une clé absente de lui : importer des préréglages
+    // partagés ne doit pas effacer les réglages personnels de l'éditeur.
+    const _fusion = (base, entrant) => {
+        if (!_estObjet(base)) return entrant;
+        if (!_estObjet(entrant)) return entrant === undefined ? base : entrant;
+        const out = { ...base };
+        for (const [k, v] of Object.entries(entrant)) {
+            out[k] = (_estObjet(v) && _estObjet(base[k])) ? _fusion(base[k], v) : v;
+        }
+        return out;
+    };
+
+    // Téléchargement par Blob : une data URL casserait sur un « # » ou un « ? »
+    // présents dans les données.
+    const _telecharger = (contenu, nomFichier) => {
+        const url = URL.createObjectURL(new Blob([contenu], { type: 'application/json;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.style.display = 'none'; a.href = url; a.download = nomFichier;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    };
+
+    // ⚠️ La CSP de WME interdit tout fetch() vers un domaine externe : la
+    // requête doit partir du contexte de l'extension, donc GM_xmlhttpRequest,
+    // avec le domaine déclaré en @connect par le script hôte.
+    const _recupererURL = (url) => new Promise((resolve, reject) => {
+        if (typeof GM_xmlhttpRequest !== 'function' && !(typeof GM !== 'undefined' && GM?.xmlHttpRequest))
+            return reject(new Error('GM_xmlhttpRequest non accordé : ajoute @grant GM_xmlhttpRequest et @connect <domaine>'));
+        const req = (typeof GM_xmlhttpRequest === 'function') ? GM_xmlhttpRequest : GM.xmlHttpRequest;
+        req({
+            method: 'GET', url, timeout: 20000,
+            onload: r => (r.status >= 200 && r.status < 300)
+                ? resolve(r.responseText)
+                : reject(new Error('HTTP ' + r.status)),
+            onerror: () => reject(new Error('échec réseau (domaine déclaré en @connect ?)')),
+            ontimeout: () => reject(new Error('délai dépassé')),
+        });
+    });
+
+    class Store {
+        constructor(opts) {
+            if (!opts || !opts.scriptId) throw new Error('WMEPrefs : scriptId obligatoire');
+            this.scriptId = String(opts.scriptId);
+            this.scriptName = String(opts.scriptName || opts.scriptId);
+            this.schema = Number.isFinite(opts.schema) ? opts.schema : 1;
+            this.legacyKey = opts.legacyKey || null;
+            this.migrate = typeof opts.migrate === 'function' ? opts.migrate : null;
+            this.cle = 'wmeprefs:' + this.scriptId;
+            this.dernierBackend = null;
+        }
+
+        // Charge les données. Ordre : stockage du gestionnaire, puis miroir
+        // localStorage, puis REPRISE de l'ancienne clé du script (migration
+        // unique et silencieuse — l'utilisateur ne doit rien perdre en migrant).
+        async load() {
+            let enveloppe = _parse(await _gm.get(this.cle));
+            this.dernierBackend = enveloppe ? 'gm' : null;
+
+            if (!enveloppe) {
+                enveloppe = _parse(_ls.get(this.cle));
+                if (enveloppe) this.dernierBackend = 'localStorage';
+            }
+            if (!enveloppe && this.legacyKey) {
+                const ancien = _parse(_ls.get(this.legacyKey));
+                if (ancien !== undefined) {
+                    const donnees = this._migrer(ancien, 0);
+                    await this.save(donnees);      // recopié dans le nouveau socle
+                    // ⚠️ APRÈS le save, jamais avant : save() repositionne
+                    // dernierBackend, et l'information « on vient de reprendre
+                    // l'ancien stockage » serait perdue — or c'est précisément
+                    // ce qu'on veut pouvoir dire à l'utilisateur.
+                    this.dernierBackend = 'migration';
+                    return donnees;
+                }
+            }
+            if (!enveloppe) { this.dernierBackend = 'vide'; return {}; }
+
+            const brut = _estObjet(enveloppe) && 'payload' in enveloppe ? enveloppe.payload : enveloppe;
+            const depuis = _estObjet(enveloppe) ? (enveloppe.schema ?? 0) : 0;
+            return this._migrer(brut, depuis);
+        }
+
+        _migrer(donnees, depuis) {
+            if (!_estObjet(donnees)) return {};
+            if (depuis === this.schema || !this.migrate) return donnees;
+            try { return this.migrate(donnees, depuis, this.schema) || donnees; }
+            catch (e) { console.warn('[WMEPrefs] migration ' + this.scriptId + ' : ' + e.message); return donnees; }
+        }
+
+        _enveloppe(donnees) {
+            return {
+                format: FORMAT, script: this.scriptId, scriptName: this.scriptName,
+                schema: this.schema, savedAt: new Date().toISOString(), payload: donnees,
+            };
+        }
+
+        // Écrit dans le stockage du gestionnaire ET dans localStorage.
+        // Le miroir est volontaire : il permet de relire les réglages même si
+        // l'utilisateur retire les @grant, et sert de repli si GM est absent.
+        async save(donnees) {
+            const txt = JSON.stringify(this._enveloppe(donnees));
+            let ok = false;
+            if (_gm.disponible) { try { await _gm.set(this.cle, txt); ok = true; } catch (e) {} }
+            const okLs = _ls.set(this.cle, txt);
+            this.dernierBackend = ok ? 'gm' : (okLs ? 'localStorage' : 'aucun');
+            return ok || okLs;
+        }
+
+        // opts.only : n'exporter QUE ces clés de premier niveau.
+        // Sert au partage : envoyer ses préréglages à un autre éditeur ne doit pas
+        // lui imposer au passage sa langue, son thème et ses préférences d'affichage.
+        async exportData(opts = {}) {
+            const tout = await this.load();
+            if (!Array.isArray(opts.only) || !opts.only.length) return tout;
+            const partiel = {};
+            for (const k of opts.only) if (k in tout) partiel[k] = tout[k];
+            return partiel;
+        }
+
+        async exportFile(nomFichier, opts = {}) {
+            const donnees = await this.exportData(opts);
+            const nom = nomFichier || (this.scriptId + '-prefs-' + new Date().toISOString().slice(0, 10) + '.json');
+            _telecharger(JSON.stringify(this._enveloppe(donnees), null, 2), nom);
+            return { nom, cles: Object.keys(donnees) };
+        }
+
+        // Contrôle strict avant d'écraser quoi que ce soit : un fichier d'un
+        // AUTRE script, ou un JSON quelconque, doit être refusé avec une raison
+        // lisible plutôt que d'écrire n'importe quoi dans les préférences.
+        inspect(texte) {
+            const j = _parse(texte);
+            if (j === undefined) return { ok: false, raison: 'json-invalide' };
+            if (!_estObjet(j)) return { ok: false, raison: 'json-invalide' };
+            if (j.format !== FORMAT) return { ok: false, raison: 'format-inconnu', format: j.format ?? null };
+            if (!_estObjet(j.payload)) return { ok: false, raison: 'contenu-absent' };
+            if (j.script !== this.scriptId) return { ok: false, raison: 'autre-script', script: j.script ?? null };
+            return { ok: true, schema: j.schema ?? 0, savedAt: j.savedAt || null, payload: j.payload };
+        }
+
+        // mode 'merge' (défaut) : complète l'existant sans rien effacer.
+        // mode 'replace' : remplace tout — réservé à une restauration assumée.
+        async importFromText(texte, opts = {}) {
+            const info = this.inspect(texte);
+            if (!info.ok) return { ok: false, raison: info.raison, script: info.script, format: info.format };
+            const entrant = this._migrer(info.payload, info.schema);
+            const donnees = (opts.mode === 'replace') ? entrant : _fusion(await this.load(), entrant);
+            await this.save(donnees);
+            return { ok: true, mode: opts.mode === 'replace' ? 'replace' : 'merge', donnees, savedAt: info.savedAt };
+        }
+
+        async importFromFile(fichier, opts = {}) {
+            const texte = await new Promise((resolve, reject) => {
+                const fr = new FileReader();
+                fr.onload = () => resolve(String(fr.result || ''));
+                fr.onerror = () => reject(new Error('lecture impossible'));
+                fr.readAsText(fichier);
+            });
+            return this.importFromText(texte, opts);
+        }
+
+        async importFromURL(url, opts = {}) {
+            return this.importFromText(await _recupererURL(url), opts);
+        }
+
+        // De quoi afficher honnêtement à l'utilisateur OÙ vivent ses réglages.
+        info() {
+            return {
+                scriptId: this.scriptId, schema: this.schema,
+                socle: _gm.disponible ? 'gestionnaire de scripts' : 'localStorage (navigateur)',
+                resistantAuNettoyage: _gm.disponible,
+                dernierAcces: this.dernierBackend,
+            };
+        }
+    }
+
+    return {
+        FORMAT,
+        create: (opts) => new Store(opts),
+        _internes: { _fusion, _parse, _estObjet },   // exposés pour les tests
+    };
+})();
+
+// Réglages persistés. ⚠️ `save()` reste SYNCHRONE : il est appelé depuis une
+// dizaine de gestionnaires d'événements qui ne peuvent pas l'attendre. L'écriture
+// part sans être awaitée — sous Tampermonkey GM_setValue est de toute façon
+// synchrone, et la bibliothèque double l'écriture dans localStorage.
+let _prefs = null;
+const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMode,
+    dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
+    langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null });
+const _appliquerPrefs = d => {
+    if(!d || typeof d !== 'object') return;
+    presets = d.presets || [];
+    closeNodes = d.closeNodes || NODE_CL.none;
+    enabled = d.enabled !== false;
+    _displayMode = d.displayMode === 'compact' ? 'compact' : 'normal';
+    if(d.dateFormat && ['dmy','mdy','iso'].includes(d.dateFormat)) _dateFormat = d.dateFormat;
+    _cardsCollapsedDefault = d.cardsCollapsedDefault === true;
+    if(d.langPref === 'auto' || LANGS.some(x => x.code === d.langPref)) _langPref = d.langPref;
+    if(Array.isArray(d.polyTypes)) _polyTypes = new Set(d.polyTypes.map(Number));
+};
+const save = () => {
+    const d = _prefsData();
+    if(_prefs){ _prefs.save(d).catch(e => log('save: ' + e.message)); return; }
+    try { localStorage.WCT_v1 = JSON.stringify(d); } catch(e) {}   // avant l'init
+};
+// ⚠️ ASYNCHRONE désormais : init() doit l'attendre AVANT resolveLang(), sinon la
+// langue est décidée sur des préférences pas encore chargées.
+const load = async () => {
+    try {
+        _prefs = WMEPrefs.create({ scriptId: SCRIPT_ID, scriptName: SCRIPT_NAME, schema: 1,
+                                   legacyKey: 'WCT_v1' });   // reprend l'ancien stockage
+        _appliquerPrefs(await _prefs.load());
+    } catch(e) {
+        log('load: ' + e.message);
+        try { _appliquerPrefs(JSON.parse(localStorage.WCT_v1 || '{}')); } catch(e2) {}
+    }
+};
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9908,6 +10254,15 @@ const buildOverlay=()=>{
 
       <!-- ONGLET PREREGLAGES -->
       <div id="wct-pane-pre" class="wct-main-pane">
+        <!-- Sauvegarde et partage. L'export ne sort QUE les préréglages : envoyer
+             les siens à un autre éditeur ne doit pas lui imposer sa langue ni son thème. -->
+        <div id="wct-prefs-bar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <button id="wct-prefs-export" type="button" class="wct-btn wct-btn-sm" title="${t('tipPrefsExport')}">${t('btnPrefsExport')}</button>
+          <button id="wct-prefs-import" type="button" class="wct-btn wct-btn-sm" title="${t('tipPrefsImport')}">${t('btnPrefsImport')}</button>
+          <button id="wct-prefs-url" type="button" class="wct-btn wct-btn-sm" title="${t('tipPrefsURL')}">${t('btnPrefsURL')}</button>
+          <input type="file" id="wct-prefs-file" accept=".json,application/json" style="display:none">
+          <span id="wct-prefs-info" style="flex:1;min-width:130px;font-size:0.833em;color:var(--wct-text2)"></span>
+        </div>
         <div id="wct-presets-empty" class="wct-queue-empty" style="display:none">${t('queueEmpty')}</div>
         <table id="wct-presets-table" style="width:100%;border-collapse:collapse;font-size:1em">
           <thead><tr>
@@ -10941,6 +11296,41 @@ const connectOverlay=ov=>{
             else showToast(t('lotsAllDone'),4000,'#43a047');
         }
     });
+    // ── Sauvegarde / partage des préréglages ──────────────────────────────
+    const _prefsRefus = r => r === 'json-invalide' ? t('prefsRefusJson')
+        : r === 'format-inconnu' ? t('prefsRefusFormat')
+        : r === 'contenu-absent' ? t('prefsRefusVide') : t('prefsRefusAutre');
+    const _prefsApresImport = async res => {
+        if(!res.ok){ showToast(t('prefsImportBad', _prefsRefus(res.raison)), 5000, '#e53935'); return; }
+        _appliquerPrefs(await _prefs.load());
+        renderPresetsTable();
+        showToast(t('prefsImported', presets.length), 3500, '#43a047');
+    };
+    $id('wct-prefs-export')?.addEventListener('click', async () => {
+        if(!_prefs) return;
+        // only:['presets'] — partager ses préréglages, pas ses préférences
+        const r = await _prefs.exportFile(null, { only:['presets'] });
+        showToast(t('prefsExported', presets.length), 3500, '#43a047');
+    });
+    $id('wct-prefs-import')?.addEventListener('click', () => $id('wct-prefs-file')?.click());
+    $id('wct-prefs-file')?.addEventListener('change', async e => {
+        const f = e.target.files && e.target.files[0];
+        e.target.value = '';                       // re-choisir le même fichier reste possible
+        if(!f || !_prefs) return;
+        try { await _prefsApresImport(await _prefs.importFromFile(f, { mode:'merge' })); }
+        catch(err){ showToast(t('prefsImportBad', err.message), 5000, '#e53935'); }
+    });
+    $id('wct-prefs-url')?.addEventListener('click', async () => {
+        if(!_prefs) return;
+        const url = prompt(t('prefsURLPrompt'), 'https://raw.githubusercontent.com/');
+        if(!url) return;
+        try { await _prefsApresImport(await _prefs.importFromURL(url, { mode:'merge' })); }
+        catch(err){ showToast(t('prefsImportBad', err.message), 6000, '#e53935'); }
+    });
+    // Dire honnêtement OÙ vivent les réglages : le stockage du gestionnaire résiste
+    // au nettoyage du navigateur, localStorage non.
+    const _infoPrefs = $id('wct-prefs-info');
+    if(_infoPrefs && _prefs) _infoPrefs.textContent = t('prefsSafe', _prefs.info().socle);
     // Popup preset
     const popup=$id('wct-preset-popup'),nameInp=$id('wct-preset-name-input'),nameErr=$id('wct-preset-name-err');
     $id('wct-preset-save-btn')?.addEventListener('click',()=>{
@@ -11543,7 +11933,7 @@ const buildSidebar=()=>`
 // ===========================================================================
 const init=async()=>{
     sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME});
-    load();                 // charge _langPref…
+    await load();           // charge _langPref… (asynchrone : voir load())
     _lang=resolveLang();    // …qui décide si on suit WME ou une langue forcée
     // Sidebar
     try {
