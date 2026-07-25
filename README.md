@@ -9,7 +9,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_0.86.00_normal.png)
+![WME Closures Toolkit](capture_0.91.00_normal.png)
 
 ## Features
 
