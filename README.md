@@ -11,6 +11,10 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 
 ![WME Closures Toolkit](capture_0.96.00_normal.png)
 
+Drop any file into the Import tab — the content decides where it goes:
+
+![Import tab](capture_0.96.00_import.png)
+
 ## Features
 
 - **Recurring closures with a queue** — build up a batch, review it, apply it in one pass.
