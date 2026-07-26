@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.97.00
+// @version      0.97.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1091,6 +1091,7 @@ const t = (key, ...args) => {
             tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — reconnu : ${ty}`,
             impInconnu: f => `❌ ${f} — format non reconnu. Acceptés : CSV de fermetures, GPX, KML, KMZ, GeoJSON, Shapefile, préréglages WCT, ou POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — l’import a échoué : ${m}`,
             impMixte: (p,l) => `Ce fichier contient ${p} polygone(s) ET ${l} tracé(s).\n\nOK = en faire une ZONE de sélection.\nAnnuler = les charger comme TRACÉS.`,
             impTypeCsv:'fermetures (CSV)', impTypeTrace:'tracé', impTypeZone:'zone', impTypePrefs:'préréglages',
             impColFormat:'Format', impColQuoi:'Contenu', impColOu:'Traité dans',
@@ -1560,6 +1561,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tabCfg:'\u2699 Configure', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — recognised: ${ty}`,
             impInconnu: f => `❌ ${f} — format not recognised. Accepted: closure CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT presets, or POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — import failed: ${m}`,
             impMixte: (p,l) => `This file holds ${p} polygon(s) AND ${l} track(s).\n\nOK = make it a selection AREA.\nCancel = load them as TRACKS.`,
             impTypeCsv:'closures (CSV)', impTypeTrace:'track', impTypeZone:'area', impTypePrefs:'presets',
             impColFormat:'Format', impColQuoi:'Content', impColOu:'Handled in',
@@ -2014,6 +2016,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tabCfg:'⚙ הגדרה', tabCsv:'\uD83D\uDCE5 ייבוא',
             impReconnu: (f,ty) => `✅ ${f} — זוהה: ${ty}`,
             impInconnu: f => `❌ ${f} — הפורמט לא זוהה. מתקבלים: CSV של חסימות, GPX, KML, KMZ, GeoJSON, Shapefile, תבניות WCT, או POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — הייבוא נכשל: ${m}`,
             impMixte: (p,l) => `הקובץ מכיל ${p} מצולעים וגם ${l} מסלולים.\n\nאישור = ליצור אזור בחירה.\nביטול = לטעון כמסלולים.`,
             impTypeCsv:'חסימות (CSV)', impTypeTrace:'מסלול', impTypeZone:'אזור', impTypePrefs:'תבניות',
             impColFormat:'פורמט', impColQuoi:'תוכן', impColOu:'מטופל ב',
@@ -2468,6 +2471,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tabCfg:'⚙ Configura', tabCsv:'\uD83D\uDCE5 Importa',
             impReconnu: (f,ty) => `✅ ${f} — riconosciuto: ${ty}`,
             impInconnu: f => `❌ ${f} — formato non riconosciuto. Accettati: CSV di chiusure, GPX, KML, KMZ, GeoJSON, Shapefile, preset WCT o POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — importazione non riuscita: ${m}`,
             impMixte: (p,l) => `Questo file contiene ${p} poligono/i E ${l} tracciato/i.\n\nOK = farne un’AREA di selezione.\nAnnulla = caricarli come TRACCIATI.`,
             impTypeCsv:'chiusure (CSV)', impTypeTrace:'tracciato', impTypeZone:'area', impTypePrefs:'preset',
             impColFormat:'Formato', impColQuoi:'Contenuto', impColOu:'Gestito in',
@@ -2923,6 +2927,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — erkannt: ${ty}`,
             impInconnu: f => `❌ ${f} — Format nicht erkannt. Angenommen: Sperrungs-CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT-Vorlagen oder POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — Import fehlgeschlagen: ${m}`,
             impMixte: (p,l) => `Diese Datei enthält ${p} Polygon(e) UND ${l} Track(s).\n\nOK = daraus einen Auswahl-BEREICH machen.\nAbbrechen = als TRACKS laden.`,
             impTypeCsv:'Sperrungen (CSV)', impTypeTrace:'Track', impTypeZone:'Bereich', impTypePrefs:'Vorlagen',
             impColFormat:'Format', impColQuoi:'Inhalt', impColOu:'Verarbeitet in',
@@ -3377,6 +3382,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconocido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato no reconocido. Se aceptan: CSV de cierres, GPX, KML, KMZ, GeoJSON, Shapefile, preajustes WCT o POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — la importación falló: ${m}`,
             impMixte: (p,l) => `Este archivo contiene ${p} polígono(s) Y ${l} traza(s).\n\nAceptar = convertirlo en una ZONA de selección.\nCancelar = cargarlas como TRAZAS.`,
             impTypeCsv:'cierres (CSV)', impTypeTrace:'traza', impTypeZone:'zona', impTypePrefs:'preajustes',
             impColFormat:'Formato', impColQuoi:'Contenido', impColOu:'Se trata en',
@@ -3831,6 +3837,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceitos: CSV de bloqueios, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — falha na importação: ${m}`,
             impMixte: (p,l) => `Este arquivo contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar em ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
             impTypeCsv:'bloqueios (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
             impColFormat:'Formato', impColQuoi:'Conteúdo', impColOu:'Tratado em',
@@ -4285,6 +4292,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceites: CSV de cortes, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
+            impErreur: (f,m) => `⚠️ ${f} — falha na importação: ${m}`,
             impMixte: (p,l) => `Este ficheiro contém ${p} polígono(s) E ${l} trajeto(s).\n\nOK = transformar numa ÁREA de seleção.\nCancelar = carregar como TRAJETOS.`,
             impTypeCsv:'cortes (CSV)', impTypeTrace:'trajeto', impTypeZone:'área', impTypePrefs:'predefinições',
             impColFormat:'Formato', impColQuoi:'Conteúdo', impColOu:'Tratado em',
@@ -11622,28 +11630,29 @@ class CsvClosure{
 //   'inconnu' → rien de reconnaissable, on le dit franchement
 const _impDetecter = (nom, texte) => {
     const ext = String(nom || '').toLowerCase().split('.').pop();
-    const t = String(texte || '');
+    // Nommée `txt` et surtout PAS `t` : voir l'avertissement sur _impNomType plus bas.
+    const txt = String(texte || '');
     const vide = { lignes: 0, polygones: 0 };
 
     // 1. Binaires : jamais lus en texte. « PK » = signature ZIP (kmz, shapefile
     //    zippé) — traceHandleFiles sait déjà démêler les deux.
-    if (ext === 'kmz' || ext === 'zip' || ext === 'shp' || t.startsWith('PK'))
+    if (ext === 'kmz' || ext === 'zip' || ext === 'shp' || txt.startsWith('PK'))
         return { type: 'trace', ...vide };
 
     // 2. Préférences : l'enveloppe est explicite, elle passe avant l'analyse JSON.
-    if (t.includes('wme-userscript-prefs/')) return { type: 'prefs', ...vide };
+    if (txt.includes('wme-userscript-prefs/')) return { type: 'prefs', ...vide };
 
     // 3. WKT collé ou déposé
-    if (/^\s*(srid\s*=\s*\d+\s*;)?\s*(multi)?polygon\s*z?\s*m?\s*\(/i.test(t))
+    if (/^\s*(srid\s*=\s*\d+\s*;)?\s*(multi)?polygon\s*z?\s*m?\s*\(/i.test(txt))
         return { type: 'zone', lignes: 0, polygones: 1 };
 
     // 4. GPX : toujours des tracés
-    if (ext === 'gpx' || /<gpx[\s>]/i.test(t)) return { type: 'trace', ...vide };
+    if (ext === 'gpx' || /<gpx[\s>]/i.test(txt)) return { type: 'trace', ...vide };
 
     // 5. GeoJSON — compter les géométries, la nature du fichier en dépend
-    if (/^\s*[{[]/.test(t)) {
+    if (/^\s*[{[]/.test(txt)) {
         let j = null;
-        try { j = JSON.parse(t); } catch (e) { return { type: 'inconnu', ...vide }; }
+        try { j = JSON.parse(txt); } catch (e) { return { type: 'inconnu', ...vide }; }
         const c = { lignes: 0, polygones: 0 };
         const compter = g => {
             if (!g || typeof g !== 'object') return;
@@ -11662,9 +11671,9 @@ const _impDetecter = (nom, texte) => {
     }
 
     // 6. KML — même raisonnement, sur les balises
-    if (/<kml[\s>]/i.test(t) || ext === 'kml') {
-        const c = { lignes: (t.match(/<LineString[\s>]/gi) || []).length,
-                    polygones: (t.match(/<Polygon[\s>]/gi) || []).length };
+    if (/<kml[\s>]/i.test(txt) || ext === 'kml') {
+        const c = { lignes: (txt.match(/<LineString[\s>]/gi) || []).length,
+                    polygones: (txt.match(/<Polygon[\s>]/gi) || []).length };
         if (c.lignes && c.polygones) return { type: 'mixte', ...c };
         if (c.polygones) return { type: 'zone', ...c };
         if (c.lignes) return { type: 'trace', ...c };
@@ -11673,12 +11682,12 @@ const _impDetecter = (nom, texte) => {
 
     // 7. CSV : une ligne d'action reconnue suffit. handleCSV distingue ensuite
     //    `add-turn` (virages, format WCT) de `add`/`remove` (segments, format AC).
-    if (/(^|\n)\s*"?(add-turn|add|remove)"?\s*,/i.test(t)) return { type: 'csv', ...vide };
+    if (/(^|\n)\s*"?(add-turn|add|remove)"?\s*,/i.test(txt)) return { type: 'csv', ...vide };
     // Repli par extension — volontairement STRICT : « Bonjour, ceci est une note. »
     // dans un .txt contient une virgule sans être pour autant un tableau. On exige
     // la signature d'un vrai tableau : plusieurs lignes de même largeur, ≥ 3 colonnes.
     if (ext === 'csv' || ext === 'txt') {
-        const l = t.split(/\r?\n/).filter(x => x.trim()).slice(0, 5).map(x => x.split(',').length);
+        const l = txt.split(/\r?\n/).filter(x => x.trim()).slice(0, 5).map(x => x.split(',').length);
         if (l.length >= 2 && l[0] >= 3 && l.every(n => n === l[0])) return { type: 'csv', ...vide };
     }
 
@@ -11694,10 +11703,23 @@ const _impLire = (f) => new Promise(resolve => {
     fr.onerror = () => resolve('');
     fr.readAsText(f.slice(0, 200000));
 });
+// Le prélèvement de _impLire (200 ko) suffit à RECONNAÎTRE un fichier, jamais à
+// l'importer : un KML de zone au tracé fin dépasse vite cette taille et arriverait
+// tronqué — donc illisible, avec un « format invalide » incompréhensible. Pour
+// l'import réel d'une zone, on relit tout le fichier.
+const _impLireTout = (f) => new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ''));
+    fr.onerror = () => resolve('');
+    fr.readAsText(f);
+});
 const _impVersOnglet = (tab) => document.querySelector(`#wct-main-tabs .wct-main-tab[data-tab="${tab}"]`)?.click();
 const _impLog = (html) => { const el = $id('wct-csv-log'); if(el) el.innerHTML = html; };
-const _impNomType = (t) => t === 'csv' ? t('impTypeCsv') : t === 'trace' ? t('impTypeTrace')
-                         : t === 'zone' ? t('impTypeZone') : t === 'prefs' ? t('impTypePrefs') : '?';
+// ⚠️ NE JAMAIS nommer `t` un paramètre ici : il masquerait la fonction de traduction
+// et l'appel exploserait en TypeError (bug 0.97.01 — l'onglet Import ne réagissait
+// plus à AUCUN fichier reconnu, l'exception partant avant le try de _impUnFichier).
+const _impNomType = (ty) => ty === 'csv' ? t('impTypeCsv') : ty === 'trace' ? t('impTypeTrace')
+                          : ty === 'zone' ? t('impTypeZone') : ty === 'prefs' ? t('impTypePrefs') : '?';
 
 // Reconnaît un fichier, le confie au bon module, puis amène l'utilisateur là où la
 // suite se passe — c'est tout l'intérêt : après un import, on ne cherche pas où aller.
@@ -11718,7 +11740,7 @@ const _impUnFichier = async (f) => {
     try {
         if(type === 'csv'){ handleCSV([f]); _impVersOnglet('cfg'); }
         else if(type === 'trace'){ traceHandleFiles([f]); _impVersOnglet('gpx'); }
-        else if(type === 'zone'){ _impVersOnglet('cfg'); await _polyImportTexte(texte); }
+        else if(type === 'zone'){ _impVersOnglet('cfg'); await _polyImportTexte(await _impLireTout(f)); }
         else if(type === 'prefs'){
             if(!_prefs) return false;
             const r = await _prefs.importFromFile(f, { mode:'merge' });
@@ -11727,10 +11749,26 @@ const _impUnFichier = async (f) => {
             else showToast(t('prefsImportBad', r.raison), 5000, '#e53935');
             _impVersOnglet('pre');
         }
-    } catch(e){ log('import: ' + e.message); showToast(t('impInconnu', f.name), 5000, '#e53935'); }
+    } catch(e){ _impEchec(f, e); }
     return true;
 };
-const _impFichiers = async (files) => { for(const f of Array.from(files || [])) await _impUnFichier(f); };
+// Un plantage n'est PAS un « format non reconnu » : le dire ainsi enverrait l'éditeur
+// corriger un fichier qui n'a rien. Message distinct, journal ET toast.
+const _impEchec = (f, e) => {
+    const msg = (e && e.message) || String(e);
+    log('import: ' + msg);
+    _impLog(`<span style="color:var(--wct-red)">${escHtml(t('impErreur', f.name, msg))}</span>`);
+    showToast(t('impErreur', f.name, msg), 6000, '#e53935');
+};
+// ⚠️ FILET — ce point d'entrée est appelé par des ÉCOUTEURS (clic, dépôt). Sans ce
+// try/catch, une exception part dans une promesse rejetée que personne n'attrape :
+// l'onglet reste MUET. C'était exactement le symptôme du bug 0.97.01.
+const _impFichiers = async (files) => {
+    for(const f of Array.from(files || [])){
+        try { await _impUnFichier(f); }
+        catch(e){ _impEchec(f, e); }
+    }
+};
 
 const parseCSV=text=>{
     const rows=CSVtoArray(text).filter(r=>r.length>=1&&['add','remove'].includes(r[0]));
