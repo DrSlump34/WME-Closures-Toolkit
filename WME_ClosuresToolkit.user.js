@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.97.01
+// @version      0.97.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -1541,6 +1541,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sbDateMdy:'MM/JJ/AAAA (USA)',
             sbDateIso:'AAAA-MM-JJ (ISO)',
             sbDateAuto:'(détecté automatiquement)',
+            sbDateScope:'Concerne la file, les journaux et les exports. Les champs de saisie, eux, suivent la langue de votre navigateur.',
             // Aide
             helpH1:'\uD83D\uDE80 D\u00E9marrage rapide', helpH2:'\u2699\uFE0F Configurer une fermeture',
             helpH3:'\uD83D\uDCCB File d\u2019attente', helpH4:'\uD83D\uDCE5 Importer un fichier',
@@ -1997,6 +1998,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateMdy:'MM/DD/YYYY (USA)',
             sbDateIso:'YYYY-MM-DD (ISO)',
             sbDateAuto:'(auto-detected)',
+            sbDateScope:'Applies to the queue, the logs and the exports. Input fields follow your browser’s language instead.',
             helpH1:'\uD83D\uDE80 Quick start', helpH2:'\u2699\uFE0F Configure a closure',
             helpH3:'\uD83D\uDCCB Queue', helpH4:'\uD83D\uDCE5 Import a file',
             helpH5:'\uD83D\uDCBE Presets', helpH6:'\u26A0\uFE0F Common errors & limits', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Preferences',
@@ -2452,6 +2454,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateMdy:'MM/DD/YYYY (ארה"ב)',
             sbDateIso:'YYYY-MM-DD (ISO)',
             sbDateAuto:'(זוהה אוטומטית)',
+            sbDateScope:'חל על התור, היומנים והייצוא. שדות הקלט, לעומת זאת, פועלים לפי שפת הדפדפן שלך.',
             helpH1:'🚀 התחלה מהירה', helpH2:'⚙️ הגדרת חסימה',
             helpH3:'📋 תור', helpH4:'📥 ייבוא קובץ',
             helpH5:'💾 תבניות', helpH6:'⚠️ שגיאות נפוצות ומגבלות', helpH7:'🖥️ סרגל צד / העדפות',
@@ -2907,6 +2910,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateMdy:'MM/GG/AAAA (USA)',
             sbDateIso:'AAAA-MM-GG (ISO)',
             sbDateAuto:'(rilevato automaticamente)',
+            sbDateScope:'Riguarda la coda, i registri e le esportazioni. I campi di immissione seguono invece la lingua del browser.',
             helpH1:'🚀 Avvio rapido', helpH2:'⚙️ Configura una chiusura',
             helpH3:'📋 Coda', helpH4:'📥 Importare un file',
             helpH5:'💾 Preset', helpH6:'⚠️ Errori comuni e limiti', helpH7:'🖥️ Barra laterale / Preferenze',
@@ -3363,6 +3367,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbDateMdy:'MM/TT/JJJJ (USA)',
             sbDateIso:'JJJJ-MM-TT (ISO)',
             sbDateAuto:'(automatisch erkannt)',
+            sbDateScope:'Gilt für die Warteschlange, die Protokolle und die Exporte. Die Eingabefelder richten sich dagegen nach der Sprache Ihres Browsers.',
             helpH1:'\uD83D\uDE80 Schnellstart', helpH2:'\u2699\uFE0F Eine Sperrung einrichten',
             helpH3:'\uD83D\uDCCB Warteschlange', helpH4:'\uD83D\uDCE5 Datei importieren',
             helpH5:'\uD83D\uDCBE Vorlagen', helpH6:'\u26A0\uFE0F H\u00E4ufige Fehler & Grenzen', helpH7:'\uD83D\uDDA5\uFE0F Seitenleiste / Einstellungen',
@@ -3818,6 +3823,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sbDateMdy:'MM/DD/AAAA (EE. UU.)',
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detectado automáticamente)',
+            sbDateScope:'Afecta a la cola, los registros y las exportaciones. En cambio, los campos de entrada siguen el idioma de su navegador.',
             helpH1:'🚀 Inicio rápido', helpH2:'⚙️ Configurar un cierre',
             helpH3:'📋 Cola', helpH4:'📥 Importar un archivo',
             helpH5:'💾 Preajustes', helpH6:'⚠️ Errores frecuentes y límites', helpH7:'🖥️ Barra lateral / Preferencias',
@@ -4273,6 +4279,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbDateMdy:'MM/DD/AAAA (EUA)',
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detectado automaticamente)',
+            sbDateScope:'Vale para a fila, os registros e as exportações. Já os campos de entrada seguem o idioma do seu navegador.',
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um bloqueio',
             helpH3:'📋 Fila', helpH4:'📥 Importar um arquivo',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
@@ -4728,6 +4735,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbDateMdy:'MM/DD/AAAA (EUA)',
             sbDateIso:'AAAA-MM-DD (ISO)',
             sbDateAuto:'(detetado automaticamente)',
+            sbDateScope:'Vale para a fila, os registos e as exportações. Já os campos de entrada seguem o idioma do seu navegador.',
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um corte',
             helpH3:'📋 Fila', helpH4:'📥 Importar um ficheiro',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
@@ -5012,37 +5020,37 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>Activer l’outil</b></td><td>Active ou désactive WCT. Désactivé, le bouton 🚧 reste visible mais l’overlay ne s’ouvre pas.</td></tr>
             <tr><td><b>Affichage</b></td><td>Choisissez entre <b>Normal</b> (interface standard) et <b>Windows 95</b> (ultra-compact, coins carrés, palette grise classique). Préférence sauvegardée.</td></tr>
-            <tr><td><b>Format des dates</b></td><td>Contrôle l’affichage dans la file et les logs.<br><b>JJ/MM/AAAA</b> — Europe (défaut)<br><b>MM/JJ/AAAA</b> — USA<br><b>AAAA-MM-JJ</b> — ISO<br>Détecté via <code>navigator.language</code>, forçable manuellement. Préférence sauvegardée.</td></tr>
+            <tr><td><b>Format des dates</b></td><td>Contrôle l’affichage dans la file et les logs.<br><b>JJ/MM/AAAA</b> — Europe (défaut)<br><b>MM/JJ/AAAA</b> — USA<br><b>AAAA-MM-JJ</b> — ISO<br>Détecté via <code>navigator.language</code>, forçable manuellement. Préférence sauvegardée.<br>⚠️ Les <b>champs de saisie</b> (dates et heures) ne suivent pas ce réglage : c’est le navigateur qui les dessine, dans sa propre langue d’affichage.</td></tr>
             <tr><td><b>Réinitialiser la position</b></td><td>Remet le bouton 🚧 à sa position par défaut sur la carte.</td></tr>
             </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Enable tool</b></td><td>Enables or disables WCT. When disabled, the 🚧 button remains visible but the overlay does not open.</td></tr>
             <tr><td><b>Display mode</b></td><td>Choose between <b>Normal</b> (standard) and <b>Windows 95</b> (ultra-compact, square corners, classic grey). Preference saved.</td></tr>
-            <tr><td><b>Date format</b></td><td>Controls display in the queue and logs.<br><b>DD/MM/YYYY</b> — Europe (default)<br><b>MM/DD/YYYY</b> — USA<br><b>YYYY-MM-DD</b> — ISO<br>Auto-detected via <code>navigator.language</code>, overridable manually. Preference saved.</td></tr>
+            <tr><td><b>Date format</b></td><td>Controls display in the queue and logs.<br><b>DD/MM/YYYY</b> — Europe (default)<br><b>MM/DD/YYYY</b> — USA<br><b>YYYY-MM-DD</b> — ISO<br>Auto-detected via <code>navigator.language</code>, overridable manually. Preference saved.<br>⚠️ The <b>input fields</b> (dates and times) do not follow this setting: the browser draws them itself, in its own display language.</td></tr>
             <tr><td><b>Reset button position</b></td><td>Moves the 🚧 button back to its default position on the map.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>Werkzeug aktivieren</b></td><td>Aktiviert oder deaktiviert WCT. Ist es deaktiviert, bleibt die Schaltfläche 🚧 sichtbar, das Overlay öffnet sich jedoch nicht.</td></tr>
             <tr><td><b>Darstellung</b></td><td>Wähle zwischen <b>Normal</b> (Standardoberfläche) und <b>Windows 95</b> (sehr kompakt, eckige Ecken, klassische graue Palette). Die Einstellung wird gespeichert.</td></tr>
-            <tr><td><b>Datumsformat</b></td><td>Steuert die Anzeige in der Warteschlange und in den Protokollen.<br><b>TT/MM/JJJJ</b> — Europa (Standard)<br><b>MM/TT/JJJJ</b> — USA<br><b>JJJJ-MM-TT</b> — ISO<br>Über <code>navigator.language</code> erkannt, manuell überschreibbar. Die Einstellung wird gespeichert.</td></tr>
+            <tr><td><b>Datumsformat</b></td><td>Steuert die Anzeige in der Warteschlange und in den Protokollen.<br><b>TT/MM/JJJJ</b> — Europa (Standard)<br><b>MM/TT/JJJJ</b> — USA<br><b>JJJJ-MM-TT</b> — ISO<br>Über <code>navigator.language</code> erkannt, manuell überschreibbar. Die Einstellung wird gespeichert.<br>⚠️ Die <b>Eingabefelder</b> (Datum und Uhrzeit) folgen dieser Einstellung nicht: Der Browser zeichnet sie selbst, in seiner eigenen Anzeigesprache.</td></tr>
             <tr><td><b>Position zurücksetzen</b></td><td>Setzt die Schaltfläche 🚧 auf ihre Standardposition auf der Karte zurück.</td></tr>
             </table>`, es:`
             <table class="wct-help-table">
             <tr><td><b>Activar la herramienta</b></td><td>Activa o desactiva WCT. Si está desactivada, el botón 🚧 sigue visible pero el panel no se abre.</td></tr>
             <tr><td><b>Visualización</b></td><td>Elige entre <b>Normal</b> (interfaz estándar) y <b>Windows 95</b> (ultracompacta, esquinas rectas, paleta gris clásica). La preferencia se guarda.</td></tr>
-            <tr><td><b>Formato de las fechas</b></td><td>Controla la visualización en la cola y en los registros.<br><b>DD/MM/AAAA</b> — Europa (por defecto)<br><b>MM/DD/AAAA</b> — EE. UU.<br><b>AAAA-MM-DD</b> — ISO<br>Se detecta mediante <code>navigator.language</code> y se puede forzar manualmente. La preferencia se guarda.</td></tr>
+            <tr><td><b>Formato de las fechas</b></td><td>Controla la visualización en la cola y en los registros.<br><b>DD/MM/AAAA</b> — Europa (por defecto)<br><b>MM/DD/AAAA</b> — EE. UU.<br><b>AAAA-MM-DD</b> — ISO<br>Se detecta mediante <code>navigator.language</code> y se puede forzar manualmente. La preferencia se guarda.<br>⚠️ Los <b>campos de entrada</b> (fechas y horas) no siguen este ajuste: los dibuja el propio navegador, en su idioma de visualización.</td></tr>
             <tr><td><b>Restablecer la posición del botón</b></td><td>Devuelve el botón 🚧 a su posición por defecto en el mapa.</td></tr>
             </table>`, 'pt-BR':`
             <table class="wct-help-table">
             <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Desativado, o botão 🚧 continua visível, mas o painel não abre.</td></tr>
             <tr><td><b>Modo de exibição</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinza clássico). A preferência é salva.</td></tr>
-            <tr><td><b>Formato de data</b></td><td>Controla a exibição na fila e nos logs.<br><b>DD/MM/AAAA</b> — Europa, Brasil (padrão)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detectado automaticamente via <code>navigator.language</code>, com possibilidade de forçar manualmente. A preferência é salva.</td></tr>
+            <tr><td><b>Formato de data</b></td><td>Controla a exibição na fila e nos logs.<br><b>DD/MM/AAAA</b> — Europa, Brasil (padrão)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detectado automaticamente via <code>navigator.language</code>, com possibilidade de forçar manualmente. A preferência é salva.<br>⚠️ Os <b>campos de entrada</b> (datas e horas) não seguem esta configuração: quem os desenha é o navegador, no idioma de exibição dele.</td></tr>
             <tr><td><b>Redefinir a posição do botão</b></td><td>Devolve o botão 🚧 à sua posição padrão no mapa.</td></tr>
             </table>`, 'pt-PT':`
             <table class="wct-help-table">
             <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Quando está desativado, o botão 🚧 permanece visível no mapa, mas o painel não abre.</td></tr>
             <tr><td><b>Modo de apresentação</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinzento clássico). A preferência é guardada.</td></tr>
-            <tr><td><b>Formato da data</b></td><td>Controla a apresentação na fila e nos registos.<br><b>DD/MM/AAAA</b> — Europa (predefinição)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detetado automaticamente através de <code>navigator.language</code>, podendo ser forçado manualmente. A preferência é guardada.</td></tr>
+            <tr><td><b>Formato da data</b></td><td>Controla a apresentação na fila e nos registos.<br><b>DD/MM/AAAA</b> — Europa (predefinição)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detetado automaticamente através de <code>navigator.language</code>, podendo ser forçado manualmente. A preferência é guardada.<br>⚠️ Os <b>campos de entrada</b> (datas e horas) não seguem esta definição: quem os desenha é o navegador, no seu próprio idioma de apresentação.</td></tr>
             <tr><td><b>Repor a posição do botão</b></td><td>Repõe o botão 🚧 na sua posição predefinida no mapa.</td></tr>
             </table>` }) },
         { id:'h8', title:t('helpH8'), body: _L({ fr:`
@@ -12236,6 +12244,11 @@ const buildSidebar=()=>`
             <input type="radio" name="wct-dateformat" value="iso" ${_dateFormat==='iso'?'checked':''}> ${t('sbDateIso')}
         </label>
         <p style="font-size:10px;color:var(--wct-grey);margin-top:2px">${t('sbDateAuto')}</p>
+        <!-- Chrome dessine les champs de saisie date/heure selon la langue d'affichage DU
+             NAVIGATEUR, et rien dans la page ne peut le changer : l'attribut lang est ignoré
+             (mesuré le 28/07/2026 — lang=en-US sur un Chrome en fr affiche toujours JJ/MM).
+             On le dit ici plutot que de laisser croire que ce reglage pilote la saisie. -->
+        <p style="font-size:10px;color:var(--wct-grey);margin-top:4px;line-height:1.5">&#x2139;&#xFE0F; ${t('sbDateScope')}</p>
     </div>
     <p style="margin-top:12px;font-size:11px;color:var(--wct-grey);line-height:1.6">
         ${t('sbDesc')}
