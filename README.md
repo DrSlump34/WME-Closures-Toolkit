@@ -9,11 +9,11 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_0.96.00_normal.png)
+![WME Closures Toolkit](capture_0.97.02_normal.png)
 
 Drop any file into the Import tab — the content decides where it goes:
 
-![Import tab](capture_0.96.00_import.png)
+![Import tab](capture_0.97.02_import.png)
 
 ## Features
 
