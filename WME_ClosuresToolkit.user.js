@@ -8,16 +8,16 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.01
+// @version      1.00.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
-// @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
-// @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
-// @description:de Wiederkehrende Sperrungen mit Warteschlangenverwaltung — inspiriert von WME Advanced Closures & waze.tech-informatique.fr
-// @description:es Cierres recurrentes avanzados con cola de espera — inspirado en WME Advanced Closures & waze.tech-informatique.fr
-// @description:pt-BR Bloqueios recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
-// @description:pt Cortes de via recorrentes avançados com fila de espera — inspirado em WME Advanced Closures & waze.tech-informatique.fr
-// @description:he חסימות חוזרות מתקדמות עם ניהול תור — בהשראת WME Advanced Closures & waze.tech-informatique.fr
-// @description:it Chiusure ricorrenti avanzate con gestione della coda — ispirato a WME Advanced Closures & waze.tech-informatique.fr
+// @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
+// @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
+// @description:de Wiederkehrende Sperrungen für Segmente und Abbieger: Bereich zeichnen oder importieren, aus einem GPS-Track auswählen, in die Warteschlange stellen und im Paket anwenden
+// @description:es Cierres recurrentes de segmentos y giros: dibuja o importa una zona, selecciona desde una traza GPS, encola y aplica en lote
+// @description:pt-BR Bloqueios recorrentes de segmentos e conversões: desenhe ou importe uma área, selecione a partir de um trajeto GPS, enfileire e aplique em lote
+// @description:pt Cortes de via recorrentes de segmentos e viragens: desenhe ou importe uma área, selecione a partir de um trajeto GPS, coloque em fila e aplique em lote
+// @description:he חסימות חוזרות למקטעים ולפניות: שרטט או ייבא אזור, בחר ממסלול GPS, הוסף לתור והחל במנות
+// @description:it Chiusure ricorrenti di segmenti e svolte: disegna o importa un'area, seleziona da una traccia GPS, metti in coda e applica in blocco
 // @author       DrSlump34
 // @copyright    DrSlump34 2026
 // @license      MIT
