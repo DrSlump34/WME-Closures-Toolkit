@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.99.00
+// @version      1.00.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -537,6 +537,37 @@ GM_addStyle(`
 .wct-main-tab.on[data-tab="gpx"] { background:#e0f2f1; color:#00695c; }
 .wct-main-tab.on[data-tab="src"] { background:#fce4ec; color:#880e4f; }
 
+
+/* ── Zone : panneau d'arbitrage et poignées d'édition ── */
+/* Le panneau est posé sur la carte, dans sa partie visible (placement en JS). */
+#wct-zone-panel {
+    position: fixed; z-index: 9992;
+    background: var(--wct-surface, #fff); color: var(--wct-text, #222);
+    border: 1px solid var(--wct-border, #ccc); border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    padding: 8px 10px; font-family: 'Rubik','Open Sans',sans-serif; font-size: 12px;
+    max-width: 340px;
+}
+#wct-zone-panel .wct-zp-head { font-weight: 700; margin-bottom: 6px; }
+#wct-zone-panel .wct-zp-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+#wct-zone-panel .wct-zp-hint { margin-top: 6px; font-size: 11px; opacity: .75; line-height: 1.35; }
+/* ⚠️ Les poignées vivent dans le conteneur de COUCHES de la carte : leurs coordonnées
+   sont donc relatives à lui, et elles suivent le glissement comme les tuiles. */
+#wct-zone-poignees { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.wct-zpoi {
+    position: absolute; transform: translate(-50%,-50%);
+    border-radius: 50%; pointer-events: auto; cursor: grab; z-index: 9991;
+}
+.wct-zpoi-s {
+    width: 12px; height: 12px; background: #e91e63; border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+.wct-zpoi-s:hover { background: #ad1457; transform: translate(-50%,-50%) scale(1.25); }
+.wct-zpoi-m {
+    width: 9px; height: 9px; background: rgba(255,255,255,.85);
+    border: 2px dashed #e91e63; cursor: copy;
+}
+.wct-zpoi-m:hover { background: #fff; transform: translate(-50%,-50%) scale(1.3); }
 
 /* ── Toast ── */
 #wct-toast {
@@ -1503,6 +1534,36 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyImportHint:'Le format est reconnu tout seul. Dans un KML à plusieurs polygones, seul le premier est lu.',
             polyImportBad:'Zone illisible : il faut un POLYGON(…) WKT ou un KML contenant un polygone.',
             polyImportOk: n => `Zone importée (${n} sommets).`,
+            zoneTitre:'Zone',
+            zoneSommets: n => `${n} sommets`,
+            zoneTrous: n => `${n} trou(s), non modifiables`,
+            zoneBtnValider:'✓ Valider',
+            tipZoneBtnValider:'Accepter ce contour et passer à la suite',
+            zoneBtnEditer:'✎ Éditer',
+            tipZoneBtnEditer:'Reprendre le contour : déplacer, ajouter ou supprimer des sommets',
+            zoneBtnAbandon:'✕ Abandonner',
+            tipZoneBtnAbandon:'Effacer cette zone sans rien en faire',
+            zoneRappel:'Double-cliquez dans la zone pour retrouver ce panneau.',
+            zoneEditTitre:'✎ Édition du contour',
+            zoneEditAide:'Glissez un sommet pour le déplacer, clic droit pour le supprimer. Cliquez un point creux pour insérer un sommet. Échap pour renoncer.',
+            zoneBtnEditFini:'✓ Terminer',
+            tipZoneBtnEditFini:'Garder le contour modifié',
+            zoneBtnEditAnnul:'✕ Annuler',
+            tipZoneBtnEditAnnul:'Revenir au contour d’avant l’édition',
+            tipZoneSommet:'Glisser pour déplacer · clic droit pour supprimer',
+            tipZoneMilieu:'Cliquer pour insérer un sommet ici',
+            zoneEditMin:'Un polygone garde au moins trois sommets.',
+            zoneEditKo:'Édition impossible : la carte n’est pas prête.',
+            zoneSelQuestion:'Sélectionner les segments à l’intérieur ?',
+            zoneSelAide:'Sans sélection, la zone reste affichée et exportable : vous pourrez la lancer plus tard.',
+            zoneBtnSelOui:'🧲 Oui, sélectionner',
+            tipZoneBtnSelOui:'Inventorier la zone et sélectionner les segments qu’elle contient',
+            zoneBtnSelNon:'Non, la zone seule',
+            tipZoneBtnSelNon:'Garder la zone sans toucher à la sélection : rien ne part sur le réseau',
+            zonePoseeToast: n => `✅ Zone posée (${n} sommets). Aucun segment sélectionné.`,
+            zonePoseeBanner: n => `✏️ Zone posée : ${n} sommets, aucun segment sélectionné`,
+            zoneBtnSelPlusTard:'🧲 Sélectionner',
+            tipZoneBtnSelPlusTard:'Inventorier maintenant la zone et sélectionner les segments qu’elle contient',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segment(s) de ce type dans la zone tracée`,
             tipPolyTypesAll:'Cocher tous les types', tipPolyTypesNone:'Décocher tous les types',
             tipPolyTypesReset:'Revenir au réglage par défaut (tout sauf les voies non carrossables)',
@@ -1961,6 +2022,36 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'The format is detected on its own. In a KML with several polygons, only the first one is read.',
             polyImportBad:'Unreadable area: a POLYGON(…) WKT, or a KML holding a polygon, is required.',
             polyImportOk: n => `Area imported (${n} corners).`,
+            zoneTitre:'Area',
+            zoneSommets: n => `${n} corners`,
+            zoneTrous: n => `${n} hole(s), not editable`,
+            zoneBtnValider:'✓ Accept',
+            tipZoneBtnValider:'Accept this outline and move on',
+            zoneBtnEditer:'✎ Edit',
+            tipZoneBtnEditer:'Rework the outline: move, add or delete corners',
+            zoneBtnAbandon:'✕ Discard',
+            tipZoneBtnAbandon:'Delete this area and do nothing with it',
+            zoneRappel:'Double-click inside the area to bring this panel back.',
+            zoneEditTitre:'✎ Editing the outline',
+            zoneEditAide:'Drag a corner to move it, right-click to delete it. Click a hollow dot to insert a corner. Esc to give up.',
+            zoneBtnEditFini:'✓ Done',
+            tipZoneBtnEditFini:'Keep the reworked outline',
+            zoneBtnEditAnnul:'✕ Cancel',
+            tipZoneBtnEditAnnul:'Go back to the outline as it was before editing',
+            tipZoneSommet:'Drag to move · right-click to delete',
+            tipZoneMilieu:'Click to insert a corner here',
+            zoneEditMin:'A polygon keeps at least three corners.',
+            zoneEditKo:'Editing unavailable: the map is not ready.',
+            zoneSelQuestion:'Select the segments inside?',
+            zoneSelAide:'Without a selection the area stays on screen and can still be exported: you can run it later.',
+            zoneBtnSelOui:'🧲 Yes, select them',
+            tipZoneBtnSelOui:'Survey the area and select the segments it contains',
+            zoneBtnSelNon:'No, area only',
+            tipZoneBtnSelNon:'Keep the area and leave the selection alone: nothing goes over the network',
+            zonePoseeToast: n => `✅ Area set (${n} corners). No segment selected.`,
+            zonePoseeBanner: n => `✏️ Area set: ${n} corners, no segment selected`,
+            zoneBtnSelPlusTard:'🧲 Select',
+            tipZoneBtnSelPlusTard:'Survey the area now and select the segments it contains',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segment(s) of this type in the drawn area`,
             tipPolyTypesAll:'Tick every type', tipPolyTypesNone:'Untick every type',
             tipPolyTypesReset:'Back to the default setting (everything but the non-drivable ways)',
@@ -2417,6 +2508,36 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'הפורמט מזוהה אוטומטית. בקובץ KML עם כמה מצולעים ייקרא רק הראשון.',
             polyImportBad:'האזור אינו קריא: נדרש POLYGON(…) WKT או KML המכיל מצולע.',
             polyImportOk: n => `האזור יובא (${n} פינות).`,
+            zoneTitre:'אזור',
+            zoneSommets: n => `${n} פינות`,
+            zoneTrous: n => `${n} חורים, אינם ניתנים לעריכה`,
+            zoneBtnValider:'✓ אישור',
+            tipZoneBtnValider:'לאשר את המתאר הזה ולהמשיך',
+            zoneBtnEditer:'✎ עריכה',
+            tipZoneBtnEditer:'לשנות את המתאר: להזיז, להוסיף או למחוק פינות',
+            zoneBtnAbandon:'✕ ביטול',
+            tipZoneBtnAbandon:'למחוק את האזור הזה בלי לעשות בו דבר',
+            zoneRappel:'לחיצה כפולה בתוך האזור מחזירה את החלונית הזאת.',
+            zoneEditTitre:'✎ עריכת המתאר',
+            zoneEditAide:'גרור פינה כדי להזיז אותה, לחיצה ימנית כדי למחוק. לחץ על נקודה חלולה כדי להוסיף פינה. Esc לוויתור.',
+            zoneBtnEditFini:'✓ סיום',
+            tipZoneBtnEditFini:'לשמור את המתאר ששונה',
+            zoneBtnEditAnnul:'✕ ביטול',
+            tipZoneBtnEditAnnul:'לחזור למתאר שהיה לפני העריכה',
+            tipZoneSommet:'גרור להזזה · לחיצה ימנית למחיקה',
+            tipZoneMilieu:'לחץ כדי להוסיף כאן פינה',
+            zoneEditMin:'מצולע שומר על שלוש פינות לפחות.',
+            zoneEditKo:'עריכה בלתי אפשרית: המפה אינה מוכנה.',
+            zoneSelQuestion:'לבחור את המקטעים שבפנים?',
+            zoneSelAide:'בלי בחירה האזור נשאר מוצג וניתן לייצוא: אפשר להריץ אותה מאוחר יותר.',
+            zoneBtnSelOui:'🧲 כן, לבחור',
+            tipZoneBtnSelOui:'לסרוק את האזור ולבחור את המקטעים שבתוכו',
+            zoneBtnSelNon:'לא, רק האזור',
+            tipZoneBtnSelNon:'לשמור את האזור בלי לגעת בבחירה: דבר אינו נשלח לרשת',
+            zonePoseeToast: n => `✅ האזור הונח (${n} פינות). לא נבחר אף מקטע.`,
+            zonePoseeBanner: n => `✏️ האזור הונח: ${n} פינות, לא נבחר אף מקטע`,
+            zoneBtnSelPlusTard:'🧲 לבחור',
+            tipZoneBtnSelPlusTard:'לסרוק עכשיו את האזור ולבחור את המקטעים שבתוכו',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} מקטעים מסוג זה באזור המשורטט`,
             tipPolyTypesAll:'סמן את כל הסוגים', tipPolyTypesNone:'בטל את כל הסוגים',
             tipPolyTypesReset:'חזרה לברירת המחדל (הכול פרט לדרכים שאינן נסיעות)',
@@ -2873,6 +2994,36 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'Il formato viene riconosciuto da solo. In un KML con più poligoni viene letto solo il primo.',
             polyImportBad:'Area illeggibile: serve un POLYGON(…) WKT o un KML che contenga un poligono.',
             polyImportOk: n => `Area importata (${n} vertici).`,
+            zoneTitre:'Area',
+            zoneSommets: n => `${n} vertici`,
+            zoneTrous: n => `${n} foro/i, non modificabili`,
+            zoneBtnValider:'✓ Conferma',
+            tipZoneBtnValider:'Accettare questo contorno e proseguire',
+            zoneBtnEditer:'✎ Modifica',
+            tipZoneBtnEditer:'Riprendere il contorno: spostare, aggiungere o eliminare vertici',
+            zoneBtnAbandon:'✕ Annulla',
+            tipZoneBtnAbandon:'Cancellare quest’area senza farne nulla',
+            zoneRappel:'Doppio clic dentro l’area per far tornare questo pannello.',
+            zoneEditTitre:'✎ Modifica del contorno',
+            zoneEditAide:'Trascina un vertice per spostarlo, clic destro per eliminarlo. Clicca un punto vuoto per inserire un vertice. Esc per rinunciare.',
+            zoneBtnEditFini:'✓ Fine',
+            tipZoneBtnEditFini:'Mantenere il contorno modificato',
+            zoneBtnEditAnnul:'✕ Annulla',
+            tipZoneBtnEditAnnul:'Tornare al contorno di prima della modifica',
+            tipZoneSommet:'Trascina per spostare · clic destro per eliminare',
+            tipZoneMilieu:'Clicca per inserire qui un vertice',
+            zoneEditMin:'Un poligono mantiene almeno tre vertici.',
+            zoneEditKo:'Modifica impossibile: la mappa non è pronta.',
+            zoneSelQuestion:'Selezionare i segmenti all’interno?',
+            zoneSelAide:'Senza selezione l’area resta visibile ed esportabile: potrai avviarla più tardi.',
+            zoneBtnSelOui:'🧲 Sì, seleziona',
+            tipZoneBtnSelOui:'Analizzare l’area e selezionare i segmenti che contiene',
+            zoneBtnSelNon:'No, solo l’area',
+            tipZoneBtnSelNon:'Mantenere l’area senza toccare la selezione: nulla parte sulla rete',
+            zonePoseeToast: n => `✅ Area posata (${n} vertici). Nessun segmento selezionato.`,
+            zonePoseeBanner: n => `✏️ Area posata: ${n} vertici, nessun segmento selezionato`,
+            zoneBtnSelPlusTard:'🧲 Seleziona',
+            tipZoneBtnSelPlusTard:'Analizzare adesso l’area e selezionare i segmenti che contiene',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento/i di questo tipo nell’area disegnata`,
             tipPolyTypesAll:'Spunta tutti i tipi', tipPolyTypesNone:'Togli la spunta a tutti i tipi',
             tipPolyTypesReset:'Torna all’impostazione predefinita (tutto tranne le vie non percorribili)',
@@ -3330,6 +3481,36 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyImportHint:'Das Format wird von selbst erkannt. Bei einer KML mit mehreren Polygonen wird nur das erste gelesen.',
             polyImportBad:'Bereich nicht lesbar: nötig ist ein POLYGON(…) WKT oder eine KML mit einem Polygon.',
             polyImportOk: n => `Bereich importiert (${n} Eckpunkte).`,
+            zoneTitre:'Bereich',
+            zoneSommets: n => `${n} Eckpunkte`,
+            zoneTrous: n => `${n} Loch/Löcher, nicht bearbeitbar`,
+            zoneBtnValider:'✓ Übernehmen',
+            tipZoneBtnValider:'Diesen Umriss übernehmen und weitermachen',
+            zoneBtnEditer:'✎ Bearbeiten',
+            tipZoneBtnEditer:'Den Umriss überarbeiten: Eckpunkte verschieben, hinzufügen oder löschen',
+            zoneBtnAbandon:'✕ Verwerfen',
+            tipZoneBtnAbandon:'Diesen Bereich löschen, ohne etwas damit zu tun',
+            zoneRappel:'Doppelklick in den Bereich holt dieses Fenster zurück.',
+            zoneEditTitre:'✎ Umriss bearbeiten',
+            zoneEditAide:'Ziehe einen Eckpunkt zum Verschieben, Rechtsklick zum Löschen. Klicke einen hohlen Punkt, um einen Eckpunkt einzufügen. Esc zum Abbrechen.',
+            zoneBtnEditFini:'✓ Fertig',
+            tipZoneBtnEditFini:'Den geänderten Umriss behalten',
+            zoneBtnEditAnnul:'✕ Abbrechen',
+            tipZoneBtnEditAnnul:'Zum Umriss vor der Bearbeitung zurückkehren',
+            tipZoneSommet:'Ziehen zum Verschieben · Rechtsklick zum Löschen',
+            tipZoneMilieu:'Klicken, um hier einen Eckpunkt einzufügen',
+            zoneEditMin:'Ein Polygon behält mindestens drei Eckpunkte.',
+            zoneEditKo:'Bearbeiten nicht möglich: die Karte ist nicht bereit.',
+            zoneSelQuestion:'Die Segmente darin auswählen?',
+            zoneSelAide:'Ohne Auswahl bleibt der Bereich sichtbar und exportierbar: du kannst sie später starten.',
+            zoneBtnSelOui:'🧲 Ja, auswählen',
+            tipZoneBtnSelOui:'Den Bereich erfassen und die enthaltenen Segmente auswählen',
+            zoneBtnSelNon:'Nein, nur der Bereich',
+            tipZoneBtnSelNon:'Den Bereich behalten, ohne die Auswahl anzurühren: nichts geht ins Netz',
+            zonePoseeToast: n => `✅ Bereich gesetzt (${n} Eckpunkte). Kein Segment ausgewählt.`,
+            zonePoseeBanner: n => `✏️ Bereich gesetzt: ${n} Eckpunkte, kein Segment ausgewählt`,
+            zoneBtnSelPlusTard:'🧲 Auswählen',
+            tipZoneBtnSelPlusTard:'Den Bereich jetzt erfassen und die enthaltenen Segmente auswählen',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} Segment(e) dieses Typs im gezeichneten Bereich`,
             tipPolyTypesAll:'Alle Typen ankreuzen', tipPolyTypesNone:'Alle Typen abwählen',
             tipPolyTypesReset:'Zurück zur Voreinstellung (alles außer den nicht befahrbaren Wegen)',
@@ -3786,6 +3967,36 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyImportHint:'El formato se reconoce solo. En un KML con varios polígonos solo se lee el primero.',
             polyImportBad:'Zona ilegible: hace falta un POLYGON(…) WKT o un KML que contenga un polígono.',
             polyImportOk: n => `Zona importada (${n} vértices).`,
+            zoneTitre:'Zona',
+            zoneSommets: n => `${n} vértices`,
+            zoneTrous: n => `${n} hueco(s), no modificables`,
+            zoneBtnValider:'✓ Aceptar',
+            tipZoneBtnValider:'Aceptar este contorno y continuar',
+            zoneBtnEditer:'✎ Editar',
+            tipZoneBtnEditer:'Retomar el contorno: mover, añadir o eliminar vértices',
+            zoneBtnAbandon:'✕ Descartar',
+            tipZoneBtnAbandon:'Borrar esta zona sin hacer nada con ella',
+            zoneRappel:'Haz doble clic dentro de la zona para recuperar este panel.',
+            zoneEditTitre:'✎ Edición del contorno',
+            zoneEditAide:'Arrastra un vértice para moverlo, clic derecho para eliminarlo. Haz clic en un punto hueco para insertar un vértice. Esc para renunciar.',
+            zoneBtnEditFini:'✓ Terminar',
+            tipZoneBtnEditFini:'Conservar el contorno modificado',
+            zoneBtnEditAnnul:'✕ Cancelar',
+            tipZoneBtnEditAnnul:'Volver al contorno anterior a la edición',
+            tipZoneSommet:'Arrastra para mover · clic derecho para eliminar',
+            tipZoneMilieu:'Haz clic para insertar aquí un vértice',
+            zoneEditMin:'Un polígono conserva al menos tres vértices.',
+            zoneEditKo:'Edición imposible: el mapa no está listo.',
+            zoneSelQuestion:'¿Seleccionar los segmentos del interior?',
+            zoneSelAide:'Sin selección la zona sigue visible y exportable: podrás lanzarla más tarde.',
+            zoneBtnSelOui:'🧲 Sí, seleccionar',
+            tipZoneBtnSelOui:'Inventariar la zona y seleccionar los segmentos que contiene',
+            zoneBtnSelNon:'No, solo la zona',
+            tipZoneBtnSelNon:'Conservar la zona sin tocar la selección: nada sale a la red',
+            zonePoseeToast: n => `✅ Zona colocada (${n} vértices). Ningún segmento seleccionado.`,
+            zonePoseeBanner: n => `✏️ Zona colocada: ${n} vértices, ningún segmento seleccionado`,
+            zoneBtnSelPlusTard:'🧲 Seleccionar',
+            tipZoneBtnSelPlusTard:'Inventariar ahora la zona y seleccionar los segmentos que contiene',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) de este tipo en la zona dibujada`,
             tipPolyTypesAll:'Marcar todos los tipos', tipPolyTypesNone:'Desmarcar todos los tipos',
             tipPolyTypesReset:'Volver al ajuste por defecto (todo salvo las vías no transitables)',
@@ -4242,6 +4453,36 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyImportHint:'O formato é reconhecido sozinho. Em um KML com vários polígonos, só o primeiro é lido.',
             polyImportBad:'Área ilegível: é preciso um POLYGON(…) WKT ou um KML contendo um polígono.',
             polyImportOk: n => `Área importada (${n} vértices).`,
+            zoneTitre:'Área',
+            zoneSommets: n => `${n} vértices`,
+            zoneTrous: n => `${n} furo(s), não editáveis`,
+            zoneBtnValider:'✓ Aceitar',
+            tipZoneBtnValider:'Aceitar este contorno e seguir adiante',
+            zoneBtnEditer:'✎ Editar',
+            tipZoneBtnEditer:'Retomar o contorno: mover, adicionar ou excluir vértices',
+            zoneBtnAbandon:'✕ Descartar',
+            tipZoneBtnAbandon:'Apagar esta área sem fazer nada com ela',
+            zoneRappel:'Dê um duplo clique dentro da área para trazer este painel de volta.',
+            zoneEditTitre:'✎ Edição do contorno',
+            zoneEditAide:'Arraste um vértice para movê-lo, clique com o botão direito para excluí-lo. Clique num ponto vazado para inserir um vértice. Esc para desistir.',
+            zoneBtnEditFini:'✓ Concluir',
+            tipZoneBtnEditFini:'Manter o contorno alterado',
+            zoneBtnEditAnnul:'✕ Cancelar',
+            tipZoneBtnEditAnnul:'Voltar ao contorno anterior à edição',
+            tipZoneSommet:'Arraste para mover · botão direito para excluir',
+            tipZoneMilieu:'Clique para inserir um vértice aqui',
+            zoneEditMin:'Um polígono mantém pelo menos três vértices.',
+            zoneEditKo:'Edição impossível: o mapa não está pronto.',
+            zoneSelQuestion:'Selecionar os segmentos de dentro?',
+            zoneSelAide:'Sem seleção a área continua visível e exportável: você pode rodá-la depois.',
+            zoneBtnSelOui:'🧲 Sim, selecionar',
+            tipZoneBtnSelOui:'Levantar a área e selecionar os segmentos que ela contém',
+            zoneBtnSelNon:'Não, só a área',
+            tipZoneBtnSelNon:'Manter a área sem mexer na seleção: nada vai para a rede',
+            zonePoseeToast: n => `✅ Área definida (${n} vértices). Nenhum segmento selecionado.`,
+            zonePoseeBanner: n => `✏️ Área definida: ${n} vértices, nenhum segmento selecionado`,
+            zoneBtnSelPlusTard:'🧲 Selecionar',
+            tipZoneBtnSelPlusTard:'Levantar agora a área e selecionar os segmentos que ela contém',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) desse tipo na área desenhada`,
             tipPolyTypesAll:'Marcar todos os tipos', tipPolyTypesNone:'Desmarcar todos os tipos',
             tipPolyTypesReset:'Voltar ao padrão (tudo menos as vias não trafegáveis)',
@@ -4698,6 +4939,36 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyImportHint:'O formato é reconhecido sozinho. Num KML com vários polígonos, só o primeiro é lido.',
             polyImportBad:'Área ilegível: é necessário um POLYGON(…) WKT ou um KML que contenha um polígono.',
             polyImportOk: n => `Área importada (${n} vértices).`,
+            zoneTitre:'Área',
+            zoneSommets: n => `${n} vértices`,
+            zoneTrous: n => `${n} furo(s), não editáveis`,
+            zoneBtnValider:'✓ Aceitar',
+            tipZoneBtnValider:'Aceitar este contorno e prosseguir',
+            zoneBtnEditer:'✎ Editar',
+            tipZoneBtnEditer:'Retomar o contorno: mover, acrescentar ou eliminar vértices',
+            zoneBtnAbandon:'✕ Descartar',
+            tipZoneBtnAbandon:'Apagar esta área sem fazer nada com ela',
+            zoneRappel:'Faça duplo clique dentro da área para voltar a ter este painel.',
+            zoneEditTitre:'✎ Edição do contorno',
+            zoneEditAide:'Arraste um vértice para o mover, clique com o botão direito para o eliminar. Clique num ponto vazado para inserir um vértice. Esc para desistir.',
+            zoneBtnEditFini:'✓ Concluir',
+            tipZoneBtnEditFini:'Manter o contorno alterado',
+            zoneBtnEditAnnul:'✕ Cancelar',
+            tipZoneBtnEditAnnul:'Voltar ao contorno anterior à edição',
+            tipZoneSommet:'Arraste para mover · botão direito para eliminar',
+            tipZoneMilieu:'Clique para inserir aqui um vértice',
+            zoneEditMin:'Um polígono mantém pelo menos três vértices.',
+            zoneEditKo:'Edição impossível: o mapa não está pronto.',
+            zoneSelQuestion:'Selecionar os segmentos do interior?',
+            zoneSelAide:'Sem seleção a área continua visível e exportável: pode lançá-la mais tarde.',
+            zoneBtnSelOui:'🧲 Sim, selecionar',
+            tipZoneBtnSelOui:'Levantar a área e selecionar os segmentos que contém',
+            zoneBtnSelNon:'Não, só a área',
+            tipZoneBtnSelNon:'Manter a área sem mexer na seleção: nada segue para a rede',
+            zonePoseeToast: n => `✅ Área definida (${n} vértices). Nenhum segmento selecionado.`,
+            zonePoseeBanner: n => `✏️ Área definida: ${n} vértices, nenhum segmento selecionado`,
+            zoneBtnSelPlusTard:'🧲 Selecionar',
+            tipZoneBtnSelPlusTard:'Levantar agora a área e selecionar os segmentos que contém',
             tipPolyTypeRow: (nom,n) => `${nom} — ${n} segmento(s) deste tipo na área desenhada`,
             tipPolyTypesAll:'Marcar todos os tipos', tipPolyTypesNone:'Desmarcar todos os tipos',
             tipPolyTypesReset:'Voltar à predefinição (tudo menos as vias não transitáveis)',
@@ -6400,7 +6671,12 @@ const connectTurnsPane = (seg) => {
         };
         // ⚠️ Une seule cible à la fois : viser des virages annule la zone en cours,
         // sinon Valider n'en traiterait qu'une et l'autre resterait affichée pour rien.
-        if(_polyZone){ _polyZone = null; renderPolyBanner(); }
+        // Le calque part avec elle : une zone effacée qui reste dessinée mentirait.
+        if(_polyZone || _polyDraft){
+            _zoneExitEdit(false);
+            _polyZone = null; _polyDraft = null;
+            _zonePanelHide(); _zoneRefreshLayer(); renderPolyBanner();
+        }
         renderTurnBanner();
         document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
         showToast(t('tnSent', rows.length), 3000, '#7b1fa2');
@@ -9612,6 +9888,359 @@ const _polyPaver = (retenus, vueW, vueH) => {
 // Orchestration commune : une fois les anneaux obtenus — tracés à la main OU importés
 // d'un KML / d'un WKT — la suite est rigoureusement la même. D'où cette fonction, que
 // les deux points d'entrée appellent.
+// ═══════════════════════════════════════════════════════════════════════════
+//  LA ZONE COMME OBJET : calque visible, édition du contour, arbitrage
+// ═══════════════════════════════════════════════════════════════════════════
+// Jusqu'ici, tracer une zone ne laissait RIEN à l'écran : sdk.Map.drawPolygon() rendait
+// des coordonnées et l'inventaire partait aussitôt. On ne voyait donc jamais ce qu'on
+// venait de tracer, et on ne pouvait pas le corriger sans tout refaire.
+//
+// Le parcours est désormais le même que le tracé vienne de la main ou d'un fichier :
+//   anneaux → CALQUE visible → Éditer / Valider → « sélectionner les segments ? » → suite
+// C'est _zoneProposer() qui l'ouvre, et les deux points d'entrée y arrivent.
+//
+// ⚠️ La zone est un OBJET À PART ENTIÈRE, l'inventaire n'est qu'un de ses attributs.
+// Une zone sans segment reste une zone : elle s'affiche, s'édite et s'exporte en KML
+// comme en WKT. C'est ce qui permet de répondre « non » à la question de la sélection.
+
+let _polyDraft = null;   // zone en attente d'arbitrage : {rings, origine:'trace'|'import'}
+let _zoneEdit  = null;   // édition du contour en cours
+// ⚠️ Vrai pendant sdk.Map.drawPolygon(). Sans ce verrou, le double-clic qui FERME un
+// nouveau tracé serait avalé par notre propre écouteur de double-clic dès qu'il tombe
+// à l'intérieur d'une zone déjà posée — et le tracé ne se fermerait jamais.
+let _zoneTracage = false;
+
+// ── Conversions de projection ────────────────────────────────────────────────
+// La carte travaille en mercator, nos anneaux en WGS84. Tout ce qui touche au pixel
+// passe par la projection de la carte.
+const _zoneVers3857 = (lon, lat) => new OpenLayers.LonLat(lon, lat)
+    .transform(new OpenLayers.Projection('EPSG:4326'), W.map.getProjectionObject());
+const _zoneVers4326 = (ll) => {
+    const c = ll.clone();
+    c.transform(W.map.getProjectionObject(), new OpenLayers.Projection('EPSG:4326'));
+    return c;
+};
+
+// ── Le calque ────────────────────────────────────────────────────────────────
+// Trois états, trois couleurs, et un seul endroit qui en décide :
+//   brouillon = orange pointillé (rien n'est encore acté)
+//   édition   = rose plein       (la même teinte que les poignées)
+//   validée   = bleu plein       (la couleur d'information du script)
+const ZONE_STYLES = {
+    draft: { trait:'#f57c00', tirets:'8 6' },
+    edit:  { trait:'#e91e63', tirets:'solid' },
+    valid: { trait:'#1565c0', tirets:'solid' }
+};
+let _zoneLayer = null;
+const _zoneClearLayer = () => {
+    try { if(_zoneLayer){ W.map.removeLayer(_zoneLayer); _zoneLayer.destroy(); } } catch(e){}
+    _zoneLayer = null;
+};
+const _zoneDrawLayer = (rings, mode) => {
+    _zoneClearLayer();
+    if(!rings || !rings.length || !rings[0] || rings[0].length < 4) return;
+    try {
+        const st = ZONE_STYLES[mode] || ZONE_STYLES.valid;
+        // Anneau extérieur d'abord, trous ensuite : OpenLayers les creuse tout seul.
+        const anneau = (r) => new OpenLayers.Geometry.LinearRing(
+            r.map(([lon, lat]) => { const p = _zoneVers3857(lon, lat);
+                                    return new OpenLayers.Geometry.Point(p.lon, p.lat); }));
+        const poly = new OpenLayers.Geometry.Polygon(rings.map(anneau));
+        _zoneLayer = new OpenLayers.Layer.Vector('WCT_ZONE', { displayInLayerSwitcher:false });
+        _zoneLayer.addFeatures([ new OpenLayers.Feature.Vector(poly, null, {
+            strokeColor: st.trait, strokeWidth: 3, strokeOpacity: 0.95, strokeDashstyle: st.tirets,
+            fillColor: st.trait, fillOpacity: 0.12 }) ]);
+        W.map.addLayer(_zoneLayer);
+    } catch(e){ log('zone calque: ' + e.message); }
+};
+// Anneaux tels qu'ils sont en cours d'édition : le contour repris, plus les trous
+// d'origine intacts (arbitrage de l'auteur : on n'édite que l'extérieur).
+const _zoneEditRings = () => {
+    if(!_zoneEdit) return [];
+    const p = _zoneEdit.points;
+    return [ p.concat([p[0].slice()]) ].concat(_zoneEdit.trous);
+};
+// Le calque suit l'état, jamais l'inverse.
+const _zoneRefreshLayer = () => {
+    if(_zoneEdit)              _zoneDrawLayer(_zoneEditRings(), 'edit');
+    else if(_polyDraft)        _zoneDrawLayer(_polyDraft.rings, 'draft');
+    else if(_polyZone?.rings)  _zoneDrawLayer(_polyZone.rings, 'valid');
+    else                       _zoneClearLayer();
+};
+
+// ── Le panneau posé sur la carte ─────────────────────────────────────────────
+// ⚠️ Il se place dans la zone VISIBLE, pas dans un coin de l'écran : collé au bord, il
+// finirait sous le volet de WME ou sous notre propre panneau. Même mesure que le
+// recadrage (_zoneVisible).
+const _zonePanelHide = () => { $id('wct-zone-panel')?.remove(); };
+const _zonePanelPlace = () => {
+    const el = $id('wct-zone-panel'); if(!el) return;
+    const z = _zoneVisible();
+    el.style.left = Math.round(z.gauche + 12) + 'px';
+    el.style.top  = Math.round(z.bas - el.offsetHeight - 12) + 'px';
+};
+const _zonePanelShow = (html) => {
+    _zonePanelHide();
+    const el = make('div');
+    el.id = 'wct-zone-panel';
+    el.innerHTML = html;
+    document.body.appendChild(el);
+    _zonePanelPlace();
+    return el;
+};
+
+// ── Édition du contour ───────────────────────────────────────────────────────
+// Poignée pleine = sommet (glisser pour déplacer, clic droit pour supprimer) ;
+// poignée creuse = milieu d'un côté (cliquer pour insérer un sommet).
+//
+// ⚠️⚠️ LES POIGNÉES VIVENT DANS LE CONTENEUR DE COUCHES DE LA CARTE, pas dans le body.
+// C'est ce qui les fait suivre le glissement de carte EN CONTINU, exactement comme les
+// tuiles. Sous OpenLayers 2, un déplacement de carte translate ce conteneur en CSS et
+// ne met le centre à jour qu'à l'ARRÊT : des poignées posées en coordonnées écran
+// restent donc figées pendant tout le glissement, puis sautent — et les recalculer à
+// chaque image n'y changerait rien, puisque la carte elle-même ment jusqu'au relâcher.
+// (C'est le défaut de WNA, que l'auteur a demandé de ne pas reproduire ici.)
+// Le zoom, lui, recale le conteneur : d'où le redessin sur moveend.
+const _zoneHandlesHost = () => {
+    try { return W.map.layerContainerDiv || null; } catch(e){ return null; }
+};
+const _zoneDrawHandles = () => {
+    if(!_zoneEdit) return;
+    const hote = _zoneEdit.zone;
+    hote.innerHTML = '';
+    const pts = _zoneEdit.points;
+    const px = ([lon, lat]) => {
+        try { return W.map.getLayerPxFromLonLat(_zoneVers3857(lon, lat)); } catch(e){ return null; }
+    };
+    pts.forEach((p, i) => {
+        const q = px(p);
+        if(q){
+            const h = make('div');
+            h.className = 'wct-zpoi wct-zpoi-s';
+            h.title = t('tipZoneSommet');
+            h.style.left = q.x + 'px'; h.style.top = q.y + 'px';
+            h.addEventListener('mousedown', e => { if(e.button === 0) _zoneStartDrag(e, i); });
+            h.addEventListener('contextmenu', e => {
+                e.preventDefault(); e.stopPropagation();
+                // Un polygone garde trois sommets : en dessous ce n'est plus une surface.
+                if(pts.length <= 3){ showToast(t('zoneEditMin'), 2500, '#f57c00'); return; }
+                pts.splice(i, 1); _zoneMajEdition();
+            });
+            hote.appendChild(h);
+        }
+        // Milieu du côté [i, i+1] : y cliquer insère un sommet, et on enchaîne
+        // directement sur le glisser — un point inséré est un point qu'on veut placer.
+        const suivant = pts[(i + 1) % pts.length];
+        const mid = [(p[0] + suivant[0]) / 2, (p[1] + suivant[1]) / 2];
+        const m = px(mid);
+        if(!m) return;
+        const a = make('div');
+        a.className = 'wct-zpoi wct-zpoi-m';
+        a.title = t('tipZoneMilieu');
+        a.style.left = m.x + 'px'; a.style.top = m.y + 'px';
+        a.addEventListener('mousedown', e => {
+            if(e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            pts.splice(i + 1, 0, mid);
+            _zoneMajEdition();
+            _zoneStartDrag(e, i + 1);
+        });
+        hote.appendChild(a);
+    });
+};
+const _zoneStartDrag = (e, index) => {
+    e.preventDefault(); e.stopPropagation();
+    const rc = _rectCarte();
+    const bouger = ev => {
+        try {
+            const ll = W.map.getLonLatFromPixel(
+                new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top));
+            if(!ll) return;
+            const g = _zoneVers4326(ll);
+            _zoneEdit.points[index] = [g.lon, g.lat];
+            _zoneMajEdition();
+        } catch(err){}
+        ev.preventDefault();
+    };
+    const finir = () => {
+        document.removeEventListener('mousemove', bouger, true);
+        document.removeEventListener('mouseup', finir, true);
+    };
+    document.addEventListener('mousemove', bouger, true);
+    document.addEventListener('mouseup', finir, true);
+};
+const _zoneMajEdition = () => {
+    if(!_zoneEdit) return;
+    _zoneRefreshLayer();
+    _zoneDrawHandles();
+};
+const _zoneEnterEdit = () => {
+    const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
+    if(!rings || !rings.length || rings[0].length < 4) return;
+    const hote = _zoneHandlesHost();
+    if(!hote){ showToast(t('zoneEditKo'), 3500, '#e53935'); return; }
+    if(_zoneEdit) _zoneExitEdit(false);
+    const zone = make('div');
+    zone.id = 'wct-zone-poignees';
+    hote.appendChild(zone);
+    // ⚠️ Échap rend le tracé d'avant. Une sortie de secours qu'on ne connaît pas n'en
+    // est pas une : elle est annoncée dans l'aide du panneau d'édition.
+    const echap = ev => { if(ev.key === 'Escape' && _zoneEdit){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); } };
+    document.addEventListener('keydown', echap, true);
+    // Le zoom recale le conteneur de couches : les poignées s'y replacent à l'arrêt.
+    // Le GLISSEMENT, lui, ne demande rien — le conteneur les emmène avec les tuiles.
+    const surMove = () => _zoneDrawHandles();
+    try { W.map.events.register('moveend', W.map, surMove); } catch(err){}
+    _zoneEdit = {
+        zone, echap, surMove,
+        points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
+        trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
+        avant:  rings.map(r => r.map(p => [p[0], p[1]]))
+    };
+    _zonePanelEdition();
+    _zoneMajEdition();
+};
+const _zoneExitEdit = (garder) => {
+    if(!_zoneEdit) return;
+    const rings = garder ? _zoneEditRings() : _zoneEdit.avant;
+    try { W.map.events.unregister('moveend', W.map, _zoneEdit.surMove); } catch(e){}
+    document.removeEventListener('keydown', _zoneEdit.echap, true);
+    _zoneEdit.zone.remove();
+    _zoneEdit = null;
+    // Éditer une zone DÉJÀ APPLIQUÉE invalide sa sélection : le périmètre a changé,
+    // les segments d'avant ne lui correspondent plus. On repasse donc par l'arbitrage,
+    // et la question de la sélection est reposée (arbitrage de l'auteur : rien ne part
+    // sur le réseau sans qu'il l'ait demandé).
+    if(garder){
+        if(_polyZone) _zoneOublierSelection();
+        _polyDraft = { rings, origine: _polyDraft ? _polyDraft.origine : 'trace' };
+        _polyZone = null;
+        renderPolyBanner(); refreshCfgGate();
+    }
+    _zoneRefreshLayer();
+};
+// Défait la sélection posée par une zone. ⚠️ setSelection(null) ne vide pas de façon
+// fiable (vérifié en live) — unselectAll, si.
+const _zoneOublierSelection = () => {
+    try { W.selectionManager.unselectAll(); }
+    catch(e){ try { sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
+};
+
+// ── Les trois panneaux ───────────────────────────────────────────────────────
+const _zonePanelEdition = () => {
+    _zonePanelShow(
+        '<div class="wct-zp-head">' + escHtml(t('zoneEditTitre')) + '</div>' +
+        '<div class="wct-zp-hint">' + escHtml(t('zoneEditAide')) + '</div>' +
+        '<div class="wct-zp-btns">' +
+          '<button type="button" class="wct-btn wct-btn-primary wct-btn-sm" id="wct-zone-edit-ok" title="' +
+            escHtml(t('tipZoneBtnEditFini')) + '">' + escHtml(t('zoneBtnEditFini')) + '</button>' +
+          '<button type="button" class="wct-btn wct-btn-sm" id="wct-zone-edit-ko" title="' +
+            escHtml(t('tipZoneBtnEditAnnul')) + '">' + escHtml(t('zoneBtnEditAnnul')) + '</button>' +
+        '</div>');
+    $id('wct-zone-edit-ok')?.addEventListener('click', () => { _zoneExitEdit(true);  _zoneArbitrage(); });
+    $id('wct-zone-edit-ko')?.addEventListener('click', () => { _zoneExitEdit(false); _zoneArbitrage(); });
+};
+const _zoneArbitrage = () => {
+    if(!_polyDraft){ _zonePanelHide(); return; }
+    const n = _polyDraft.rings[0].length - 1;
+    const trous = _polyDraft.rings.length - 1;
+    _zonePanelShow(
+        '<div class="wct-zp-head">' + escHtml(t('zoneTitre')) + ' — ' + escHtml(t('zoneSommets', n)) +
+          (trous ? ' · ' + escHtml(t('zoneTrous', trous)) : '') + '</div>' +
+        '<div class="wct-zp-btns">' +
+          '<button type="button" class="wct-btn wct-btn-primary wct-btn-sm" id="wct-zone-ok" title="' +
+            escHtml(t('tipZoneBtnValider')) + '">' + escHtml(t('zoneBtnValider')) + '</button>' +
+          '<button type="button" class="wct-btn wct-btn-sm" id="wct-zone-edit" title="' +
+            escHtml(t('tipZoneBtnEditer')) + '">' + escHtml(t('zoneBtnEditer')) + '</button>' +
+          '<button type="button" class="wct-btn wct-btn-danger wct-btn-sm" id="wct-zone-annul" title="' +
+            escHtml(t('tipZoneBtnAbandon')) + '">' + escHtml(t('zoneBtnAbandon')) + '</button>' +
+        '</div>' +
+        '<div class="wct-zp-hint">' + escHtml(t('zoneRappel')) + '</div>');
+    $id('wct-zone-edit')?.addEventListener('click', _zoneEnterEdit);
+    $id('wct-zone-ok')?.addEventListener('click', _zoneQuestionSelection);
+    $id('wct-zone-annul')?.addEventListener('click', _zoneAbandon);
+};
+const _zoneQuestionSelection = () => {
+    if(!_polyDraft) return;
+    _zonePanelShow(
+        '<div class="wct-zp-head">' + escHtml(t('zoneSelQuestion')) + '</div>' +
+        '<div class="wct-zp-btns">' +
+          '<button type="button" class="wct-btn wct-btn-primary wct-btn-sm" id="wct-zone-sel-oui" title="' +
+            escHtml(t('tipZoneBtnSelOui')) + '">' + escHtml(t('zoneBtnSelOui')) + '</button>' +
+          '<button type="button" class="wct-btn wct-btn-sm" id="wct-zone-sel-non" title="' +
+            escHtml(t('tipZoneBtnSelNon')) + '">' + escHtml(t('zoneBtnSelNon')) + '</button>' +
+        '</div>' +
+        '<div class="wct-zp-hint">' + escHtml(t('zoneSelAide')) + '</div>');
+    $id('wct-zone-sel-oui')?.addEventListener('click', () => _zoneValider(true));
+    $id('wct-zone-sel-non')?.addEventListener('click', () => _zoneValider(false));
+};
+const _zoneAbandon = () => {
+    _zoneExitEdit(false);
+    _polyDraft = null;
+    _zonePanelHide();
+    _zoneRefreshLayer();
+    showToast(t('polyCancelled'), 2000, '#f57c00');
+};
+
+// ── Pose de la zone validée ──────────────────────────────────────────────────
+// L'inventaire est un ATTRIBUT : `tous` à null veut dire « jamais inventoriée », et
+// c'est un état parfaitement valide — la zone s'exporte quand même.
+const _zonePoser = (rings) => {
+    _polyZone = { rings, bbox: _polyBBoxOf(rings), tous: null, ids: [], groupes: [] };
+    _polyDraft = null;
+    _zonePanelHide();
+    _zoneRefreshLayer();
+    renderPolyBanner(); refreshCfgGate();
+};
+const _zoneValider = async (avecSelection) => {
+    if(!_polyDraft) return;
+    const rings = _polyDraft.rings;
+    _zonePoser(rings);
+    if(avecSelection) await _polyProcessRings(rings);
+    else showToast(t('zonePoseeToast', rings[0].length - 1), 4000, '#43a047');
+};
+// Lancer la sélection plus tard, depuis le bandeau : répondre « non » ne doit pas
+// enfermer l'éditeur, sinon la question devient un piège.
+const _zoneSelectionnerPlusTard = async () => {
+    if(!_polyZone?.rings?.length || _sweepRunning) return;
+    await _polyProcessRings(_polyZone.rings);
+};
+
+// Point de convergence : tracé à la main OU importé, on arrive ici et pas ailleurs.
+const _zoneProposer = (rings, origine) => {
+    if(!rings || rings.length < 1 || rings[0].length < 4){
+        showToast(t('polyCancelled'), 2500, '#f57c00'); return false;
+    }
+    _zoneExitEdit(false);
+    _polyDraft = { rings, origine };
+    _zoneRefreshLayer();
+    _zoneArbitrage();
+    return true;
+};
+
+// Double-clic DANS la zone : rappelle le panneau quand on l'a fermé. On ne coupe le
+// double-clic de WME (qui zoome) que si le point tombe réellement dans le polygone et
+// qu'une zone attend un arbitrage — partout ailleurs, la carte garde son geste.
+const _zoneInstallerDblClic = () => {
+    document.addEventListener('dblclick', ev => {
+        if(_zoneEdit || _zoneTracage || _sweepRunning) return;
+        const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
+        if(!rings || !rings.length) return;
+        if($id('wct-zone-panel')) return;               // déjà ouvert : rien à rappeler
+        const rc = _rectCarte();
+        if(ev.clientX < rc.left || ev.clientX > rc.right || ev.clientY < rc.top || ev.clientY > rc.bottom) return;
+        let g;
+        try {
+            g = _zoneVers4326(W.map.getLonLatFromPixel(
+                new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top)));
+        } catch(e){ return; }
+        if(!g || !_polyPtIn(g.lon, g.lat, rings)) return;
+        ev.preventDefault(); ev.stopPropagation();
+        if(!_polyDraft && _polyZone) _polyDraft = { rings: _polyZone.rings, origine:'trace' };
+        _zoneArbitrage();
+    }, true);
+};
+
 const _polyProcessRings = async (rings) => {
     if(!rings || rings.length < 1 || rings[0].length < 4){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
     const bbox = _polyBBoxOf(rings);
@@ -9642,7 +10271,14 @@ const _polyProcessRings = async (rings) => {
         // ne demande pas de retracer.
         const retenus = _sweepAborted ? [] : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
         if(_sweepAborted){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
-        if(!retenus.length){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyNone'), 3500, '#f57c00'); return; }
+        if(!retenus.length){
+            // Inventoriée et vide : ce n'est PAS la même chose que jamais inventoriée.
+            // `tous` à [] le dit, et la zone reste posée — donc encore exportable.
+            if(_polyZone) _polyZone.tous = [];
+            _sweepRunning = false; _sweepHideFooter();
+            renderPolyBanner(); refreshCfgGate();
+            showToast(t('polyNone'), 3500, '#f57c00'); return;
+        }
         const cible = retenus.filter(s => _polyTypesSet().has(Number(s.roadType)));
         if(!cible.length){
             _polyZone = { rings, bbox, tous: retenus, ids: [], groupes: [] };
@@ -9660,6 +10296,7 @@ const _polyProcessRings = async (rings) => {
         if(_currentTurns){ _currentTurns = null; renderTurnBanner(); }   // cible unique, cf. ci-dessus
         const stop = _sweepAborted;
         _sweepRunning = false; _sweepHideFooter();
+        _zoneRefreshLayer();
         renderPolyBanner();
         refreshCfgGate();
         if(stop) showToast(t('polyStopped', res.ids.length), 4000, '#f57c00');
@@ -9681,16 +10318,23 @@ const polyDrawAndSelect = async () => {
     let rings = [];
     _polySetCollapsed(true);                       // libérer la carte pour tracer
     showToast(t('polyDrawHint'), 5000, '#1565c0');
+    _zoneTracage = true;                           // cf. _zoneInstallerDblClic
     try {
         rings = _polyRingsOf(await sdk.Map.drawPolygon());
     } catch(e){
+        _zoneTracage = false;
         _polySetCollapsed(etaitReplie);
         log('drawPolygon: ' + (e && e.message));
         showToast(t('polyCancelled'), 2500, '#f57c00');
         return;
     }
+    // Relâché au tour de boucle suivant : le double-clic de fermeture se propage encore
+    // au moment où la promesse résout.
+    setTimeout(() => { _zoneTracage = false; }, 0);
     _polySetCollapsed(etaitReplie);
-    await _polyProcessRings(rings);
+    // On ne part plus tout de suite à l'inventaire : la zone s'affiche d'abord, et
+    // l'éditeur décide (voir _zoneProposer).
+    _zoneProposer(rings, 'trace');
 };
 
 // ── Réimport d'une zone ──────────────────────────────────────────────────────
@@ -9760,7 +10404,9 @@ const _polyImportTexte = async (txt) => {
     if(!rings.length || rings[0].length < 4){ showToast(t('polyImportBad'), 5000, '#e53935'); return false; }
     showToast(t('polyImportOk', rings[0].length - 1), 3000, '#43a047');
     $id('wct-poly-import')?.remove();
-    await _polyProcessRings(rings);
+    // Un import réussi aboutit EXACTEMENT au même point qu'un tracé terminé : la zone
+    // s'affiche, et on propose de l'éditer ou de la valider. C'était la demande.
+    _zoneProposer(rings, 'import');
     return true;
 };
 
@@ -9776,16 +10422,25 @@ const renderPolyBanner = () => {
     // son type est décoché. Le taire donnerait l'impression d'un oubli du script : le
     // bandeau annonce donc le nombre d'écartés, et l'infobulle dit par quoi.
     const ecartes = (_polyZone.tous || []).filter(s => !_polyTypesSet().has(Number(s.roadType))).length;
-    el.innerHTML = `<span title="${escHtml(ecartes ? t('tipPolyBannerFiltered') : '')}">${
-        escHtml(ecartes ? t('polyBannerFiltered', _polyZone.ids.length, ecartes) : t('polyBanner', _polyZone.ids.length))}</span>
+    // Une zone JAMAIS inventoriée (`tous` à null) n'est pas une zone vide : l'éditeur a
+    // répondu « non » à la question de la sélection. Le dire comme tel, et lui laisser
+    // le bouton pour la lancer — sinon ce « non » l'enfermerait.
+    const jamaisInventoriee = _polyZone.tous === null;
+    const texte = jamaisInventoriee ? t('zonePoseeBanner', _polyZone.rings[0].length - 1)
+                : ecartes            ? t('polyBannerFiltered', _polyZone.ids.length, ecartes)
+                                     : t('polyBanner', _polyZone.ids.length);
+    el.innerHTML = `<span title="${escHtml(ecartes && !jamaisInventoriee ? t('tipPolyBannerFiltered') : '')}">${escHtml(texte)}</span>
         <span style="flex:1"></span>
-        <button type="button" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
-    el.querySelector('button').addEventListener('click', () => {
-        _polyZone = null;
-        // ⚠️ setSelection(null) ne vide pas de façon fiable (vérifié en live : la
-        // sélection restait en place). unselectAll, si — avec le SDK en repli.
-        try { W.selectionManager.unselectAll(); }
-        catch(e){ try { sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
+        ${jamaisInventoriee ? `<button type="button" class="wct-zone-do-sel" title="${escHtml(t('tipZoneBtnSelPlusTard'))}">${escHtml(t('zoneBtnSelPlusTard'))}</button>` : ''}
+        <button type="button" class="wct-zone-edit-again" title="${escHtml(t('tipZoneBtnEditer'))}">✎</button>
+        <button type="button" class="wct-zone-clear" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
+    el.querySelector('.wct-zone-do-sel')?.addEventListener('click', _zoneSelectionnerPlusTard);
+    el.querySelector('.wct-zone-edit-again')?.addEventListener('click', _zoneEnterEdit);
+    el.querySelector('.wct-zone-clear').addEventListener('click', () => {
+        _zoneExitEdit(false);
+        _polyZone = null; _polyDraft = null;
+        _zonePanelHide(); _zoneRefreshLayer();      // le calque part avec la zone
+        _zoneOublierSelection();
         renderPolyBanner(); refreshCfgGate(); updateFab();
     });
     pane.insertBefore(el, pane.firstChild);
@@ -9804,7 +10459,13 @@ const refreshCfgGate = () => {
     // le seul geste qui dise vraiment « j'en ai fini avec cette zone ».
     // Le garde `_sweepRunning` évite de l'effacer pendant le balayage, où la
     // sélection est momentanément vide.
-    if(_polyZone && !pret && !_sweepRunning){ _polyZone = null; renderPolyBanner(); }
+    // ⚠️ `ids.length` est déterminant : une zone posée SANS sélection (réponse « non »
+    // à la question, ou aucun segment retenu) n'en a jamais eu, donc il n'y a rien à
+    // défaire — l'effacer ici la ferait s'évaporer à la seconde même où elle apparaît.
+    // Seule une sélection qui a existé puis disparu vaut « j'en ai fini ».
+    if(_polyZone && _polyZone.ids.length && !pret && !_sweepRunning){
+        _polyZone = null; _zoneRefreshLayer(); renderPolyBanner();
+    }
     pane.querySelectorAll('.wct-cfg-grid').forEach(el => {
         el.classList.toggle('wct-na', !pret);
         if(!pret) el.title = t('polyGateWhy'); else el.removeAttribute('title');
@@ -12401,6 +13062,11 @@ const init=async()=>{
     applyDisplayMode(_displayMode);
     // FAB
     injectFab();
+    // Double-clic dans la zone pour rouvrir son panneau d'arbitrage.
+    _zoneInstallerDblClic();
+    // Le panneau de zone est posé dans la partie VISIBLE de la carte : elle change
+    // quand la fenêtre est redimensionnée ou quand notre propre panneau bouge.
+    window.addEventListener('resize', () => _zonePanelPlace());
     // Source (partenaire) : sonder la capacité UNE fois, puis charger la liste de
     // l'emprise. Tout est asynchrone et sans blocage — si ça échoue, le sélecteur reste
     // grisé avec sa cause et le reste de WCT n'en sait rien.
