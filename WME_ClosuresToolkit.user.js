@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.98.00
+// @version      0.99.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -7101,11 +7101,7 @@ const _srcBlockSegments=(resEl,F,zone)=>{
                 // pas quand un segment est sélectionné → passer par OpenLayers.
                 if(row.geom){
                     const p=row.geom[Math.floor(row.geom.length/2)];
-                    try{
-                        const pt=new OpenLayers.Geometry.Point(p[0],p[1]);
-                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
-                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),17);
-                    }catch(err){ log('centrage zone: '+err.message); }
+                    _centrerSurZoneVisibleOL(p[0],p[1],17);
                     return;
                 }
                 // Ne jamais rester muet : un bouton qui ne fait rien passe pour cassé.
@@ -7259,11 +7255,7 @@ const _srcBlockTurns=(resEl,F,zone)=>{
                 const nid=Number(e.currentTarget.dataset.node), sid=Number(e.currentTarget.dataset.sid);
                 const p=_segEndAt(sid,nid);
                 if(p?.at){
-                    try{
-                        const pt=new OpenLayers.Geometry.Point(p.at[0],p.at[1]);
-                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
-                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),18);
-                    }catch(err){ log('centrage virage: '+err.message); }
+                    _centrerSurZoneVisibleOL(p.at[0],p.at[1],18);
                     return;
                 }
                 // Segment du virage non chargé : le dire plutôt que de rester muet.
@@ -8483,25 +8475,16 @@ const traceFocus = (trackId) => {
     const trk = _traceTracks.find(t => t.trackId === trackId);
     if(!trk || !trk.sampledPts || trk.sampledPts.length === 0) return;
     try {
-        const proj4326 = new OpenLayers.Projection('EPSG:4326');
-        const proj3857 = new OpenLayers.Projection('EPSG:3857');
         let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
         trk.sampledPts.forEach(([lat, lon]) => {
             if(lon < minLon) minLon = lon; if(lon > maxLon) maxLon = lon;
             if(lat < minLat) minLat = lat; if(lat > maxLat) maxLat = lat;
         });
-        const dLon = maxLon - minLon, dLat = maxLat - minLat;
-        const mapDiv = W.map.div || document.getElementById('map');
-        const mapW = mapDiv ? mapDiv.offsetWidth  : 800;
-        const mapH = mapDiv ? mapDiv.offsetHeight : 600;
-        const overlayW = 620;
-        const zoomLon = Math.log2((mapW * 360) / (dLon * 256));
-        const zoomLat = Math.log2((mapH * 360) / (dLat * 256));
-        const zoom = Math.max(1, Math.min(17, Math.floor(Math.min(zoomLon, zoomLat)) - 1));
-        const degPerPx = 360 / (256 * Math.pow(2, zoom));
-        const adjustedLon = (minLon + maxLon) / 2 + (overlayW / 2) * degPerPx;
-        const center = new OpenLayers.LonLat(adjustedLon, (minLat + maxLat) / 2).transform(proj4326, proj3857);
-        W.map.moveTo(center, zoom);
+        // ⚠️ Le zoom se calcule sur la zone VISIBLE, pas sur le canevas entier : cadrer
+        // une trace sur toute la largeur de la carte en laisse la moitié sous le panneau.
+        // Et le décalage n'est plus une soustraction de 620 px en dur — voir _zoneVisible.
+        const zoom = _zoomPourBBox(maxLon - minLon, maxLat - minLat, 1, 17, 1);
+        _centrerSurZoneVisibleOL((minLon + maxLon) / 2, (minLat + maxLat) / 2, zoom);
     } catch(e) { console.error('WCT trace focus:', e); }
 };
 // ── Vérification de couverture ────────────────────────────────────────────────
@@ -8654,36 +8637,147 @@ const _covDrawGaps = (segObjs) => {
         _coverageLayer = layer;
     } catch(e){ console.error('WCT coverage draw:', e); }
 };
-// Calcule la zone libre de la carte (hors overlay droit et sidebar gauche)
-// et retourne {freeLeft, freeRight, freeWidth, mapW, mapH} en pixels dans le div carte
-// Zone libre de la carte = du bord gauche du div carte au bord gauche de l'overlay.
-// Position PAR DÉFAUT de l'overlay (right:60px, width:620px).
-const _getMapFreeZone=()=>{
-    const mapDiv=W.map?.div||document.getElementById('map');
-    const mapW=mapDiv?mapDiv.offsetWidth:800;
-    const mapH=mapDiv?mapDiv.offsetHeight:600;
-    const OVERLAY_W=620, OVERLAY_RIGHT=60;
-    const freeRight=mapW-OVERLAY_W-OVERLAY_RIGHT; // bord gauche de l'overlay
-    return {freeLeft:0, freeRight, freeWidth:freeRight, mapW, mapH};
+// ═══════════════════════════════════════════════════════════════════════════
+//  CENTRAGE SUR CE QUI RESTE VISIBLE
+// ═══════════════════════════════════════════════════════════════════════════
+// Ce que l'éditeur voit de la carte n'est pas la carte : le volet latéral de WME la
+// mord à gauche, notre panneau à droite, la barre d'édition en bas. Centrer « au
+// milieu » pose donc l'objet sous une fenêtre une fois sur deux.
+//
+// ⚠️ L'ANCIENNE VERSION POSAIT 620 px ET 60 px EN DUR, et ignorait complètement le
+// volet gauche (`freeLeft:0`). Quatre situations la rendaient fausse : le panneau est
+// DÉPLAÇABLE, il rétrécit sous `min(620px, 100vw-24px)`, il se REPLIE, et il se ferme.
+// On mesure désormais les rectangles réels — rien en dur. (Demandé par l'auteur le
+// 30/07/2026, sur le modèle de ce que fait WNA.)
+
+// Un élément compte-t-il vraiment dans la mise en page ?
+const _estVisible = (e) => {
+    if(!e) return false;
+    if(e.style && e.style.display === 'none') return false;
+    const r = e.getBoundingClientRect();
+    return r.width > 1 && r.height > 1;
 };
-// Recentre la carte pour qu'un point WGS84 apparaisse au centre de la zone libre
-// (à gauche de l'overlay). Utilise les conversions pixel SDK — aucune approximation projection.
-const _shiftCenterToFreeZone=(targetLon,targetLat)=>{
-    try{
-        const {freeWidth,mapH}=_getMapFreeZone();
-        // Pixel-cible (centre de la zone libre), relatif au div carte
-        const targetPxX=freeWidth/2;
-        const targetPxY=mapH/2;
-        // Coordonnées actuellement affichées à ce pixel
-        const atTarget=sdk.Map.getLonLatFromMapPixel({x:targetPxX,y:targetPxY});
-        // Centre actuel de la carte
-        const center=sdk.Map.getMapCenter();
-        // Pour que le segment (targetLon/Lat) se retrouve au pixel-cible,
-        // on déplace le centre du même vecteur (différence centre ↔ point au pixel-cible)
-        const newLon=center.lon+(targetLon-atTarget.lon);
-        const newLat=center.lat+(targetLat-atTarget.lat);
-        sdk.Map.setMapCenter({lonLat:{lon:newLon,lat:newLat}});
-    }catch(e){ console.warn('[WCT] _shiftCenterToFreeZone:',e); }
+const _rectCarte = () => {
+    const c = W.map?.div || document.getElementById('map')
+              || document.querySelector('.wm-map') || document.body;
+    return c.getBoundingClientRect();
+};
+// Surface de carte que rien ne recouvre. On ne retranche que ce qui mord un BORD :
+// un élément posé en plein milieu ne se retranche pas proprement, et ce cas ne se
+// présente pas ici.
+const _zoneVisible = () => {
+    const rc = _rectCarte();
+    let gauche = rc.left, droite = rc.right, haut = rc.top, bas = rc.bottom;
+    // — le volet latéral de WME, à gauche —
+    ['#sidebarContent', '.sidebar-layout', '#user-info'].forEach(sel => {
+        const e = document.querySelector(sel);
+        if(!_estVisible(e)) return;
+        const r = e.getBoundingClientRect();
+        if(r.right > gauche && r.left <= gauche + 2) gauche = Math.max(gauche, r.right);
+    });
+    // — notre panneau : à droite d'ordinaire, mais il est déplaçable, donc on ne le
+    //   suppose pas. On rogne du côté où il laisse le PLUS de place. —
+    const ov = $id('wct-overlay');
+    if(_estVisible(ov) && ov.classList.contains('open')){
+        const r = ov.getBoundingClientRect();
+        if(!(r.bottom < haut || r.top > bas)){
+            if(r.left - gauche > droite - r.right) droite = Math.min(droite, r.left);
+            else gauche = Math.max(gauche, r.right);
+        }
+    }
+    // — la barre d'outils du bas (barre d'édition de WME, Toolbox) —
+    ['.WMEToolbox', '#toolbox', '.edit-buttons', '.footer'].forEach(sel => {
+        const e = document.querySelector(sel);
+        if(!_estVisible(e)) return;
+        const r = e.getBoundingClientRect();
+        if(r.top < bas && r.bottom >= bas - 4) bas = Math.min(bas, r.top);
+    });
+    // Garde-fou : si les retranchements se croisent (panneau large sur petit écran),
+    // on rend la carte entière plutôt qu'une zone absurde — mieux vaut un centrage
+    // classique qu'un centrage aberrant.
+    if(droite - gauche < 80 || bas - haut < 80)
+        return { gauche: rc.left, droite: rc.right, haut: rc.top, bas: rc.bottom, rc, complet: true };
+    return { gauche, droite, haut, bas, rc, complet: false };
+};
+
+// Décalage à appliquer à un point pour qu'il tombe au centre de la zone visible.
+//
+// ⚠️ Le décalage se calcule pour le zoom d'ARRIVÉE : à chaque niveau l'échelle double.
+// L'ancienne version centrait puis rectifiait 150 ms plus tard (setTimeout) — ce qui
+// se voyait à l'écran, et donnait un résultat faux dès que le zoom changeait entre les
+// deux. On extrapole depuis l'emprise courante et on ne pose la carte qu'une fois.
+//
+// Fonction PURE : ni DOM, ni SDK. Éprouvée par tools/test-centrage.js.
+const _decalageVisible = (zone, ext, zoomActuel, zoomCible) => {
+    if(!zone || zone.complet) return { dLon: 0, dLat: 0 };
+    const rc = zone.rc;
+    if(!ext || ext.length !== 4 || !(rc.width > 0) || !(rc.height > 0)) return { dLon: 0, dLat: 0 };
+    const f = (zoomCible == null || zoomCible === zoomActuel) ? 1 : Math.pow(2, zoomActuel - zoomCible);
+    const dpxLon = ((ext[2] - ext[0]) / rc.width) * f;
+    const dpxLat = ((ext[3] - ext[1]) / rc.height) * f;
+    // Écart en pixels entre le centre du canevas et celui de la zone visible.
+    const dx = ((zone.gauche + zone.droite) / 2) - ((rc.left + rc.right) / 2);
+    const dy = ((zone.haut + zone.bas) / 2) - ((rc.top + rc.bottom) / 2);
+    // Pour que la cible apparaisse au centre VISIBLE, le centre de la carte doit s'en
+    // écarter en sens inverse. ⚠️ L'axe Y de l'écran descend, la latitude monte : le
+    // signe s'inverse sur dy.
+    return { dLon: -dx * dpxLon, dLat: dy * dpxLat };
+};
+// Point corrigé, prêt à être posé comme centre de carte.
+const _pointVersZoneVisible = (lon, lat, zoomCible) => {
+    try {
+        const { dLon, dLat } = _decalageVisible(_zoneVisible(), sdk.Map.getMapExtent(),
+                                                sdk.Map.getZoomLevel(), zoomCible);
+        return { lon: lon + dLon, lat: lat + dLat };
+    } catch(e){ return { lon, lat }; }
+};
+// Centre la carte pour que le point tombe au milieu de ce qui reste visible.
+const _centrerSurZoneVisible = (lon, lat, zoomCible) => {
+    const p = _pointVersZoneVisible(lon, lat, zoomCible);
+    try {
+        if(zoomCible == null) sdk.Map.setMapCenter({ lonLat: p });
+        else sdk.Map.setMapCenter({ lonLat: p, zoomLevel: zoomCible });
+    } catch(e){
+        // Jamais d'échec silencieux qui laisse la carte immobile : on retombe sur le
+        // centrage brut, quitte à ce que la cible finisse derrière une fenêtre.
+        log('centrage sur la zone visible impossible: ' + e.message);
+        try { sdk.Map.setMapCenter({ lonLat: { lon, lat }, zoomLevel: zoomCible }); } catch(e2){}
+    }
+};
+// Même chose par OpenLayers. ⚠️ Indispensable pour les focus : setMapCenter du SDK ne
+// recentre PAS quand un segment est sélectionné (piège vérifié en live, cf. 0.84).
+const _centrerSurZoneVisibleOL = (lon, lat, zoom) => {
+    try {
+        const p = _pointVersZoneVisible(lon, lat, zoom);
+        const pt = new OpenLayers.Geometry.Point(p.lon, p.lat);
+        pt.transform(new OpenLayers.Projection('EPSG:4326'), W.map.getProjectionObject());
+        W.map.setCenter(new OpenLayers.LonLat(pt.x, pt.y), zoom);
+    } catch(e){ log('centrage OL sur la zone visible impossible: ' + e.message); }
+};
+// Dimensions de la zone visible, en pixels — sert aux calculs de niveau de zoom.
+// Conserve les clés de l'ancienne version : ses appelants n'ont pas à changer.
+const _getMapFreeZone = () => {
+    const z = _zoneVisible();
+    const largeur = Math.max(z.droite - z.gauche, 1), hauteur = Math.max(z.bas - z.haut, 1);
+    return { freeLeft: z.gauche - z.rc.left, freeRight: z.droite - z.rc.left,
+             freeWidth: largeur, mapW: z.rc.width, mapH: hauteur };
+};
+// Niveau de zoom auquel une emprise (en degrés) tient dans une surface (en pixels).
+// `retrait` recule d'un cran pour laisser une marge autour de l'objet cadré.
+// Fonction PURE : ni DOM, ni SDK. Éprouvée par tools/test-centrage.js.
+const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait) => {
+    const dl = Math.max(dLon, 1e-6), dt = Math.max(dLat, 1e-6);
+    const w = Math.max(largeurPx, 200), h = Math.max(hauteurPx, 200);
+    const z = Math.floor(Math.min(Math.log2((w * 360) / (dl * 256)),
+                                  Math.log2((h * 360) / (dt * 256)))) - (retrait || 0);
+    return Math.max(zMin, Math.min(zMax, z));
+};
+// Le même, mesuré sur ce qui reste visible à l'écran. ⚠️ Calculer le zoom sur le
+// canevas entier fait déborder l'objet sous le panneau : il « tient » sur une largeur
+// dont l'éditeur ne voit qu'une partie.
+const _zoomPourBBox = (dLon, dLat, zMin, zMax, retrait) => {
+    const { freeWidth, mapH } = _getMapFreeZone();
+    return _zoomPourTaille(dLon, dLat, freeWidth, mapH, zMin, zMax, retrait);
 };
 // Extrait les coordonnées WGS84 [[lon,lat],...] d'un objet segment (SDK ou legacy)
 const _getSegCoords=(seg)=>{
@@ -8702,10 +8796,9 @@ const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
             if(lat<minLat)minLat=lat; if(lat>maxLat)maxLat=lat;
         });
         const cLon=(minLon+maxLon)/2, cLat=(minLat+maxLat)/2;
-        // 1) Fixer le zoom et centrer brutalement (le SDK met le point au centre du viewport)
-        sdk.Map.setMapCenter({lonLat:{lon:cLon,lat:cLat},zoomLevel});
-        // 2) Une fois le zoom appliqué, recentrer dans la zone libre via conversion pixel réelle
-        setTimeout(()=>_shiftCenterToFreeZone(cLon,cLat),150);
+        // Une seule pose : le décalage est calculé pour le zoom d'arrivée. L'ancienne
+        // version centrait puis rectifiait 150 ms après — le saut se voyait.
+        _centrerSurZoneVisible(cLon,cLat,zoomLevel);
     }catch(e){
         console.warn('WCT centerOnSegmentBbox:',e);
         try{
@@ -8715,38 +8808,19 @@ const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
     }
 };
 // Conservée pour compat : centre un point unique dans la zone libre
-const centerWithOverlayOffset=(lon,lat,zoomLevel=17)=>{
-    try{
-        sdk.Map.setMapCenter({lonLat:{lon,lat},zoomLevel});
-        setTimeout(()=>_shiftCenterToFreeZone(lon,lat),150);
-    }catch(e){
-        try{ sdk.Map.setMapCenter({lonLat:{lon,lat},zoomLevel}); }catch(e2){}
-    }
-};
+const centerWithOverlayOffset=(lon,lat,zoomLevel=17)=>_centrerSurZoneVisible(lon,lat,zoomLevel);
 // Centre la carte sur une zone (cadre la bbox de ses segments), comme traceFocus
 const _covFocusGap = (zone) => {
     if(!zone || !zone.segs || zone.segs.length === 0) return;
     try {
-        const proj4326 = new OpenLayers.Projection('EPSG:4326');
-        const proj3857 = new OpenLayers.Projection('EPSG:3857');
         let minLon=Infinity, maxLon=-Infinity, minLat=Infinity, maxLat=-Infinity;
         zone.segs.forEach(s => s.lonlat.forEach(([lon,lat]) => {
             if(lon < minLon) minLon = lon; if(lon > maxLon) maxLon = lon;
             if(lat < minLat) minLat = lat; if(lat > maxLat) maxLat = lat;
         }));
-        const dLon = Math.max(maxLon - minLon, 0.0005);
-        const dLat = Math.max(maxLat - minLat, 0.0005);
-        const mapDiv = W.map.div || document.getElementById('map');
-        const mapW = mapDiv ? mapDiv.offsetWidth  : 800;
-        const mapH = mapDiv ? mapDiv.offsetHeight : 600;
-        const overlayW = 620;
-        const zoomLon = Math.log2((mapW * 360) / (dLon * 256));
-        const zoomLat = Math.log2((mapH * 360) / (dLat * 256));
-        const zoom = Math.max(1, Math.min(18, Math.floor(Math.min(zoomLon, zoomLat)) - 1));
-        const degPerPx = 360 / (256 * Math.pow(2, zoom));
-        const adjustedLon = (minLon + maxLon) / 2 + (overlayW / 2) * degPerPx;
-        const center = new OpenLayers.LonLat(adjustedLon, (minLat + maxLat) / 2).transform(proj4326, proj3857);
-        W.map.moveTo(center, zoom);
+        const zoom = _zoomPourBBox(Math.max(maxLon - minLon, 0.0005),
+                                   Math.max(maxLat - minLat, 0.0005), 1, 18, 1);
+        _centrerSurZoneVisibleOL((minLon + maxLon) / 2, (minLat + maxLat) / 2, zoom);
     } catch(e){ console.error('WCT coverage focus:', e); }
 };
 // ── Briques de matching tracé→segments, réutilisées par la couverture ET le balayage ──
@@ -9143,15 +9217,9 @@ let _currentLot = null;
 const _lotFocus = (lot) => {
     const b = lot.bbox;
     const cLon = (b.minLon+b.maxLon)/2, cLat = (b.minLat+b.maxLat)/2;
-    const dLon = Math.max(b.maxLon-b.minLon, 0.001), dLat = Math.max(b.maxLat-b.minLat, 0.001);
-    const { freeWidth, mapH } = _getMapFreeZone();      // largeur utile = hors overlay
-    const w = Math.max(freeWidth, 200), h = Math.max(mapH, 200);
-    const zoom = Math.max(15, Math.min(17, Math.floor(Math.min(
-        Math.log2((w*360)/(dLon*256)), Math.log2((h*360)/(dLat*256))))));
-    try{
-        sdk.Map.setMapCenter({lonLat:{lon:cLon, lat:cLat}, zoomLevel:zoom});
-        setTimeout(() => _shiftCenterToFreeZone(cLon, cLat), 160); // décale dans la zone visible
-    }catch(e){}
+    const zoom = _zoomPourBBox(Math.max(b.maxLon-b.minLon, 0.001),
+                               Math.max(b.maxLat-b.minLat, 0.001), 15, 17);
+    _centrerSurZoneVisible(cLon, cLat, zoom);
 };
 // Charge TOUTE une emprise en la parcourant vue par vue, et attend chaque chargement.
 // Un simple recadrage ne charge que ce que la vue montre : une emprise plus grande
@@ -9222,11 +9290,8 @@ const _lotSelect = async (trackId, lotIdx) => {
 const _lotPermalink = (lot) => {
     if(!lot?.segIds?.length) return;
     const b=lot.bbox, cLon=(b.minLon+b.maxLon)/2, cLat=(b.minLat+b.maxLat)/2;
-    const dLon=Math.max(b.maxLon-b.minLon,0.001), dLat=Math.max(b.maxLat-b.minLat,0.001);
-    const {freeWidth,mapH}=_getMapFreeZone();
-    const zoom=Math.max(15,Math.min(17,Math.floor(Math.min(
-        Math.log2((Math.max(freeWidth,200)*360)/(dLon*256)),
-        Math.log2((Math.max(mapH,200)*360)/(dLat*256))))));
+    const zoom=_zoomPourBBox(Math.max(b.maxLon-b.minLon,0.001),
+                             Math.max(b.maxLat-b.minLat,0.001), 15, 17);
     const env=new URLSearchParams(location.search).get('env')||'row';
     const url=`https://www.waze.com/editor?env=${env}&lat=${cLat}&lon=${cLon}&zoomLevel=${zoom}&segments=${lot.segIds.join(',')}`;
     const ok=()=>showToast(t('lotPermaCopied',lot.segIds.length),3000,'#43a047');
@@ -10942,9 +11007,7 @@ const buildQueueCard=(entry,idx)=>{
                 // CSV : c'est pour ça qu'il y est.
                 if(entry.turnLonLat){
                     try{
-                        const pt=new OpenLayers.Geometry.Point(entry.turnLonLat.lon,entry.turnLonLat.lat);
-                        pt.transform(new OpenLayers.Projection('EPSG:4326'),W.map.getProjectionObject());
-                        W.map.setCenter(new OpenLayers.LonLat(pt.x,pt.y),17);
+                        _centrerSurZoneVisibleOL(entry.turnLonLat.lon,entry.turnLonLat.lat,17);
                     }catch(err){ log('centrage file: '+err.message); }
                     return;
                 }
@@ -12005,9 +12068,18 @@ const doInjectFab=(silent)=>{
             ensureClosuresLayer();   // activer le calque Fermetures (détection de chevauchement)
             const sel=getSelection();
             const hasSeg=sel.ids.length>0&&sel.objectType==='segment';
-            if(!hasSeg){
-                setTimeout(()=>document.querySelector('.wct-main-tab[data-tab="csv"]')?.click(),50);
-            } else {
+            // ⚠️ SUPPRIMÉ le 30/07/2026 : « pas de sélection → basculer sur Import ».
+            // C'était le JUMEAU OUBLIÉ de la règle retirée de onSel en 0.88.00 (voir le
+            // commentaire à la fin d'updateFab). Même raisonnement, même erreur : il
+            // tenait tant que Configurer n'offrait rien sans sélection, et il a cessé de
+            // tenir quand cet onglet a reçu « Tracer une zone » — précisément le geste
+            // qui PRODUIT la sélection manquante. Renvoyer vers Import revenait à
+            // proposer un fichier à quelqu'un qui veut tracer.
+            // Conséquence visible pour l'éditeur : le panneau s'ouvrait sur Import à
+            // chaque chargement de page (signalé par l'auteur). Il s'ouvre désormais sur
+            // l'onglet où on l'avait laissé — donc Configurer au démarrage, puisque
+            // c'est lui que le HTML porte en `on`.
+            if(hasSeg){
                 if(lastConfig) applyConfig(lastConfig);
                 refreshMTE(); refreshSmallPreview();
             }
