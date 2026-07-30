@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.02
+// @version      1.00.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -559,7 +559,10 @@ GM_addStyle(`
 #wct-zone-poignees.wct-zp-ecran .wct-zpoi { position: fixed; }
 .wct-zpoi {
     position: absolute; transform: translate(-50%,-50%);
-    border-radius: 50%; pointer-events: auto; cursor: grab; z-index: 9991;
+    border-radius: 50%; pointer-events: auto; cursor: grab;
+    /* Sous le panneau principal (9990) : une poignée par-dessus lui serait absurde,
+       la zone qu'elle sert à éditer est cachée derrière de toute façon. */
+    z-index: 9985;
 }
 .wct-zpoi-s {
     width: 12px; height: 12px; background: #e91e63; border: 2px solid #fff;
@@ -8955,13 +8958,28 @@ const _zoneVisible = () => {
         if(r.right > gauche && r.left <= gauche + 2) gauche = Math.max(gauche, r.right);
     });
     // — notre panneau : à droite d'ordinaire, mais il est déplaçable, donc on ne le
-    //   suppose pas. On rogne du côté où il laisse le PLUS de place. —
+    //   suppose pas. On essaie les quatre découpes et on garde LA PLUS GRANDE surface.
+    //   ⚠️ Rogner systématiquement en largeur était faux quand le panneau est REPLIÉ :
+    //   il ne fait plus qu'une barre de titre (le repli masque le corps, il ne change
+    //   pas la largeur), et on lui sacrifiait quand même 620 px sur toute la hauteur —
+    //   alors qu'il ne masque qu'une bande. Découper en hauteur laisse alors presque
+    //   toute la carte.
     const ov = $id('wct-overlay');
     if(_estVisible(ov) && ov.classList.contains('open')){
         const r = ov.getBoundingClientRect();
-        if(!(r.bottom < haut || r.top > bas)){
-            if(r.left - gauche > droite - r.right) droite = Math.min(droite, r.left);
-            else gauche = Math.max(gauche, r.right);
+        if(!(r.bottom < haut || r.top > bas || r.right < gauche || r.left > droite)){
+            const candidats = [
+                { g: gauche,                    d: Math.min(droite, r.left),  h: haut,                    b: bas },
+                { g: Math.max(gauche, r.right), d: droite,                    h: haut,                    b: bas },
+                { g: gauche,                    d: droite,                    h: haut,                    b: Math.min(bas, r.top) },
+                { g: gauche,                    d: droite,                    h: Math.max(haut, r.bottom), b: bas }
+            ];
+            let mieux = null, aire = -1;
+            candidats.forEach(c => {
+                const a = Math.max(0, c.d - c.g) * Math.max(0, c.b - c.h);
+                if(a > aire){ aire = a; mieux = c; }
+            });
+            if(mieux){ gauche = mieux.g; droite = mieux.d; haut = mieux.h; bas = mieux.b; }
         }
     }
     // — la barre d'outils du bas (barre d'édition de WME, Toolbox) —
@@ -10012,12 +10030,14 @@ const _zonePanelShow = (html) => {
 // Un refus poli reste un refus.
 const _zoneHandlesHost = () => {
     try {
-        if(W.map?.layerContainerDiv) return { el: W.map.layerContainerDiv, mode:'calque' };
-        // Nos propres calques vivent dans ce conteneur : leur parent, c'est lui.
-        const p = _zoneLayer?.div?.parentNode;
-        if(p) return { el: p, mode:'calque' };
-        // Certaines versions n'exposent que le viewport.
-        if(W.map?.viewPortDiv) return { el: W.map.viewPortDiv, mode:'ecran' };
+        // ⚠️ On teste la CAPACITÉ, on ne la suppose pas. Le mode calque a besoin des
+        // DEUX : un conteneur ET la conversion en pixels de couche. La première version
+        // se contentait de trouver un conteneur, et posait ensuite des poignées dont
+        // toutes les coordonnées échouaient — aucune poignée à l'écran, aucun message.
+        if(typeof W.map?.getLayerPxFromLonLat === 'function'){
+            const el = W.map.layerContainerDiv || _zoneLayer?.div?.parentNode;
+            if(el) return { el, mode:'calque' };
+        }
     } catch(e){ log('zone hôte des poignées: ' + e.message); }
     return { el: document.body, mode:'ecran' };
 };
@@ -10027,15 +10047,15 @@ const _zoneDrawHandles = () => {
     hote.innerHTML = '';
     const pts = _zoneEdit.points;
     // Deux repères possibles selon l'hôte : pixels DU CONTENEUR DE COUCHES (les
-    // poignées suivent alors le glissement toutes seules) ou pixels d'écran (repli).
-    const rc = _zoneEdit.mode === 'ecran' ? _rectCarte() : null;
+    // poignées suivent alors le glissement toutes seules) ou pixels d'ÉCRAN (repli).
+    // Le repli passe par le SDK, qui rend directement des pixels écran — c'est la voie
+    // éprouvée en production dans WNA, on ne la réinvente pas.
+    let echec = '';
     const px = ([lon, lat]) => {
         try {
-            const ll = _zoneVers3857(lon, lat);
-            if(_zoneEdit.mode === 'calque') return W.map.getLayerPxFromLonLat(ll);
-            const p = W.map.getPixelFromLonLat(ll);
-            return p ? { x: p.x + rc.left, y: p.y + rc.top } : null;
-        } catch(e){ return null; }
+            if(_zoneEdit.mode === 'calque') return W.map.getLayerPxFromLonLat(_zoneVers3857(lon, lat));
+            return sdk.Map.getPixelFromLonLat({ lonLat: { lon, lat } });
+        } catch(e){ echec = echec || e.message; return null; }
     };
     pts.forEach((p, i) => {
         const q = px(p);
@@ -10072,17 +10092,35 @@ const _zoneDrawHandles = () => {
         });
         hote.appendChild(a);
     });
+    // ⚠️ Un mode édition SANS AUCUNE POIGNÉE est un piège muet : l'éditeur croit
+    // pouvoir attraper le contour et n'a rien sous la souris (vécu le 31/07/2026,
+    // toutes les conversions de pixels échouaient en silence). On le dit, une fois.
+    if(!hote.childElementCount && !_zoneEdit.prevenu){
+        _zoneEdit.prevenu = true;
+        log('zone : aucune poignée posée (mode ' + _zoneEdit.mode + ')' + (echec ? ' — ' + echec : ''));
+        showToast(t('zoneEditKo'), 4000, '#e53935');
+    }
 };
 const _zoneStartDrag = (e, index) => {
     e.preventDefault(); e.stopPropagation();
     const rc = _rectCarte();
     const bouger = ev => {
         try {
-            const ll = W.map.getLonLatFromPixel(
-                new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top));
-            if(!ll) return;
-            const g = _zoneVers4326(ll);
-            _zoneEdit.points[index] = [g.lon, g.lat];
+            // Même repère que celui qui a servi à POSER la poignée, sinon elle fuit
+            // sous le curseur. Le SDK rend et prend du WGS84 : aucune projection.
+            let point;
+            if(_zoneEdit.mode === 'calque'){
+                const ll = W.map.getLonLatFromPixel(
+                    new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top));
+                if(!ll) return;
+                const g = _zoneVers4326(ll);
+                point = [g.lon, g.lat];
+            } else {
+                const g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY });
+                if(!g) return;
+                point = [g.lon, g.lat];
+            }
+            _zoneEdit.points[index] = point;
             _zoneMajEdition();
         } catch(err){}
         ev.preventDefault();
@@ -10103,8 +10141,23 @@ const _zoneEnterEdit = () => {
     const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
     // Ne jamais rester muet : un bouton qui ne fait rien passe pour cassé.
     if(!rings || !rings.length || rings[0].length < 4){ showToast(t('zoneEditKo'), 3500, '#f57c00'); return; }
-    const hote = _zoneHandlesHost();
     if(_zoneEdit) _zoneExitEdit(false);
+    // Faire de la place AVANT d'éditer : on ne corrige pas un contour qu'on ne voit
+    // qu'à moitié. Si le panneau laisse moins de la moitié de la carte exploitable, il
+    // se replie ; puis la zone est cadrée sur ce qui reste réellement visible.
+    // ⚠️ Dans cet ordre : replier change la surface visible, donc le cadrage doit être
+    // calculé APRÈS. (Demandé par l'auteur le 31/07/2026.)
+    const etaitReplieAvantEdition = collapsed;
+    try {
+        const rc = _rectCarte();
+        const aire = (z) => Math.max(0, z.droite - z.gauche) * Math.max(0, z.bas - z.haut);
+        if(aire(_zoneVisible()) < rc.width * rc.height * 0.5) _polySetCollapsed(true);
+        const bb = _polyBBoxOf(rings);
+        _centrerSurZoneVisible((bb.minLon + bb.maxLon) / 2, (bb.minLat + bb.maxLat) / 2,
+            _zoomPourBBox(Math.max(bb.maxLon - bb.minLon, 0.0002),
+                          Math.max(bb.maxLat - bb.minLat, 0.0002), 1, 18, 1));
+    } catch(e){ log('zone cadrage avant édition: ' + e.message); }
+    const hote = _zoneHandlesHost();
     const zone = make('div');
     zone.id = 'wct-zone-poignees';
     if(hote.mode === 'ecran') zone.className = 'wct-zp-ecran';
@@ -10118,7 +10171,7 @@ const _zoneEnterEdit = () => {
     const surMove = () => _zoneDrawHandles();
     try { W.map.events.register('moveend', W.map, surMove); } catch(err){}
     _zoneEdit = {
-        zone, echap, surMove, mode: hote.mode,
+        zone, echap, surMove, mode: hote.mode, etaitReplie: etaitReplieAvantEdition,
         points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
         trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
         avant:  rings.map(r => r.map(p => [p[0], p[1]]))
@@ -10141,6 +10194,9 @@ const _zoneEnterEdit = () => {
 const _zoneExitEdit = (garder) => {
     if(!_zoneEdit) return;
     const rings = garder ? _zoneEditRings() : _zoneEdit.avant;
+    // Le panneau retrouve l'état où on l'avait pris : c'est déjà ce que fait le tracé,
+    // et un panneau qui reste replié sans qu'on l'ait demandé se remarque.
+    if(!_zoneEdit.etaitReplie && collapsed) _polySetCollapsed(false);
     if(_zoneEdit.raf) cancelAnimationFrame(_zoneEdit.raf);
     try { W.map.events.unregister('moveend', W.map, _zoneEdit.surMove); } catch(e){}
     document.removeEventListener('keydown', _zoneEdit.echap, true);
