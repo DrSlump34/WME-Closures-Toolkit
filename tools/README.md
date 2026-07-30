@@ -24,14 +24,18 @@ node check-keys.js        # avant toute publication
 | `test-export.js` | Formats WKT et KML **extraits du fichier réel** : ordre lon/lat, anneaux, trous, échappement XML |
 | `test-roundtrip.js` | **Aller-retour** export → import : ce qu'on écrit, on doit savoir le relire. C'est ce test qui avait révélé que WCT ne relisait pas son propre CSV |
 | `test-imp-detect.js` | Détecteur de l'onglet Import, surtout les cas **ambigus** : `.json` GeoJSON ou préréglages, `.kml` tracé ou zone, fichier mixte |
+| `test-pave.js` | Découpage d'une zone en **lots** : un lot = un recadrage de carte et une entrée de file, donc le nombre de lots est ce que l'éditeur paie. Vérifie la règle « ce qui tient dans une vue ne fait qu'un lot » sur 200 dispositions, plus les bbox, les doublons et les cas dégénérés |
 | `test-imp-route.js` | Ce qui se passe **après** la détection : le libellé du type reconnu, le filet à exceptions du point d'entrée, l'import de zone qui doit lire le fichier entier. Et surtout : **aucune portée ne masque la fonction de traduction `t()`** |
 
-`poly-core.js` et `imp-detect.js` sont les modules testés. ⚠️ `poly-core.js` est une **copie**
+`poly-core.js`, `imp-detect.js` et `poly-pave.js` sont les modules testés. ⚠️ `poly-core.js` est une **copie**
 du moteur intégré au userscript : en cas de modification du moteur, reporter le changement ici,
 sinon le test valide du code qui n'est plus celui qui tourne.
 `imp-detect.js` **était** une copie lui aussi — il extrait désormais la fonction du fichier réel
 (2026-07-26). Motif : le bug 0.97.01 vivait à deux lignes du code copié, dans une zone qu'aucun
 test n'atteignait. Une copie ne prouve rien.
+`poly-pave.js` extrait lui aussi (2026-07-30). Motif : le pavage était enfoui dans
+`_polyLoadAndSelect`, qui parle au SDK et déplace la carte — donc intestable, et personne n'a vu
+qu'une zone tenant dans un écran ressortait en trois lots. Il en a été sorti en fonction pure.
 
 ⚠️ **Le piège du masquage de `t()`** — la fonction de traduction est une variable globale nommée
 `t`. Une fonction qui prend un paramètre `t` (ou déclare un `const t`) **et** appelle `t('clé')`

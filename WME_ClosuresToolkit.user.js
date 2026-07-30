@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      0.97.03
+// @version      0.98.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -7662,8 +7662,10 @@ const applyQueue=async()=>{
                         (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                 });
             }
-            // Pause assistée entre les lots (sauf après le dernier)
-            if(isLot && lotNo<totalLots && !_applyAborted){
+            // Pause assistée entre les lots (sauf après le dernier, et jamais pour une
+            // zone : voir lotKind. Signalé par l'auteur le 30/07/2026 — une zone de
+            // 20 segments réclamait trois clics de confirmation pour rien.)
+            if(isLot && e.lotKind!=='zone' && lotNo<totalLots && !_applyAborted){
                 const cont=await _applyLotPause(lotNo,totalLots);
                 if(!cont) break;
             }
@@ -9111,7 +9113,7 @@ const traceGenerateLots = async (fileId) => {
                 const dirConflicts = getSegDirConflicts(lotSegIds, parseInt(cfg.direction));
                 const validIds = lotSegIds.filter(id => !dirConflicts.find(c => c.sid === Number(id)));
                 if(validIds.length){
-                    const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:added+1, label:`📦 ${cfg.reason||t('defaultClosure')} · #${added+1}`};
+                    const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:added+1, lotKind:'trace', label:`📦 ${cfg.reason||t('defaultClosure')} · #${added+1}`};
                     if(dirConflicts.length) entry.excludedSegs = dirConflicts;
                     // Les segments viennent d'être chargés (carte centrée) → sains à cet instant
                     entry.nullSegs = new Set(); entry.recentSegs = new Set();
@@ -9445,31 +9447,14 @@ const _polyLoadAndSelect = async (retenus) => {
     // 75 % de la vue : un segment collé au bord n'est pas toujours chargé
     const vueW = Math.max((ex[2] - ex[0]) * 0.75, 0.002), vueH = Math.max((ex[3] - ex[1]) * 0.75, 0.002);
 
-    // Pavage glouton du sud-ouest vers le nord-est, sur TOUS les segments retenus.
-    const groupes = [];
-    const restants = new Map(retenus.map(s => [s.id, s]));
-    let garde = 0;
-    while(restants.size && garde++ < 500){
-        let ancre = null;
-        for(const s of restants.values()){
-            const c = _polySegCentre(s);
-            if(!ancre || c[1] < ancre[1] || (c[1] === ancre[1] && c[0] < ancre[0])) ancre = c;
-        }
-        const cx = ancre[0] + vueW / 2 - 0.0002, cy = ancre[1] + vueH / 2 - 0.0002;
-        const dedans = [];
-        for(const [id, s] of [...restants]){
-            const c = _polySegCentre(s);
-            if(Math.abs(c[0] - cx) <= vueW / 2 && Math.abs(c[1] - cy) <= vueH / 2){ dedans.push(s); restants.delete(id); }
-        }
-        if(!dedans.length) break;
-        let mnLon = Infinity, mxLon = -Infinity, mnLat = Infinity, mxLat = -Infinity;
-        dedans.forEach(s => s.geometry.coordinates.forEach(p => {
-            if(p[0] < mnLon) mnLon = p[0]; if(p[0] > mxLon) mxLon = p[0];
-            if(p[1] < mnLat) mnLat = p[1]; if(p[1] > mxLat) mxLat = p[1];
-        }));
-        groupes.push({ centre: [cx, cy], bbox: { minLon: mnLon, minLat: mnLat, maxLon: mxLon, maxLat: mxLat },
-                       ids: dedans.map(s => s.id) });
-    }
+    // Pavage glouton du sud-ouest vers le nord-est. Sorti en fonction PURE (_polyPaver)
+    // pour être testable : c'est lui qui décide du nombre de lots, donc du nombre de
+    // recadrages à l'application. Un pavage trop fin se paie en déplacements de carte.
+    // La taille de vue mesurée est journalisée : c'est la seule donnée qui explique un
+    // découpage inattendu, et la deviner après coup est impossible.
+    log(`poly pavage : vue mesurée ${vueW.toFixed(5)}° × ${vueH.toFixed(5)}° au zoom ${POLY_LOAD_ZOOM}`);
+    const groupes = _polyPaver(retenus, vueW, vueH);
+    log(`poly pavage : ${retenus.length} segment(s) → ${groupes.length} lot(s)`);
     const aVisiter = groupes.filter(g => g.ids.some(id => !charges.has(id)));
     if(aVisiter.length > POLY_WARN_TILES && !confirm(t('polyManyViews', aVisiter.length, retenus.length)))
         return { ids: [...selectionnes], groupes, vues: 0, partiel: true };
@@ -9501,6 +9486,62 @@ const _polySegCentre = (s) => {
     const c = s.geometry.coordinates;
     const m = c[Math.floor(c.length / 2)];
     return [m[0], m[1]];
+};
+
+// ── Pavage d'une zone en lots de la taille d'une vue ──────────────────────────
+// Chaque lot est ce qu'une vue de vueW × vueH degrés peut charger d'un coup. Le nombre
+// de lots est ce que l'éditeur paie ensuite : un recadrage de carte par lot, et une
+// entrée de file par lot.
+//
+// ⚠️ On cale la BANDE DE LATITUDE d'abord, la longitude ENSUITE. La première version
+// prenait le segment le plus au sud et posait la vue à son coin sud-ouest — en supposant
+// que le plus au sud était aussi le plus à l'ouest. Il ne l'est presque jamais : tout ce
+// qui se trouvait à l'ouest de lui tombait hors de la vue et repartait en lot séparé, et
+// le tour suivant recommençait. Un lotissement de 20 rues tenant entièrement dans un
+// écran ressortait ainsi en 3 lots (relevé par l'auteur le 30/07/2026). La correction ne
+// change pas la stratégie, seulement le point d'ancrage en longitude : l'ouest de la
+// bande, et non l'ouest du seul segment le plus au sud.
+//
+// Fonction PURE : ni DOM, ni SDK, ni carte. Elle est extraite du fichier réel et
+// éprouvée par tools/test-pave.js.
+const POLY_PAVE_MARGE = 0.0002;        // ~20 m : le segment d'ancrage n'est jamais pile au bord
+const _polyPaver = (retenus, vueW, vueH) => {
+    const groupes = [];
+    const restants = new Map(retenus.map(s => [s.id, s]));
+    let garde = 0;
+    while(restants.size && garde++ < 500){
+        // ⚠️ La marge est plafonnée au quart de la vue. Sans ce plafond, une vue plus
+        // petite que la marge donne une bande de latitude VIDE : plus aucun segment ne
+        // rentre, la boucle sort au premier tour et le pavage rend zéro lot — soit la
+        // zone entière perdue en silence. Ainsi bornée, la bande contient toujours au
+        // moins le segment qui a servi à la définir.
+        const margeW = Math.min(POLY_PAVE_MARGE, vueW / 4), margeH = Math.min(POLY_PAVE_MARGE, vueH / 4);
+        // Bande de latitude la plus au sud parmi ce qui reste…
+        let latMin = Infinity;
+        for(const s of restants.values()){ const c = _polySegCentre(s); if(c[1] < latMin) latMin = c[1]; }
+        const latHaut = latMin + vueH - margeH;
+        // …puis son bord OUEST, mesuré sur les seuls segments de cette bande.
+        let lonMin = Infinity;
+        for(const s of restants.values()){
+            const c = _polySegCentre(s);
+            if(c[1] <= latHaut && c[0] < lonMin) lonMin = c[0];
+        }
+        const cx = lonMin + vueW / 2 - margeW, cy = latMin + vueH / 2 - margeH;
+        const dedans = [];
+        for(const [id, s] of [...restants]){
+            const c = _polySegCentre(s);
+            if(Math.abs(c[0] - cx) <= vueW / 2 && Math.abs(c[1] - cy) <= vueH / 2){ dedans.push(s); restants.delete(id); }
+        }
+        if(!dedans.length) break;
+        let mnLon = Infinity, mxLon = -Infinity, mnLat = Infinity, mxLat = -Infinity;
+        dedans.forEach(s => s.geometry.coordinates.forEach(p => {
+            if(p[0] < mnLon) mnLon = p[0]; if(p[0] > mxLon) mxLon = p[0];
+            if(p[1] < mnLat) mnLat = p[1]; if(p[1] > mxLat) mxLat = p[1];
+        }));
+        groupes.push({ centre: [cx, cy], bbox: { minLon: mnLon, minLat: mnLat, maxLon: mxLon, maxLat: mxLat },
+                       ids: dedans.map(s => s.id) });
+    }
+    return groupes;
 };
 
 // Orchestration commune : une fois les anneaux obtenus — tracés à la main OU importés
@@ -11394,7 +11435,12 @@ const connectOverlay=ov=>{
             if(lots.length){
                 const lastTB=await fetchLastTileBuild();
                 lots.forEach((g,i)=>{
-                    const e2={...makeEntry(g.ids,cfg,rc.list),source:'sweep',lotBbox:g.bbox,lotIndex:i+1,
+                    // ⚠️ lotKind : c'est lui qui décide de la pause entre deux lots à
+                    // l'application. Une zone s'applique d'un trait — l'éditeur a déjà
+                    // validé son périmètre, il n'a rien à vérifier entre deux paquets.
+                    // Un balayage de trace, si : on y suit un itinéraire tronçon par
+                    // tronçon. Ne JAMAIS déduire ça du label : l'emoji est cosmétique.
+                    const e2={...makeEntry(g.ids,cfg,rc.list),source:'sweep',lotBbox:g.bbox,lotIndex:i+1,lotKind:'zone',
                         label:lots.length>1
                             ? `\u270F\uFE0F ${cfg.reason||t('defaultClosure')} \u00B7 ${t('lotRowLabel',i+1,lots.length)}`
                             : `\u270F\uFE0F ${cfg.reason||t('defaultClosure')}`};
@@ -11421,6 +11467,7 @@ const connectOverlay=ov=>{
         if(_lotCtx){
             entry.source='sweep';
             entry.lotBbox=_lotCtx.lot.bbox;
+            entry.lotKind='trace';             // lot de balayage : la pause de contrôle s'applique
             entry.fileId=_lotCtx.trk.fileId;   // rattache le lot à sa trace (export CSV par trace)
             entry.label=`📦 ${cfg.reason||t('defaultClosure')} · ${t('lotRowLabel',_lotCtx.lot.idx,_lotCtx.trk.lots.length)}`;
         }
