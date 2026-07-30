@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.00
+// @version      1.00.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Advanced recurring closures with queue management — inspired by WME Advanced Closures & waze.tech-informatique.fr
 // @description:fr Fermetures récurrentes avancées avec file d'attente — inspiré par WME Advanced Closures & waze.tech-informatique.fr
@@ -554,6 +554,9 @@ GM_addStyle(`
 /* ⚠️ Les poignées vivent dans le conteneur de COUCHES de la carte : leurs coordonnées
    sont donc relatives à lui, et elles suivent le glissement comme les tuiles. */
 #wct-zone-poignees { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+/* Repli quand ce conteneur est introuvable : coordonnées d'écran. */
+#wct-zone-poignees.wct-zp-ecran { position: fixed; }
+#wct-zone-poignees.wct-zp-ecran .wct-zpoi { position: fixed; }
 .wct-zpoi {
     position: absolute; transform: translate(-50%,-50%);
     border-radius: 50%; pointer-events: auto; cursor: grab; z-index: 9991;
@@ -1553,7 +1556,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipZoneSommet:'Glisser pour déplacer · clic droit pour supprimer',
             tipZoneMilieu:'Cliquer pour insérer un sommet ici',
             zoneEditMin:'Un polygone garde au moins trois sommets.',
-            zoneEditKo:'Édition impossible : la carte n’est pas prête.',
+            zoneEditKo:'Édition impossible : aucun contour à reprendre.',
             zoneSelQuestion:'Sélectionner les segments à l’intérieur ?',
             zoneSelAide:'Sans sélection, la zone reste affichée et exportable : vous pourrez la lancer plus tard.',
             zoneBtnSelOui:'🧲 Oui, sélectionner',
@@ -2041,7 +2044,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneSommet:'Drag to move · right-click to delete',
             tipZoneMilieu:'Click to insert a corner here',
             zoneEditMin:'A polygon keeps at least three corners.',
-            zoneEditKo:'Editing unavailable: the map is not ready.',
+            zoneEditKo:'Editing unavailable: no outline to rework.',
             zoneSelQuestion:'Select the segments inside?',
             zoneSelAide:'Without a selection the area stays on screen and can still be exported: you can run it later.',
             zoneBtnSelOui:'🧲 Yes, select them',
@@ -2527,7 +2530,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneSommet:'גרור להזזה · לחיצה ימנית למחיקה',
             tipZoneMilieu:'לחץ כדי להוסיף כאן פינה',
             zoneEditMin:'מצולע שומר על שלוש פינות לפחות.',
-            zoneEditKo:'עריכה בלתי אפשרית: המפה אינה מוכנה.',
+            zoneEditKo:'עריכה בלתי אפשרית: אין מתאר לשנות.',
             zoneSelQuestion:'לבחור את המקטעים שבפנים?',
             zoneSelAide:'בלי בחירה האזור נשאר מוצג וניתן לייצוא: אפשר להריץ אותה מאוחר יותר.',
             zoneBtnSelOui:'🧲 כן, לבחור',
@@ -3013,7 +3016,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneSommet:'Trascina per spostare · clic destro per eliminare',
             tipZoneMilieu:'Clicca per inserire qui un vertice',
             zoneEditMin:'Un poligono mantiene almeno tre vertici.',
-            zoneEditKo:'Modifica impossibile: la mappa non è pronta.',
+            zoneEditKo:'Modifica impossibile: nessun contorno da riprendere.',
             zoneSelQuestion:'Selezionare i segmenti all’interno?',
             zoneSelAide:'Senza selezione l’area resta visibile ed esportabile: potrai avviarla più tardi.',
             zoneBtnSelOui:'🧲 Sì, seleziona',
@@ -3500,7 +3503,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneSommet:'Ziehen zum Verschieben · Rechtsklick zum Löschen',
             tipZoneMilieu:'Klicken, um hier einen Eckpunkt einzufügen',
             zoneEditMin:'Ein Polygon behält mindestens drei Eckpunkte.',
-            zoneEditKo:'Bearbeiten nicht möglich: die Karte ist nicht bereit.',
+            zoneEditKo:'Bearbeiten nicht möglich: kein Umriss vorhanden.',
             zoneSelQuestion:'Die Segmente darin auswählen?',
             zoneSelAide:'Ohne Auswahl bleibt der Bereich sichtbar und exportierbar: du kannst sie später starten.',
             zoneBtnSelOui:'🧲 Ja, auswählen',
@@ -3986,7 +3989,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipZoneSommet:'Arrastra para mover · clic derecho para eliminar',
             tipZoneMilieu:'Haz clic para insertar aquí un vértice',
             zoneEditMin:'Un polígono conserva al menos tres vértices.',
-            zoneEditKo:'Edición imposible: el mapa no está listo.',
+            zoneEditKo:'Edición imposible: no hay ningún contorno que retomar.',
             zoneSelQuestion:'¿Seleccionar los segmentos del interior?',
             zoneSelAide:'Sin selección la zona sigue visible y exportable: podrás lanzarla más tarde.',
             zoneBtnSelOui:'🧲 Sí, seleccionar',
@@ -4472,7 +4475,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipZoneSommet:'Arraste para mover · botão direito para excluir',
             tipZoneMilieu:'Clique para inserir um vértice aqui',
             zoneEditMin:'Um polígono mantém pelo menos três vértices.',
-            zoneEditKo:'Edição impossível: o mapa não está pronto.',
+            zoneEditKo:'Edição impossível: nenhum contorno para retomar.',
             zoneSelQuestion:'Selecionar os segmentos de dentro?',
             zoneSelAide:'Sem seleção a área continua visível e exportável: você pode rodá-la depois.',
             zoneBtnSelOui:'🧲 Sim, selecionar',
@@ -4958,7 +4961,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipZoneSommet:'Arraste para mover · botão direito para eliminar',
             tipZoneMilieu:'Clique para inserir aqui um vértice',
             zoneEditMin:'Um polígono mantém pelo menos três vértices.',
-            zoneEditKo:'Edição impossível: o mapa não está pronto.',
+            zoneEditKo:'Edição impossível: nenhum contorno para retomar.',
             zoneSelQuestion:'Selecionar os segmentos do interior?',
             zoneSelAide:'Sem seleção a área continua visível e exportável: pode lançá-la mais tarde.',
             zoneBtnSelOui:'🧲 Sim, selecionar',
@@ -10001,16 +10004,38 @@ const _zonePanelShow = (html) => {
 // chaque image n'y changerait rien, puisque la carte elle-même ment jusqu'au relâcher.
 // (C'est le défaut de WNA, que l'auteur a demandé de ne pas reproduire ici.)
 // Le zoom, lui, recale le conteneur : d'où le redessin sur moveend.
+// ⚠️ `layerContainerDiv` est le nom OpenLayers 2 de ce conteneur, mais il n'est PAS
+// garanti : sur la carte de l'auteur il était introuvable, et l'édition se refusait
+// (signalé le 31/07/2026). On tente donc plusieurs sources, et surtout on ne refuse
+// JAMAIS d'éditer : à défaut de conteneur, on repasse en coordonnées d'écran — les
+// poignées ne suivront plus le glissement en continu, mais l'édition reste possible.
+// Un refus poli reste un refus.
 const _zoneHandlesHost = () => {
-    try { return W.map.layerContainerDiv || null; } catch(e){ return null; }
+    try {
+        if(W.map?.layerContainerDiv) return { el: W.map.layerContainerDiv, mode:'calque' };
+        // Nos propres calques vivent dans ce conteneur : leur parent, c'est lui.
+        const p = _zoneLayer?.div?.parentNode;
+        if(p) return { el: p, mode:'calque' };
+        // Certaines versions n'exposent que le viewport.
+        if(W.map?.viewPortDiv) return { el: W.map.viewPortDiv, mode:'ecran' };
+    } catch(e){ log('zone hôte des poignées: ' + e.message); }
+    return { el: document.body, mode:'ecran' };
 };
 const _zoneDrawHandles = () => {
     if(!_zoneEdit) return;
     const hote = _zoneEdit.zone;
     hote.innerHTML = '';
     const pts = _zoneEdit.points;
+    // Deux repères possibles selon l'hôte : pixels DU CONTENEUR DE COUCHES (les
+    // poignées suivent alors le glissement toutes seules) ou pixels d'écran (repli).
+    const rc = _zoneEdit.mode === 'ecran' ? _rectCarte() : null;
     const px = ([lon, lat]) => {
-        try { return W.map.getLayerPxFromLonLat(_zoneVers3857(lon, lat)); } catch(e){ return null; }
+        try {
+            const ll = _zoneVers3857(lon, lat);
+            if(_zoneEdit.mode === 'calque') return W.map.getLayerPxFromLonLat(ll);
+            const p = W.map.getPixelFromLonLat(ll);
+            return p ? { x: p.x + rc.left, y: p.y + rc.top } : null;
+        } catch(e){ return null; }
     };
     pts.forEach((p, i) => {
         const q = px(p);
@@ -10076,13 +10101,14 @@ const _zoneMajEdition = () => {
 };
 const _zoneEnterEdit = () => {
     const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
-    if(!rings || !rings.length || rings[0].length < 4) return;
+    // Ne jamais rester muet : un bouton qui ne fait rien passe pour cassé.
+    if(!rings || !rings.length || rings[0].length < 4){ showToast(t('zoneEditKo'), 3500, '#f57c00'); return; }
     const hote = _zoneHandlesHost();
-    if(!hote){ showToast(t('zoneEditKo'), 3500, '#e53935'); return; }
     if(_zoneEdit) _zoneExitEdit(false);
     const zone = make('div');
     zone.id = 'wct-zone-poignees';
-    hote.appendChild(zone);
+    if(hote.mode === 'ecran') zone.className = 'wct-zp-ecran';
+    hote.el.appendChild(zone);
     // ⚠️ Échap rend le tracé d'avant. Une sortie de secours qu'on ne connaît pas n'en
     // est pas une : elle est annoncée dans l'aide du panneau d'édition.
     const echap = ev => { if(ev.key === 'Escape' && _zoneEdit){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); } };
@@ -10092,17 +10118,30 @@ const _zoneEnterEdit = () => {
     const surMove = () => _zoneDrawHandles();
     try { W.map.events.register('moveend', W.map, surMove); } catch(err){}
     _zoneEdit = {
-        zone, echap, surMove,
+        zone, echap, surMove, mode: hote.mode,
         points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
         trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
         avant:  rings.map(r => r.map(p => [p[0], p[1]]))
     };
+    // En repli d'écran, la carte ne prévient pas pendant le glissement : on recale au
+    // moins à chaque image, faute de mieux. Inutile en mode calque, où le conteneur
+    // emmène les poignées tout seul.
+    if(hote.mode === 'ecran'){
+        const suivre = () => {
+            if(!_zoneEdit) return;
+            _zoneDrawHandles();
+            _zoneEdit.raf = requestAnimationFrame(suivre);
+        };
+        _zoneEdit.raf = requestAnimationFrame(suivre);
+        log('zone : poignées en repli d’écran (conteneur de couches introuvable)');
+    }
     _zonePanelEdition();
     _zoneMajEdition();
 };
 const _zoneExitEdit = (garder) => {
     if(!_zoneEdit) return;
     const rings = garder ? _zoneEditRings() : _zoneEdit.avant;
+    if(_zoneEdit.raf) cancelAnimationFrame(_zoneEdit.raf);
     try { W.map.events.unregister('moveend', W.map, _zoneEdit.surMove); } catch(e){}
     document.removeEventListener('keydown', _zoneEdit.echap, true);
     _zoneEdit.zone.remove();
