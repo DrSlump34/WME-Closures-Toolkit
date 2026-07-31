@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.05
+// @version      1.01.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -576,6 +576,24 @@ GM_addStyle(`
     border: 2px dashed #e91e63; cursor: copy;
 }
 .wct-zpoi-m:hover { background: #fff; transform: translate(-50%,-50%) scale(1.3); }
+/* Pastille d'effacement accrochee a la zone, et infobulle de survol. Elles vivent
+   directement dans le body : aucun conteneur positionne, pour la meme raison que les
+   poignees ci-dessus. */
+#wct-zone-badge {
+    position: fixed; transform: translate(-50%,-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #e53935; color: #fff; border: 2px solid #fff;
+    font: 700 13px/18px 'Rubik','Open Sans',sans-serif; text-align: center;
+    cursor: pointer; z-index: 9985; box-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+#wct-zone-badge:hover { background: #b71c1c; transform: translate(-50%,-50%) scale(1.15); }
+#wct-zone-tip {
+    position: fixed; z-index: 9986; pointer-events: none;
+    background: rgba(38,50,56,.94); color: #fff;
+    padding: 4px 8px; border-radius: 4px; max-width: 260px;
+    font: 400 11px/1.35 'Rubik','Open Sans',sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
 
 /* ── Toast ── */
 #wct-toast {
@@ -1551,7 +1569,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipZoneBtnEditer:'Reprendre le contour : déplacer, ajouter ou supprimer des sommets',
             zoneBtnAbandon:'✕ Abandonner',
             tipZoneBtnAbandon:'Effacer cette zone sans rien en faire',
-            zoneRappel:'Double-cliquez dans la zone pour retrouver ce panneau.',
+            zoneRappel:'Double-cliquez pour reprendre cette zone',
             zoneEditTitre:'✎ Édition du contour',
             zoneEditAide:'Glissez un sommet pour le déplacer, clic droit pour le supprimer. Cliquez un point creux pour insérer un sommet. Échap pour renoncer.',
             zoneBtnEditFini:'✓ Terminer',
@@ -2039,7 +2057,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneBtnEditer:'Rework the outline: move, add or delete corners',
             zoneBtnAbandon:'✕ Discard',
             tipZoneBtnAbandon:'Delete this area and do nothing with it',
-            zoneRappel:'Double-click inside the area to bring this panel back.',
+            zoneRappel:'Double-click to pick this area up again',
             zoneEditTitre:'✎ Editing the outline',
             zoneEditAide:'Drag a corner to move it, right-click to delete it. Click a hollow dot to insert a corner. Esc to give up.',
             zoneBtnEditFini:'✓ Done',
@@ -2525,7 +2543,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneBtnEditer:'לשנות את המתאר: להזיז, להוסיף או למחוק פינות',
             zoneBtnAbandon:'✕ ביטול',
             tipZoneBtnAbandon:'למחוק את האזור הזה בלי לעשות בו דבר',
-            zoneRappel:'לחיצה כפולה בתוך האזור מחזירה את החלונית הזאת.',
+            zoneRappel:'לחיצה כפולה כדי לחזור לאזור הזה',
             zoneEditTitre:'✎ עריכת המתאר',
             zoneEditAide:'גרור פינה כדי להזיז אותה, לחיצה ימנית כדי למחוק. לחץ על נקודה חלולה כדי להוסיף פינה. Esc לוויתור.',
             zoneBtnEditFini:'✓ סיום',
@@ -3011,7 +3029,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneBtnEditer:'Riprendere il contorno: spostare, aggiungere o eliminare vertici',
             zoneBtnAbandon:'✕ Annulla',
             tipZoneBtnAbandon:'Cancellare quest’area senza farne nulla',
-            zoneRappel:'Doppio clic dentro l’area per far tornare questo pannello.',
+            zoneRappel:'Doppio clic per riprendere quest’area',
             zoneEditTitre:'✎ Modifica del contorno',
             zoneEditAide:'Trascina un vertice per spostarlo, clic destro per eliminarlo. Clicca un punto vuoto per inserire un vertice. Esc per rinunciare.',
             zoneBtnEditFini:'✓ Fine',
@@ -3498,7 +3516,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipZoneBtnEditer:'Den Umriss überarbeiten: Eckpunkte verschieben, hinzufügen oder löschen',
             zoneBtnAbandon:'✕ Verwerfen',
             tipZoneBtnAbandon:'Diesen Bereich löschen, ohne etwas damit zu tun',
-            zoneRappel:'Doppelklick in den Bereich holt dieses Fenster zurück.',
+            zoneRappel:'Doppelklick, um diesen Bereich wieder aufzunehmen',
             zoneEditTitre:'✎ Umriss bearbeiten',
             zoneEditAide:'Ziehe einen Eckpunkt zum Verschieben, Rechtsklick zum Löschen. Klicke einen hohlen Punkt, um einen Eckpunkt einzufügen. Esc zum Abbrechen.',
             zoneBtnEditFini:'✓ Fertig',
@@ -3984,7 +4002,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipZoneBtnEditer:'Retomar el contorno: mover, añadir o eliminar vértices',
             zoneBtnAbandon:'✕ Descartar',
             tipZoneBtnAbandon:'Borrar esta zona sin hacer nada con ella',
-            zoneRappel:'Haz doble clic dentro de la zona para recuperar este panel.',
+            zoneRappel:'Haz doble clic para retomar esta zona',
             zoneEditTitre:'✎ Edición del contorno',
             zoneEditAide:'Arrastra un vértice para moverlo, clic derecho para eliminarlo. Haz clic en un punto hueco para insertar un vértice. Esc para renunciar.',
             zoneBtnEditFini:'✓ Terminar',
@@ -4470,7 +4488,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipZoneBtnEditer:'Retomar o contorno: mover, adicionar ou excluir vértices',
             zoneBtnAbandon:'✕ Descartar',
             tipZoneBtnAbandon:'Apagar esta área sem fazer nada com ela',
-            zoneRappel:'Dê um duplo clique dentro da área para trazer este painel de volta.',
+            zoneRappel:'Dê um duplo clique para retomar esta área',
             zoneEditTitre:'✎ Edição do contorno',
             zoneEditAide:'Arraste um vértice para movê-lo, clique com o botão direito para excluí-lo. Clique num ponto vazado para inserir um vértice. Esc para desistir.',
             zoneBtnEditFini:'✓ Concluir',
@@ -4956,7 +4974,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipZoneBtnEditer:'Retomar o contorno: mover, acrescentar ou eliminar vértices',
             zoneBtnAbandon:'✕ Descartar',
             tipZoneBtnAbandon:'Apagar esta área sem fazer nada com ela',
-            zoneRappel:'Faça duplo clique dentro da área para voltar a ter este painel.',
+            zoneRappel:'Faça duplo clique para retomar esta área',
             zoneEditTitre:'✎ Edição do contorno',
             zoneEditAide:'Arraste um vértice para o mover, clique com o botão direito para o eliminar. Clique num ponto vazado para inserir um vértice. Esc para desistir.',
             zoneBtnEditFini:'✓ Concluir',
@@ -9987,6 +10005,94 @@ const _zoneRefreshLayer = () => {
     else if(_polyDraft)        _zoneDrawLayer(_polyDraft.rings, 'draft');
     else if(_polyZone?.rings)  _zoneDrawLayer(_polyZone.rings, 'valid');
     else                       _zoneClearLayer();
+    // La pastille suit le sort du calque : une zone effacée ne laisse rien derrière.
+    if(typeof _zoneBadgeRefresh === 'function') _zoneBadgeRefresh();
+};
+
+// ── Ce qui est accroché à la zone : une pastille et une infobulle ────────────
+// ⚠️ Le rappel « double-cliquez dans la zone » était écrit DANS le panneau
+// d'arbitrage. Mauvais endroit : on le lisait pendant que le panneau était ouvert, on
+// essayait aussitôt… et comme le double-clic n'est repris QUE lorsque le panneau est
+// fermé, c'est WME qui répondait — en zoomant. Le rappel vit donc désormais au survol
+// de la zone, c'est-à-dire là où le geste est réellement disponible.
+//
+// ⚠️ La croix du bandeau, dans le panneau, ne suffisait pas à faire disparaître une
+// zone : elle est loin de l'objet et ne saute pas aux yeux. Une pastille est donc
+// accrochée à la zone elle-même (relevé par l'auteur le 31/07).
+//
+// ⚠️⚠️ Ces deux éléments vont DIRECTEMENT dans le body, sans conteneur positionné :
+// un parent positionné créerait un contexte d'empilement et les ferait passer sous la
+// carte — c'est exactement ce qui avait rendu les poignées invisibles (cf. 1.00.04).
+const _zoneBadgeCacher = () => { $id('wct-zone-badge')?.remove(); };
+const _zoneTipCacher   = () => { $id('wct-zone-tip')?.remove(); };
+
+// Sommet le plus au nord de la zone : la pastille s'y accroche, au-dessus du tracé.
+const _zoneAncre = (rings) => {
+    let best = null;
+    (rings?.[0] || []).forEach(p => { if(!best || p[1] > best[1]) best = p; });
+    return best;
+};
+// Pastille d'effacement, posée sur la zone. Absente pendant l'édition (les poignées
+// occupent déjà le contour) et tant qu'aucune zone n'est affichée.
+const _zoneBadgeRefresh = () => {
+    const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
+    if(_zoneEdit || !rings || !rings.length){ _zoneBadgeCacher(); return; }
+    const a = _zoneAncre(rings);
+    if(!a){ _zoneBadgeCacher(); return; }
+    let p = null;
+    try { p = sdk.Map.getPixelFromLonLat({ lonLat: { lon: a[0], lat: a[1] } }); } catch(e){}
+    if(!p){ _zoneBadgeCacher(); return; }
+    let el = $id('wct-zone-badge');
+    if(!el){
+        el = make('div');
+        el.id = 'wct-zone-badge';
+        el.textContent = '✕';
+        el.title = t('polyBannerClear');
+        el.addEventListener('click', ev => {
+            ev.preventDefault(); ev.stopPropagation();
+            _zoneEffacerTout();
+        });
+        // Le double-clic sur la pastille ne doit pas se propager à la carte : il
+        // zoomerait pendant qu'on cherche à effacer.
+        el.addEventListener('dblclick', ev => { ev.preventDefault(); ev.stopPropagation(); });
+        document.body.appendChild(el);
+    }
+    el.style.left = Math.round(p.x) + 'px';
+    el.style.top  = Math.round(p.y - 16) + 'px';
+};
+// Efface la zone, son brouillon, son calque et ce qui y est accroché. Un seul endroit
+// pour ce geste : le bandeau et la pastille appellent tous les deux celui-ci.
+const _zoneEffacerTout = () => {
+    _zoneExitEdit(false);
+    _polyZone = null; _polyDraft = null;
+    _zonePanelHide(); _zoneBadgeCacher(); _zoneTipCacher();
+    _zoneRefreshLayer();
+    _zoneOublierSelection();
+    renderPolyBanner(); refreshCfgGate(); updateFab();
+};
+// Infobulle suivant le curseur, uniquement quand le double-clic est vraiment repris :
+// une zone affichée, aucune édition, et le panneau d'arbitrage fermé.
+let _zoneTipDernier = 0;
+const _zoneSurvol = (ev) => {
+    const maintenant = ev.timeStamp || 0;
+    if(maintenant - _zoneTipDernier < 60) return;          // n'y passer qu'à intervalles
+    _zoneTipDernier = maintenant;
+    const rings = _polyDraft ? _polyDraft.rings : _polyZone?.rings;
+    if(!rings || !rings.length || _zoneEdit || _zoneTracage || $id('wct-zone-panel')){ _zoneTipCacher(); return; }
+    const rc = _rectCarte();
+    if(ev.clientX < rc.left || ev.clientX > rc.right || ev.clientY < rc.top || ev.clientY > rc.bottom){ _zoneTipCacher(); return; }
+    let g = null;
+    try { g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY }); } catch(e){}
+    if(!g || !_polyPtIn(g.lon, g.lat, rings)){ _zoneTipCacher(); return; }
+    let el = $id('wct-zone-tip');
+    if(!el){
+        el = make('div');
+        el.id = 'wct-zone-tip';
+        el.textContent = t('zoneRappel');
+        document.body.appendChild(el);
+    }
+    el.style.left = Math.round(ev.clientX + 14) + 'px';
+    el.style.top  = Math.round(ev.clientY + 16) + 'px';
 };
 
 // ── Le panneau posé sur la carte ─────────────────────────────────────────────
@@ -10200,8 +10306,10 @@ const _zoneArbitrage = () => {
             escHtml(t('tipZoneBtnEditer')) + '">' + escHtml(t('zoneBtnEditer')) + '</button>' +
           '<button type="button" class="wct-btn wct-btn-danger wct-btn-sm" id="wct-zone-annul" title="' +
             escHtml(t('tipZoneBtnAbandon')) + '">' + escHtml(t('zoneBtnAbandon')) + '</button>' +
-        '</div>' +
-        '<div class="wct-zp-hint">' + escHtml(t('zoneRappel')) + '</div>');
+        '</div>');
+    // ⚠️ PAS de rappel « double-cliquez ici » dans ce panneau : tant qu'il est ouvert,
+    // le double-clic n'est pas repris et WME zoome. Le rappel est passé au survol de
+    // la zone, où le geste est réellement disponible (cf. _zoneSurvol).
     $id('wct-zone-edit')?.addEventListener('click', _zoneEnterEdit);
     $id('wct-zone-ok')?.addEventListener('click', _zoneQuestionSelection);
     $id('wct-zone-annul')?.addEventListener('click', _zoneAbandon);
@@ -10480,13 +10588,8 @@ const renderPolyBanner = () => {
         <button type="button" class="wct-zone-clear" title="${escHtml(t('polyBannerClear'))}">✕</button>`;
     el.querySelector('.wct-zone-do-sel')?.addEventListener('click', _zoneSelectionnerPlusTard);
     el.querySelector('.wct-zone-edit-again')?.addEventListener('click', _zoneEnterEdit);
-    el.querySelector('.wct-zone-clear').addEventListener('click', () => {
-        _zoneExitEdit(false);
-        _polyZone = null; _polyDraft = null;
-        _zonePanelHide(); _zoneRefreshLayer();      // le calque part avec la zone
-        _zoneOublierSelection();
-        renderPolyBanner(); refreshCfgGate(); updateFab();
-    });
+    // Même geste que la pastille posée sur la carte : un seul chemin pour effacer.
+    el.querySelector('.wct-zone-clear').addEventListener('click', _zoneEffacerTout);
     pane.insertBefore(el, pane.firstChild);
 };
 // Verrou de l'onglet Configurer : ses réglages n'ont de sens qu'avec une cible. Sans
@@ -13118,9 +13221,12 @@ const init=async()=>{
     // empilerait, et le SDK n'offre pas de désabonnement. Le handler sort de lui-même
     // quand aucune édition n'est en cours.
     ['wme-map-move', 'wme-map-move-end'].forEach(ev => {
-        try { sdk.Events.on({ eventName: ev, eventHandler: () => _zoneDrawHandles() }); }
+        try { sdk.Events.on({ eventName: ev, eventHandler: () => { _zoneDrawHandles(); _zoneBadgeRefresh(); } }); }
         catch(e){ log('zone ' + ev + ': ' + e.message); }
     });
+    // Infobulle au survol de la zone. L'écouteur sort en deux tests tant qu'aucune
+    // zone n'est affichée : il ne coûte rien le reste du temps.
+    document.addEventListener('mousemove', _zoneSurvol, true);
     // Le panneau de zone est posé dans la partie VISIBLE de la carte : elle change
     // quand la fenêtre est redimensionnée ou quand notre propre panneau bouge.
     window.addEventListener('resize', () => _zonePanelPlace());
