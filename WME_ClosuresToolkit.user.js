@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.04
+// @version      1.00.05
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -10135,12 +10135,8 @@ const _zoneEnterEdit = () => {
     // est pas une : elle est annoncée dans l'aide du panneau d'édition.
     const echap = ev => { if(ev.key === 'Escape' && _zoneEdit){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); } };
     document.addEventListener('keydown', echap, true);
-    // Le zoom recale le conteneur de couches : les poignées s'y replacent à l'arrêt.
-    // Le GLISSEMENT, lui, ne demande rien — le conteneur les emmène avec les tuiles.
-    const surMove = () => _zoneDrawHandles();
-    try { W.map.events.register('moveend', W.map, surMove); } catch(err){}
     _zoneEdit = {
-        zone, echap, surMove, etaitReplie: etaitReplieAvantEdition,
+        zone, echap, etaitReplie: etaitReplieAvantEdition,
         points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
         trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
         avant:  rings.map(r => r.map(p => [p[0], p[1]]))
@@ -10154,7 +10150,6 @@ const _zoneExitEdit = (garder) => {
     // Le panneau retrouve l'état où on l'avait pris : c'est déjà ce que fait le tracé,
     // et un panneau qui reste replié sans qu'on l'ait demandé se remarque.
     if(!_zoneEdit.etaitReplie && collapsed) _polySetCollapsed(false);
-    try { W.map.events.unregister('moveend', W.map, _zoneEdit.surMove); } catch(e){}
     document.removeEventListener('keydown', _zoneEdit.echap, true);
     _zoneEdit.zone.remove();
     _zoneEdit = null;
@@ -13113,6 +13108,19 @@ const init=async()=>{
     injectFab();
     // Double-clic dans la zone pour rouvrir son panneau d'arbitrage.
     _zoneInstallerDblClic();
+    // ⚠️⚠️ Les poignées d'édition se replacent sur `wme-map-move`, PAS sur
+    // `wme-map-move-end`. Mesuré en live le 31/07 sur la carte de l'auteur : un
+    // déplacement émet bien des `wme-map-move`, mais `wme-map-move-end` n'arrive
+    // JAMAIS — ni lui, ni le `moveend` d'OpenLayers auquel ce code s'abonnait d'abord.
+    // Sans ça, les poignées restaient figées après chaque déplacement de carte.
+    // ⚠️ WNA écoute `wme-map-move-end` : à revoir là-bas aussi.
+    // Un SEUL abonnement, posé ici : le poser à chaque entrée en édition les
+    // empilerait, et le SDK n'offre pas de désabonnement. Le handler sort de lui-même
+    // quand aucune édition n'est en cours.
+    ['wme-map-move', 'wme-map-move-end'].forEach(ev => {
+        try { sdk.Events.on({ eventName: ev, eventHandler: () => _zoneDrawHandles() }); }
+        catch(e){ log('zone ' + ev + ': ' + e.message); }
+    });
     // Le panneau de zone est posé dans la partie VISIBLE de la carte : elle change
     // quand la fenêtre est redimensionnée ou quand notre propre panneau bouge.
     window.addEventListener('resize', () => _zonePanelPlace());
