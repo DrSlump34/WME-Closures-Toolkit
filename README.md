@@ -9,19 +9,28 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_0.97.03_normal.png)
+![WME Closures Toolkit](capture_1.01.00_normal.png)
+
+Draw an area and it stays on the map. Pick it back up whenever you like: drag a corner,
+right-click one to delete it, click a hollow dot to insert one.
+
+![Editing an area outline](capture_1.01.00_zone.png)
 
 Drop any file into the Import tab — the content decides where it goes:
 
-![Import tab](capture_0.97.03_import.png)
+![Import tab](capture_1.01.00_import.png)
 
 ## Features
 
 - **Recurring closures with a queue** — build up a batch, review it, apply it in one pass.
-- **Draw an area** — outline a neighbourhood on the map and every segment more than half inside
-  it is selected, ready to close. The scan does not depend on zoom, so nothing is missed on a
-  large area; road types are filterable after the fact, and the area itself can be exported to
-  KML / WKT and imported back.
+- **Draw an area, then keep working on it** — outline a neighbourhood and it stays on the map as
+  a layer. Double-click it to pick it back up: drag a corner to move it, right-click to delete
+  one, click a hollow dot to insert one. Only once you accept the outline does WCT ask whether to
+  select the segments inside — answer *no* and the area still lives on, ready to export.
+  An imported KML or WKT area lands at exactly the same point as a freshly drawn one.
+- **Every segment more than half inside is selected** — the survey does not depend on zoom, so
+  nothing is missed on a large area. Road types are filterable after the fact, without redrawing,
+  and the area itself exports to KML / WKT and reads back in.
 - **One import tab for everything** — drop any file and WCT recognises it, handles it, and takes
   you where the next step happens: closure CSV, GPX, KML, KMZ, GeoJSON, shapefile, a `POLYGON(…)`
   WKT, or your own presets. Content decides, not the file extension.
@@ -62,7 +71,8 @@ Bug reports and reproducible test cases are the most useful contributions.
 
 ## Credits
 
-Inspired by *WME Advanced Closures* and [waze.tech-informatique.fr](https://waze.tech-informatique.fr).
+*WME Advanced Closures* by dummyd2, seb-d59 and WazeDev — the foundation that made this possible.
+*CSV Helper* by InstantT — [waze.tech-informatique.fr](https://waze.tech-informatique.fr).
 
 ## License
 
