@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.00.03
+// @version      1.00.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -551,14 +551,16 @@ GM_addStyle(`
 #wct-zone-panel .wct-zp-head { font-weight: 700; margin-bottom: 6px; }
 #wct-zone-panel .wct-zp-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 #wct-zone-panel .wct-zp-hint { margin-top: 6px; font-size: 11px; opacity: .75; line-height: 1.35; }
-/* ⚠️ Les poignées vivent dans le conteneur de COUCHES de la carte : leurs coordonnées
-   sont donc relatives à lui, et elles suivent le glissement comme les tuiles. */
-#wct-zone-poignees { position: absolute; left: 0; top: 0; width: 0; height: 0; }
-/* Repli quand ce conteneur est introuvable : coordonnées d'écran. */
-#wct-zone-poignees.wct-zp-ecran { position: fixed; }
-#wct-zone-poignees.wct-zp-ecran .wct-zpoi { position: fixed; }
+/* ⚠️⚠️ NE JAMAIS POSITIONNER #wct-zone-poignees. Une propriete position (fixed ou
+   absolute) cree un CONTEXTE D'EMPILEMENT : les poignees s'y retrouvent enfermees, leur
+   z-index ne vaut plus qu'a l'interieur, et la carte de WME (.edit-area-main, z-index 1)
+   passe par-dessus. Mesure en live le 31/07 : elementFromPoint sur une poignee rendait
+   le SVG du calque OpenLayers — elles etaient au bon pixel, simplement recouvertes.
+   (Et ce commentaire est sans accent ni apostrophe droite par prudence : on est dans un
+   template literal, ou le moindre backtick casserait tout le script.) */
+#wct-zone-poignees { position: static; }
 .wct-zpoi {
-    position: absolute; transform: translate(-50%,-50%);
+    position: fixed; transform: translate(-50%,-50%);
     border-radius: 50%; pointer-events: auto; cursor: grab;
     /* Sous le panneau principal (9990) : une poignée par-dessus lui serait absurde,
        la zone qu'elle sert à éditer est cachée derrière de toute façon. */
@@ -9931,16 +9933,14 @@ let _zoneEdit  = null;   // édition du contour en cours
 // à l'intérieur d'une zone déjà posée — et le tracé ne se fermerait jamais.
 let _zoneTracage = false;
 
-// ── Conversions de projection ────────────────────────────────────────────────
-// La carte travaille en mercator, nos anneaux en WGS84. Tout ce qui touche au pixel
-// passe par la projection de la carte.
+// ── Conversions ──────────────────────────────────────────────────────────────
+// Le CALQUE travaille en mercator (géométries OpenLayers). Les POIGNÉES, elles, ne
+// passent par aucune projection : `sdk.Map.getPixelFromLonLat` prend du WGS84 et rend
+// des pixels d'ÉCRAN, directement comparables à clientX/clientY (mesuré en live le
+// 31/07 : le centre de la carte rend exactement le centre du canevas). C'est la voie
+// de WNA, en production depuis des mois.
 const _zoneVers3857 = (lon, lat) => new OpenLayers.LonLat(lon, lat)
     .transform(new OpenLayers.Projection('EPSG:4326'), W.map.getProjectionObject());
-const _zoneVers4326 = (ll) => {
-    const c = ll.clone();
-    c.transform(W.map.getProjectionObject(), new OpenLayers.Projection('EPSG:4326'));
-    return c;
-};
 
 // ── Le calque ────────────────────────────────────────────────────────────────
 // Trois états, trois couleurs, et un seul endroit qui en décide :
@@ -10022,40 +10022,15 @@ const _zonePanelShow = (html) => {
 // chaque image n'y changerait rien, puisque la carte elle-même ment jusqu'au relâcher.
 // (C'est le défaut de WNA, que l'auteur a demandé de ne pas reproduire ici.)
 // Le zoom, lui, recale le conteneur : d'où le redessin sur moveend.
-// ⚠️ `layerContainerDiv` est le nom OpenLayers 2 de ce conteneur, mais il n'est PAS
-// garanti : sur la carte de l'auteur il était introuvable, et l'édition se refusait
-// (signalé le 31/07/2026). On tente donc plusieurs sources, et surtout on ne refuse
-// JAMAIS d'éditer : à défaut de conteneur, on repasse en coordonnées d'écran — les
-// poignées ne suivront plus le glissement en continu, mais l'édition reste possible.
-// Un refus poli reste un refus.
-const _zoneHandlesHost = () => {
-    try {
-        // ⚠️ On teste la CAPACITÉ, on ne la suppose pas. Le mode calque a besoin des
-        // DEUX : un conteneur ET la conversion en pixels de couche. La première version
-        // se contentait de trouver un conteneur, et posait ensuite des poignées dont
-        // toutes les coordonnées échouaient — aucune poignée à l'écran, aucun message.
-        if(typeof W.map?.getLayerPxFromLonLat === 'function'){
-            const el = W.map.layerContainerDiv || _zoneLayer?.div?.parentNode;
-            if(el) return { el, mode:'calque' };
-        }
-    } catch(e){ log('zone hôte des poignées: ' + e.message); }
-    return { el: document.body, mode:'ecran' };
-};
 const _zoneDrawHandles = () => {
     if(!_zoneEdit) return;
     const hote = _zoneEdit.zone;
     hote.innerHTML = '';
     const pts = _zoneEdit.points;
-    // Deux repères possibles selon l'hôte : pixels DU CONTENEUR DE COUCHES (les
-    // poignées suivent alors le glissement toutes seules) ou pixels d'ÉCRAN (repli).
-    // Le repli passe par le SDK, qui rend directement des pixels écran — c'est la voie
-    // éprouvée en production dans WNA, on ne la réinvente pas.
     let echec = '';
     const px = ([lon, lat]) => {
-        try {
-            if(_zoneEdit.mode === 'calque') return W.map.getLayerPxFromLonLat(_zoneVers3857(lon, lat));
-            return sdk.Map.getPixelFromLonLat({ lonLat: { lon, lat } });
-        } catch(e){ echec = echec || e.message; return null; }
+        try { return sdk.Map.getPixelFromLonLat({ lonLat: { lon, lat } }); }
+        catch(e){ echec = echec || e.message; return null; }
     };
     pts.forEach((p, i) => {
         const q = px(p);
@@ -10097,30 +10072,19 @@ const _zoneDrawHandles = () => {
     // toutes les conversions de pixels échouaient en silence). On le dit, une fois.
     if(!hote.childElementCount && !_zoneEdit.prevenu){
         _zoneEdit.prevenu = true;
-        log('zone : aucune poignée posée (mode ' + _zoneEdit.mode + ')' + (echec ? ' — ' + echec : ''));
+        log('zone : aucune poignée posée' + (echec ? ' — ' + echec : ''));
         showToast(t('zoneEditKo'), 4000, '#e53935');
     }
 };
 const _zoneStartDrag = (e, index) => {
     e.preventDefault(); e.stopPropagation();
-    const rc = _rectCarte();
     const bouger = ev => {
         try {
             // Même repère que celui qui a servi à POSER la poignée, sinon elle fuit
-            // sous le curseur. Le SDK rend et prend du WGS84 : aucune projection.
-            let point;
-            if(_zoneEdit.mode === 'calque'){
-                const ll = W.map.getLonLatFromPixel(
-                    new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top));
-                if(!ll) return;
-                const g = _zoneVers4326(ll);
-                point = [g.lon, g.lat];
-            } else {
-                const g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY });
-                if(!g) return;
-                point = [g.lon, g.lat];
-            }
-            _zoneEdit.points[index] = point;
+            // sous le curseur : pixels d'écran, WGS84, aucune projection.
+            const g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY });
+            if(!g) return;
+            _zoneEdit.points[index] = [g.lon, g.lat];
             _zoneMajEdition();
         } catch(err){}
         ev.preventDefault();
@@ -10157,11 +10121,16 @@ const _zoneEnterEdit = () => {
             _zoomPourBBox(Math.max(bb.maxLon - bb.minLon, 0.0002),
                           Math.max(bb.maxLat - bb.minLat, 0.0002), 1, 18, 1));
     } catch(e){ log('zone cadrage avant édition: ' + e.message); }
-    const hote = _zoneHandlesHost();
+    // ⚠️⚠️ Le conteneur va dans le body et N'EST PAS POSITIONNÉ. C'est capital, et ça a
+    // coûté deux versions : `position: fixed` **crée un contexte d'empilement**, et les
+    // poignées s'y retrouvent enfermées — leur `z-index` ne vaut alors plus qu'à
+    // l'intérieur de ce contexte, pendant que la carte de WME (`.edit-area-main`,
+    // z-index 1) passe devant. Mesuré en live le 31/07 : `elementFromPoint` sur une
+    // poignée rendait le SVG du calque OpenLayers. Elles étaient bien là, au bon pixel,
+    // simplement recouvertes. WNA marche parce qu'il ne positionne pas ce conteneur.
     const zone = make('div');
     zone.id = 'wct-zone-poignees';
-    if(hote.mode === 'ecran') zone.className = 'wct-zp-ecran';
-    hote.el.appendChild(zone);
+    document.body.appendChild(zone);
     // ⚠️ Échap rend le tracé d'avant. Une sortie de secours qu'on ne connaît pas n'en
     // est pas une : elle est annoncée dans l'aide du panneau d'édition.
     const echap = ev => { if(ev.key === 'Escape' && _zoneEdit){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); } };
@@ -10171,23 +10140,11 @@ const _zoneEnterEdit = () => {
     const surMove = () => _zoneDrawHandles();
     try { W.map.events.register('moveend', W.map, surMove); } catch(err){}
     _zoneEdit = {
-        zone, echap, surMove, mode: hote.mode, etaitReplie: etaitReplieAvantEdition,
+        zone, echap, surMove, etaitReplie: etaitReplieAvantEdition,
         points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
         trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
         avant:  rings.map(r => r.map(p => [p[0], p[1]]))
     };
-    // En repli d'écran, la carte ne prévient pas pendant le glissement : on recale au
-    // moins à chaque image, faute de mieux. Inutile en mode calque, où le conteneur
-    // emmène les poignées tout seul.
-    if(hote.mode === 'ecran'){
-        const suivre = () => {
-            if(!_zoneEdit) return;
-            _zoneDrawHandles();
-            _zoneEdit.raf = requestAnimationFrame(suivre);
-        };
-        _zoneEdit.raf = requestAnimationFrame(suivre);
-        log('zone : poignées en repli d’écran (conteneur de couches introuvable)');
-    }
     _zonePanelEdition();
     _zoneMajEdition();
 };
@@ -10197,7 +10154,6 @@ const _zoneExitEdit = (garder) => {
     // Le panneau retrouve l'état où on l'avait pris : c'est déjà ce que fait le tracé,
     // et un panneau qui reste replié sans qu'on l'ait demandé se remarque.
     if(!_zoneEdit.etaitReplie && collapsed) _polySetCollapsed(false);
-    if(_zoneEdit.raf) cancelAnimationFrame(_zoneEdit.raf);
     try { W.map.events.unregister('moveend', W.map, _zoneEdit.surMove); } catch(e){}
     document.removeEventListener('keydown', _zoneEdit.echap, true);
     _zoneEdit.zone.remove();
@@ -10325,10 +10281,8 @@ const _zoneInstallerDblClic = () => {
         const rc = _rectCarte();
         if(ev.clientX < rc.left || ev.clientX > rc.right || ev.clientY < rc.top || ev.clientY > rc.bottom) return;
         let g;
-        try {
-            g = _zoneVers4326(W.map.getLonLatFromPixel(
-                new OpenLayers.Pixel(ev.clientX - rc.left, ev.clientY - rc.top)));
-        } catch(e){ return; }
+        try { g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY }); }
+        catch(e){ return; }
         if(!g || !_polyPtIn(g.lon, g.lat, rings)) return;
         ev.preventDefault(); ev.stopPropagation();
         if(!_polyDraft && _polyZone) _polyDraft = { rings: _polyZone.rings, origine:'trace' };
