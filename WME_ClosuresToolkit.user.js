@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.07.02
+// @version      1.08.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -286,6 +286,9 @@ GM_addStyle(`
     padding: 7px 9px; border-bottom: 1px solid var(--wct-border);
     font-weight: 700; font-size: 0.917em; position: sticky; top: 0;
     background: var(--wct-surface);
+}
+#wct-keys-pop .wct-keys-note {
+    font-size: 0.833em; color: var(--wct-text2); padding: 7px 9px 0; line-height: 1.4;
 }
 #wct-keys-pop .wct-keys-sec {
     font-size: 0.833em; font-weight: 700; text-transform: uppercase;
@@ -1569,6 +1572,22 @@ const D = {
             btnCollapse:'R\u00E9duire', btnClose:'Fermer',
             btnKeys:'Raccourcis clavier et gestes de la souris',
             keysTitle:'Raccourcis et gestes',
+            keyAlt:'Alt',
+            keysAltNote:'Tous les raccourcis de WCT passent par Alt : l\u2019\u00E9diteur Waze occupe d\u00E9j\u00E0 presque toutes les touches seules.',
+            keysSecPartout:'Partout', keysSecCfg:'Onglet Configurer', keysSecGpx:'Onglet Trac\u00E9s',
+            keysSecTurn:'Onglet Virages', keysSecSrc:'Onglet Recherche', keysSecZone:'\u00C9dition du contour',
+            keysTogglePanel:'Ouvrir ou fermer le panneau.',
+            keysKeysPanel:'Afficher ou masquer cette liste.',
+            keysTabs:'Aller directement \u00E0 un onglet, dans l\u2019ordre de la barre.',
+            keysValidate:'Valider et ajouter \u00E0 la file. N\u2019\u00E9crit rien sur la carte.',
+            keysDrawArea:'Tracer une zone sur la carte.',
+            keysSavePreset:'Enregistrer les r\u00E9glages courants comme pr\u00E9r\u00E9glage.',
+            keysNextLot:'S\u00E9lectionner le prochain lot non trait\u00E9 (\uD83E\uDDF2). C\u2019est l\u2019action la plus r\u00E9p\u00E9t\u00E9e d\u2019un long trac\u00E9.',
+            keysTurnAll:'Cocher tous les virages, ou tout d\u00E9cocher.',
+            keysTurnSend:'Envoyer les virages coch\u00E9s vers Configurer.',
+            keysSearchRun:'Lancer la recherche.',
+            keysSearchClear:'Effacer les r\u00E9sultats et les cercles sur la carte.',
+            keysOutlineOk:'Valider le contour modifi\u00E9.',
             keysSecKbd:'Clavier', keysSecMouse:'Souris',
             keyEsc:'\u00C9chap', keyEnter:'Entr\u00E9e',
             keysEscApply:'Interrompre l\u2019application ou le balayage en cours. Fonctionne m\u00EAme si le masque \u00AB\u00A0Enregistrement\u00A0\u00BB de WME recouvre le bouton Stop.',
@@ -2073,6 +2092,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             btnCollapse:'Collapse', btnClose:'Close',
             btnKeys:'Keyboard shortcuts and mouse gestures',
             keysTitle:'Shortcuts and gestures',
+            keyAlt:'Alt',
+            keysAltNote:'Every WCT shortcut uses Alt: the Waze editor already takes almost every single key.',
+            keysSecPartout:'Anywhere', keysSecCfg:'Configure tab', keysSecGpx:'Tracks tab',
+            keysSecTurn:'Turns tab', keysSecSrc:'Search tab', keysSecZone:'Editing the outline',
+            keysTogglePanel:'Open or close the panel.',
+            keysKeysPanel:'Show or hide this list.',
+            keysTabs:'Jump straight to a tab, in bar order.',
+            keysValidate:'Validate and add to the queue. Writes nothing to the map.',
+            keysDrawArea:'Draw an area on the map.',
+            keysSavePreset:'Save the current settings as a preset.',
+            keysNextLot:'Select the next untouched batch (\uD83E\uDDF2). The most repeated action on a long track.',
+            keysTurnAll:'Tick every turn, or untick them all.',
+            keysTurnSend:'Send the ticked turns to Configure.',
+            keysSearchRun:'Run the search.',
+            keysSearchClear:'Clear the results and the circles on the map.',
+            keysOutlineOk:'Accept the edited outline.',
             keysSecKbd:'Keyboard', keysSecMouse:'Mouse',
             keyEsc:'Esc', keyEnter:'Enter',
             keysEscApply:'Stop the running apply or sweep. Works even when the WME \u00ABSaving\u00BB mask covers the Stop button.',
@@ -2576,6 +2611,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCollapse:'כווץ', btnClose:'סגור',
             btnKeys:'קיצורי מקלדת ומחוות עכבר',
             keysTitle:'קיצורים ומחוות',
+            keyAlt:'Alt',
+            keysAltNote:'כל קיצורי WCT משתמשים ב-Alt: עורך המפות של Waze כבר תופס כמעט כל מקש בודד.',
+            keysSecPartout:'בכל מקום', keysSecCfg:'לשונית הגדרה', keysSecGpx:'לשונית מסלולים',
+            keysSecTurn:'לשונית פניות', keysSecSrc:'לשונית חיפוש', keysSecZone:'עריכת המתאר',
+            keysTogglePanel:'פתיחה או סגירה של הלוח.',
+            keysKeysPanel:'הצגה או הסתרה של רשימה זו.',
+            keysTabs:'מעבר ישיר ללשונית, לפי סדר הסרגל.',
+            keysValidate:'אישור והוספה לתור. לא משנה דבר במפה.',
+            keysDrawArea:'שרטוט אזור על המפה.',
+            keysSavePreset:'שמירת ההגדרות הנוכחיות.',
+            keysNextLot:'בחירת המנה הבאה שטרם טופלה (\uD83E\uDDF2).',
+            keysTurnAll:'סימון כל הפניות או ביטול הסימון.',
+            keysTurnSend:'שליחת הפניות המסומנות להגדרה.',
+            keysSearchRun:'הפעלת החיפוש.',
+            keysSearchClear:'ניקוי התוצאות והעיגולים במפה.',
+            keysOutlineOk:'אישור המתאר שנערך.',
             keysSecKbd:'מקלדת', keysSecMouse:'עכבר',
             keyEsc:'Esc', keyEnter:'Enter',
             keysEscApply:'עצירת החלה או סריקה שמתבצעת. פועל גם כשמסך השמירה של WME מסתיר את הכפתור.',
@@ -3079,6 +3130,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCollapse:'Comprimi', btnClose:'Chiudi',
             btnKeys:'Scorciatoie da tastiera e gesti del mouse',
             keysTitle:'Scorciatoie e gesti',
+            keyAlt:'Alt',
+            keysAltNote:'Tutte le scorciatoie di WCT usano Alt: l\u2019editor Waze occupa gi\u00E0 quasi tutti i tasti singoli.',
+            keysSecPartout:'Ovunque', keysSecCfg:'Scheda Configura', keysSecGpx:'Scheda Tracce',
+            keysSecTurn:'Scheda Svolte', keysSecSrc:'Scheda Cerca', keysSecZone:'Modifica del contorno',
+            keysTogglePanel:'Apre o chiude il pannello.',
+            keysKeysPanel:'Mostra o nasconde questo elenco.',
+            keysTabs:'Va direttamente a una scheda, nell\u2019ordine della barra.',
+            keysValidate:'Convalida e aggiunge alla coda. Non scrive nulla sulla mappa.',
+            keysDrawArea:'Disegna un\u2019area sulla mappa.',
+            keysSavePreset:'Salva le impostazioni correnti come preset.',
+            keysNextLot:'Seleziona il prossimo lotto non trattato (\uD83E\uDDF2). L\u2019azione pi\u00F9 ripetuta su una traccia lunga.',
+            keysTurnAll:'Seleziona tutte le svolte, o deseleziona tutto.',
+            keysTurnSend:'Invia le svolte selezionate a Configura.',
+            keysSearchRun:'Avvia la ricerca.',
+            keysSearchClear:'Cancella i risultati e i cerchi sulla mappa.',
+            keysOutlineOk:'Conferma il contorno modificato.',
             keysSecKbd:'Tastiera', keysSecMouse:'Mouse',
             keyEsc:'Esc', keyEnter:'Invio',
             keysEscApply:'Interrompe l\u2019applicazione o la scansione in corso. Funziona anche quando la maschera \u00ABSalvataggio\u00BB di WME copre il pulsante Stop.',
@@ -3583,6 +3650,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCollapse:'Einklappen', btnClose:'Schlie\u00DFen',
             btnKeys:'Tastenk\u00FCrzel und Mausgesten',
             keysTitle:'K\u00FCrzel und Gesten',
+            keyAlt:'Alt',
+            keysAltNote:'Alle WCT-K\u00FCrzel nutzen Alt: der Waze-Editor belegt bereits fast jede einzelne Taste.',
+            keysSecPartout:'\u00DCberall', keysSecCfg:'Reiter Einrichten', keysSecGpx:'Reiter Tracks',
+            keysSecTurn:'Reiter Abbieger', keysSecSrc:'Reiter Suche', keysSecZone:'Umriss bearbeiten',
+            keysTogglePanel:'\u00D6ffnet oder schlie\u00DFt das Fenster.',
+            keysKeysPanel:'Zeigt diese Liste an oder blendet sie aus.',
+            keysTabs:'Springt direkt zu einem Reiter, in der Reihenfolge der Leiste.',
+            keysValidate:'Best\u00E4tigt und stellt in die Warteschlange. Schreibt nichts auf die Karte.',
+            keysDrawArea:'Zeichnet einen Bereich auf der Karte.',
+            keysSavePreset:'Speichert die aktuellen Einstellungen als Vorlage.',
+            keysNextLot:'W\u00E4hlt das n\u00E4chste unbearbeitete Paket (\uD83E\uDDF2). Die am h\u00E4ufigsten wiederholte Aktion bei langen Tracks.',
+            keysTurnAll:'Alle Abbieger ausw\u00E4hlen oder Auswahl aufheben.',
+            keysTurnSend:'Sendet die ausgew\u00E4hlten Abbieger an Einrichten.',
+            keysSearchRun:'Startet die Suche.',
+            keysSearchClear:'L\u00F6scht die Ergebnisse und die Kreise auf der Karte.',
+            keysOutlineOk:'Best\u00E4tigt den bearbeiteten Umriss.',
             keysSecKbd:'Tastatur', keysSecMouse:'Maus',
             keyEsc:'Esc', keyEnter:'Eingabe',
             keysEscApply:'Bricht das laufende Anwenden oder Abfahren ab. Funktioniert auch, wenn die WME-Maske \u00ABSpeichern\u00BB den Stopp-Knopf verdeckt.',
@@ -4086,6 +4169,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnCollapse:'Plegar', btnClose:'Cerrar',
             btnKeys:'Atajos de teclado y gestos del rat\u00F3n',
             keysTitle:'Atajos y gestos',
+            keyAlt:'Alt',
+            keysAltNote:'Todos los atajos de WCT usan Alt: el editor de Waze ya ocupa casi todas las teclas sueltas.',
+            keysSecPartout:'En todas partes', keysSecCfg:'Pesta\u00F1a Configurar', keysSecGpx:'Pesta\u00F1a Trazas',
+            keysSecTurn:'Pesta\u00F1a Giros', keysSecSrc:'Pesta\u00F1a Buscar', keysSecZone:'Edici\u00F3n del contorno',
+            keysTogglePanel:'Abre o cierra el panel.',
+            keysKeysPanel:'Muestra u oculta esta lista.',
+            keysTabs:'Va directamente a una pesta\u00F1a, en el orden de la barra.',
+            keysValidate:'Valida y a\u00F1ade a la cola. No escribe nada en el mapa.',
+            keysDrawArea:'Dibuja una zona en el mapa.',
+            keysSavePreset:'Guarda los ajustes actuales como preajuste.',
+            keysNextLot:'Selecciona el siguiente lote sin tratar (\uD83E\uDDF2). La acci\u00F3n m\u00E1s repetida en una traza larga.',
+            keysTurnAll:'Marca todos los giros, o los desmarca.',
+            keysTurnSend:'Env\u00EDa los giros marcados a Configurar.',
+            keysSearchRun:'Ejecuta la b\u00FAsqueda.',
+            keysSearchClear:'Borra los resultados y los c\u00EDrculos del mapa.',
+            keysOutlineOk:'Acepta el contorno modificado.',
             keysSecKbd:'Teclado', keysSecMouse:'Rat\u00F3n',
             keyEsc:'Esc', keyEnter:'Intro',
             keysEscApply:'Detiene la aplicaci\u00F3n o el barrido en curso. Funciona incluso si la m\u00E1scara \u00ABGuardando\u00BB de WME tapa el bot\u00F3n Detener.',
@@ -4589,6 +4688,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             btnCollapse:'Recolher', btnClose:'Fechar',
             btnKeys:'Atalhos de teclado e gestos do mouse',
             keysTitle:'Atalhos e gestos',
+            keyAlt:'Alt',
+            keysAltNote:'Todos os atalhos do WCT usam Alt: o editor do Waze j\u00E1 ocupa quase todas as teclas sozinhas.',
+            keysSecPartout:'Em qualquer lugar', keysSecCfg:'Aba Configurar', keysSecGpx:'Aba Trajetos',
+            keysSecTurn:'Aba Convers\u00F5es', keysSecSrc:'Aba Pesquisar', keysSecZone:'Edi\u00E7\u00E3o do contorno',
+            keysTogglePanel:'Abre ou fecha o painel.',
+            keysKeysPanel:'Mostra ou oculta esta lista.',
+            keysTabs:'Vai direto para uma aba, na ordem da barra.',
+            keysValidate:'Valida e adiciona \u00E0 fila. N\u00E3o grava nada no mapa.',
+            keysDrawArea:'Desenha uma \u00E1rea no mapa.',
+            keysSavePreset:'Salva as configura\u00E7\u00F5es atuais como predefini\u00E7\u00E3o.',
+            keysNextLot:'Seleciona o pr\u00F3ximo lote n\u00E3o tratado (\uD83E\uDDF2). A a\u00E7\u00E3o mais repetida num trajeto longo.',
+            keysTurnAll:'Marca todas as convers\u00F5es, ou desmarca todas.',
+            keysTurnSend:'Envia as convers\u00F5es marcadas para Configurar.',
+            keysSearchRun:'Executa a pesquisa.',
+            keysSearchClear:'Limpa os resultados e os c\u00EDrculos no mapa.',
+            keysOutlineOk:'Confirma o contorno editado.',
             keysSecKbd:'Teclado', keysSecMouse:'Mouse',
             keyEsc:'Esc', keyEnter:'Enter',
             keysEscApply:'Interrompe a aplica\u00E7\u00E3o ou a varredura em curso. Funciona mesmo quando a m\u00E1scara \u00ABSalvando\u00BB do WME cobre o bot\u00E3o Parar.',
@@ -5092,6 +5207,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             btnCollapse:'Recolher', btnClose:'Fechar',
             btnKeys:'Atalhos de teclado e gestos do rato',
             keysTitle:'Atalhos e gestos',
+            keyAlt:'Alt',
+            keysAltNote:'Todos os atalhos do WCT usam Alt: o editor do Waze j\u00E1 ocupa quase todas as teclas sozinhas.',
+            keysSecPartout:'Em qualquer lado', keysSecCfg:'Separador Configurar', keysSecGpx:'Separador Trajetos',
+            keysSecTurn:'Separador Viragens', keysSecSrc:'Separador Pesquisar', keysSecZone:'Edi\u00E7\u00E3o do contorno',
+            keysTogglePanel:'Abre ou fecha o painel.',
+            keysKeysPanel:'Mostra ou oculta esta lista.',
+            keysTabs:'Vai directamente para um separador, pela ordem da barra.',
+            keysValidate:'Valida e adiciona \u00E0 fila. N\u00E3o grava nada no mapa.',
+            keysDrawArea:'Desenha uma \u00E1rea no mapa.',
+            keysSavePreset:'Guarda as defini\u00E7\u00F5es actuais como predefini\u00E7\u00E3o.',
+            keysNextLot:'Selecciona o pr\u00F3ximo lote n\u00E3o tratado (\uD83E\uDDF2). A ac\u00E7\u00E3o mais repetida num trajeto longo.',
+            keysTurnAll:'Marca todas as viragens, ou desmarca todas.',
+            keysTurnSend:'Envia as viragens marcadas para Configurar.',
+            keysSearchRun:'Executa a pesquisa.',
+            keysSearchClear:'Limpa os resultados e os c\u00EDrculos no mapa.',
+            keysOutlineOk:'Confirma o contorno editado.',
             keysSecKbd:'Teclado', keysSecMouse:'Rato',
             keyEsc:'Esc', keyEnter:'Enter',
             keysEscApply:'Interrompe a aplica\u00E7\u00E3o ou a varredura em curso. Funciona mesmo quando a m\u00E1scara \u00ABA guardar\u00BB do WME tapa o bot\u00E3o Parar.',
@@ -10735,7 +10866,15 @@ const _zoneEnterEdit = () => {
     document.body.appendChild(zone);
     // ⚠️ Échap rend le tracé d'avant. Une sortie de secours qu'on ne connaît pas n'en
     // est pas une : elle est annoncée dans l'aide du panneau d'édition.
-    const echap = ev => { if(ev.key === 'Escape' && _zoneEdit){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); } };
+    // ⚠️ Deux sorties, pas une. Echap RENONCE (rend le trace d avant) ; Entree VALIDE.
+    // Seule la premiere existait : on pouvait abandonner au clavier mais pas confirmer,
+    // il fallait aller cliquer « Terminer ». Une sortie de secours sans porte de sortie
+    // normale, c est la moitie du chemin.
+    const echap = ev => {
+        if(!_zoneEdit) return;
+        if(ev.key === 'Escape'){ ev.stopPropagation(); _zoneExitEdit(false); _zoneArbitrage(); }
+        else if(ev.key === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); _zoneExitEdit(true); _zoneArbitrage(); }
+    };
     document.addEventListener('keydown', echap, true);
     _zoneEdit = {
         zone, echap, etaitReplie: etaitReplieAvantEdition,
@@ -11430,7 +11569,10 @@ const traceRenderTable = () => {
             if(trk.lots && trk.lots.length){
                 trk.lots.forEach(lot => {
                     const done = lot.status === 'configured';
-                    tbody += `<tr class="wct-trace-lot-row" data-tid="${trk.trackId}" data-lot="${lot.idx}" data-fid="${file.fileId}" style="${isCollapsed?'display:none':''}${done?'opacity:.75':''}">
+                    // data-done : marqueur EXPLICITE de lot deja traite. Le raccourci « lot suivant »
+                    // (Alt+N) s en sert pour trouver le prochain a faire ; se fier a l opacite du
+                    // style serait fragile.
+                    tbody += `<tr class="wct-trace-lot-row" data-tid="${trk.trackId}" data-lot="${lot.idx}" data-fid="${file.fileId}" data-done="${done?'1':'0'}" style="${isCollapsed?'display:none':''}${done?'opacity:.75':''}">
                         <td></td>
                         <td style="text-align:center">${done?'✅':'⬜'}</td>
                         <td class="wct-gpx-name" colspan="2" style="padding-inline-start:2.4em;font-size:0.9em" title="${t('lotShowTitle')}">📦 ${escHtml(t('lotRowLabel', lot.idx, trk.lots.length))}</td>
@@ -11625,6 +11767,95 @@ const traceHandleFiles = (files) => {
 //   • clic droit sur un sommet / clic sur un point creux → _zoneDessinerPoignees
 //   • glisser le bandeau ou le bouton flottant → makeDraggable / makeFabDraggable
 // Si l'un d'eux disparaît un jour, retirer sa ligne ICI dans le même commit.
+// ═══════════════════════════════════════════════════════════════════════════
+//  RACCOURCIS CLAVIER
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️⚠️ TOUT passe par Alt, et ce n'est pas une préférence : MESURÉ dans WME le
+// 01/08/2026 (W.accelerators.shortcutToAction, 67 raccourcis), **22 lettres sur 26 sont
+// déjà prises SANS modificateur** et 22 de plus avec Shift. Alt n'en portait qu'UN SEUL
+// (Alt+P). Un raccourci à touche nue déclencherait une action d'édition sur la carte à
+// chaque frappe. Ctrl est pris par WME (A/S/Z) et par le navigateur.
+// ⚠️ Alt+D, Alt+E et Alt+F sont écartés : Chrome les capte pour ses propres menus.
+// ⚠️⚠️ AUCUN raccourci pour APPLIQUER ni pour VIDER — les deux seules actions
+// irréversibles du script. Le SDK ne sait pas supprimer une fermeture, et Vider détruit
+// le seul relevé de ce qui a été posé. Un raccourci, c'est un jour où la main dérape :
+// ces deux-là gardent le bouton pour seul chemin. Ne pas « compléter » cette table.
+
+// Une frappe dans un champ ne doit JAMAIS déclencher un raccourci : sans ce test,
+// Alt+N en pleine saisie de la description ferait changer d'onglet.
+const _rcDansUnChamp = (e) => {
+    const el = e.target;
+    if(!el || !el.tagName) return false;
+    if(el.isContentEditable) return true;
+    return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+};
+// Clique un élément s'il existe ET s'il est utilisable : un bouton grisé (disabled) ou
+// masqué ne doit pas répondre au clavier alors qu'il ne répond pas à la souris.
+const _rcClic = (sel) => {
+    const b = sel.startsWith('.') || sel.startsWith('#') ? document.querySelector(sel) : $id(sel);
+    if(!b || b.disabled || b.offsetParent === null) return false;
+    b.click(); return true;
+};
+const _rcOngletActif = () => document.querySelector('#wct-main-tabs .wct-main-tab.on')?.dataset.tab;
+const _rcOuvert = () => !!document.querySelector('#wct-overlay.open');
+// Le prochain lot NON TRAITÉ, tous tracés confondus, dans l'ordre du tableau.
+// C'est l'action la plus répétée du script : 18 fois pour un tracé de 133 km.
+const _rcLotSuivant = () => {
+    const ligne = document.querySelector('#wct-pane-gpx .wct-trace-lot-row[data-done="0"]');
+    if(!ligne) return false;
+    const b = ligne.querySelector('.wct-trace-lot-sel');
+    if(!b) return false;
+    b.scrollIntoView({block:'nearest'});
+    b.click(); return true;
+};
+// Alt+Entrée = « j'ai fini sur cet écran, j'enchaîne ». L'action dépend donc de l'onglet.
+const _rcEntree = () => {
+    switch(_rcOngletActif()){
+        case 'cfg':  return _rcClic('.wct-validate-footer button');
+        case 'turn': return _rcClic('wct-tn-send');
+        case 'src':  return _rcClic('wct-src-run');
+        default:     return false;
+    }
+};
+const _rcBasculePanneau = () => _rcOuvert() ? _rcClic('wct-btn-close') : _rcClic('wct-fab-btn');
+// Table des raccourcis. Chaque entrée rend true si elle a agi — sinon la frappe est
+// laissée à WME, qui saura peut-être quoi en faire.
+const _RACCOURCIS = {
+    // ─── Partout ───
+    'w': _rcBasculePanneau,
+    'k': () => { if(!_rcOuvert()) return false; _keysPop(); return true; },
+    '1': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="cfg"]'),
+    '2': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="turn"]'),
+    '3': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="csv"]'),
+    '4': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="gpx"]'),
+    '5': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="pre"]'),
+    '6': () => _rcClic('#wct-main-tabs .wct-main-tab[data-tab="src"]'),
+    // ─── Selon l'onglet ───
+    'enter': _rcEntree,
+    'z': () => _rcOngletActif()==='cfg' && _rcClic('wct-poly-btn'),
+    's': () => _rcOngletActif()==='cfg' && _rcClic('wct-preset-save-btn'),
+    'n': () => _rcOngletActif()==='gpx' && _rcLotSuivant(),
+    'a': () => _rcOngletActif()==='turn' &&
+               (_rcClic('wct-tn-all') || _rcClic('wct-tn-none')),
+    'x': () => _rcOngletActif()==='src' && _rcClic('wct-src-clear'),
+};
+// Écouteur unique, posé une seule fois à l'init (jamais dans connectOverlay : l'overlay
+// est reconstruit à chaque changement de langue, on empilerait les écouteurs).
+const _rcInstaller = () => {
+    document.addEventListener('keydown', (e) => {
+        if(!e.altKey || e.ctrlKey || e.metaKey) return;
+        if(_rcDansUnChamp(e)) return;
+        const k = (e.key || '').toLowerCase();
+        const f = _RACCOURCIS[k];
+        if(!f) return;
+        let agi = false;
+        try{ agi = f() === true; }catch(err){ log('raccourci '+k+': '+err.message); }
+        // ⚠️ Ne consommer la frappe QUE si on a réellement agi : sinon on priverait WME
+        // d'un raccourci qui ne nous concerne pas, en silence.
+        if(agi){ e.preventDefault(); e.stopPropagation(); }
+    }, true);
+};
+
 // Ouvre / ferme / bascule le panneau des raccourcis. Sans argument : bascule.
 // L'état vit dans le DOM et non en variable : contrairement à l'aperçu replié, ce
 // panneau n'a rien à survivre à une reconstruction de l'overlay — il se rouvre d'un clic.
@@ -11650,25 +11881,54 @@ const _keysPop = (v) => {
 };
 const buildKeysPanel = () => {
     const kbd = s => `<kbd>${escHtml(s)}</kbd>`;
-    const l = (geste, effet) => `<tr><td>${geste}</td><td>${escHtml(effet)}</td></tr>`;
+    // Alt+X : la combinaison s'écrit avec un vrai signe +, pas un tiret.
+    const alt = s => kbd(t('keyAlt')) + '+' + kbd(s);
+    const l = (touches, effet) => `<tr><td>${touches}</td><td>${escHtml(effet)}</td></tr>`;
+    const sec = (titre, lignes) =>
+        `<div class="wct-keys-sec">${escHtml(titre)}</div><table>${lignes.join('')}</table>`;
+    // ⚠️ Classement par CONTEXTE et non par touche. Auparavant tout tenait dans un bloc
+    // « Clavier » où Échap apparaissait deux fois de suite sans qu'on comprenne pourquoi.
+    // La bonne question n'est pas « que fait cette touche » mais « que fait-elle ICI » :
+    // Échap peut légitimement figurer deux fois, dans deux sections différentes.
     return `
     <div id="wct-keys-pop" style="display:none">
       <div class="wct-keys-hdr">&#x2328;&#xFE0F; <span style="flex:1">${escHtml(t('keysTitle'))}</span>
         <button class="wct-hdr-btn" id="wct-keys-close" title="${escHtml(t('btnClose'))}" style="background:var(--wct-bg);color:var(--wct-text)">&#x2715;</button>
       </div>
-      <div class="wct-keys-sec">${escHtml(t('keysSecKbd'))}</div>
-      <table>
-        ${l(kbd(t('keyEsc')), t('keysEscApply'))}
-        ${l(kbd(t('keyEsc')), t('keysEscZone'))}
-        ${l(kbd(t('keyEnter')) + ' / ' + kbd(t('keyEsc')), t('keysPreset'))}
-      </table>
-      <div class="wct-keys-sec">${escHtml(t('keysSecMouse'))}</div>
-      <table>
-        ${l(escHtml(t('keysDblClick')), t('keysDblClickD'))}
-        ${l(escHtml(t('keysRightClick')), t('keysRightClickD'))}
-        ${l(escHtml(t('keysMidPoint')), t('keysMidPointD'))}
-        ${l(escHtml(t('keysDrag')), t('keysDragD'))}
-      </table>
+      <div class="wct-keys-note">${escHtml(t('keysAltNote'))}</div>
+      ${sec(t('keysSecPartout'), [
+        l(alt('W'), t('keysTogglePanel')),
+        l(alt('K'), t('keysKeysPanel')),
+        l(alt('1') + '…' + alt('6'), t('keysTabs')),
+        l(kbd(t('keyEsc')), t('keysEscApply')),
+      ])}
+      ${sec(t('keysSecCfg'), [
+        l(alt(t('keyEnter')), t('keysValidate')),
+        l(alt('Z'), t('keysDrawArea')),
+        l(alt('S'), t('keysSavePreset')),
+        l(kbd(t('keyEnter')) + ' / ' + kbd(t('keyEsc')), t('keysPreset')),
+      ])}
+      ${sec(t('keysSecGpx'), [
+        l(alt('N'), t('keysNextLot')),
+      ])}
+      ${sec(t('keysSecTurn'), [
+        l(alt('A'), t('keysTurnAll')),
+        l(alt(t('keyEnter')), t('keysTurnSend')),
+      ])}
+      ${sec(t('keysSecSrc'), [
+        l(alt(t('keyEnter')), t('keysSearchRun')),
+        l(alt('X'), t('keysSearchClear')),
+      ])}
+      ${sec(t('keysSecZone'), [
+        l(kbd(t('keyEnter')), t('keysOutlineOk')),
+        l(kbd(t('keyEsc')), t('keysEscZone')),
+      ])}
+      ${sec(t('keysSecMouse'), [
+        l(escHtml(t('keysDblClick')), t('keysDblClickD')),
+        l(escHtml(t('keysRightClick')), t('keysRightClickD')),
+        l(escHtml(t('keysMidPoint')), t('keysMidPointD')),
+        l(escHtml(t('keysDrag')), t('keysDragD')),
+      ])}
     </div>`;
 };
 const buildOverlay=()=>{
@@ -13873,6 +14133,9 @@ const init=async()=>{
     injectFab();
     // Double-clic dans la zone pour rouvrir son panneau d'arbitrage.
     _zoneInstallerDblClic();
+    // Raccourcis clavier : ecouteur unique, pose ICI et pas dans connectOverlay — celui-ci
+    // est rejoue a chaque changement de langue et on empilerait les ecouteurs.
+    _rcInstaller();
     // Les poignées d'édition se replacent sur `wme-map-move` ET sur `wme-map-move-end`.
     // ⚠️ Ne pas se fier à l'ancienne note qui disait ici que `wme-map-move-end` n'était
     // JAMAIS émis : c'était faux. Re-mesuré en live le 01/08 sur la carte de l'auteur,
