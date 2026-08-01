@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.07.00
+// @version      1.07.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -912,7 +912,19 @@ GM_addStyle(`
 .wct-tn-flag.ko  { background:#ffebee; color:#b71c1c; }
 .wct-tn-flag.na  { background:#f5f5f5; color:#9e9e9e; }
 /* Reglage sans objet pour la cible courante : visible mais neutralise. */
-.wct-na { opacity:.42; pointer-events:none; filter:grayscale(1); }
+/* ⚠️ PLUS DE pointer-events:none ICI (retiré le 01/08/2026, signalé par l'auteur).
+   Il neutralisait bien les contrôles, mais il empêchait AUSSI le survol — donc les
+   infobulles posées juste à côté pour expliquer POURQUOI le bloc est grisé ne
+   pouvaient jamais s'afficher. Mesuré en live dans le navigateur de l'auteur : au
+   centre d'un libellé grisé, elementFromPoint rendait le conteneur et non le libellé ;
+   contre-épreuve en retirant la classe, le libellé redevenait atteignable.
+   La neutralisation passe désormais par l'attribut disabled sur les contrôles (voir la
+   fonction _grise), ce qui est plus sûr : un contrôle désactivé ignore aussi
+   l'activation par son label, alors que pointer-events:none sur le seul champ ne
+   l'empêchait PAS — vérifié en live, le clic sur le libellé cochait quand même la case.
+   ⚠️ Aucun backtick dans ce commentaire : tout ce CSS vit dans un template literal. */
+.wct-na { opacity:.42; filter:grayscale(1); }
+.wct-na, .wct-na * { cursor: not-allowed; }
 .wct-tn-row.off  { opacity:.55; cursor:not-allowed; }
 .wct-tn-row.off input { cursor:not-allowed; }
 .wct-tn-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; flex-wrap:wrap; }
@@ -6180,6 +6192,25 @@ const hasSel=()=>{const s=getSelection();return s.ids.length>0&&s.objectType==='
 // basculent ces pastilles (clic, raccourcis, chargement d'un préréglage) — les trois
 // doivent rester d'accord.
 const _chipSet=(c,actif)=>{ if(!c) return; c.classList.toggle('on',actif); c.setAttribute('aria-pressed',String(actif)); };
+// Grise un bloc ET neutralise vraiment ses contrôles.
+// ⚠️ Passer par ici et non par classList.toggle('wct-na') seul. La classe ne fait plus
+// que l'apparence : c'est `disabled` qui empêche l'interaction. Le grisage reposait sur
+// pointer-events:none, qui bloquait aussi le SURVOL — les infobulles expliquant le
+// grisage devenaient donc invisibles, ce qui est le comble pour une explication.
+// `disabled` est en prime meilleur pour l'accessibilité : annoncé par les lecteurs
+// d'écran et sorti de la tabulation, ce que pointer-events ne fait pas.
+// Le marqueur data-wct-na permet de ne réactiver QUE ce qu'on a désactivé soi-même :
+// un contrôle déjà disabled pour une autre raison doit le rester.
+const _grise = (el, actif) => {
+    if(!el) return;
+    el.classList.toggle('wct-na', actif);
+    const neutraliser = (c) => {
+        if(actif){ if(!c.disabled){ c.disabled = true; c.dataset.wctNa = '1'; } }
+        else if(c.dataset.wctNa){ c.disabled = false; delete c.dataset.wctNa; }
+    };
+    el.querySelectorAll('input,select,button,textarea').forEach(neutraliser);
+    if(/^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(el.tagName)) neutraliser(el);
+};
 // Rend atteignables au clavier les éléments cliquables qui ne sont pas des <button>.
 // ⚠️ Le panneau en compte des dizaines : en-têtes repliables, chevrons, lignes de
 // tableau. Les convertir un par un en <button> casserait des mises en page — un <td> ne
@@ -7022,7 +7053,7 @@ const renderTurnBanner = () => {
     [ $id('wct-direction')?.closest('div'), $id('wct-nodes-wrap') ]
         .forEach(el => {
             if (!el) return;
-            el.classList.toggle('wct-na', !!_currentTurns);
+            _grise(el, !!_currentTurns);
             if (_currentTurns) el.title = t('tnNotApplicable'); else el.removeAttribute('title');
         });
     // La Source est un champ de fermeture de SEGMENT : renderSourceSel gère seul son
@@ -7176,7 +7207,7 @@ const renderSourceSel = () => {
     // pour un compte sans droits). Le selecteur ne s'active donc que si la liste est non vide.
     const hasPartners = _partners.length > 0;
     const dispo = _srcCap.ok && hasPartners && !turnTarget;
-    wrap.classList.toggle('wct-na', !dispo);
+    _grise(wrap, !dispo);
     const why = turnTarget ? t('srcSelTurn')
               : !_srcCap.ok ? t('srcSelOff_'+(_srcCap.reason||'schema'))
               : !hasPartners ? t('srcSelOff_nopartner')
@@ -11072,10 +11103,10 @@ const refreshCfgGate = () => {
         _polyZone = null; _zoneRefreshLayer(); renderPolyBanner();
     }
     pane.querySelectorAll('.wct-cfg-grid').forEach(el => {
-        el.classList.toggle('wct-na', !pret);
+        _grise(el, !pret);
         if(!pret) el.title = t('polyGateWhy'); else el.removeAttribute('title');
     });
-    document.querySelector('.wct-validate-footer')?.classList.toggle('wct-na', !pret);
+    _grise(document.querySelector('.wct-validate-footer'), !pret);
     const hint = $id('wct-poly-hint');
     if(hint) hint.style.display = pret ? 'none' : '';
     // Exporter une zone qui n'existe pas n'a aucun sens : les deux exports restent
@@ -11084,7 +11115,7 @@ const refreshCfgGate = () => {
     const aZone = !!(_polyZone?.rings?.length);
     [['wct-poly-kml','tipPolyKmlBtn'], ['wct-poly-wkt','tipPolyWktBtn']].forEach(([id, tip]) => {
         const b = $id(id); if(!b) return;
-        b.classList.toggle('wct-na', !aZone);
+        _grise(b, !aZone);
         b.title = aZone ? t(tip) : t('polyNoZone');
     });
 };
