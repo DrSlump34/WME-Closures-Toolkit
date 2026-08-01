@@ -26,11 +26,17 @@ node check-keys.js        # avant toute publication
 | `test-imp-detect.js` | Détecteur de l'onglet Import, surtout les cas **ambigus** : `.json` GeoJSON ou préréglages, `.kml` tracé ou zone, fichier mixte |
 | `test-centrage.js` | Recadrage **sur ce qui reste visible** (hors volet WME, hors panneau, hors barre du bas) : le point doit atterrir au centre de la partie visible, au **pixel près et au zoom d'arrivée**. Vérifie aussi que le niveau de zoom se calcule sur la surface visible et non sur le canevas entier |
 | `test-pave.js` | Découpage d'une zone en **lots** : un lot = un recadrage de carte et une entrée de file, donc le nombre de lots est ce que l'éditeur paie. Vérifie la règle « ce qui tient dans une vue ne fait qu'un lot » sur 200 dispositions, plus les bbox, les doublons et les cas dégénérés |
+| `test-queue-total.js` | Le nombre de fermetures que la file va **réellement écrire** (`_queueTotalClosures`), extrait du fichier réel. Ce compte alimente la **seule barrière avant écriture** : jusqu'à la 1.02.00 la confirmation annonçait un nombre de *lots* (« Appliquer 3 lot(s) ? ») alors qu'une zone de 1 150 segments sur 21 occurrences en écrit **24 150** — et rien ne sait les défaire. Couvre les lignes supprimées à la main, les segments défaillants, et les entrées virages (dont `segIds` est vide) |
 | `test-imp-route.js` | Ce qui se passe **après** la détection : le libellé du type reconnu, le filet à exceptions du point d'entrée, l'import de zone qui doit lire le fichier entier. Et surtout : **aucune portée ne masque la fonction de traduction `t()`** |
 
-`poly-core.js`, `imp-detect.js` et `poly-pave.js` sont les modules testés. ⚠️ `poly-core.js` est une **copie**
-du moteur intégré au userscript : en cas de modification du moteur, reporter le changement ici,
-sinon le test valide du code qui n'est plus celui qui tourne.
+`poly-core.js`, `imp-detect.js` et `poly-pave.js` sont les modules testés. **Aucun n'est plus une copie :
+tous les trois extraient leur code du fichier réel.**
+`poly-core.js` a été converti en dernier (2026-08-01). Motif : c'était le dernier module encore copié,
+donc les 28 tests du moteur géométrique validaient du code qui n'était pas celui qui tourne. Sa copie
+**avait d'ailleurs déjà divergé** — elle nommait les fonctions `_polyRings` et `_polyBBox` là où le
+fichier réel dit `_polyRingsOf` et `_polyBBoxOf` (corps encore identiques, noms non). Les anciens noms
+restent exportés comme alias vers le code réel. Il extrait le bloc `POLY_INSIDE_FRAC` → fin de
+`_polyInsideFrac`, **seuils compris** : un seuil changé dans le userscript est donc vu par les tests.
 `imp-detect.js` **était** une copie lui aussi — il extrait désormais la fonction du fichier réel
 (2026-07-26). Motif : le bug 0.97.01 vivait à deux lignes du code copié, dans une zone qu'aucun
 test n'atteignait. Une copie ne prouve rien.

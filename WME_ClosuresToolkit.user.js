@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.01.00
+// @version      1.02.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -33,10 +33,9 @@
 // @exclude      https://www.waze.com/discuss/*
 // @exclude      https://www.waze.com/editor/sdk/*
 // @exclude      https://beta.waze.com/editor/sdk/*
-// @require      https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js
-// @require      https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.js
-// @grant        unsafeWindow
+// @require      https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js#sha256=w7NPLp9edNTX1k4BysegwBlUxsQGQU1CGFx7U9aHXd8=
+// @require      https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js#sha256=SXX79BH6wYQsW5HTYtMj0/AcoMtSOFouohl5D/qiCoA=
+// @require      https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.js#sha256=f0j1+6I/d22RgYEu0MAJyPUyLEG91lLeWVwLXrhIiO0=
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -1402,7 +1401,8 @@ const t = (key, ...args) => {
             previewMore: n => `\u2026 et ${n} autre(s)`,
             // Confirms
             confirmClear:'Vider la file\u00A0?',
-            confirmApply: n => `Appliquer ${n} lot(s) dans WME\u00A0?`,
+            clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
+            confirmApply: (n,m) => `\u00C9crire ${n} fermeture(s) dans WME\u00A0? (${m} lot(s) dans la file)`,
             confirmDel: n => `Supprimer \u00AB\u00A0${n}\u00A0\u00BB\u00A0?`,
             // Colonnes
             colId:'ID', colName:'Nom', colStart:'D\u00E9but', colEnd:'Fin', colState:'\u00C9tat',
@@ -1410,6 +1410,8 @@ const t = (key, ...args) => {
             colStartTip:'Date/heure de d\u00E9but', colEndTip:'Date/heure de fin',
             colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 En cours  \uD83D\uDD34 Chevauchement  \u26AB Pass\u00E9e',
             stateOk:'OK', stateOn:'En cours', stateOv:'Chevauchement', statePast:'Pass\u00E9e',
+            stateUnchecked:'Non v\u00E9rifi\u00E9',
+            queueLayerKo:'\u26A0\uFE0F Le calque \u00AB\u00A0Fermetures\u00A0\u00BB de WME est introuvable : les chevauchements avec les fermetures existantes ne sont PAS v\u00E9rifi\u00E9s. Les pastilles n\u2019indiquent plus qu\u2019une chose : l\u2019\u00E9tat des dates.',
             stateNull:'Segment absent du data model \u2014 modification r\u00E9cente non encore propagée. Sera ignoré à l\u2019application.',
             nullSegBadgeTip: n => `${n} segment(s) absent(s) du data model \u2014 modification r\u00E9cente non propagée. Ajouter à la file pour les détails.`,
             stateRecent:'Segment modifié après le dernier assemblage de tiles Waze \u2014 la fermeture risque d\u2019être rejetée. Attendez la prochaine mise à jour (toutes les 24h).',
@@ -1447,6 +1449,7 @@ const t = (key, ...args) => {
             // Jours f\u00E9ri\u00E9s
             holidaysExcl: n => `\u2139\uFE0F ${n} jour(s) f\u00E9ri\u00E9(s) exclu(s).`,
             holidaysNone:'\u2139\uFE0F Aucun jour f\u00E9ri\u00E9 dans la p\u00E9riode.',
+            holidaysUnavailable:'\u26A0\uFE0F Liste des jours f\u00E9ri\u00E9s indisponible : le filtre n\u2019a PAS \u00E9t\u00E9 appliqu\u00E9. V\u00E9rifiez les dates avant d\u2019appliquer.',
             // R\u00E9p\u00E9ter
             warnInt: (ev,dur) => `\u26A0\uFE0F Intervalle (${ev}\u00A0min) < dur\u00E9e (${dur}\u00A0min)\u00A0: chevauchement.`,
             warnOcc: (max,req) => `\u2139\uFE0F Seulement ${max} occurrence(s) possible(s) dans la p\u00E9riode (${req} demand\u00E9es).`,
@@ -1454,6 +1457,8 @@ const t = (key, ...args) => {
             // Apply log
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} pos\u00E9e(s) sur ${m} demand\u00E9e(s)`,
+            applyNothingWritten:'Aucune fermeture n\u2019a \u00E9t\u00E9 enregistr\u00E9e : rien n\u2019a \u00E9t\u00E9 cr\u00E9\u00E9 dans l\u2019\u00E9diteur.',
             tipCenter:'Centrer sur ce segment',
             centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
             tipPresetSaveBtn:'Sauvegarder en pr\u00E9r\u00E9glage',
@@ -1891,13 +1896,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             previewHead: n => `${n} closure(s) to apply:`,
             previewMore: n => `\u2026 and ${n} more`,
             confirmClear:'Clear the queue?',
-            confirmApply: n => `Apply ${n} batch(es) in WME?`,
+            clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
+            confirmApply: (n,m) => `Write ${n} closure(s) in WME? (${m} batch(es) queued)`,
             confirmDel: n => `Delete \u201C${n}\u201D?`,
             colId:'ID', colName:'Name', colStart:'Start', colEnd:'End', colState:'State',
             colIdTip:'Segment ID', colNameTip:'Segment name',
             colStartTip:'Start date/time', colEndTip:'End date/time',
             colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 Ongoing  \uD83D\uDD34 Overlap  \u26AB Past',
             stateOk:'OK', stateOn:'Ongoing', stateOv:'Overlap', statePast:'Past',
+            stateUnchecked:'Not checked',
+            queueLayerKo:'\u26A0\uFE0F The WME \u00ABClosures\u00BB layer cannot be found: overlaps with existing closures are NOT checked. The dots now only reflect the dates.',
             stateNull:'Segment not found in data model \u2014 recent edit not yet propagated. Will be skipped on apply.',
             nullSegBadgeTip: n => `${n} segment(s) missing from data model \u2014 recent edit not yet propagated. Add to queue for details.`,
             stateRecent:'Segment edited after last Waze tile build \u2014 closure may be rejected on apply. Wait for next tile update (every 24h).',
@@ -1932,6 +1940,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             presetSaved: n => `\u2705 Preset \u201C${n}\u201D saved.`,
             holidaysExcl: n => `\u2139\uFE0F ${n} public holiday(s) excluded.`,
             holidaysNone:'\u2139\uFE0F No public holidays in the period.',
+            holidaysUnavailable:'\u26A0\uFE0F Public holiday list unavailable: the filter was NOT applied. Check the dates before applying.',
             holidayModeNone:'Public holidays: no filter',
             holidayModeSkip:'Except public holidays',
             holidayModeOnly:'Public holidays only',
@@ -1942,6 +1951,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             warnZero:'\u26A0\uFE0F Zero interval.',
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} of ${m} applied`,
+            applyNothingWritten:'No closure was saved: nothing was created in the editor.',
             errDateStart:'Invalid start date',
             errDateEnd:'End date before start date',
             warnDatePast:'Start date is in the past.',
@@ -2377,13 +2388,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHead: n => `${n} חסימות ליישום:`,
             previewMore: n => `… ועוד ${n}`,
             confirmClear:'לנקות את התור?',
-            confirmApply: n => `להחיל ${n} מנות ב-WME?`,
+            clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
+            confirmApply: (n,m) => `לכתוב ${n} חסימות ב-WME? (${m} מנות בתור)`,
             confirmDel: n => `למחוק את “${n}”?`,
             colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
             colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
             colStartTip:'תאריך/שעת התחלה', colEndTip:'תאריך/שעת סיום',
             colStateTip:'🟢 תקין  🟠 מתמשך  🔴 חפיפה  ⚫ עבר',
             stateOk:'תקין', stateOn:'מתמשך', stateOv:'חפיפה', statePast:'עבר',
+            stateUnchecked:'לא נבדק',
+            queueLayerKo:'\u26A0\uFE0F שכבת החסימות של WME לא נמצאה: חפיפות עם חסימות קיימות אינן נבדקות. הנקודות משקפות כעת רק את התאריכים.',
             stateNull:'המקטע לא נמצא במודל הנתונים — עריכה אחרונה טרם הופצה. ידולג ביישום.',
             nullSegBadgeTip: n => `${n} מקטעים חסרים במודל הנתונים — עריכה אחרונה טרם הופצה. הוסף לתור לפרטים.`,
             stateRecent:'המקטע נערך לאחר בניית האריחים האחרונה של Waze — החסימה עלולה להידחות ביישום. המתן לעדכון האריחים הבא (כל 24 שעות).',
@@ -2418,6 +2432,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetSaved: n => `✅ התבנית “${n}” נשמרה.`,
             holidaysExcl: n => `ℹ️ ${n} חגים הוחרגו.`,
             holidaysNone:'ℹ️ אין חגים בתקופה.',
+            holidaysUnavailable:'\u26A0\uFE0F רשימת החגים אינה זמינה: המסנן לא הוחל. בדוק את התאריכים לפני החלה.',
             holidayModeNone:'חגים: ללא סינון',
             holidayModeSkip:'למעט חגים',
             holidayModeOnly:'חגים בלבד',
@@ -2428,6 +2443,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             warnZero:'⚠️ מרווח אפס.',
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} \u05DE\u05EA\u05D5\u05DA ${m} \u05D4\u05D5\u05D7\u05DC\u05D5`,
+            applyNothingWritten:'\u05DC\u05D0 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D0\u05E3 \u05D7\u05E1\u05D9\u05DE\u05D4: \u05DC\u05D0 \u05E0\u05D5\u05E6\u05E8 \u05D3\u05D1\u05E8 \u05D1\u05E2\u05D5\u05E8\u05DA.',
             errDateStart:'תאריך התחלה לא תקין',
             errDateEnd:'תאריך הסיום לפני תאריך ההתחלה',
             warnDatePast:'תאריך ההתחלה בעבר.',
@@ -2863,13 +2880,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHead: n => `${n} chiusura/e da applicare:`,
             previewMore: n => `… e altre ${n}`,
             confirmClear:'Svuotare la coda?',
-            confirmApply: n => `Applicare ${n} lotto/i in WME?`,
+            clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
+            confirmApply: (n,m) => `Scrivere ${n} chiusura/e in WME? (${m} lotto/i in coda)`,
             confirmDel: n => `Eliminare “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Inizio', colEnd:'Fine', colState:'Stato',
             colIdTip:'ID segmento', colNameTip:'Nome segmento',
             colStartTip:'Data/ora di inizio', colEndTip:'Data/ora di fine',
             colStateTip:'🟢 OK  🟠 In corso  🔴 Sovrapposta  ⚫ Passata',
             stateOk:'OK', stateOn:'In corso', stateOv:'Sovrap.', statePast:'Passata',
+            stateUnchecked:'Non verificato',
+            queueLayerKo:'\u26A0\uFE0F Il livello \u00ABChiusure\u00BB di WME non \u00E8 raggiungibile: le sovrapposizioni con le chiusure esistenti NON sono verificate. I pallini indicano ormai solo lo stato delle date.',
             stateNull:'Segmento non trovato nel modello dati — modifica recente non ancora propagata. Sarà saltato in fase di applicazione.',
             nullSegBadgeTip: n => `${n} segmento/i mancanti nel modello dati — modifica recente non ancora propagata. Aggiungi alla coda per i dettagli.`,
             stateRecent:'Segmento modificato dopo l’ultima generazione delle tile di Waze — la chiusura potrebbe essere respinta in fase di applicazione. Attendi il prossimo aggiornamento delle tile (ogni 24 h).',
@@ -2904,6 +2924,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetSaved: n => `✅ Preset “${n}” salvato.`,
             holidaysExcl: n => `ℹ️ ${n} giorno/i festivi esclusi.`,
             holidaysNone:'ℹ️ Nessun giorno festivo nel periodo.',
+            holidaysUnavailable:'\u26A0\uFE0F Elenco dei giorni festivi non disponibile: il filtro NON \u00E8 stato applicato. Controlla le date prima di applicare.',
             holidayModeNone:'Giorni festivi: nessun filtro',
             holidayModeSkip:'Tranne i giorni festivi',
             holidayModeOnly:'Solo giorni festivi',
@@ -2914,6 +2935,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             warnZero:'⚠️ Intervallo zero.',
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} su ${m} applicate`,
+            applyNothingWritten:'Nessuna chiusura \u00E8 stata salvata: nulla \u00E8 stato creato nell\u2019editor.',
             errDateStart:'Data di inizio non valida',
             errDateEnd:'Data di fine precedente alla data di inizio',
             warnDatePast:'La data di inizio è nel passato.',
@@ -3350,13 +3373,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHead: n => `${n} anzuwendende Sperrung(en):`,
             previewMore: n => `\u2026 und ${n} weitere`,
             confirmClear:'Warteschlange leeren?',
-            confirmApply: n => `${n} Paket(e) in WME anwenden?`,
+            clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
+            confirmApply: (n,m) => `${n} Sperrung(en) in WME schreiben? (${m} Paket(e) in der Warteschlange)`,
             confirmDel: n => `\u201E${n}\u201C l\u00F6schen?`,
             colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
             colIdTip:'Segment-ID', colNameTip:'Segmentname',
             colStartTip:'Startdatum/-zeit', colEndTip:'Enddatum/-zeit',
             colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 Laufend  \uD83D\uDD34 \u00DCberschneidung  \u26AB Vergangen',
             stateOk:'OK', stateOn:'Laufend', stateOv:'\u00DCberschneidung', statePast:'Vergangen',
+            stateUnchecked:'Nicht gepr\u00FCft',
+            queueLayerKo:'\u26A0\uFE0F Die WME-Ebene \u00ABSperrungen\u00BB ist nicht auffindbar: \u00DCberschneidungen mit bestehenden Sperrungen werden NICHT gepr\u00FCft. Die Punkte zeigen nur noch den Zustand der Daten an.',
             stateNull:'Segment nicht im Datenmodell gefunden \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. Wird beim Anwenden \u00FCbersprungen.',
             nullSegBadgeTip: n => `${n} Segment(e) fehlen im Datenmodell \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. F\u00FCr Details zur Warteschlange hinzuf\u00FCgen.`,
             stateRecent:'Segment nach dem letzten Waze-Tile-Build bearbeitet \u2014 die Sperrung kann beim Anwenden abgelehnt werden. Warte auf die n\u00E4chste Tile-Aktualisierung (alle 24 h).',
@@ -3391,6 +3417,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetSaved: n => `\u2705 Vorlage \u201E${n}\u201C gespeichert.`,
             holidaysExcl: n => `\u2139\uFE0F ${n} Feiertag(e) ausgeschlossen.`,
             holidaysNone:'\u2139\uFE0F Keine Feiertage im Zeitraum.',
+            holidaysUnavailable:'\u26A0\uFE0F Feiertagsliste nicht verf\u00FCgbar: der Filter wurde NICHT angewendet. Pr\u00FCfe die Daten vor dem Anwenden.',
             holidayModeNone:'Feiertage: kein Filter',
             holidayModeSkip:'Au\u00DFer an Feiertagen',
             holidayModeOnly:'Nur an Feiertagen',
@@ -3401,6 +3428,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             warnZero:'\u26A0\uFE0F Intervall ist null.',
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} von ${m} gesetzt`,
+            applyNothingWritten:'Es wurde keine Sperrung gespeichert: im Editor wurde nichts erstellt.',
             errDateStart:'Ung\u00FCltiges Startdatum',
             errDateEnd:'Enddatum liegt vor dem Startdatum',
             warnDatePast:'Das Startdatum liegt in der Vergangenheit.',
@@ -3836,13 +3865,16 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHead: n => `${n} cierre(s) a aplicar:`,
             previewMore: n => `… y ${n} más`,
             confirmClear:'¿Vaciar la cola?',
-            confirmApply: n => `¿Aplicar ${n} lote(s) en WME?`,
+            clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
+            confirmApply: (n,m) => `\u00BFEscribir ${n} cierre(s) en WME? (${m} lote(s) en la cola)`,
             confirmDel: n => `¿Eliminar “${n}”?`,
             colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
             colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
             colStartTip:'Fecha/hora de inicio', colEndTip:'Fecha/hora de fin',
             colStateTip:'🟢 OK  🟠 En curso  🔴 Solapamiento  ⚫ Pasado',
             stateOk:'OK', stateOn:'En curso', stateOv:'Solapamiento', statePast:'Pasado',
+            stateUnchecked:'Sin verificar',
+            queueLayerKo:'\u26A0\uFE0F No se encuentra la capa \u00ABCierres\u00BB de WME: los solapamientos con cierres existentes NO se verifican. Los puntos solo reflejan ya el estado de las fechas.',
             stateNull:'Segmento ausente del modelo de datos — edición reciente aún no propagada. Se omitirá al aplicar.',
             nullSegBadgeTip: n => `${n} segmento(s) ausente(s) del modelo de datos — edición reciente aún no propagada. Añádelos a la cola para ver los detalles.`,
             stateRecent:'Segmento editado después de la última generación de tiles de Waze — el cierre podría ser rechazado. Espera a la próxima actualización (cada 24 h).',
@@ -3877,6 +3909,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             presetSaved: n => `✅ Preajuste “${n}” guardado.`,
             holidaysExcl: n => `ℹ️ ${n} festivo(s) excluido(s).`,
             holidaysNone:'ℹ️ No hay festivos en el periodo.',
+            holidaysUnavailable:'\u26A0\uFE0F Lista de festivos no disponible: el filtro NO se aplic\u00F3. Comprueba las fechas antes de aplicar.',
             holidayModeNone:'Festivos: sin filtro',
             holidayModeSkip:'Excepto festivos',
             holidayModeOnly:'Solo festivos',
@@ -3887,6 +3920,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             warnZero:'⚠️ Intervalo nulo.',
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyNothingWritten:'No se guard\u00F3 ning\u00FAn cierre: no se cre\u00F3 nada en el editor.',
             errDateStart:'Fecha de inicio no válida',
             errDateEnd:'La fecha de fin es anterior a la de inicio',
             warnDatePast:'La fecha de inicio está en el pasado.',
@@ -4322,13 +4357,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             previewHead: n => `${n} bloqueio(s) a aplicar:`,
             previewMore: n => `… e mais ${n}`,
             confirmClear:'Limpar a fila?',
-            confirmApply: n => `Aplicar ${n} lote(s) no WME?`,
+            clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
+            confirmApply: (n,m) => `Gravar ${n} bloqueio(s) no WME? (${m} lote(s) na fila)`,
             confirmDel: n => `Excluir “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
             colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
             colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
             stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
+            stateUnchecked:'N\u00E3o verificado',
+            queueLayerKo:'\u26A0\uFE0F A camada \u00ABBloqueios\u00BB do WME n\u00E3o foi encontrada: as sobreposi\u00E7\u00F5es com bloqueios existentes N\u00C3O s\u00E3o verificadas. Os pontos passam a refletir apenas as datas.',
             stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado ao aplicar.',
             nullSegBadgeTip: n => `${n} segmento(s) ausente(s) do modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
             stateRecent:'Segmento editado após a última geração de tiles do Waze — o bloqueio pode ser recusado ao aplicar. Aguarde a próxima atualização de tiles (a cada 24h).',
@@ -4363,6 +4401,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             presetSaved: n => `✅ Predefinição “${n}” salva.`,
             holidaysExcl: n => `ℹ️ ${n} feriado(s) excluído(s).`,
             holidaysNone:'ℹ️ Nenhum feriado no período.',
+            holidaysUnavailable:'\u26A0\uFE0F Lista de feriados indispon\u00EDvel: o filtro N\u00C3O foi aplicado. Confira as datas antes de aplicar.',
             holidayModeNone:'Feriados: sem filtro',
             holidayModeSkip:'Exceto feriados',
             holidayModeOnly:'Somente feriados',
@@ -4373,6 +4412,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             warnZero:'⚠️ Intervalo igual a zero.',
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyNothingWritten:'Nenhum bloqueio foi salvo: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
             warnDatePast:'A data de início está no passado.',
@@ -4808,13 +4849,16 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             previewHead: n => `${n} corte(s) a aplicar:`,
             previewMore: n => `… e mais ${n}`,
             confirmClear:'Limpar a fila?',
-            confirmApply: n => `Aplicar ${n} lote(s) no WME?`,
+            clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
+            confirmApply: (n,m) => `Gravar ${n} corte(s) no WME? (${m} lote(s) na fila)`,
             confirmDel: n => `Eliminar “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
             colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
             colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
             stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
+            stateUnchecked:'N\u00E3o verificado',
+            queueLayerKo:'\u26A0\uFE0F A camada \u00ABCortes\u00BB do WME n\u00E3o foi encontrada: as sobreposi\u00E7\u00F5es com cortes existentes N\u00C3O s\u00E3o verificadas. Os pontos passam a refletir apenas as datas.',
             stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado na aplicação.',
             nullSegBadgeTip: n => `${n} segmento(s) em falta no modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
             stateRecent:'Segmento editado após a última compilação de tiles do Waze — o corte pode ser rejeitado na aplicação. Aguarde a próxima atualização de tiles (a cada 24 h).',
@@ -4849,6 +4893,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             presetSaved: n => `✅ Predefinição “${n}” guardada.`,
             holidaysExcl: n => `ℹ️ ${n} feriado(s) excluído(s).`,
             holidaysNone:'ℹ️ Nenhum feriado no período.',
+            holidaysUnavailable:'\u26A0\uFE0F Lista de feriados indispon\u00EDvel: o filtro N\u00C3O foi aplicado. Verifique as datas antes de aplicar.',
             holidayModeNone:'Feriados: sem filtro',
             holidayModeSkip:'Exceto feriados',
             holidayModeOnly:'Apenas feriados',
@@ -4859,6 +4904,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             warnZero:'⚠️ Intervalo nulo.',
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
+            applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyNothingWritten:'Nenhum corte foi guardado: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
             warnDatePast:'A data de início está no passado.',
@@ -6075,19 +6122,27 @@ const fetchHolidays=(countryCode,year)=>new Promise(resolve=>{
                 const dates=data.map(h=>h.date);
                 holidayCache[key]=dates; // succès : mis en cache
                 resolve(dates);
-            }catch(e){resolve([]);} // réponse invalide : pas de cache, réessai possible plus tard
+            }catch(e){resolve(null);} // réponse invalide : pas de cache, réessai possible plus tard
         },
-        onerror:()=>{resolve([]);},   // échec réseau : pas de cache, réessai possible
-        ontimeout:()=>{resolve([]);}  // timeout : pas de cache, réessai possible
+        onerror:()=>{resolve(null);},   // échec réseau : pas de cache, réessai possible
+        ontimeout:()=>{resolve(null);}  // timeout : pas de cache, réessai possible
     });
 });
 
+// Rend la liste des jours fériés, ou NULL si elle n'a pas pu être obtenue.
+// ⚠️ La distinction est tout l'objet de cette fonction : avant le 01/08/2026, un échec
+// réseau rendait un tableau vide, indiscernable d'une période réellement sans jour férié.
+// L'interface écrivait alors « Aucun jour férié dans la période » — pas un silence, une
+// AFFIRMATION FAUSSE. Sur un chantier de décembre coché « sauf jours fériés », cela
+// ferme le 25 décembre et le 1er janvier, les deux nuits où il ne fallait pas.
+// Il suffit d'UNE année manquante pour que le filtre soit faux : on rend null.
 const getHolidaysForRange=async(countryCode,startDate,endDate)=>{
     const ys=new Date(startDate).getFullYear();
     const ye=new Date(endDate).getFullYear();
     const promises=[];
     for(let y=ys;y<=ye;y++) promises.push(fetchHolidays(countryCode,y));
     const results=await Promise.all(promises);
+    if(results.some(r=>r===null)) return null;
     return results.flat();
 };
 // ─── Tile build timestamp (flux RSS Waze) ──────────────────────────────────
@@ -6474,6 +6529,15 @@ const buildClosureList=async()=>{
         const cc=checkSelectionCountry(sel.ids);
         if(cc.ok&&cc.country){
             const hols=await getHolidaysForRange(cc.country,list[0].start,list[list.length-1].end);
+            // ⚠️ TROISIÈME ÉTAT : la liste n'a pas pu être obtenue. On ne filtre RIEN et on
+            // le dit en orange — plutôt que d'affirmer « aucun jour férié », ce que faisait
+            // l'ancien code et qui était faux. L'éditeur peut alors décider : réessayer,
+            // ou retirer les dates à la main.
+            if(hols===null){
+                const warnKo=$id('wct-holidays-warn');
+                if(warnKo){ warnKo.style.display='block'; warnKo.style.color='#f57c00'; warnKo.textContent=t('holidaysUnavailable'); }
+                return{list,error:''};
+            }
             const filtered=list.filter(cl=>{
                 const d=cl.start;
                 const dateStr=`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
@@ -6483,6 +6547,7 @@ const buildClosureList=async()=>{
             const warnEl=$id('wct-holidays-warn');
             if(warnEl){
                 warnEl.style.display='block';
+                warnEl.style.color='';   // effacer l'orange d'un échec précédent
                 if(holidayMode==='skip'){
                     warnEl.textContent=delta>0?t('holidaysExcl',delta):t('holidaysNone');
                 }else{
@@ -6504,7 +6569,7 @@ const buildClosureList=async()=>{
                 }
                 const merged=[...list,...extra].sort((a,b)=>a.start-b.start);
                 const warnElAdd=$id('wct-holidays-warn');
-                if(warnElAdd){warnElAdd.style.display='block';warnElAdd.textContent=extra.length>0?t('holidaysAdded',extra.length):t('holidaysNone');}
+                if(warnElAdd){warnElAdd.style.display='block';warnElAdd.style.color='';warnElAdd.textContent=extra.length>0?t('holidaysAdded',extra.length):t('holidaysNone');}
                 return{list:merged,error:''};
             }
             return{list:filtered,error:''};
@@ -6751,6 +6816,10 @@ const makeEntry=(segIds,cfg,closures)=>{
 const renderQueue=()=>{
     const ul=$id('wct-queue-ul'),empty=$id('wct-queue-empty');if(!ul)return;
     ul.innerHTML='';
+    // Le calque Fermetures est introuvable : les pastilles d'etat ne veulent plus rien
+    // dire, il faut le DIRE et non laisser croire que la voie est libre.
+    const ko=$id('wct-layer-ko');
+    if(ko) ko.style.display=_closuresLayerKo?'block':'none';
     // Badge toujours mis à jour, y compris quand la file se vide
     const badge=$id('wct-hdr-badge');
     if(badge) badge.textContent=queue.length>0?t('queueBadge',queue.length):'';
@@ -7595,6 +7664,19 @@ const _srcBlockTurns=(resEl,F,zone)=>{
 // (sauvegarder une zone, la rejouer l'année suivante).
 // ⚠️ LOSSY : fromNodeClosed s'écrit mais ne se relit pas (absent de l'objet RoadClosure)
 // → la colonne « nœuds fermés » ne peut pas être restituée.
+
+// Neutralise l'injection de formule dans un tableur. Une valeur qui commence par
+// = + - @ (ou une tabulation, ou un retour chariot) est lue comme une FORMULE par Excel
+// et LibreOffice, et s'exécute à l'ouverture du fichier, sans le moindre avertissement.
+// Or ces descriptions viennent de la carte PUBLIQUE : n'importe quel éditeur du monde
+// peut y écrire ce qu'il veut, et l'usage visé de ces exports est justement de les
+// ouvrir dans un tableur pour analyser une zone. L'apostrophe de tête force le mode
+// texte ; le tableur ne l'affiche pas.
+// ⚠️ Volontairement PAS appliqué à _csvQ : celui-là sert l'export de la FILE, dont les
+// textes sont saisis par l'éditeur lui-même, et qui doit se relire à l'identique
+// (test-roundtrip.js) et rester accepté par Advanced Closures.
+const _csvNoFormula=(s)=>{ const v=String(s??''); return /^[=+\-@\t\r]/.test(v) ? "'"+v : v; };
+
 const exportFoundSegsCSV=()=>{
     if(!_srcFoundSegs?.size){ showToast(t('srcNothingFound'),3000,'#f57c00'); return; }
     const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
@@ -7605,7 +7687,7 @@ const exportFoundSegsCSV=()=>{
             // Une fermeture existante porte UN sens (isForward), jamais TWO WAY.
             const dir=cl.isForward?DIR_CSV[1]:DIR_CSV[2];
             const it=cl.isPermanent?'Yes':'No';
-            csv+=`add,"${(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}","${dir}",${it},"${sid}","lon=${center.lon}&lat=${center.lat}",${zoom},${cl.trafficEventId||''},"WME Closures Toolkit (search)"\n`;
+            csv+=`add,"${_csvNoFormula(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}","${dir}",${it},"${sid}","lon=${center.lon}&lat=${center.lat}",${zoom},${cl.trafficEventId||''},"WME Closures Toolkit (search)"\n`;
             n++;
         });
     });
@@ -7621,7 +7703,7 @@ const exportFoundTurnsCSV=()=>{
         if(p?.at){ lon=p.at[0].toFixed(6); lat=p.at[1].toFixed(6); }
         e.closures.forEach(cl=>{
             const it=cl.isPermanent?'Yes':'No';
-            csv+=`add-turn,"${(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}",${e.from},${e.nodeId},${e.to},"${e.turnId}",${it},${cl.majorTrafficEventId||''},"lon=${lon}&lat=${lat}",17,"WME Closures Toolkit (search)"\n`;
+            csv+=`add-turn,"${_csvNoFormula(cl.description||'').replace(/"/g,'""')}","${cl.startDate||''}","${cl.endDate||''}",${e.from},${e.nodeId},${e.to},"${e.turnId}",${it},${cl.majorTrafficEventId||''},"lon=${lon}&lat=${lat}",17,"WME Closures Toolkit (search)"\n`;
             n++;
         });
     });
@@ -7659,7 +7741,7 @@ const refreshSmallPreview=async()=>{
     const shown=rc.list.slice(0,PREVIEW_MAX_ROWS);
     const rows=shown.map(cl=>{
         const s=formatDateDisplay(cl.start), e=formatDateDisplay(cl.end);
-        const pre=reason?`${reason}: `:'';
+        const pre=reason?`${escHtml(reason)}: `:'';
         return `<div class="wct-prev-row">${_icon} ${pre}${s} \u2192 ${e} (${dirIcon})</div>`;
     }).join('');
     const more=n>PREVIEW_MAX_ROWS?`<div class="wct-prev-more">${t('previewMore',n-PREVIEW_MAX_ROWS)}</div>`:'';
@@ -7692,8 +7774,18 @@ const showPreview=()=>{
 const addClosure=(options,okCb,koCb)=>{
     const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId}=options;
     // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
-    // le diff est donc le seul moyen de retrouver les nôtres pour y poser la Source.
-    const _clesAvant = partnerId ? new Set(Object.keys(W?.model?.roadClosures?.objects||{})) : null;
+    // le diff est donc le seul moyen de retrouver les nôtres.
+    // ⚠️ Pris SYSTÉMATIQUEMENT depuis la 1.02.00, et plus seulement quand une Source est
+    // demandée. Motif : sans lui, le rappel de succès créditait `activeSegs.length`, soit
+    // le nombre de segments DEMANDÉS — jamais le nombre réellement écrit. Un segment
+    // absent du data model est sauté en silence trois lignes plus bas, et le bilan
+    // affichait quand même « ✅ 868 sur 868 » pendant que des rues restaient ouvertes à
+    // la circulation. Le compte doit être MESURÉ, pas supposé.
+    const _clesAvant = new Set(Object.keys(W?.model?.roadClosures?.objects||{}));
+    // Ce que la boucle a vraiment fait, en SEGMENTS (unité du compteur de progression :
+    // un segment à double sens produit deux fermetures, les deux comptent pour un).
+    const segsPoses = new Set();   // au moins une fermeture partie pour ce segment
+    let   segsAbsents = 0;         // absents du data model : la carte ne les a pas chargés
     // startDate/endDate sont des Date locaux (depuis buildClosureList) ou des chaînes UTC (depuis CSV import)
     // Dans les deux cas, new Date() produit le bon timestamp absolu.
     const sd=new Date(startDate),ed=new Date(endDate);
@@ -7707,7 +7799,7 @@ const addClosure=(options,okCb,koCb)=>{
     const args={description:reason,endDate:ed.valueOf()-edoff,fromNodeClosed:false,isForward:false,isPermanent:permanent,segmentId:0,startDate:sd.valueOf()-sdoff,trafficEventId:eventId||null};
     const loopErrors=[];
     for(const sid of segments){
-        args.segmentId=Number(sid);const seg=getSegById(sid);if(!seg)continue;
+        args.segmentId=Number(sid);const seg=getSegById(sid);if(!seg){segsAbsents++;continue;}
         if(nodeInfo){fromClosed=nodeInfo[seg.fromNodeId]>1;toClosed=nodeInfo[seg.toNodeId]>1;}
         let dir=direction;
         for(const r of revSegs){if(r.id===args.segmentId){if(dir!==DIR.TWO)dir=dir===DIR.AtoB?DIR.BtoA:DIR.AtoB;break;}}
@@ -7716,11 +7808,11 @@ const addClosure=(options,okCb,koCb)=>{
             const canFwd=seg.isTwoWay||seg.isAtoB;
             const canRev=seg.isTwoWay||seg.isBtoA;
             if((dir===DIR.AtoB||dir===DIR.TWO)&&canFwd){
-                try{args.isForward=true;args.fromNodeClosed=fromClosed;sdk.DataModel.RoadClosures.addClosure(args);}
+                try{args.isForward=true;args.fromNodeClosed=fromClosed;sdk.DataModel.RoadClosures.addClosure(args);segsPoses.add(Number(sid));}
                 catch(e){loopErrors.push(`seg ${sid} fwd: ${e.message}`);}
             }
             if((dir===DIR.BtoA||dir===DIR.TWO)&&canRev){
-                try{args.isForward=false;args.fromNodeClosed=toClosed;sdk.DataModel.RoadClosures.addClosure(args);}
+                try{args.isForward=false;args.fromNodeClosed=toClosed;sdk.DataModel.RoadClosures.addClosure(args);segsPoses.add(Number(sid));}
                 catch(e){loopErrors.push(`seg ${sid} rev: ${e.message}`);}
             }
         }catch(e){loopErrors.push(`seg ${sid}: ${e.message}`);}
@@ -7730,12 +7822,18 @@ const addClosure=(options,okCb,koCb)=>{
     // Hors SDK. Si quoi que ce soit cloche ici, on ANNULE tout plutôt que d'envoyer des
     // fermetures sans la source demandée : l'utilisateur a explicitement choisi un
     // partenaire, une pose silencieusement incomplète serait une fausse attribution.
+    // Le diff, calculé UNE fois. ⚠️ Il DOIT être pris avant save() : après, les objets
+    // temporaires reçoivent leur identifiant serveur et les clés ne correspondent plus.
+    const _nouvelles = Object.keys(W?.model?.roadClosures?.objects||{}).filter(k=>!_clesAvant.has(k));
+    // Bilan remonté aux deux rappels : ce qui a été demandé, ce qui a été fait, ce qui
+    // manque. C'est lui qui permet à applyQueue d'afficher un compte vrai.
+    const bilan = { demandes:segments.length, poses:segsPoses.size, absents:segsAbsents,
+                    erreurs:loopErrors.length, objets:_nouvelles.length };
     if(partnerId){
         let pose=0;
         try{
-            const nouvelles=Object.keys(W?.model?.roadClosures?.objects||{}).filter(k=>!_clesAvant.has(k));
-            pose=_applyProviderTo(nouvelles, partnerId);
-            if(pose!==nouvelles.length) throw new Error(`source posée sur ${pose}/${nouvelles.length} fermeture(s)`);
+            pose=_applyProviderTo(_nouvelles, partnerId);
+            if(pose!==_nouvelles.length) throw new Error(`source posée sur ${pose}/${_nouvelles.length} fermeture(s)`);
         }catch(e){
             log('addClosure/source: '+e.message);
             // ⚠️ C'EST LE FILET : la pose de la Source a échoué, donc on annule tout —
@@ -7744,15 +7842,22 @@ const addClosure=(options,okCb,koCb)=>{
             // l'éditeur croire que rien n'a été écrit alors que si.
             let annule = true;
             try{ sdk.Editing.undoAll(); }catch(err){ annule = false; log('addClosure/undoAll: '+err.message); }
-            koCb&&koCb([annule ? t('srcApplyFail') : t('srcApplyFailNoUndo')]);
+            koCb&&koCb([annule ? t('srcApplyFail') : t('srcApplyFailNoUndo')], bilan);
             return;
         }
     }
     sdk.Editing.save().then(v=>{
         const er=document.querySelector('.error-list');
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg]);}
-        else{okCb&&okCb(v);}
-    },r=>koCb&&koCb([r]));
+        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg], bilan);}
+        // ⚠️ CORROBORATION. `.error-list` est un nœud de l'interface de WAZE, pas un
+        // contrat : le jour où cette classe est renommée, `er` vaut null et TOUT refus
+        // deviendrait un succès annoncé — sur l'opération la plus coûteuse du script.
+        // Le diff du modèle, lui, ne dépend d'aucune classe CSS : si rien n'a été créé
+        // alors qu'on a demandé des fermetures, ce n'est pas un succès, quoi qu'en dise
+        // le DOM. Les deux garde-fous tombent rarement ensemble.
+        else if(!_nouvelles.length && segments.length){ koCb&&koCb([t('applyNothingWritten')], bilan); }
+        else{okCb&&okCb(v, bilan);}
+    },r=>koCb&&koCb([r], bilan));
 };
 // Re-résout les virages d'une entrée à partir de leur IDENTITÉ SÉMANTIQUE
 // (from → to via le nœud), et non du turn id stocké. Rend [{orig, id}] : `orig` est
@@ -7836,10 +7941,15 @@ const _applyLotPause = (lotNo, total) => new Promise(resolve => {
     const chk = setInterval(() => { if(_applyAborted){ clearInterval(chk); box.remove(); resolve(false); } }, 200);
     btn.addEventListener('click', () => { clearInterval(chk); box.remove(); resolve(true); });
 });
-const applyQueue=async()=>{
-    _applyAborted=false;
-    let total=0,done=0,failed=0;
-    queue.forEach(e=>{
+// Nombre de fermetures que la file va REELLEMENT ecrire : cibles x occurrences, hors
+// lignes supprimees a la main et hors segments defaillants.
+// ⚠️ Sorti de applyQueue le 01/08/2026 pour etre disponible AVANT le confirm : il etait
+// calcule apres, si bien que la seule barriere avant l'ecriture annoncait un nombre de
+// LOTS quand c'est le nombre de FERMETURES qui engage l'editeur — et qu'aucun outil ne
+// sait supprimer.
+const _queueTotalClosures=(entries)=>{
+    let total=0;
+    entries.forEach(e=>{
         const excl=e.excludedRows||new Set();
         // Entree virages : l'unite comptee est le virage, pas le segment (segIds est vide).
         if(e.source==='turn'&&e.turnIds?.length){
@@ -7854,6 +7964,11 @@ const applyQueue=async()=>{
             e.closures.forEach((_,ci)=>{if(!excl.has(`${sid}:${ci}`))total++;});
         });
     });
+    return total;
+};
+const applyQueue=async()=>{
+    _applyAborted=false;
+    let total=_queueTotalClosures(queue),done=0,failed=0;
     // Replier tous les lots pour libérer de la place pour le log
     document.querySelectorAll('.wct-qcard-body').forEach(b=>b.style.display='none');
     document.querySelectorAll('.wct-qcard-chevron').forEach(c=>c.innerHTML='&#x25B6;');
@@ -7893,6 +8008,22 @@ const applyQueue=async()=>{
                 // ⚠️ Charger TOUTE l'emprise du lot, pas seulement son centre : les
                 // segments absents du modèle sont sautés en silence à l'application.
                 try{ await _chargerEmprise(e.lotBbox); }catch(err){ log('applyQueue/chargerEmprise: '+err.message); }
+                await _sweepSleep(150);
+                if(_applyAborted) break;
+            }
+            // ─── Entrée issue d'un IMPORT CSV ───
+            // ⚠️ Le fichier porte son lon/lat et son zoom. Jusqu'au 01/08/2026 ils étaient
+            // lus par CsvClosure puis JAMAIS utilisés : l'application se faisait sur la vue
+            // courante, quelle qu'elle soit. Un éditeur qui reçoit le CSV du marché de
+            // Poitiers et travaille sur Angoulême posait ZÉRO fermeture — et lisait
+            // « ✅ 180 OK », parce que les segments absents du modèle sont sautés en
+            // silence. Le recadrage existait déjà pour les lots de tracé et pour les
+            // virages importés (turnLonLat) : il manquait ici, pour la même raison exacte.
+            else if(e.source==='csv' && e.csvCenter){
+                try{
+                    _centrerSurZoneVisibleOL(e.csvCenter.lon, e.csvCenter.lat, e.csvZoom||POLY_LOAD_ZOOM);
+                    await waitMapLoaded();
+                }catch(err){ log('applyQueue/csvCenter: '+err.message); }
                 await _sweepSleep(150);
                 if(_applyAborted) break;
             }
@@ -7952,7 +8083,21 @@ const applyQueue=async()=>{
                 if(_applyAborted) break;
                 await new Promise(res=>{
                     addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null},
-                        ()=>{done+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'#43a047');res();},
+                        (v,bilan)=>{
+                            // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
+                            // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
+                            // sans condition : un lot dont la carte n'avait chargé que 11
+                            // segments sur 62 s'affichait « ✅ » et en comptait 62.
+                            const poses=bilan?bilan.poses:activeSegs.length;
+                            const manques=activeSegs.length-poses;
+                            done+=poses; failed+=manques; upd(done+failed);
+                            const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
+                            // Un succès partiel n'est PAS un succès : il se voit en orange et
+                            // il se chiffre, parce que l'éditeur doit savoir qu'il faut repasser.
+                            if(manques>0) logApply(TARGET_ICON.seg+' '+t('applyPartial',e.config.reason,ls,poses,activeSegs.length),'#f57c00');
+                            else logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'#43a047');
+                            res();
+                        },
                         (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
                 });
             }
@@ -11464,7 +11609,9 @@ const buildOverlay=()=>{
         <span id="wct-queue-chevron" style="float:right;font-size:1.083em">&#x25BC;</span>
       </div>
       <div id="wct-queue-body">
-        <hr style="border:none;border-top:1px solid var(--wct-border);margin:6px 0 0"><div id="wct-queue-ul"></div>
+        <hr style="border:none;border-top:1px solid var(--wct-border);margin:6px 0 0">
+        <div id="wct-layer-ko" style="display:none;background:#fff0f0;border:1px solid var(--wct-red);color:var(--wct-red);border-radius:4px;padding:5px 7px;margin:6px 0;font-size:0.833em;line-height:1.4">${t('queueLayerKo')}</div>
+        <div id="wct-queue-ul"></div>
         <div id="wct-queue-empty" class="wct-queue-empty">${t('queueEmpty')}</div>
       </div>
       <!-- Progression + Stop : collés en bas de la zone défilante, sinon le bouton
@@ -11529,7 +11676,7 @@ const renderPresetsTable=()=>{
         tr.innerHTML=`
             <td style="padding:6px 7px;border-bottom:1px solid var(--wct-border);font-weight:700">${escHtml(p.name)}</td>
             <td style="padding:6px 7px;border-bottom:1px solid var(--wct-border);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(v.reason||'')}">${escHtml(v.reason||'-')}</td>
-            <td style="padding:0.5em 0.583em;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.917em">${v.starttime||'-'}<br>+${v.durtime||'-'}</td>
+            <td style="padding:0.5em 0.583em;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.917em">${escHtml(v.starttime||'-')}<br>+${escHtml(v.durtime||'-')}</td>
             <td style="padding:6px 7px;border-bottom:1px solid var(--wct-border)">${dirStr}</td>
             <td style="padding:6px 7px;border-bottom:1px solid var(--wct-border);white-space:nowrap">
                 <button style="color:var(--wct-blue);cursor:pointer;font-size:14px;background:none;border:none;padding:2px 4px;border-radius:4px" class="wct-pre-load" data-i="${i}" title="${t('tipPresetLoad')}">&#x21A9;&#xFE0F;</button>
@@ -11688,7 +11835,10 @@ const buildQueueCard=(entry,idx)=>{
                     const s=cl.start instanceof Date ? cl.start : new Date(cl.start.replace(' ','T')+'Z');
                     const e=cl.end   instanceof Date ? cl.end   : new Date(cl.end.replace(' ','T')+'Z');
                     const overlap=exist.some(c=>dateTimeOverlaps({startDate:s,endDate:e},{startDate:new Date(c.startDate),endDate:new Date(c.endDate)}));
-                    let stateIcon='&#x1F7E2;',stateTip=t('stateOk'),stateBg='',stateVal=0;
+                    // ⚠️ Sans le calque Fermetures, la liste des fermetures existantes est vide, donc
+// aucun chevauchement ne peut etre detecte. Afficher un rond VERT « OK » serait alors
+// une affirmation fausse : on affiche « non verifie ». Voir _closuresLayerKo.
+let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?t('stateUnchecked'):t('stateOk'),stateBg='',stateVal=0;
                     if(overlap){stateIcon='&#x1F534;';stateTip=t('stateOv');stateBg='#fff0f0';stateVal=3;}
                     else if(e<now){stateIcon='&#x26AB;';stateTip=t('statePast');stateBg='#fafafa';stateVal=1;}
                     else if(s<now){stateIcon='&#x1F7E0;';stateTip=t('stateOn');stateBg='#fff8e1';stateVal=2;}
@@ -11729,7 +11879,10 @@ const buildQueueCard=(entry,idx)=>{
                 const overlap=existCl.some(c=>dateTimeOverlaps({startDate:s,endDate:e},{startDate:new Date(c.startDate),endDate:new Date(c.endDate)}));
                 const nullSeg=entry.nullSegs?.has(Number(sid));
                 const recentSeg=!nullSeg&&entry.recentSegs?.has(Number(sid));
-                let stateIcon='&#x1F7E2;',stateTip=t('stateOk'),stateBg='',stateVal=0;
+                // ⚠️ Sans le calque Fermetures, la liste des fermetures existantes est vide, donc
+// aucun chevauchement ne peut etre detecte. Afficher un rond VERT « OK » serait alors
+// une affirmation fausse : on affiche « non verifie ». Voir _closuresLayerKo.
+let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?t('stateUnchecked'):t('stateOk'),stateBg='',stateVal=0;
                 if(nullSeg){
                     stateIcon='\u26A0\uFE0F';stateTip=t('stateNull');stateBg='#fff9c4';stateVal=6;
                 } else if(recentSeg){
@@ -11798,7 +11951,7 @@ const buildQueueCard=(entry,idx)=>{
                     <span class="wct-row-del" data-key="${row.rowKey}" title="${t('tipRowDel')}" style="cursor:pointer;font-size:13px;line-height:1;color:var(--wct-red);${row.isDirConflict?'opacity:.4;pointer-events:none':''}">&#x1F5D1;</span></td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${row.sid}">
                     <span class="wct-center-seg" data-sid="${row.sid}" title="${t('tipCenter')}" style="cursor:pointer;margin-right:3px;font-size:13px">&#x1F3AF;</span>${row.sid}</td>
-                <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${row.name}">${row.name}</td>
+                <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(row.name)}">${escHtml(row.name)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.833em">${formatDateDisplay(row.s)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.833em">${formatDateDisplay(row.e)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);text-align:center" title="${row.stateTip}">${row.stateIcon}</td>`;
@@ -12443,6 +12596,14 @@ const connectOverlay=ov=>{
     });
     // Actions
     $id('wct-btn-clear')?.addEventListener('click',()=>{
+        // ⚠️ Interdit PENDANT une application. `queue=[]` est une REAFFECTATION : la boucle
+        // de applyQueue itere sur l'ancien tableau et poursuit imperturbablement, si bien
+        // que vider n'arretait rien — mais effacait le journal, la barre et l'apercu,
+        // c'est-a-dire le SEUL relevé de ce qui venait d'etre ecrit sur la carte. L'editeur
+        // qui voit passer une rue de travers a le reflexe de la poubelle rouge, juste a
+        // cote : il se retrouvait sans file, sans trace, et les lots restants partaient
+        // quand meme. Pour interrompre, c'est Stop (ou Echap).
+        if(_applyRunning){ showToast(t('clearBusy'),3000,'#f57c00'); return; }
         if(!confirm(t('confirmClear')))return;
         queue=[];renderQueue();
         $id('wct-preview-section').innerHTML='';
@@ -12460,7 +12621,16 @@ const connectOverlay=ov=>{
         // Idem pour la zone tracee : la file videe, elle ne decrit plus rien.
         renderPolyBanner(); refreshCfgGate();   // idem : seule la désélection sur la carte l'efface
     });
-    $id('wct-btn-apply')?.addEventListener('click',async()=>{if(!confirm(t('confirmApply',queue.length)))return;await applyQueue();});
+    $id('wct-btn-apply')?.addEventListener('click',async()=>{
+        // ⚠️ GARDE CONTRE LE DOUBLE CLIC. Sans elle, un second clic pendant une application
+        // en cours repart de l'entree 1 et ECRIT TOUT UNE SECONDE FOIS — et rien, dans WCT
+        // comme dans le SDK, ne sait supprimer une fermeture. Le cas n'est pas theorique :
+        // waitMapLoaded bloque jusqu'a 10 s sans que rien ne bouge a l'ecran, de quoi
+        // croire son clic perdu. Meme raison pour le bouton Vider ci-dessus.
+        if(_applyRunning) return;
+        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)))return;
+        await applyQueue();
+    });
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
     // Échap = secours clavier : atteint l'interruption même si un masque WME (« Enregistrement… »)
     // recouvre le bouton pendant les sauvegardes en chaîne.
@@ -12511,7 +12681,13 @@ const CSV_WARN_SEGMENTS=2500;
 const CSV_RE=[/.*/,/.*/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
     /(^A to B$)|(^B to A$)|(^TWO WAY$)/,/(Yes)|(No)/,/^(\d+(;|$))+/,
     /(lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*))|(lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*))/,/^\d+$/,/.*/];
-const csvLog=t=>{const el=$id('wct-csv-log');if(el){el.style.display='block';el.innerHTML+=t.replace(/\n/g,'<br>');}};
+// ⚠️ Le message reprend des CELLULES BRUTES du fichier importé (voir parseCSV et
+// parseTurnCSV, qui recopient la cellule fautive dans le compte rendu) : il DOIT être
+// échappé. Un CSV de fermetures partagé entre éditeurs — l'usage même de la fonction —
+// suffirait sinon à injecter du HTML dans le panneau de qui l'ouvre.
+// ⚠️ Et le paramètre s'appelle `msg`, PAS `t` : ce nom-là masque la fonction de
+// traduction dans toute la portée. C'est le piège qui a tué l'onglet Import en 0.97.01.
+const csvLog=msg=>{const el=$id('wct-csv-log');if(el){el.style.display='block';el.innerHTML+=escHtml(msg).replace(/\n/g,'<br>');}};
 const csvClearLog=()=>{const el=$id('wct-csv-log');if(el)el.innerHTML='';};
 class CsvClosure{
     constructor(r,i){
@@ -12785,7 +12961,12 @@ const handleCSV=files=>{
                 const csvEntry={segIds:cl.segIDs,config:cfg,closures:[{start:cl.startDate,end:cl.endDate}],
                     label:cl.reason||'CSV',
                     detail:dirStr(dir)+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16),
-                    source:'csv'};
+                    source:'csv',
+                    // Le fichier PORTE sa position : les colonnes lon/lat et zoom du format
+                    // Advanced Closures. CsvClosure les lisait déjà (this.lonlat, this.zoom)
+                    // mais rien ne s'en servait — on les emmène jusqu'à l'application, qui
+                    // en a besoin pour recadrer la carte. Voir applyQueue.
+                    csvCenter:cl.lonlat, csvZoom:cl.zoom};
                 // Vérif compatibilité sens de circulation pour les lots CSV
                 const csvConflicts=getSegDirConflicts(cl.segIDs,dir);
                 if(csvConflicts.length) csvEntry.excludedSegs=csvConflicts;
@@ -12816,9 +12997,18 @@ const _findOverlayContainer=()=>document.querySelector('.overlay-buttons-contain
 // On l'active à l'ouverture de l'overlay ; s'il était éteint, on le restaure à la
 // fermeture ; s'il était déjà allumé, on n'y touche pas.
 let _closuresLayerForced = false;
+// ⚠️ Vrai quand la case du calque est INTROUVABLE. C'est un selecteur de l'interface de
+// WAZE, donc hors contrat : le jour ou cette case est renommee, ensureClosuresLayer ne
+// fait plus rien — et c'est la que ca devient grave. Sans le calque, getExistingClosures
+// rend une liste VIDE, donc `overlap` est faux partout, donc TOUTE la file s'affiche en
+// vert « pas de conflit ». L'editeur applique par-dessus des fermetures existantes en
+// croyant la voie libre, et rien a l'ecran ne le lui dit. Un calque muet doit se voir.
+let _closuresLayerKo = false;
 const _closuresCheckbox = () => document.querySelector('#layer-switcher-item_closures');
 const ensureClosuresLayer = () => {
     const cb = _closuresCheckbox();
+    _closuresLayerKo = !cb;
+    if(_closuresLayerKo){ log('calque Fermetures introuvable (#layer-switcher-item_closures) : les conflits ne sont PAS verifies'); }
     if(cb && !cb.checked){ cb.click(); _closuresLayerForced = true; }
 };
 const restoreClosuresLayer = () => {
@@ -13211,12 +13401,14 @@ const init=async()=>{
     injectFab();
     // Double-clic dans la zone pour rouvrir son panneau d'arbitrage.
     _zoneInstallerDblClic();
-    // ⚠️⚠️ Les poignées d'édition se replacent sur `wme-map-move`, PAS sur
-    // `wme-map-move-end`. Mesuré en live le 31/07 sur la carte de l'auteur : un
-    // déplacement émet bien des `wme-map-move`, mais `wme-map-move-end` n'arrive
-    // JAMAIS — ni lui, ni le `moveend` d'OpenLayers auquel ce code s'abonnait d'abord.
-    // Sans ça, les poignées restaient figées après chaque déplacement de carte.
-    // ⚠️ WNA écoute `wme-map-move-end` : à revoir là-bas aussi.
+    // Les poignées d'édition se replacent sur `wme-map-move` ET sur `wme-map-move-end`.
+    // ⚠️ Ne pas se fier à l'ancienne note qui disait ici que `wme-map-move-end` n'était
+    // JAMAIS émis : c'était faux. Re-mesuré en live le 01/08 sur la carte de l'auteur,
+    // il arrive bien (2 fois sur 2). Ce qui n'arrivait pas, c'est le `moveend`
+    // d'OpenLayers auquel ce code s'abonnait au tout début.
+    // La cause exacte des poignées figées avant la 1.00.05 n'a donc PAS été établie —
+    // c'est l'ajout de `wme-map-move` qui a réglé le symptôme. Si le sujet revient,
+    // reprendre le diagnostic à zéro plutôt que de partir de l'événement manquant.
     // Un SEUL abonnement, posé ici : le poser à chaque entrée en édition les
     // empilerait, et le SDK n'offre pas de désabonnement. Le handler sort de lui-même
     // quand aucune édition n'est en cours.
