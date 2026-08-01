@@ -29,19 +29,22 @@ while ((m = reHtml.exec(txt)) !== null) {
 R.htmlNonEchappe = suspects;
 
 // ── 2. Cles i18n definies mais jamais utilisees ─────────────────────────────
-const dDeb = txt.indexOf('const D = {');
-let i0 = txt.indexOf('{', dDeb), prof = 0, dFin = -1;
-for (let k = i0; k < txt.length; k++) {
-    const c = txt[k];
-    if (c === '{') prof++;
-    else if (c === '}') { prof--; if (prof === 0) { dFin = k; break; } }
-    else if (c === '`' || c === "'" || c === '"') { const q = c; k++; while (k < txt.length && txt[k] !== q) { if (txt[k] === '\\') k++; k++; } }
-}
-const litteral = txt.slice(i0, dFin + 1);
-const D = eval('(' + litteral + ')');
+// ⚠️ Extraction via tools/lib-dico.js depuis le 01/08/2026 (copie locale supprimee).
+const { D, debut: i0, fin: dFin } = require('./lib-dico.js').charger();
 const clesFr = Object.keys(D.fr || {});
-const horsDico = txt.slice(0, dDeb) + txt.slice(dFin + 1);
-R.clesInutilisees = clesFr.filter(k => !new RegExp("['\"`]" + k + "['\"`]").test(horsDico) && !horsDico.includes("t('" + k + "'") && !horsDico.includes('srcSelOff_'));
+const horsDico = txt.slice(0, i0) + txt.slice(dFin + 1);
+// ⚠️⚠️ CE CONTROLE ETAIT ETEINT EN PERMANENCE, et personne ne s'en doutait puisqu'il
+// affichait sagement « aucun ». Le filtre portait un troisieme terme,
+// `!horsDico.includes('srcSelOff_')`, QUI NE DEPENDAIT PAS DE LA CLE TESTEE : des que le
+// fichier contenait cette chaine quelque part — c'est le cas — il valait false pour
+// TOUTES les cles, et la liste ressortait vide a tous les coups.
+// Le prefixe srcSelOff_ doit etre exempte parce que ces cles sont construites
+// dynamiquement (t('srcSelOff_'+motif)) et donc introuvables par recherche litterale :
+// c'est bien la CLE qu'il faut tester, pas le fichier.
+R.clesInutilisees = clesFr.filter(k =>
+    !k.startsWith('srcSelOff_') &&
+    !new RegExp("['\"`]" + k + "['\"`]").test(horsDico) &&
+    !horsDico.includes("t('" + k + "'"));
 // Cles appelees mais absentes du dictionnaire
 const appelees = [...horsDico.matchAll(/\bt\(\s*'([A-Za-z0-9_]+)'/g)].map(x => x[1]);
 R.clesManquantes = [...new Set(appelees.filter(k => !clesFr.includes(k)))];
@@ -63,18 +66,22 @@ R.consoleLog = [...txt.matchAll(/console\.(log|warn|error)\(/g)].map(x => noLign
 R.setInterval = [...txt.matchAll(/setInterval\(/g)].map(x => noLigne(x.index));
 
 // ── 7. Fonctions les plus longues (dette de lisibilite) ────────────────────
+// ⚠️⚠️ CE COMPTE ETAIT FAUX, ET IL A SOUTENU UNE DECISION PENDANT DES MOIS.
+// Le scanner local ne sautait pas les COMMENTAIRES : une accolade dans un commentaire
+// (il y en a partout dans ce fichier, tres commente a dessein) decalait le comptage et
+// la fonction paraissait s'etendre jusqu'a la fin d'un bloc bien plus loin. Mesure du
+// 01/08/2026 : il annoncait « renderTurnBanner : 2351 lignes » pour une fonction qui en
+// fait 29. Un chiffre de ce genre a justifie pendant un an un projet de refonte de
+// buildOverlay, mesuree depuis a 397 lignes.
+// Il passe desormais par finDuBloc de lib-dico.js, qui saute commentaires ET chaines.
+const { finDuBloc } = require('./lib-dico.js');
 const fns = [];
 const reFn = /^(?:const|function)\s+([\w$]+)\s*=?\s*(?:async\s*)?(?:\([^)]*\)|function)/gm;
 while ((m = reFn.exec(txt)) !== null) {
     const debut = m.index;
-    let p = 0, k = txt.indexOf('{', debut), fin = -1;
+    const k = txt.indexOf('{', debut);
     if (k < 0) continue;
-    for (let z = k; z < txt.length && z < k + 400000; z++) {
-        const c = txt[z];
-        if (c === '{') p++;
-        else if (c === '}') { p--; if (p === 0) { fin = z; break; } }
-        else if (c === '`' || c === "'" || c === '"') { const q = c; z++; while (z < txt.length && txt[z] !== q) { if (txt[z] === '\\') z++; z++; } }
-    }
+    const fin = finDuBloc(txt, k);
     if (fin > 0) fns.push({ nom: m[1], lignes: txt.slice(debut, fin).split('\n').length, ligne: noLigne(debut) });
 }
 R.fonctionsLongues = fns.sort((a, b) => b.lignes - a.lignes).slice(0, 8).map(f => f.nom + ' : ' + f.lignes + ' l. (L' + f.ligne + ')');

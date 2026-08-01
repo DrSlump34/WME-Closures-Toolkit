@@ -15,6 +15,8 @@ node check-keys.js        # avant toute publication
 | `check-keys.js` | Les 8 langues ont les **mêmes clés, types et arités** ; les nouvelles clés rendent du texte | Un argument oublié affiche un trou à l'écran, sans erreur |
 | `check-help.js` | L'aide se rend dans les 8 langues, même nombre de sections, aucune vide | `_L` retombe **silencieusement** sur l'anglais : une langue oubliée ne lève rien |
 | `check-lib-copie.js` | La copie de `WMEPrefs` embarquée est **identique** à `../../WME-Prefs/WMEPrefs.js`, et fonctionne | Deux copies qui divergent en silence sont le pire des deux mondes |
+| `check-contraste.js` | Les couleurs **du thème** respectent 4,5:1 (WCAG), thème clair **et** compact | L'audit du 01/08 a mesuré 41 paires en échec sur 90. Le thème compact repeignait le fond en gris Win95 sans redéfinir les textes secondaires : 2,21:1 et **1,47:1**, quasi invisible. On juge les couleurs à l'œil, et l'œil s'habitue |
+| `check-emoji.js` | Tout caractère à `Emoji_Presentation=false` **affiché** est suivi de `U+FE0F` | Sans ce sélecteur, le navigateur rend un **glyphe texte monochrome**, fin et pâle. Corrigé pour un seul caractère en 0.81.00 (l'info, mesurée à 4,2 px) ; l'audit du 01/08 en a trouvé **402 autres**, dont toute la barre d'action basse. Aucun test ne le regardait. Ignore les commentaires et comprend les deux écritures du fichier (caractère réel ou `\uXXXX`) |
 
 ## Tests unitaires
 
@@ -28,6 +30,23 @@ node check-keys.js        # avant toute publication
 | `test-pave.js` | Découpage d'une zone en **lots** : un lot = un recadrage de carte et une entrée de file, donc le nombre de lots est ce que l'éditeur paie. Vérifie la règle « ce qui tient dans une vue ne fait qu'un lot » sur 200 dispositions, plus les bbox, les doublons et les cas dégénérés |
 | `test-queue-total.js` | Le nombre de fermetures que la file va **réellement écrire** (`_queueTotalClosures`), extrait du fichier réel. Ce compte alimente la **seule barrière avant écriture** : jusqu'à la 1.02.00 la confirmation annonçait un nombre de *lots* (« Appliquer 3 lot(s) ? ») alors qu'une zone de 1 150 segments sur 21 occurrences en écrit **24 150** — et rien ne sait les défaire. Couvre les lignes supprimées à la main, les segments défaillants, et les entrées virages (dont `segIds` est vide) |
 | `test-imp-route.js` | Ce qui se passe **après** la détection : le libellé du type reconnu, le filet à exceptions du point d'entrée, l'import de zone qui doit lire le fichier entier. Et surtout : **aucune portée ne masque la fonction de traduction `t()`** |
+
+## Le module d'extraction
+
+`lib-dico.js` **est le seul endroit qui sait lire le dictionnaire dans le fichier réel.** `check-keys.js`,
+`check-help.js`, `audit.js` et `audit-ortho.js` en portaient chacun sa copie — quatre copies du même
+scanner, dans un dossier dont ce README explique qu'une copie ne prouve rien. Et ce scanner était faux
+sur trois points, découverts en le cassant pour de vrai le 2026-08-01 :
+
+- il **ne sautait pas les commentaires**, donc `indexOf` pouvait trouver un `const D = …` écrit dans un
+  commentaire *avant* le vrai dictionnaire (arrivé : les trois outils sont tombés d'un coup) ;
+- un **guillemet ASCII isolé** dans une chaîne à apostrophes le faisait avaler le reste du fichier. Le
+  userscript en contenait cinq — des abréviations hébraïques du type `ק״מ` — qui tenaient par un
+  appariement fortuit ; le sixième a tout cassé ;
+- il **ignorait les regex littérales**, dont les guillemets et accolades faussaient le comptage : il
+  annonçait `_epsgFromPrj : 3675 lignes` pour une fonction qui en fait **quatre**.
+
+`test-lib-dico.js` (21 tests) rejoue ces trois pannes. Ne pas réintroduire de scanner local.
 
 `poly-core.js`, `imp-detect.js` et `poly-pave.js` sont les modules testés. **Aucun n'est plus une copie :
 tous les trois extraient leur code du fichier réel.**

@@ -48,39 +48,84 @@ else {
 // ─── 2. Personne ne masque plus la fonction de traduction ────────────────────
 // Une liaison de `t` (parametre ou variable locale) est tolerable TANT QUE le corps
 // n appelle pas la traduction. Des que les deux coexistent, c est le bug.
-console.log('\n— Masquage de la fonction de traduction t() —');
-const LIAISON = [
-    /^\s*const\s+t\s*=/,            // const t = ...
-    /^\s*let\s+t\s*=/,
-    /^\s*var\s+t\s*=/,
-    /=\s*\(\s*t\s*[,)]/,            // = (t) => ... / = (t, x) => ...
-    /=\s*t\s*=>/,                   // = t => ...
-    /function\s*\w*\s*\(\s*t\s*[,)]/,
+// ⚠️ ETENDU le 01/08/2026 : le balayage ne surveillait que `t`. Or l audit a trouve DEUX
+// masquages dormants du meme genre — `const log = $id('wct-apply-log')` dans
+// _applyLotPause, sur le chemin d application des lots, et un parametre nomme `t` dans
+// csvLog. Aucun des deux ne provoquait de bug, mais c est exactement la configuration
+// qui a tue l onglet Import en 0.97.01 : une mine amorcee attend qu on marche dessus.
+console.log('\n— Masquage des symboles globaux —');
+const GLOBAUX = [
+    { nom: 't',   decl: /^const t = \(key, \.\.\.args\)/,       usage: /(^|[^\w.$])t\s*\(/ },
+    { nom: 'log', decl: /^const log\s+= \(m,o\)/,               usage: /(^|[^\w.$])log\s*\(/ },
+    { nom: 'sdk', decl: /^let sdk\s*=/,                         usage: /(^|[^\w.$])sdk\s*\./ },
+    { nom: 'W',   decl: /^const W\s*=|^let W\s*=/,              usage: /(^|[^\w.$])W\s*[.?]/ },
 ];
-const APPEL_TRAD = /(^|[^\w.$])t\s*\(/;   // t( ... ) mais pas .test( ni escHtml(
-const DECL_GLOBALE = /^const t = \(key, \.\.\.args\)/;   // la vraie, ligne ~1087
+// ⚠️ Les motifs de PARAMETRE couvrent toutes les positions, pas seulement la premiere.
+// L auto-controle ci-dessous a montre que l ancienne version etait aveugle a
+// `(nom, t) => …` : elle ne testait que `( t` en tete de liste. Le bug 0.97.01 est
+// justement ne d un parametre au milieu d une signature.
+const liaisons = (n) => [
+    new RegExp('^\\s*const\\s+' + n + '\\s*='),
+    new RegExp('^\\s*let\\s+' + n + '\\s*='),
+    new RegExp('^\\s*var\\s+' + n + '\\s*='),
+    new RegExp('=\\s*' + n + '\\s*=>'),                              // = n => …
+    new RegExp('\\([^)]*\\b' + n + '\\b[^)]*\\)\\s*=>'),             // (a, n, b) => …
+    new RegExp('function\\s*\\w*\\s*\\([^)]*\\b' + n + '\\b[^)]*\\)'),
+];
 
-const coupables = [];
-for (let i = 0; i < lignes.length; i++) {
-    const l = lignes[i];
-    if (DECL_GLOBALE.test(l)) continue;
-    if (!LIAISON.some(re => re.test(l))) continue;
-    // Portee approximative : jusqu au retour a une indentation <= celle de la liaison,
-    // 250 lignes au maximum (large : les fonctions du fichier sont parfois enormes).
-    const ind = (l.match(/^\s*/) || [''])[0].length;
-    let fin = Math.min(i + 250, lignes.length);
-    for (let k = i + 1; k < fin; k++) {
-        const ik = (lignes[k].match(/^\s*/) || [''])[0].length;
-        if (lignes[k].trim() && ik <= ind && /^[\s]*[})]/.test(lignes[k])) { fin = k + 1; break; }
+const chercherMasquages = (g, lignes) => {
+    const LIAISON = liaisons(g.nom);
+    const coupables = [];
+    for (let i = 0; i < lignes.length; i++) {
+        const l = lignes[i];
+        if (g.decl.test(l)) continue;                 // la vraie declaration globale
+        if (!LIAISON.some(re => re.test(l))) continue;
+        // Portee approximative : jusqu au retour a une indentation <= celle de la liaison,
+        // 250 lignes au maximum (large : certaines fonctions du fichier sont enormes).
+        // ⚠️ Sauf pour une flechee a CORPS EXPRESSION — `(s,t) => s + t.errors.length` —
+        // dont la portee s arrete au bout de la ligne. Sans ce cas particulier, les
+        // callbacks de reduce/map/filter heritaient de 250 lignes de portee et
+        // ramassaient le premier t() legitime venu : deux faux positifs, et un controle
+        // qui crie au loup ne se lit plus.
+        const ind = (l.match(/^\s*/) || [''])[0].length;
+        const corpsExpression = /=>\s*[^{\s]/.test(l);
+        let fin = corpsExpression ? i + 1 : Math.min(i + 250, lignes.length);
+        if (!corpsExpression) {
+            for (let k = i + 1; k < fin; k++) {
+                const ik = (lignes[k].match(/^\s*/) || [''])[0].length;
+                if (lignes[k].trim() && ik <= ind && /^[\s]*[})]/.test(lignes[k])) { fin = k + 1; break; }
+            }
+        }
+        for (let k = i; k < fin; k++) {
+            // On ignore les commentaires : le piege est dans le code execute.
+            const code = lignes[k].replace(/\/\/.*$/, '');
+            if (g.usage.test(code)) { coupables.push((i + 1) + ' : ' + l.trim().slice(0, 88)); break; }
+        }
     }
-    for (let k = i; k < fin; k++) {
-        // On ignore les commentaires : le piege est dans le code execute.
-        const code = lignes[k].replace(/\/\/.*$/, '');
-        if (APPEL_TRAD.test(code)) { coupables.push((i + 1) + ' : ' + l.trim().slice(0, 90)); break; }
-    }
+    return coupables;
+};
+
+// ⚠️ AUTO-CONTROLE, a garder. Un balayage qui ne trouve JAMAIS rien est indistinguable
+// d un balayage casse : c est exactement ce qui est arrive au controle des cles
+// inutilisees d audit.js, eteint en permanence par un terme de filtre errone et qui
+// affichait sagement « aucun » depuis toujours. On verifie donc d abord que la logique
+// SAIT detecter, sur un cas fabrique reproduisant le bug 0.97.01.
+const CAS_TEMOIN = [
+    'const _impDetecter = (nom, t) => {',
+    "    if (nom.endsWith('.csv')) return t('impCsv');",
+    '};',
+];
+// NB : ce chk-ci affiche son detail dans les deux cas — on lui donne donc un texte qui
+// se lit juste quand le temoin EST detecte.
+chk('le balayage detecte un masquage fabrique (temoin)',
+    chercherMasquages(GLOBAUX[0], CAS_TEMOIN).length === 1,
+    'sinon le balayage ne prouverait rien');
+
+for (const g of GLOBAUX) {
+    const coupables = chercherMasquages(g, lignes);
+    chk('aucune portee ne masque `' + g.nom + '` tout en s en servant', coupables.length === 0,
+        coupables.length ? '\n         ' + coupables.join('\n         ') : 'fichier propre');
 }
-chk('aucune portee ne lie `t` tout en appelant t()', coupables.length === 0,
-    coupables.length ? '\n         ' + coupables.join('\n         ') : 'fichier propre');
 
 // ─── 3. Le chemin d import ne perd plus les exceptions ───────────────────────
 // Regle maison : ne jamais echouer en silence. _impFichiers est appele par des

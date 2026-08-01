@@ -2,27 +2,12 @@
 // Extrait le litteral « const D = {…} » de t() dans le fichier REEL et compare, langue
 // par langue : jeu de cles, TYPE de chaque valeur (une cle fonction doit rester
 // fonction) et ARITE (un argument oublie = un trou a l'ecran, muet).
-const fs = require('fs');
-const SRC = require('path').join(__dirname,'..','WME_ClosuresToolkit.user.js');
-const txt = fs.readFileSync(SRC, 'utf8');
-
-const debut = txt.indexOf('const D = {');
-if (debut < 0) { console.log('ARRET : litteral D introuvable'); process.exit(1); }
-// Equilibrage des accolades pour trouver la fin exacte du litteral
-let i = txt.indexOf('{', debut), prof = 0, fin = -1;
-for (let k = i; k < txt.length; k++) {
-    const c = txt[k];
-    if (c === '{') prof++;
-    else if (c === '}') { prof--; if (prof === 0) { fin = k; break; } }
-    else if (c === '`' || c === "'" || c === '"') {           // sauter les chaines
-        const q = c;
-        k++;
-        while (k < txt.length && txt[k] !== q) { if (txt[k] === '\\') k++; k++; }
-    }
-}
-if (fin < 0) { console.log('ARRET : fin du litteral introuvable'); process.exit(1); }
-
-const D = eval('(' + txt.slice(i, fin + 1) + ')');
+// ⚠️ L'extraction passe par tools/lib-dico.js depuis le 01/08/2026. Ce fichier portait
+// sa propre copie du scanner — comme trois autres outils — et cette copie ne sautait pas
+// les commentaires : un guillemet isole dans une chaine hebraique a suffi a les faire
+// tomber tous les trois d'un coup. Ne pas la reintroduire ici.
+const { SRC, charger } = require('./lib-dico.js');
+const { txt, D } = charger();
 const langues = Object.keys(D);
 console.log('Langues : ' + langues.join(', ') + '  (' + langues.length + ')');
 

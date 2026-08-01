@@ -1,20 +1,10 @@
 // Rend buildHelpHTML() dans les 8 langues et verifie qu'aucune section ne retombe
 // SILENCIEUSEMENT sur l'anglais : _L fait un repli sur `en`, donc une langue oubliee
 // ne provoque aucune erreur — elle rend juste de l'anglais sans le dire.
-const fs = require('fs');
-const SRC = require('path').join(__dirname,'..','WME_ClosuresToolkit.user.js');
-const txt = fs.readFileSync(SRC, 'utf8');
-
-// Litteral du dictionnaire
-const dDeb = txt.indexOf('const D = {');
-let i = txt.indexOf('{', dDeb), prof = 0, dFin = -1;
-for (let k = i; k < txt.length; k++) {
-    const c = txt[k];
-    if (c === '{') prof++;
-    else if (c === '}') { prof--; if (prof === 0) { dFin = k; break; } }
-    else if (c === '`' || c === "'" || c === '"') { const q = c; k++; while (k < txt.length && txt[k] !== q) { if (txt[k] === '\\') k++; k++; } }
-}
-const D = eval('(' + txt.slice(i, dFin + 1) + ')');
+// ⚠️ Extraction via tools/lib-dico.js depuis le 01/08/2026 — voir le commentaire de
+// tete de ce module : la copie locale du scanner ne sautait pas les commentaires.
+const { charger } = require('./lib-dico.js');
+const { txt, D } = charger();
 const LANGUES = Object.keys(D);
 
 // Corps de buildHelpHTML
