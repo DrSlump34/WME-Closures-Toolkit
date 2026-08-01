@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.03.00
+// @version      1.06.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -116,7 +116,12 @@ GM_addStyle(`
     --wct-bg:      #f5f7f9;
     --wct-border:  #dde3ea;
     --wct-text:    #2d3748;
-    --wct-text2:   #718096;
+    /* ⚠️ #718096 donnait 4,02:1 sur blanc — sous le seuil WCAG de 4,5:1, et c'est la
+       couleur de TOUS les libellés de formulaire (DÉBUT, FIN, DESCRIPTION, SENS…) et
+       d'une soixantaine d'autres textes. #566372 monte à 6,13:1 sur blanc et 5,71:1 sur
+       --wct-bg, en restant le même gris ardoise : le calcul est dans le commit, refaire
+       la mesure avant de le retoucher. */
+    --wct-text2:   #566372;
     --wct-radius:  8px;
     --wct-shadow:  0 8px 32px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.12);
     --wct-fs-base: 12px;
@@ -223,6 +228,38 @@ GM_addStyle(`
     font-size: 1.083em; line-height: 1; transition: background .15s; padding: 0;
 }
 .wct-hdr-btn:hover { background: rgba(255,255,255,.35); }
+
+/* Panneau des raccourcis et gestes — ouvert par le bouton du bandeau de titre.
+   ⚠️ Positionné en propriétés LOGIQUES (inset-inline) et non en left/right : les deux
+   popovers existants (emoji, préréglages) sont en dur et sortent du panneau en hébreu.
+   Ne pas ajouter une troisième dette RTL pour un panneau écrit aujourd'hui. */
+#wct-keys-pop {
+    position: absolute; inset-inline: 10px; top: 46px; z-index: 20;
+    background: var(--wct-card); border: 1px solid var(--wct-border);
+    border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.22);
+    max-height: calc(100% - 60px); overflow-y: auto; padding: 0 0 6px;
+}
+#wct-keys-pop .wct-keys-hdr {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 9px; border-bottom: 1px solid var(--wct-border);
+    font-weight: 700; font-size: 0.917em; position: sticky; top: 0;
+    background: var(--wct-card);
+}
+#wct-keys-pop .wct-keys-sec {
+    font-size: 0.833em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--wct-text2);
+    padding: 8px 9px 3px;
+}
+#wct-keys-pop table { width: 100%; border-collapse: collapse; font-size: 0.917em; }
+#wct-keys-pop td { padding: 3px 9px; vertical-align: top; }
+#wct-keys-pop td:first-child { width: 38%; white-space: nowrap; }
+#wct-keys-pop kbd {
+    display: inline-block; background: var(--wct-bg2); border: 1px solid var(--wct-border);
+    border-bottom-width: 2px; border-radius: 3px; padding: 0 5px;
+    font-family: ui-monospace,Menlo,Consolas,monospace; font-size: 0.917em; line-height: 1.5;
+}
+#wct-overlay.wct-compact #wct-keys-pop { border-radius: 0; border: 2px outset #fff; }
+#wct-overlay.wct-compact #wct-keys-pop kbd { border-radius: 0; background: #c0c0c0; }
 
 /* Sel strip */
 #wct-sel-strip {
@@ -760,9 +797,19 @@ GM_addStyle(`
 .wct-src-exp-bar .wct-btn { flex:1; justify-content:center; }
 .wct-src-viewnote { font-size:0.75em; color:var(--wct-text2); font-style:italic; margin:8px 0 0; padding-top:5px; border-top:1px dashed var(--wct-border); }
 .wct-src-table { width:100%; border-collapse:collapse; font-size:0.75em; margin-top:4px; }
-.wct-src-table th { padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:start; white-space:nowrap; cursor:pointer; user-select:none; }
+/* ⚠️ Les résultats sont plafonnés et défilent DANS leur boîte, en-têtes collants.
+   Une recherche 50×50 km peut ramener des centaines de fermetures : sans ça, la table
+   s'écrivait d'un bloc dans un corps de ~430 px — de quoi défiler des milliers de pixels
+   en ayant perdu depuis longtemps le nom des colonnes. L'onglet Tracés a déjà un thead
+   collant (.wct-gpx-table), c'est la même recette. */
+#wct-src-results { max-height:40vh; overflow-y:auto; }
+.wct-src-table th { position:sticky; top:0; z-index:1; background:var(--wct-card); padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:start; white-space:nowrap; cursor:pointer; user-select:none; }
 .wct-src-table th:hover { color:var(--wct-blue); }
-.wct-src-table th .wct-sort-icon { font-size:0.75em; margin-inline-start:2px; opacity:.5; }
+/* ⚠️ 0.9em et non 0.75em : les em s'empilent. Dans .wct-src-table (0.833em) et sous la
+   media query des écrans courts (--wct-fs-base:11px, soit tout portable), 0.75em donnait
+   6,87 px calculés. La flèche de tri devenait indevinable et le badge de statut — qui est
+   l'information même que l'onglet Recherche existe pour donner — illisible. */
+.wct-src-table th .wct-sort-icon { font-size:0.9em; margin-inline-start:2px; opacity:.5; }
 .wct-src-table th.sort-asc .wct-sort-icon::after  { content:'▲'; opacity:1; }
 .wct-src-table th.sort-desc .wct-sort-icon::after { content:'▼'; opacity:1; }
 .wct-src-table th:not(.sort-asc):not(.sort-desc) .wct-sort-icon::after { content:'⇅'; }
@@ -784,7 +831,7 @@ GM_addStyle(`
 .wct-src-mte-unresolved { font-family:monospace; font-style:normal; color:#b0853a; cursor:help; border-bottom:1px dotted #b0853a; }
 .wct-src-hint { font-size:0.75em; color:var(--wct-text2); margin-bottom:6px; line-height:1.4; }
 /* Badges statut fermeture */
-.wct-cl-status { display:inline-block; padding:1px 5px; border-radius:3px; font-size:0.75em; font-weight:600; white-space:nowrap; }
+.wct-cl-status { display:inline-block; padding:1px 5px; border-radius:3px; font-size:0.9em; font-weight:600; white-space:nowrap; }
 .wct-cl-status-ACTIVE                                   { background:#e8f5e9; color:#2e7d32; }
 .wct-cl-status-NOT_STARTED                              { background:#e3f2fd; color:#1565c0; }
 .wct-cl-status-SUSPENDED                                { background:#fff3e0; color:#e65100; }
@@ -835,7 +882,12 @@ GM_addStyle(`
 ══════════════════════════════════════════ */
 
 /* Forme générale : suppression des arrondis, ombres, gradients */
-#wct-overlay.wct-compact { border-radius: 0; box-shadow: none; border: 2px solid #888; max-height: calc(100vh - 110px); }
+/* ⚠️ NE PAS y remettre de max-height. Il en portait un, calc(100vh - 110px), soit la
+   valeur EXACTE de la règle de base : il n'ajoutait donc rien — sauf une spécificité
+   plus forte, qui écrasait les deux @media (max-height) ci-dessous. Résultat mesuré sur
+   580 px utiles : le mode normal donnait 536 px de panneau et le mode compact 470 px.
+   Le mode conçu pour les petits écrans en rendait 66 de MOINS que le mode normal. */
+#wct-overlay.wct-compact { border-radius: 0; box-shadow: none; border: 2px solid #888; }
 #wct-overlay.wct-compact #wct-hdr {
     background: #000080; /* bleu Win95 */
     border-radius: 0;
@@ -850,7 +902,13 @@ GM_addStyle(`
 
 /* Body */
 #wct-overlay.wct-compact #wct-body { padding: 3px 5px 2px; background: #c0c0c0; }
-#wct-overlay.wct-compact { background: #c0c0c0; color: #000; }
+/* ⚠️ Le thème compact repeint le fond en gris Win95 mais ne redéfinissait AUCUNE des
+   deux couleurs de texte secondaire : elles gardaient leur valeur du thème clair, prévue
+   pour du blanc. Mesuré : --wct-text2 tombait à 2,21:1 sur ce fond (16 classes, dont
+   l'aperçu des lots, l'horodatage des traces et les en-têtes du tableau Recherche) et
+   --wct-grey à 1,47:1, soit quasi invisible. Le compact étant bâti sur des variables,
+   deux déclarations suffisent — et il repasse alors DEVANT le thème clair en contraste. */
+#wct-overlay.wct-compact { background: #c0c0c0; color: #000; --wct-text2: #303030; --wct-grey: #404040; }
 
 /* Sections */
 #wct-overlay.wct-compact .wct-section {
@@ -1158,7 +1216,7 @@ const _L = obj => obj[_lang] ?? obj.en;
 const D = {
         fr: {
             // Onglets
-            tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCE5 Import',
+            tabCfg:'\u2699\uFE0F Configurer', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — reconnu : ${ty}`,
             impInconnu: f => `❌ ${f} — format non reconnu. Acceptés : CSV de fermetures, GPX, KML, KMZ, GeoJSON, Shapefile, préréglages WCT, ou POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — l’import a échoué : ${m}`,
@@ -1173,15 +1231,15 @@ const D = {
             tnMultiSel:'S\u00E9lectionne un seul segment \u00E0 la fois.',
             tnSegLabel: n => `Segment s\u00E9lectionn\u00E9 : ${n}`,
             tnExtremity:'Extr\u00E9mit\u00E9', tnNodeA:'N\u0153ud A', tnNodeB:'N\u0153ud B',
-            tnNotEditable:'\u26A0 virages non \u00E9ditables \u00E0 ce n\u0153ud',
+            tnNotEditable:'\u26A0\uFE0F virages non \u00E9ditables \u00E0 ce n\u0153ud',
             tnTurnsFrom:'Virages depuis ce segment', tnAll:'Tout', tnNone:'Aucun',
             tnAllowed:'autoris\u00E9', tnForbidden:'interdit',
             tnNoTurns:'Aucun virage \u00E0 cette extr\u00E9mit\u00E9.',
             tnNotClosable:'non fermable', tnNotClosableTip:'Ce virage n\u2019existe pas dans le mod\u00E8le de donn\u00E9es de WME (cas courant des demi-tours) : le SDK refuse de le fermer.',
             colTurn:'Virage', colTurnTip:'Extr\u00E9mit\u00E9 et direction du virage ferm\u00E9',
             csvTurnOnly:'\u26A0\uFE0F La file ne contient que des fermetures de virage : le format WME Advanced Closures ne sait pas les repr\u00E9senter. Rien \u00E0 exporter.',
-            btnCsvAc:'\u2B07 File \u00B7 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
-            btnCsvTurn:'\u2B07 File \u00B7 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F File \u00B7 CSV AC', btnCsvAcTip:'Exporter les fermetures de SEGMENTS au format WME Advanced Closures (les lots de virages en sont exclus : ce format ne sait pas les repr\u00E9senter).',
+            btnCsvTurn:'\u2B07\uFE0F File \u00B7 CSV Virages', btnCsvTurnTip:'Exporter les fermetures de VIRAGES au format WCT (r\u00E9importable dans WCT ; non lisible par Advanced Closures).',
             csvNoTurns:'Aucune fermeture de virage \u00E0 exporter.',
             csvNothing:'Plus rien \u00E0 exporter : toutes les lignes ont \u00E9t\u00E9 supprim\u00E9es.',
             // Infobulles des onglets et boutons
@@ -1190,7 +1248,7 @@ const D = {
             tipTabCsv:'Importer des fermetures depuis un fichier CSV (format WME Advanced Closures).',
             tipTabGpx:'Charger un trac\u00E9 (GPX, KML, KMZ, GeoJSON, Shapefile) et s\u00E9lectionner automatiquement les segments qu\u2019il suit.',
             tipTabPre:'Enregistrer et rappeler des configurations de fermeture types.',
-            tipTabSrc:'Rechercher les fermetures existantes de la vue : par \u00E9tat, dates, motif ou \u00E9v\u00E9nement MTE.',
+            tipTabSrc:'Rechercher les fermetures existantes \u2014 segments et virages \u2014 sur la vue ou jusqu\u2019\u00E0 50\u00A0km\u00A0: par \u00E9tat, dates, motif, \u00E9v\u00E9nement MTE ou partenaire.',
             tipTabEach:'Une fermeture par jour, aux m\u00EAmes horaires.',
             tipTabRepeat:'Plusieurs fermetures par jour, r\u00E9p\u00E9t\u00E9es \u00E0 intervalle r\u00E9gulier.',
             tipBtnValidate:'Cr\u00E9er les occurrences \u00E0 partir de ce r\u00E9glage et les ajouter \u00E0 la file. Rien n\u2019est \u00E9crit sur la carte \u00E0 ce stade.',
@@ -1204,10 +1262,10 @@ const D = {
             tipPresetConfirm:'Enregistrer le r\u00E9glage courant sous ce nom.',
             tipPresetCancel:'Fermer sans enregistrer.',
             // Extremites sans virage fermable
-            tnOrphan:'\u26A0 Aucune extr\u00E9mit\u00E9 de ce segment ne permet de fermer un virage.',
+            tnOrphan:'\u26A0\uFE0F Aucune extr\u00E9mit\u00E9 de ce segment ne permet de fermer un virage.',
             tnOrphanHint:'Ses deux extr\u00E9mit\u00E9s sont des impasses, ou ne d\u00E9bouchent que sur des demi-tours, absents du mod\u00E8le de donn\u00E9es de WME.',
             tnEndTip: (nid,n) => `N\u0153ud ${nid} \u00B7 ${n} virage(s) fermable(s)`,
-            tnEndDead: lbl => `\u26A0 ${lbl} ne d\u00E9bouche sur aucun virage fermable : extr\u00E9mit\u00E9 d\u00E9sactiv\u00E9e.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} ne d\u00E9bouche sur aucun virage fermable : extr\u00E9mit\u00E9 d\u00E9sactiv\u00E9e.`,
             tnEndDeadTip:'Impasse, ou seulement des demi-tours : rien n\u2019est fermable \u00E0 cette extr\u00E9mit\u00E9.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} ligne(s) de virage export\u00E9e(s) au format WCT.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} fermeture(s) de virage ajout\u00E9e(s) \u00E0 la file${ko?', '+ko+' ligne(s) ignor\u00E9e(s)':''}.`,
@@ -1222,7 +1280,7 @@ const D = {
             tnBannerClear:'Revenir \u00E0 une fermeture de segments',
             tnNoneSelected:'Coche au moins un virage.',
             tnEntryDetail: (nt,nc,st) => `${nt} virage(s) \u00B7 ${nc} fermeture(s) \u00B7 ${st}`,
-            tabPre:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', tabGpx:'\uD83D\uDDFA Trac\u00e9s', tabSrc:'\uD83D\uDD0D Recherche', tabHelp:'\u2753', tabHelpTitle:'Aide',
+            tabPre:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', tabGpx:'\uD83D\uDDFA\uFE0F Trac\u00e9s', tabSrc:'\uD83D\uDD0D Recherche', tabHelp:'\u2753', tabHelpTitle:'Aide',
             // Onglet Recherche
             srcSectionTime:'\uD83D\uDCC5 Fen\u00EAtre temporelle',
             srcLblStartAfter:'D\u00E9but apr\u00E8s le', srcLblStartBefore:'D\u00E9but avant le',
@@ -1234,7 +1292,7 @@ const D = {
             srcBtnSearching:'\u23F3 Recherche\u2026',
             srcLoadingZone: km => `Recherche sur ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Effacer',
-            srcNoResults:'Aucun segment trouv\u00E9 avec ces crit\u00E8res.',
+            srcNoResults:'Aucun r\u00E9sultat avec ces crit\u00E8res. Pensez aux filtres repli\u00E9s\u00A0: ceux qui sont actifs portent un point rouge.',
             // Recherche : cibles segments / virages
             srcSectionTarget:'\uD83C\uDFAF Chercher quoi', srcTgtSeg:'Segments', srcTgtTurn:'Virages',
             srcTipTime:'Filtrer sur les dates de début et de fin des fermetures. Bornes facultatives, combinées en ET. Repliée par défaut : c’est le filtre le moins courant.',
@@ -1248,14 +1306,14 @@ const D = {
             srcZoneFail: e => `\u274C Recherche par zone impossible (${e}) \u2014 repli sur la vue courante.`,
             srcNameOffView:'Segment hors de la vue : son nom n\u2019est pas charg\u00E9. Cliquez \uD83C\uDFAF pour y aller.',
             srcTipTarget:'Choisir ce que la recherche doit remonter. Les deux par d\u00E9faut.',
-            srcPickTarget:'\u26A0 Coche au moins une cible : Segments ou Virages.',
+            srcPickTarget:'\u26A0\uFE0F Coche au moins une cible : Segments ou Virages.',
             srcResultsSeg: n => `${n} segment(s) avec fermeture`,
             srcResultsTurn: n => `${n} virage(s) avec fermeture`,
             srcColTurn:'Virage', srcTipColTurn:'Trier par virage (fl\u00E8che et rues)',
             srcTipCenterTurn:'Centrer la carte sur le n\u0153ud de ce virage',
-            srcBtnExportSeg:'\u2B07 Résultats \u00B7 CSV AC',
-            srcTipExportSeg:'Exporter les fermetures de segments TROUV\u00C9ES au format WME Advanced Closures. Rien \u00E0 voir avec la file d\u2019attente. \u26A0 Le drapeau « n\u0153uds ferm\u00E9s » ne peut pas \u00EAtre restitu\u00E9 : le SDK ne le relit pas.',
-            srcBtnExportTurn:'\u2B07 Résultats \u00B7 CSV Virages',
+            srcBtnExportSeg:'\u2B07\uFE0F Résultats \u00B7 CSV AC',
+            srcTipExportSeg:'Exporter les fermetures de segments TROUV\u00C9ES au format WME Advanced Closures. Rien \u00E0 voir avec la file d\u2019attente. \u26A0\uFE0F Le drapeau « n\u0153uds ferm\u00E9s » ne peut pas \u00EAtre restitu\u00E9 : le SDK ne le relit pas.',
+            srcBtnExportTurn:'\u2B07\uFE0F Résultats \u00B7 CSV Virages',
             srcTipExportTurn:'Exporter les fermetures de virages TROUV\u00C9ES au format WCT. Rien \u00E0 voir avec la file d\u2019attente.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} fermeture(s) de segment export\u00E9e(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} fermeture(s) de virage export\u00E9e(s).`,
@@ -1281,7 +1339,7 @@ const D = {
             tipRangeStart:'Premier jour de la plage sur laquelle la fermeture est r\u00E9p\u00E9t\u00E9e.',
             tipRangeEnd:'Dernier jour de la plage. Une occurrence qui d\u00E9passerait cette date n\u2019est pas g\u00E9n\u00E9r\u00E9e.',
             tipStartTime:'Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement.',
-            tipDurTime:'Dur\u00E9e de chaque fermeture (h:mm). Bascule avec Heure de fin via le bouton \u23F1.',
+            tipDurTime:'Dur\u00E9e de chaque fermeture (h:mm). Bascule avec Heure de fin via le bouton \u23F1\uFE0F.',
             tipEndTime:'Heure de fin de chaque fermeture. Si elle est ant\u00E9rieure \u00E0 l\u2019heure de d\u00E9but, la fermeture court jusqu\u2019au lendemain (badge J+1).',
             tipReason:'Texte affich\u00E9 dans WME pour identifier la fermeture. Le bouton \uD83D\uDCCC ins\u00E8re un \u00E9moji \u00E0 la position du curseur.',
             tipMteSel:'Rattacher les fermetures \u00E0 un \u00E9v\u00E9nement de circulation majeur (MTE). \uD83D\uDCA1 La liste ne se remplit qu\u2019une fois l\u2019onglet \u00C9v\u00E9nements de WME ouvert : ouvrez-le, puis cliquez sur \u21BB.',
@@ -1294,7 +1352,7 @@ const D = {
             srcProvNoneTip:'Fermeture d\u2019\u00E9diteur : pas de partenaire attribu\u00E9.',
             srcNoClosures:'Aucune fermeture charg\u00E9e dans la vue courante.',
             srcResults: n => `${n} segment(s) trouv\u00E9(s)`,
-            srcBtnGoCfg:'\u2699 Basculer vers Configurer',
+            srcBtnGoCfg:'\u2699\uFE0F Basculer vers Configurer',
             srcLoading:'Recherche en cours\u2026',
             srcSectionStatus:'\uD83D\uDCA1 \u00C9tat',
             srcStatusAll:'Tous',
@@ -1343,7 +1401,7 @@ const D = {
             lblStart:'D\u00E9but', lblEnd:'Fin',
             lblStartTime:'Heure d\u00E9but', lblDurTime:'Dur\u00E9e h:mm', lblDurDay:'+Jours',
             lblEndTime:'Heure Fin',
-            btnDur:'\u23F1 Dur\u00E9e', btnEndTime:'\u23F1 Heure fin',
+            btnDur:'\u23F1\uFE0F Dur\u00E9e', btnEndTime:'\u23F1\uFE0F Heure fin',
             lblToggleDur:'DUR', lblToggleEnd:'FIN',
             lblDuration:'Durée',
             jpnPrefix:'J+',
@@ -1381,12 +1439,12 @@ const D = {
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
-            btnValidate:'\u2714 Valider et ajouter \u00E0 la file',
-            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6 Appliquer', btnClear:'\uD83D\uDDD1 Vider',
+            btnValidate:'\u2714\uFE0F Valider et ajouter \u00E0 la file',
+            btnStop:'\u23F9\uFE0F Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6\uFE0F Appliquer', btnClear:'\uD83D\uDDD1\uFE0F Vider',
             // CSV
             dropText:'\uD83D\uDCE5 Cliquer ou glisser un fichier ici',
             dropHint:'Le format est reconnu tout seul',
-            gpxDropText:'\uD83D\uDDFA Cliquer ou glisser un fichier ici',
+            gpxDropText:'\uD83D\uDDFA\uFE0F Cliquer ou glisser un fichier ici',
             gpxDropHint:'Formats accept\u00e9s\u00a0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 cumul des calques',
             // Couverture
             covTitle:'V\u00e9rifier les segments du parcours non s\u00e9lectionn\u00e9s',
@@ -1442,14 +1500,25 @@ const D = {
             tipPresetLoad:'Charger', tipPresetDel:'Supprimer',
             fabNoSeg:'S\u00E9lectionnez des segments sur la carte',
             btnCollapse:'R\u00E9duire', btnClose:'Fermer',
+            btnKeys:'Raccourcis clavier et gestes de la souris',
+            keysTitle:'Raccourcis et gestes',
+            keysSecKbd:'Clavier', keysSecMouse:'Souris',
+            keyEsc:'\u00C9chap', keyEnter:'Entr\u00E9e',
+            keysEscApply:'Interrompre l\u2019application ou le balayage en cours. Fonctionne m\u00EAme si le masque \u00AB\u00A0Enregistrement\u00A0\u00BB de WME recouvre le bouton Stop.',
+            keysEscZone:'Renoncer \u00E0 la modification du contour et rendre le trac\u00E9 d\u2019avant.',
+            keysPreset:'Valider / annuler le nom d\u2019un pr\u00E9r\u00E9glage.',
+            keysDblClick:'Double-clic dans la zone', keysDblClickD:'Rouvrir le panneau de la zone trac\u00E9e.',
+            keysRightClick:'Clic droit sur un sommet', keysRightClickD:'Supprimer ce sommet (le contour en garde toujours trois).',
+            keysMidPoint:'Clic sur un point creux', keysMidPointD:'Ins\u00E9rer un sommet \u00E0 cet endroit et le placer dans la foul\u00E9e.',
+            keysDrag:'Glisser le bandeau de titre', keysDragD:'D\u00E9placer le panneau. Le bouton flottant se d\u00E9place de la m\u00EAme fa\u00E7on.',
             // Pr\u00E9r\u00E9glages
             presetColName:'Nom', presetColDesc:'Description',
             presetColTime:'Horaire', presetColDir:'Dir',
             presetNamePh:'Nom du pr\u00E9r\u00E9glage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Sauvegarder le pr\u00E9r\u00E9glage',
-            btnPrefsExport:'\u2B07 Préréglages', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
-            btnPrefsImport:'\u2B06 Préréglages', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
-            btnPrefsURL:'\u2B06 Préréglages \u00B7 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
+            btnPrefsExport:'\u2B07\uFE0F Préréglages', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
+            btnPrefsImport:'\u2B06\uFE0F Préréglages', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
+            btnPrefsURL:'\u2B06\uFE0F Préréglages \u00B7 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
             prefsURLPrompt:'Adresse du fichier de préréglages :',
             prefsExported: n => `✅ ${n} préréglage(s) exporté(s).`,
             prefsImported: n => `✅ Préréglages importés — vous en avez ${n} au total.`,
@@ -1504,7 +1573,7 @@ const D = {
             tipEditLabel:'Modifier le libellé de ce lot',
             // Apply terminé
             applyStopping:'⏳ Arrêt demandé — fin de la fermeture en cours, puis interruption.',
-                        applyStopped:(ok,ko)=>`⏹ Interrompu — ${ok} appliqué(s), ${ko} échec(s)`,
+                        applyStopped:(ok,ko)=>`⏹️ Interrompu — ${ok} appliqué(s), ${ko} échec(s)`,
 applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} sur ${total} fermeture(s).`,
             // Multi-pays alert
             multiCountryAlert: cc => `\u26A0\uFE0F S\u00e9lection multi-pays (${cc}).\nImpossible d\u2019utiliser le filtre jours f\u00e9ri\u00e9s.\nD\u00e9s\u00e9lectionnez les segments d\u2019un seul pays.`,
@@ -1515,7 +1584,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sweepTitle:'Sélectionner les segments du tracé (balaie la carte)',
             sweepProgress: (done,total,n) => `Balayage… ${done}/${total} — ${n} segment(s)`,
             sweepDone: n => `✅ ${n} segment(s) sélectionné(s) le long du tracé.`,
-            sweepStopped: n => `⏹ Interrompu — ${n} segment(s) sélectionné(s).`,
+            sweepStopped: n => `⏹️ Interrompu — ${n} segment(s) sélectionné(s).`,
             sweepConfirm: (a,km) => `Ce tracé fait ~${km} km (${a} déplacements de carte). Le balayage peut prendre un moment et déplacera la vue. Continuer ?`,
             lotsBtnTitle:'Découper un long tracé en lots de fermeture (déplace la carte)',
             lotsNeedConfig:'⚠️ Réglez d’abord la fermeture dans l’onglet Configurer (période, horaires, sens…), puis relancez.',
@@ -1523,10 +1592,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotsProgress: (done,total,added,seg) => `Découpage en lots… ${done}/${total} — ${added} lot(s), ${seg} segment(s)`,
             lotsWhyMoving:'La carte se déplace pour charger les segments de chaque lot. Ne touchez pas à la carte pendant l’opération.',
             lotsDone: (added,seg) => `✅ ${added} lot(s) ajoutés à la file (${seg} segment(s)). Onglet Configurer pour vérifier et appliquer.`,
-            lotsStopped: (added,seg) => `⏹ Interrompu — ${added} lot(s) déjà dans la file (${seg} segment(s)).`,
+            lotsStopped: (added,seg) => `⏹️ Interrompu — ${added} lot(s) déjà dans la file (${seg} segment(s)).`,
             applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
             applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
-            applyLotNext:'▶ Continuer (lot suivant)',
+            applyLotNext:'▶️ Continuer (lot suivant)',
             lotRowLabel: (i,n) => `Lot ${i}/${n}`,
             lotStatusTodo:'à traiter',
             lotStatusDone:'configuré',
@@ -1564,13 +1633,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyTypesHint:'Libellés et types fournis par WME. Le nombre indique les segments de ce type dans la zone tracée.',
             polyTypesApplied: (n,tot) => `✅ ${n} segment(s) retenu(s) sur ${tot} dans la zone.`,
             polyTypesEmpty:'Aucun segment de ces types dans la zone.',
-            polyKmlBtn:'\u2B07 Zone \u00B7 KML', tipPolyKmlBtn:'Télécharger la zone tracée au format KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Zone \u00B7 WKT', tipPolyWktBtn:'Copier la zone tracée en POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Zone \u00B7 KML', tipPolyKmlBtn:'Télécharger la zone tracée au format KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Zone \u00B7 WKT', tipPolyWktBtn:'Copier la zone tracée en POLYGON(…) WKT',
             polyWktCopied: n => `✅ Zone copiée en WKT (${n} sommets).`,
             polyWktCopy:'Copier la zone au format WKT :',
             polyKmlDone: f => `✅ ${f} téléchargé.`,
             polyNoZone:'Aucune zone tracée.',
-            polyImportBtn:'\u2B06 Zone',
+            polyImportBtn:'\u2B06\uFE0F Zone',
             tipPolyImportBtn:'Recharger une zone depuis un POLYGON(…) WKT ou un fichier KML',
             polyImportTitle:'Importer une zone',
             polyImportWktLabel:'Coller un POLYGON(…) WKT',
@@ -1652,20 +1721,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             helpH1:'\uD83D\uDE80 D\u00E9marrage rapide', helpH2:'\u2699\uFE0F Configurer une fermeture',
             helpH3:'\uD83D\uDCCB File d\u2019attente', helpH4:'\uD83D\uDCE5 Importer un fichier',
             helpH5:'\uD83D\uDCBE Pr\u00E9r\u00E9glages', helpH6:'\u26A0\uFE0F Erreurs fr\u00E9quentes & limites', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Pr\u00E9f\u00E9rences',
-            helpH8:'\uD83D\uDDFA Trac\u00e9s',
+            helpH8:'\uD83D\uDDFA\uFE0F Trac\u00e9s',
             helpH9:'\uD83D\uDD0D Recherche de fermetures',
             helpH10:'📦 Longs tracés : le mode lots',
-            helpH11:'\uD83D\uDD00 Fermer des virages', helpH12:'\u2B07 Les deux exports CSV',
+            helpH11:'\uD83D\uDD00 Fermer des virages', helpH12:'\u2B07\uFE0F Les deux exports CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Source (partenaire)',
-            helpS1:'<b>Sélectionnez</b> un ou plusieurs segments sur la carte WME — ou <b>tracez une zone</b> depuis l’onglet ⚙ Configurer',
+            helpS1:'<b>Sélectionnez</b> un ou plusieurs segments sur la carte WME — ou <b>tracez une zone</b> depuis l’onglet ⚙️ Configurer',
             helpS2:'Cliquez sur le bouton \uD83D\uDEA7 visible sur la carte (d\u00E9pla\u00E7able par glisser-d\u00E9poser)',
-            helpS3:'Dans l\u2019onglet <b>\u2699 Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
-            helpS4:'Cliquez <b>\u2714 Valider et ajouter \u00E0 la file</b>',
+            helpS3:'Dans l\u2019onglet <b>\u2699\uFE0F Configurer</b>, param\u00E9trez vos fermetures (p\u00E9riode, horaire, jours\u2026)',
+            helpS4:'Cliquez <b>\u2714\uFE0F Valider et ajouter \u00E0 la file</b>',
             helpS5:'R\u00E9p\u00E9tez pour d\u2019autres segments si n\u00E9cessaire',
-            helpS6:'Cliquez <b>\u25B6 Appliquer</b> pour cr\u00E9er les fermetures dans WME',
+            helpS6:'Cliquez <b>\u25B6\uFE0F Appliquer</b> pour cr\u00E9er les fermetures dans WME',
         },
         en: {
-            tabCfg:'\u2699 Configure', tabCsv:'\uD83D\uDCE5 Import',
+            tabCfg:'\u2699\uFE0F Configure', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — recognised: ${ty}`,
             impInconnu: f => `❌ ${f} — format not recognised. Accepted: closure CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT presets, or POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — import failed: ${m}`,
@@ -1680,15 +1749,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnMultiSel:'Select a single segment at a time.',
             tnSegLabel: n => `Selected segment: ${n}`,
             tnExtremity:'Extremity', tnNodeA:'Node A', tnNodeB:'Node B',
-            tnNotEditable:'\u26A0 turns not editable at this node',
+            tnNotEditable:'\u26A0\uFE0F turns not editable at this node',
             tnTurnsFrom:'Turns from this segment', tnAll:'All', tnNone:'None',
             tnAllowed:'allowed', tnForbidden:'restricted',
             tnNoTurns:'No turn at this extremity.',
             tnNotClosable:'not closable', tnNotClosableTip:'This turn does not exist in the WME data model (typically U-turns): the SDK refuses to close it.',
             colTurn:'Turn', colTurnTip:'Extremity and direction of the closed turn',
             csvTurnOnly:'\u26A0\uFE0F The queue only holds turn closures: the WME Advanced Closures format cannot represent them. Nothing to export.',
-            btnCsvAc:'\u2B07 Queue \u00B7 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
-            btnCsvTurn:'\u2B07 Queue \u00B7 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F Queue \u00B7 CSV AC', btnCsvAcTip:'Export SEGMENT closures in the WME Advanced Closures format (turn batches are left out: that format cannot represent them).',
+            btnCsvTurn:'\u2B07\uFE0F Queue \u00B7 CSV Turns', btnCsvTurnTip:'Export TURN closures in the WCT format (re-importable into WCT; not readable by Advanced Closures).',
             csvNoTurns:'No turn closure to export.',
             csvNothing:'Nothing left to export: all rows have been deleted.',
             // Tab and button tooltips
@@ -1697,7 +1766,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipTabCsv:'Import closures from a CSV file (WME Advanced Closures format).',
             tipTabGpx:'Load a track (GPX, KML, KMZ, GeoJSON, Shapefile) and automatically select the segments it follows.',
             tipTabPre:'Save and recall typical closure setups.',
-            tipTabSrc:'Search the existing closures in view: by status, dates, reason or MTE event.',
+            tipTabSrc:'Search existing closures \u2014 segments and turns \u2014 in view or up to 50 km: by status, dates, reason, MTE event or partner.',
             tipTabEach:'One closure per day, at the same times.',
             tipTabRepeat:'Several closures a day, repeated at a regular interval.',
             tipBtnValidate:'Build the occurrences from this setup and add them to the queue. Nothing is written to the map yet.',
@@ -1711,10 +1780,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipPresetConfirm:'Save the current setup under this name.',
             tipPresetCancel:'Close without saving.',
             // Extremities with no closable turn
-            tnOrphan:'\u26A0 Neither extremity of this segment allows a turn to be closed.',
+            tnOrphan:'\u26A0\uFE0F Neither extremity of this segment allows a turn to be closed.',
             tnOrphanHint:'Both ends are dead ends, or only lead to U-turns, which are absent from the WME data model.',
             tnEndTip: (nid,n) => `Node ${nid} \u00B7 ${n} closable turn(s)`,
-            tnEndDead: lbl => `\u26A0 ${lbl} leads to no closable turn: extremity disabled.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} leads to no closable turn: extremity disabled.`,
             tnEndDeadTip:'Dead end, or U-turns only: nothing is closable at this extremity.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} turn row(s) exported in the WCT format.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} turn closure(s) added to the queue${ko?', '+ko+' row(s) skipped':''}.`,
@@ -1729,7 +1798,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tnBannerClear:'Back to a segment closure',
             tnNoneSelected:'Check at least one turn.',
             tnEntryDetail: (nt,nc,st) => `${nt} turn(s) \u00B7 ${nc} closure(s) \u00B7 ${st}`,
-            tabPre:'\uD83D\uDCBE Presets', tabGpx:'\uD83D\uDDFA Tracks', tabSrc:'\uD83D\uDD0D Search', tabHelp:'\u2753', tabHelpTitle:'Help',
+            tabPre:'\uD83D\uDCBE Presets', tabGpx:'\uD83D\uDDFA\uFE0F Tracks', tabSrc:'\uD83D\uDD0D Search', tabHelp:'\u2753', tabHelpTitle:'Help',
             // Search tab
             srcSectionTime:'\uD83D\uDCC5 Time window',
             srcLblStartAfter:'Start after', srcLblStartBefore:'Start before',
@@ -1741,7 +1810,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcBtnSearching:'\u23F3 Searching\u2026',
             srcLoadingZone: km => `Searching over ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Clear',
-            srcNoResults:'No segments found matching these criteria.',
+            srcNoResults:'No results matching these criteria. Check the collapsed filters: the active ones carry a red dot.',
             // Search: segment / turn targets
             srcSectionTarget:'\uD83C\uDFAF What to search', srcTgtSeg:'Segments', srcTgtTurn:'Turns',
             srcTipTime:'Filter on the closures’ start and end dates. Bounds are optional and combined with AND. Collapsed by default: it is the least common filter.',
@@ -1755,14 +1824,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcZoneFail: e => `\u274C Area search failed (${e}) \u2014 falling back to the current view.`,
             srcNameOffView:'Segment outside the view: its name is not loaded. Click \uD83C\uDFAF to go there.',
             srcTipTarget:'Choose what the search should return. Both by default.',
-            srcPickTarget:'\u26A0 Check at least one target: Segments or Turns.',
+            srcPickTarget:'\u26A0\uFE0F Check at least one target: Segments or Turns.',
             srcResultsSeg: n => `${n} segment(s) with a closure`,
             srcResultsTurn: n => `${n} turn(s) with a closure`,
             srcColTurn:'Turn', srcTipColTurn:'Sort by turn (arrow and streets)',
             srcTipCenterTurn:'Center the map on this turn\u2019s node',
-            srcBtnExportSeg:'\u2B07 Results \u00B7 CSV AC',
-            srcTipExportSeg:'Export the segment closures FOUND, in the WME Advanced Closures format. Nothing to do with the queue. \u26A0 The "closed nodes" flag cannot be restored: the SDK does not read it back.',
-            srcBtnExportTurn:'\u2B07 Results \u00B7 CSV Turns',
+            srcBtnExportSeg:'\u2B07\uFE0F Results \u00B7 CSV AC',
+            srcTipExportSeg:'Export the segment closures FOUND, in the WME Advanced Closures format. Nothing to do with the queue. \u26A0\uFE0F The "closed nodes" flag cannot be restored: the SDK does not read it back.',
+            srcBtnExportTurn:'\u2B07\uFE0F Results \u00B7 CSV Turns',
             srcTipExportTurn:'Export the turn closures FOUND, in the WCT format. Nothing to do with the queue.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} segment closure(s) exported.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} turn closure(s) exported.`,
@@ -1788,7 +1857,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipRangeStart:'First day of the range over which the closure is repeated.',
             tipRangeEnd:'Last day of the range. An occurrence running past this date is not generated.',
             tipStartTime:'Time at which the closure starts each day. Daylight-saving changes are handled automatically.',
-            tipDurTime:'Duration of each closure (h:mm). Switch with End time via the \u23F1 button.',
+            tipDurTime:'Duration of each closure (h:mm). Switch with End time via the \u23F1\uFE0F button.',
             tipEndTime:'End time of each closure. If earlier than the start time, the closure runs into the next day (D+1 badge).',
             tipReason:'Text shown in WME to identify the closure. The \uD83D\uDCCC button inserts an emoji at the cursor.',
             tipMteSel:'Attach the closures to a Major Traffic Event (MTE). \uD83D\uDCA1 The list only fills once WME\u2019s Events tab has been opened: open it, then click \u21BB.',
@@ -1801,7 +1870,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcProvNoneTip:'Editor closure: no partner attributed.',
             srcNoClosures:'No closures loaded in the current view.',
             srcResults: n => `${n} segment(s) found`,
-            srcBtnGoCfg:'\u2699 Switch to Configure',
+            srcBtnGoCfg:'\u2699\uFE0F Switch to Configure',
             srcLoading:'Searching\u2026',
             srcSectionStatus:'\uD83D\uDCA1 Status',
             srcStatusAll:'All',
@@ -1849,7 +1918,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lblStart:'Start', lblEnd:'End',
             lblStartTime:'Start time', lblDurTime:'Duration h:mm', lblDurDay:'+Days',
             lblEndTime:'End time',
-            btnDur:'\u23F1 Duration', btnEndTime:'\u23F1 End time',
+            btnDur:'\u23F1\uFE0F Duration', btnEndTime:'\u23F1\uFE0F End time',
             lblToggleDur:'DUR', lblToggleEnd:'END',
             lblDuration:'Duration',
             jpnPrefix:'D+',
@@ -1880,11 +1949,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
-            btnValidate:'\u2714 Validate and add to queue',
-            btnStop:'\u23F9 Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6 Apply', btnClear:'\uD83D\uDDD1 Clear',
+            btnValidate:'\u2714\uFE0F Validate and add to queue',
+            btnStop:'\u23F9\uFE0F Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6\uFE0F Apply', btnClear:'\uD83D\uDDD1\uFE0F Clear',
             dropText:'\uD83D\uDCE5 Click or drag a file here',
             dropHint:'The format is detected on its own',
-            gpxDropText:'\uD83D\uDDFA Click or drag a file here',
+            gpxDropText:'\uD83D\uDDFA\uFE0F Click or drag a file here',
             gpxDropHint:'Accepted formats\u00a0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 layers are cumulative',
             // Coverage
             covTitle:'Check for route segments not selected',
@@ -1935,13 +2004,24 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipPresetLoad:'Load', tipPresetDel:'Delete',
             fabNoSeg:'Select segments on the map',
             btnCollapse:'Collapse', btnClose:'Close',
+            btnKeys:'Keyboard shortcuts and mouse gestures',
+            keysTitle:'Shortcuts and gestures',
+            keysSecKbd:'Keyboard', keysSecMouse:'Mouse',
+            keyEsc:'Esc', keyEnter:'Enter',
+            keysEscApply:'Stop the running apply or sweep. Works even when the WME \u00ABSaving\u00BB mask covers the Stop button.',
+            keysEscZone:'Discard the outline changes and restore the previous shape.',
+            keysPreset:'Confirm / cancel a preset name.',
+            keysDblClick:'Double-click inside the area', keysDblClickD:'Reopen the drawn area panel.',
+            keysRightClick:'Right-click a vertex', keysRightClickD:'Delete that vertex (the outline always keeps three).',
+            keysMidPoint:'Click a hollow point', keysMidPointD:'Insert a vertex there and place it right away.',
+            keysDrag:'Drag the title bar', keysDragD:'Move the panel. The floating button moves the same way.',
             presetColName:'Name', presetColDesc:'Description',
             presetColTime:'Schedule', presetColDir:'Dir',
             presetNamePh:'Preset name\u2026',
             presetPopupTitle:'\uD83D\uDCBE Save preset',
-            btnPrefsExport:'\u2B07 Presets', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
-            btnPrefsImport:'\u2B06 Presets', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
-            btnPrefsURL:'\u2B06 Presets \u00B7 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
+            btnPrefsExport:'\u2B07\uFE0F Presets', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
+            btnPrefsImport:'\u2B06\uFE0F Presets', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
+            btnPrefsURL:'\u2B06\uFE0F Presets \u00B7 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
             prefsURLPrompt:'Address of the presets file:',
             prefsExported: n => `✅ ${n} preset(s) exported.`,
             prefsImported: n => `✅ Presets imported — you now have ${n}.`,
@@ -1998,7 +2078,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipEditLabel:'Edit this batch label',
             // Apply done
             applyStopping:'⏳ Stop requested — finishing the current closure, then aborting.',
-                        applyStopped:(ok,ko)=>`⏹ Stopped — ${ok} applied, ${ko} failed`,
+                        applyStopped:(ok,ko)=>`⏹️ Stopped — ${ok} applied, ${ko} failed`,
 applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} out of ${total} closure(s).`,
             // Multi-country alert
             multiCountryAlert: cc => `\u26A0\uFE0F Multi-country selection (${cc}).\nCannot use public holiday filter.\nDeselect segments from one country only.`,
@@ -2009,7 +2089,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepTitle:'Select track segments (pans the map)',
             sweepProgress: (done,total,n) => `Sweeping… ${done}/${total} — ${n} segment(s)`,
             sweepDone: n => `✅ ${n} segment(s) selected along the track.`,
-            sweepStopped: n => `⏹ Stopped — ${n} segment(s) selected.`,
+            sweepStopped: n => `⏹️ Stopped — ${n} segment(s) selected.`,
             sweepConfirm: (a,km) => `This track is ~${km} km (${a} map moves). The sweep may take a while and will move the view. Continue?`,
             lotsBtnTitle:'Split a long track into closure batches (moves the map)',
             lotsNeedConfig:'⚠️ First set up the closure in the Configure tab (period, times, direction…), then try again.',
@@ -2017,10 +2097,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsProgress: (done,total,added,seg) => `Splitting into batches… ${done}/${total} — ${added} batch(es), ${seg} segment(s)`,
             lotsWhyMoving:'The map moves to load each batch’s segments. Don’t touch the map during the operation.',
             lotsDone: (added,seg) => `✅ ${added} batch(es) added to the queue (${seg} segment(s)). See the Configure tab to review and apply.`,
-            lotsStopped: (added,seg) => `⏹ Stopped — ${added} batch(es) already in the queue (${seg} segment(s)).`,
+            lotsStopped: (added,seg) => `⏹️ Stopped — ${added} batch(es) already in the queue (${seg} segment(s)).`,
             applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
             applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
-            applyLotNext:'▶ Continue (next batch)',
+            applyLotNext:'▶️ Continue (next batch)',
             lotRowLabel: (i,n) => `Batch ${i}/${n}`,
             lotStatusTodo:'to do',
             lotStatusDone:'configured',
@@ -2058,13 +2138,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Labels and types come from WME. The number shows how many segments of that type are in the drawn area.',
             polyTypesApplied: (n,tot) => `✅ ${n} of ${tot} segment(s) kept in the area.`,
             polyTypesEmpty:'No segment of those types in the area.',
-            polyKmlBtn:'\u2B07 Area \u00B7 KML', tipPolyKmlBtn:'Download the drawn area as KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Area \u00B7 WKT', tipPolyWktBtn:'Copy the drawn area as POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Area \u00B7 KML', tipPolyKmlBtn:'Download the drawn area as KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Area \u00B7 WKT', tipPolyWktBtn:'Copy the drawn area as POLYGON(…) WKT',
             polyWktCopied: n => `✅ Area copied as WKT (${n} corners).`,
             polyWktCopy:'Copy the area as WKT:',
             polyKmlDone: f => `✅ ${f} downloaded.`,
             polyNoZone:'No area drawn.',
-            polyImportBtn:'\u2B06 Area',
+            polyImportBtn:'\u2B06\uFE0F Area',
             tipPolyImportBtn:'Reload an area from a POLYGON(…) WKT or a KML file',
             polyImportTitle:'Import an area',
             polyImportWktLabel:'Paste a POLYGON(…) WKT',
@@ -2144,20 +2224,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH1:'\uD83D\uDE80 Quick start', helpH2:'\u2699\uFE0F Configure a closure',
             helpH3:'\uD83D\uDCCB Queue', helpH4:'\uD83D\uDCE5 Import a file',
             helpH5:'\uD83D\uDCBE Presets', helpH6:'\u26A0\uFE0F Common errors & limits', helpH7:'\uD83D\uDDA5\uFE0F Sidebar / Preferences',
-            helpH8:'\uD83D\uDDFA Tracks',
+            helpH8:'\uD83D\uDDFA\uFE0F Tracks',
             helpH9:'\uD83D\uDD0D Closure search',
             helpH10:'📦 Long tracks: batch mode',
-            helpH11:'\uD83D\uDD00 Closing turns', helpH12:'\u2B07 The two CSV exports',
+            helpH11:'\uD83D\uDD00 Closing turns', helpH12:'\u2B07\uFE0F The two CSV exports',
             helpH13:'\uD83C\uDFF7\uFE0F Source (partner)',
-            helpS1:'<b>Select</b> one or more segments on the WME map — or <b>draw an area</b> from the ⚙ Configure tab',
+            helpS1:'<b>Select</b> one or more segments on the WME map — or <b>draw an area</b> from the ⚙️ Configure tab',
             helpS2:'Click the \uD83D\uDEA7 button visible on the map (drag and drop to reposition)',
-            helpS3:'In the <b>\u2699 Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
-            helpS4:'Click <b>\u2714 Validate and add to queue</b>',
+            helpS3:'In the <b>\u2699\uFE0F Configure</b> tab, set your closure parameters (period, schedule, days\u2026)',
+            helpS4:'Click <b>\u2714\uFE0F Validate and add to queue</b>',
             helpS5:'Repeat for other segments if needed',
-            helpS6:'Click <b>\u25B6 Apply</b> to create closures in WME',
+            helpS6:'Click <b>\u25B6\uFE0F Apply</b> to create closures in WME',
         },
         he: {
-            tabCfg:'⚙ הגדרה', tabCsv:'\uD83D\uDCE5 ייבוא',
+            tabCfg:'⚙️ הגדרה', tabCsv:'\uD83D\uDCE5 ייבוא',
             impReconnu: (f,ty) => `✅ ${f} — זוהה: ${ty}`,
             impInconnu: f => `❌ ${f} — הפורמט לא זוהה. מתקבלים: CSV של חסימות, GPX, KML, KMZ, GeoJSON, Shapefile, תבניות WCT, או POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — הייבוא נכשל: ${m}`,
@@ -2172,15 +2252,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnMultiSel:'בחר מקטע יחיד בכל פעם.',
             tnSegLabel: n => `מקטע נבחר: ${n}`,
             tnExtremity:'קצה', tnNodeA:'צומת A', tnNodeB:'צומת B',
-            tnNotEditable:'⚠ לא ניתן לערוך פניות בצומת זה',
+            tnNotEditable:'⚠️ לא ניתן לערוך פניות בצומת זה',
             tnTurnsFrom:'פניות מהמקטע הזה', tnAll:'הכול', tnNone:'כלום',
             tnAllowed:'מותרת', tnForbidden:'אסורה',
             tnNoTurns:'אין פנייה בקצה הזה.',
             tnNotClosable:'לא ניתן לחסימה', tnNotClosableTip:'פנייה זו אינה קיימת במודל הנתונים של WME (בדרך כלל פניות פרסה): ה-SDK מסרב לחסום אותה.',
             colTurn:'פנייה', colTurnTip:'קצה וכיוון של הפנייה החסומה',
             csvTurnOnly:'⚠️ התור מכיל רק חסימות פנייה: פורמט WME Advanced Closures אינו יכול לייצג אותן. אין מה לייצא.',
-            btnCsvAc:'\u2B07 תור \u00B7 CSV AC', btnCsvAcTip:'ייצוא חסימות של מקטעים בפורמט WME Advanced Closures (מנות פניות מושמטות: הפורמט אינו יכול לייצג אותן).',
-            btnCsvTurn:'\u2B07 תור \u00B7 CSV פניות', btnCsvTurnTip:'ייצוא חסימות של פניות בפורמט WCT (ניתן לייבוא חוזר ל-WCT; אינו קריא ב-Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F תור \u00B7 CSV AC', btnCsvAcTip:'ייצוא חסימות של מקטעים בפורמט WME Advanced Closures (מנות פניות מושמטות: הפורמט אינו יכול לייצג אותן).',
+            btnCsvTurn:'\u2B07\uFE0F תור \u00B7 CSV פניות', btnCsvTurnTip:'ייצוא חסימות של פניות בפורמט WCT (ניתן לייבוא חוזר ל-WCT; אינו קריא ב-Advanced Closures).',
             csvNoTurns:'אין חסימת פנייה לייצוא.',
             csvNothing:'לא נותר מה לייצא: כל השורות נמחקו.',
             // Tab and button tooltips
@@ -2189,7 +2269,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipTabCsv:'ייבוא חסימות מקובץ CSV (פורמט WME Advanced Closures).',
             tipTabGpx:'טעינת מסלול (GPX, KML, KMZ, GeoJSON, Shapefile) ובחירה אוטומטית של המקטעים שהוא עובר בהם.',
             tipTabPre:'שמירה ושליפה של הגדרות חסימה טיפוסיות.',
-            tipTabSrc:'חיפוש החסימות הקיימות בתצוגה: לפי מצב, תאריכים, סיבה או אירוע MTE.',
+            tipTabSrc:'חיפוש חסימות קיימות — מקטעים ופניות — בתצוגה או עד 50 ק״מ: לפי מצב, תאריכים, סיבה, אירוע MTE או שותף.',
             tipTabEach:'חסימה אחת ליום, באותן שעות.',
             tipTabRepeat:'מספר חסימות ביום, החוזרות במרווח קבוע.',
             tipBtnValidate:'בניית המופעים מההגדרה הזו והוספתם לתור. בשלב זה שום דבר לא נכתב למפה.',
@@ -2203,10 +2283,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetConfirm:'שמירת ההגדרה הנוכחית בשם הזה.',
             tipPresetCancel:'סגירה בלי לשמור.',
             // Extremities with no closable turn
-            tnOrphan:'⚠ אף אחד מקצות המקטע אינו מאפשר חסימת פנייה.',
+            tnOrphan:'⚠️ אף אחד מקצות המקטע אינו מאפשר חסימת פנייה.',
             tnOrphanHint:'שני הקצוות הם ללא-מוצא, או מובילים רק לפניות פרסה, שאינן קיימות במודל הנתונים של WME.',
             tnEndTip: (nid,n) => `צומת ${nid} · ${n} פניות ניתנות לחסימה`,
-            tnEndDead: lbl => `⚠ ${lbl} אינו מוביל לאף פנייה ניתנת לחסימה: הקצה מושבת.`,
+            tnEndDead: lbl => `⚠️ ${lbl} אינו מוביל לאף פנייה ניתנת לחסימה: הקצה מושבת.`,
             tnEndDeadTip:'ללא-מוצא, או פניות פרסה בלבד: אין מה לחסום בקצה הזה.',
             csvTurnDone: n => `📥 ${n} שורות פנייה יוצאו בפורמט WCT.`,
             csvTurnAdded: (n,ko) => `✅ ${n} חסימות פנייה נוספו לתור${ko?', '+ko+' שורות דולגו':''}.`,
@@ -2221,7 +2301,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnBannerClear:'חזרה לחסימת מקטעים',
             tnNoneSelected:'סמן לפחות פנייה אחת.',
             tnEntryDetail: (nt,nc,st) => `${nt} פניות · ${nc} חסימות · ${st}`,
-            tabPre:'💾 תבניות', tabGpx:'🗺 מסלולים', tabSrc:'🔍 חיפוש', tabHelp:'❓', tabHelpTitle:'עזרה',
+            tabPre:'💾 תבניות', tabGpx:'🗺️ מסלולים', tabSrc:'🔍 חיפוש', tabHelp:'❓', tabHelpTitle:'עזרה',
             // Search tab
             srcSectionTime:'📅 חלון זמן',
             srcLblStartAfter:'מתחילה אחרי', srcLblStartBefore:'מתחילה לפני',
@@ -2231,30 +2311,30 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnAnd:'וגם', srcBtnOr:'או',
             srcBtnSearch:'חפש',
             srcBtnSearching:'⏳ מחפש…',
-            srcLoadingZone: km => `מחפש בשטח ${km} × ${km} ק"מ…`,
+            srcLoadingZone: km => `מחפש בשטח ${km} × ${km} ק״מ…`,
             srcBtnClear:'נקה',
-            srcNoResults:'לא נמצאו מקטעים התואמים לקריטריונים אלה.',
+            srcNoResults:'אין תוצאות התואמות לקריטריונים אלה. בדוק את המסננים המכווצים: הפעילים מסומנים בנקודה אדומה.',
             // Search: segment / turn targets
             srcSectionTarget:'🎯 מה לחפש', srcTgtSeg:'מקטעים', srcTgtTurn:'פניות',
             srcTipTime:'סינון לפי תאריכי ההתחלה והסיום של החסימות. הגבולות אופציונליים ומשולבים ב"וגם". מכווץ כברירת מחדל: זהו הסינון הפחות נפוץ.',
             srcSecActive:'סינון פעיל במקטע זה.',
             // Zone search (Features API, outside the SDK, read-only)
             srcLblZone:'שטח לחיפוש', srcZoneView:'התצוגה הנוכחית',
-            srcZoneKm: n => `${n} × ${n} ק"מ סביב המרכז`,
+            srcZoneKm: n => `${n} × ${n} ק״מ סביב המרכז`,
             srcTipZone:'הרחבת החיפוש מעבר לתצוגה, בלי להזיז את המפה. ⚠️ מעבר לתצוגה הנוכחית, שמות רחובות אינם נטענים (הם היו שוקלים עשרות MB): עמודת הרחוב מציגה — וכפתור 🎯 ממרכז כדי שתוכל לבדוק.',
             srcZoneHint:'⚠️ שטח רחב יותר: שמות הרחובות לא יוצגו (אך מזהה המקטע מלא).',
-            srcZoneNote: km => `ℹ️ תוצאות בשטח ${km} × ${km} ק"מ סביב מרכז המפה. שמות רחובות לא נטענו: לחץ 🎯 כדי לבדוק.`,
+            srcZoneNote: km => `ℹ️ תוצאות בשטח ${km} × ${km} ק״מ סביב מרכז המפה. שמות רחובות לא נטענו: לחץ 🎯 כדי לבדוק.`,
             srcZoneFail: e => `❌ חיפוש השטח נכשל (${e}) — חזרה לתצוגה הנוכחית.`,
             srcNameOffView:'מקטע מחוץ לתצוגה: שמו אינו נטען. לחץ 🎯 כדי לעבור לשם.',
             srcTipTarget:'בחר מה החיפוש יחזיר. שניהם כברירת מחדל.',
-            srcPickTarget:'⚠ סמן לפחות יעד אחד: מקטעים או פניות.',
+            srcPickTarget:'⚠️ סמן לפחות יעד אחד: מקטעים או פניות.',
             srcResultsSeg: n => `${n} מקטעים עם חסימה`,
             srcResultsTurn: n => `${n} פניות עם חסימה`,
             srcColTurn:'פנייה', srcTipColTurn:'מיון לפי פנייה (חץ ורחובות)',
             srcTipCenterTurn:'מרכוז המפה על צומת הפנייה',
-            srcBtnExportSeg:'\u2B07 תוצאות \u00B7 CSV AC',
-            srcTipExportSeg:'ייצוא חסימות המקטעים שנמצאו, בפורמט WME Advanced Closures. אין קשר לתור. ⚠ דגל "צמתים חסומים" אינו ניתן לשחזור: ה-SDK אינו קורא אותו בחזרה.',
-            srcBtnExportTurn:'\u2B07 תוצאות \u00B7 CSV פניות',
+            srcBtnExportSeg:'\u2B07\uFE0F תוצאות \u00B7 CSV AC',
+            srcTipExportSeg:'ייצוא חסימות המקטעים שנמצאו, בפורמט WME Advanced Closures. אין קשר לתור. ⚠️ דגל "צמתים חסומים" אינו ניתן לשחזור: ה-SDK אינו קורא אותו בחזרה.',
+            srcBtnExportTurn:'\u2B07\uFE0F תוצאות \u00B7 CSV פניות',
             srcTipExportTurn:'ייצוא חסימות הפניות שנמצאו, בפורמט WCT. אין קשר לתור.',
             srcExportedSeg: n => `📥 ${n} חסימות מקטע יוצאו.`,
             srcExportedTurn: n => `📥 ${n} חסימות פנייה יוצאו.`,
@@ -2280,7 +2360,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipRangeStart:'היום הראשון של הטווח שעליו החסימה חוזרת.',
             tipRangeEnd:'היום האחרון של הטווח. מופע החורג מעבר לתאריך זה לא נוצר.',
             tipStartTime:'השעה שבה החסימה מתחילה בכל יום. מעברי שעון קיץ/חורף מטופלים אוטומטית.',
-            tipDurTime:'משך כל חסימה (ש:דד). החלף עם שעת סיום באמצעות כפתור ⏱.',
+            tipDurTime:'משך כל חסימה (ש:דד). החלף עם שעת סיום באמצעות כפתור ⏱️.',
             tipEndTime:'שעת הסיום של כל חסימה. אם מוקדמת משעת ההתחלה, החסימה נמשכת ליום הבא (תג D+1).',
             tipReason:'טקסט המוצג ב-WME לזיהוי החסימה. כפתור 📌 מוסיף אימוג\'י במיקום הסמן.',
             tipMteSel:'קישור החסימות לאירוע תנועה גדול (MTE). 💡 הרשימה מתמלאת רק לאחר פתיחת לשונית האירועים של WME: פתח אותה, ואז לחץ ↻.',
@@ -2293,7 +2373,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcProvNoneTip:'חסימת עורך: לא יוחס שותף.',
             srcNoClosures:'לא נטענו חסימות בתצוגה הנוכחית.',
             srcResults: n => `${n} מקטעים נמצאו`,
-            srcBtnGoCfg:'⚙ עבור אל ההגדרה',
+            srcBtnGoCfg:'⚙️ עבור אל ההגדרה',
             srcLoading:'מחפש…',
             srcSectionStatus:'💡 מצב',
             srcStatusAll:'הכול',
@@ -2341,7 +2421,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblStart:'התחלה', lblEnd:'סיום',
             lblStartTime:'שעת התחלה', lblDurTime:'משך ש:דד', lblDurDay:'+ימים',
             lblEndTime:'שעת סיום',
-            btnDur:'⏱ משך', btnEndTime:'⏱ שעת סיום',
+            btnDur:'⏱️ משך', btnEndTime:'⏱️ שעת סיום',
             lblToggleDur:'משך', lblToggleEnd:'סיום',
             lblDuration:'משך',
             jpnPrefix:'D+',
@@ -2372,11 +2452,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
-            btnValidate:'✔ אשר והוסף לתור',
-            btnStop:'⏹ עצור', btnStopping:'⏳ עוצר…', btnApply:'▶ החל', btnClear:'🗑 נקה',
+            btnValidate:'✔️ אשר והוסף לתור',
+            btnStop:'⏹️ עצור', btnStopping:'⏳ עוצר…', btnApply:'▶️ החל', btnClear:'🗑️ נקה',
             dropText:'📥 לחץ או גרור קובץ לכאן',
             dropHint:'הפורמט מזוהה אוטומטית',
-            gpxDropText:'🗺 לחץ או גרור קובץ לכאן',
+            gpxDropText:'🗺️ לחץ או גרור קובץ לכאן',
             gpxDropHint:'פורמטים נתמכים : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — שכבות מצטברות',
             // Coverage
             covTitle:'בדוק אם יש מקטעי מסלול שלא נבחרו',
@@ -2427,13 +2507,24 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetLoad:'טען', tipPresetDel:'מחק',
             fabNoSeg:'בחר מקטעים במפה',
             btnCollapse:'כווץ', btnClose:'סגור',
+            btnKeys:'קיצורי מקלדת ומחוות עכבר',
+            keysTitle:'קיצורים ומחוות',
+            keysSecKbd:'מקלדת', keysSecMouse:'עכבר',
+            keyEsc:'Esc', keyEnter:'Enter',
+            keysEscApply:'עצירת החלה או סריקה שמתבצעת. פועל גם כשמסך השמירה של WME מסתיר את הכפתור.',
+            keysEscZone:'ביטול שינויי המתאר והחזרת הצורה הקודמת.',
+            keysPreset:'אישור / ביטול שם של הגדרה שמורה.',
+            keysDblClick:'לחיצה כפולה באזור', keysDblClickD:'פתיחה מחדש של לוח האזור ששורטט.',
+            keysRightClick:'לחיצה ימנית על קודקוד', keysRightClickD:'מחיקת הקודקוד (המתאר תמיד משאיר שלושה).',
+            keysMidPoint:'לחיצה על נקודה חלולה', keysMidPointD:'הוספת קודקוד במקום זה ומיקומו מיד.',
+            keysDrag:'גרירת סרגל הכותרת', keysDragD:'הזזת הלוח. הכפתור הצף זז באותה הדרך.',
             presetColName:'שם', presetColDesc:'תיאור',
             presetColTime:'לוח זמנים', presetColDir:'כיוון',
             presetNamePh:'שם התבנית…',
             presetPopupTitle:'💾 שמור תבנית',
-            btnPrefsExport:'\u2B07 תבניות', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
-            btnPrefsImport:'\u2B06 תבניות', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
-            btnPrefsURL:'\u2B06 תבניות \u00B7 URL', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
+            btnPrefsExport:'\u2B07\uFE0F תבניות', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
+            btnPrefsImport:'\u2B06\uFE0F תבניות', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
+            btnPrefsURL:'\u2B06\uFE0F תבניות \u00B7 URL', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
             prefsURLPrompt:'כתובת קובץ התבניות:',
             prefsExported: n => `✅ ${n} תבניות יוצאו.`,
             prefsImported: n => `✅ התבניות יובאו — יש לך כעת ${n}.`,
@@ -2490,7 +2581,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipEditLabel:'ערוך את תווית המנה',
             // Apply done
             applyStopping:'⏳ התבקשה עצירה — מסיים את החסימה הנוכחית, ואז מפסיק.',
-            applyStopped:(ok,ko)=>`⏹ נעצר — ${ok} יושמו, ${ko} נכשלו`,
+            applyStopped:(ok,ko)=>`⏹️ נעצר — ${ok} יושמו, ${ko} נכשלו`,
             applyDone: (ok,ko,total) => `✅ ${ok} תקין${ko?' — '+ko+' שגיאות':''} מתוך ${total} חסימות.`,
             // Multi-country alert
             multiCountryAlert: cc => `⚠️ בחירה מרובת-מדינות (${cc}).\nלא ניתן להשתמש בסינון חגים.\nבטל בחירת מקטעים ממדינה אחת בלבד.`,
@@ -2501,18 +2592,18 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepTitle:'בחר מקטעי מסלול (מזיז את המפה)',
             sweepProgress: (done,total,n) => `סורק… ${done}/${total} — ${n} מקטעים`,
             sweepDone: n => `✅ ${n} מקטעים נבחרו לאורך המסלול.`,
-            sweepStopped: n => `⏹ נעצר — ${n} מקטעים נבחרו.`,
-            sweepConfirm: (a,km) => `מסלול זה הוא כ-${km} ק"מ (${a} תזוזות מפה). הסריקה עלולה להימשך זמן מה ותזיז את התצוגה. להמשיך?`,
+            sweepStopped: n => `⏹️ נעצר — ${n} מקטעים נבחרו.`,
+            sweepConfirm: (a,km) => `מסלול זה הוא כ-${km} ק״מ (${a} תזוזות מפה). הסריקה עלולה להימשך זמן מה ותזיז את התצוגה. להמשיך?`,
             lotsBtnTitle:'פצל מסלול ארוך למנות חסימה (מזיז את המפה)',
             lotsNeedConfig:'⚠️ הגדר תחילה את החסימה בלשונית ההגדרה (תקופה, שעות, כיוון…), ואז נסה שוב.',
             lotsConfirm: n => `מסלול זה יפוצל ל-${n} מנות. המפה תזוז אוטומטית כדי לטעון כל שטח — זה תקין ועלול להימשך זמן מה. לייצר את החסימות בתור?`,
             lotsProgress: (done,total,added,seg) => `מפצל למנות… ${done}/${total} — ${added} מנות, ${seg} מקטעים`,
             lotsWhyMoving:'המפה זזה כדי לטעון את מקטעי כל מנה. אל תיגע במפה במהלך הפעולה.',
             lotsDone: (added,seg) => `✅ ${added} מנות נוספו לתור (${seg} מקטעים). ראה את לשונית ההגדרה לבדיקה ויישום.`,
-            lotsStopped: (added,seg) => `⏹ נעצר — ${added} מנות כבר בתור (${seg} מקטעים).`,
+            lotsStopped: (added,seg) => `⏹️ נעצר — ${added} מנות כבר בתור (${seg} מקטעים).`,
             applyLotFocus: (k,n) => `📦 מנה ${k}/${n}: ממרכז את המפה כדי לטעון את המקטעים…`,
             applyLotDone: (k,n) => `📦 מנה ${k}/${n} יושמה. בדוק במפה, ואז המשך.`,
-            applyLotNext:'▶ המשך (מנה הבאה)',
+            applyLotNext:'▶️ המשך (מנה הבאה)',
             lotRowLabel: (i,n) => `מנה ${i}/${n}`,
             lotStatusTodo:'לביצוע',
             lotStatusDone:'מוגדרת',
@@ -2550,13 +2641,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'התוויות והסוגים מגיעים מ-WME. המספר מציין כמה מקטעים מסוג זה נמצאים באזור המשורטט.',
             polyTypesApplied: (n,tot) => `✅ ${n} מתוך ${tot} מקטעים נשמרו באזור.`,
             polyTypesEmpty:'אין מקטעים מסוגים אלה באזור.',
-            polyKmlBtn:'\u2B07 אזור \u00B7 KML', tipPolyKmlBtn:'הורד את האזור המשורטט בפורמט KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 אזור \u00B7 WKT', tipPolyWktBtn:'העתק את האזור המשורטט כ-POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F אזור \u00B7 KML', tipPolyKmlBtn:'הורד את האזור המשורטט בפורמט KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F אזור \u00B7 WKT', tipPolyWktBtn:'העתק את האזור המשורטט כ-POLYGON(…) WKT',
             polyWktCopied: n => `✅ האזור הועתק כ-WKT (${n} פינות).`,
             polyWktCopy:'העתק את האזור בפורמט WKT:',
             polyKmlDone: f => `✅ ${f} הורד.`,
             polyNoZone:'לא שורטט אזור.',
-            polyImportBtn:'\u2B06 אזור',
+            polyImportBtn:'\u2B06\uFE0F אזור',
             tipPolyImportBtn:'טען אזור מחדש מ-POLYGON(…) WKT או מקובץ KML',
             polyImportTitle:'ייבוא אזור',
             polyImportWktLabel:'הדבק POLYGON(…) WKT',
@@ -2629,27 +2720,27 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbLangAuto: l => `אוטומטי — WME (${l})`,
             sbDateFormat:'פורמט תאריך',
             sbDateDmy:'DD/MM/YYYY (אירופה, עולמי)',
-            sbDateMdy:'MM/DD/YYYY (ארה"ב)',
+            sbDateMdy:'MM/DD/YYYY (ארה״ב)',
             sbDateIso:'YYYY-MM-DD (ISO)',
             sbDateAuto:'(זוהה אוטומטית)',
             sbDateScope:'חל על התור, היומנים והייצוא. שדות הקלט, לעומת זאת, פועלים לפי שפת הדפדפן שלך.',
             helpH1:'🚀 התחלה מהירה', helpH2:'⚙️ הגדרת חסימה',
             helpH3:'📋 תור', helpH4:'📥 ייבוא קובץ',
             helpH5:'💾 תבניות', helpH6:'⚠️ שגיאות נפוצות ומגבלות', helpH7:'🖥️ סרגל צד / העדפות',
-            helpH8:'🗺 מסלולים',
+            helpH8:'🗺️ מסלולים',
             helpH9:'🔍 חיפוש חסימות',
             helpH10:'📦 מסלולים ארוכים: מצב מנות',
-            helpH11:'🔀 חסימת פניות', helpH12:'⬇ שני ייצואי ה-CSV',
+            helpH11:'🔀 חסימת פניות', helpH12:'⬇️ שני ייצואי ה-CSV',
             helpH13:'🏷️ מקור (שותף)',
-            helpS1:'<b>בחר</b> מקטע אחד או יותר במפת WME — או <b>שרטט אזור</b> מלשונית ⚙ הגדרה',
+            helpS1:'<b>בחר</b> מקטע אחד או יותר במפת WME — או <b>שרטט אזור</b> מלשונית ⚙️ הגדרה',
             helpS2:'לחץ על כפתור 🚧 הגלוי במפה (גרור למיקום מחדש)',
-            helpS3:'בלשונית <b>⚙ הגדרה</b>, קבע את פרמטרי החסימה (תקופה, לוח זמנים, ימים…)',
-            helpS4:'לחץ <b>✔ אשר והוסף לתור</b>',
+            helpS3:'בלשונית <b>⚙️ הגדרה</b>, קבע את פרמטרי החסימה (תקופה, לוח זמנים, ימים…)',
+            helpS4:'לחץ <b>✔️ אשר והוסף לתור</b>',
             helpS5:'חזור על כך עבור מקטעים אחרים במידת הצורך',
-            helpS6:'לחץ <b>▶ החל</b> כדי ליצור את החסימות ב-WME',
+            helpS6:'לחץ <b>▶️ החל</b> כדי ליצור את החסימות ב-WME',
         },
         it: {
-            tabCfg:'⚙ Configura', tabCsv:'\uD83D\uDCE5 Importa',
+            tabCfg:'⚙️ Configura', tabCsv:'\uD83D\uDCE5 Importa',
             impReconnu: (f,ty) => `✅ ${f} — riconosciuto: ${ty}`,
             impInconnu: f => `❌ ${f} — formato non riconosciuto. Accettati: CSV di chiusure, GPX, KML, KMZ, GeoJSON, Shapefile, preset WCT o POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — importazione non riuscita: ${m}`,
@@ -2664,15 +2755,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnMultiSel:'Seleziona un solo segmento alla volta.',
             tnSegLabel: n => `Segmento selezionato: ${n}`,
             tnExtremity:'Estremità', tnNodeA:'Nodo A', tnNodeB:'Nodo B',
-            tnNotEditable:'⚠ svolte non modificabili su questo nodo',
+            tnNotEditable:'⚠️ svolte non modificabili su questo nodo',
             tnTurnsFrom:'Svolte da questo segmento', tnAll:'Tutte', tnNone:'Nessuna',
             tnAllowed:'consentita', tnForbidden:'vietata',
             tnNoTurns:'Nessuna svolta su questa estremità.',
             tnNotClosable:'non chiudibile', tnNotClosableTip:'Questa svolta non esiste nel modello dati di WME (tipico delle inversioni a U): l’SDK rifiuta di chiuderla.',
             colTurn:'Svolta', colTurnTip:'Estremità e direzione della svolta chiusa',
             csvTurnOnly:'⚠️ La coda contiene solo chiusure di svolta: il formato WME Advanced Closures non può rappresentarle. Niente da esportare.',
-            btnCsvAc:'\u2B07 Coda \u00B7 CSV AC', btnCsvAcTip:'Esporta le chiusure di SEGMENTI nel formato WME Advanced Closures (i lotti di svolte sono esclusi: quel formato non può rappresentarli).',
-            btnCsvTurn:'\u2B07 Coda \u00B7 CSV Svolte', btnCsvTurnTip:'Esporta le chiusure di SVOLTE nel formato WCT (reimportabile in WCT; non leggibile da Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F Coda \u00B7 CSV AC', btnCsvAcTip:'Esporta le chiusure di SEGMENTI nel formato WME Advanced Closures (i lotti di svolte sono esclusi: quel formato non può rappresentarli).',
+            btnCsvTurn:'\u2B07\uFE0F Coda \u00B7 CSV Svolte', btnCsvTurnTip:'Esporta le chiusure di SVOLTE nel formato WCT (reimportabile in WCT; non leggibile da Advanced Closures).',
             csvNoTurns:'Nessuna chiusura di svolta da esportare.',
             csvNothing:'Non c’è più niente da esportare: tutte le righe sono state eliminate.',
             // Tab and button tooltips
@@ -2681,7 +2772,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipTabCsv:'Importa chiusure da un file CSV (formato WME Advanced Closures).',
             tipTabGpx:'Carica un tracciato (GPX, KML, KMZ, GeoJSON, Shapefile) e seleziona automaticamente i segmenti che percorre.',
             tipTabPre:'Salva e richiama configurazioni di chiusura tipiche.',
-            tipTabSrc:'Cerca le chiusure esistenti nella vista: per stato, date, motivo o evento MTE.',
+            tipTabSrc:'Cerca le chiusure esistenti \u2014 segmenti e svolte \u2014 nella vista o fino a 50 km: per stato, date, motivo, evento MTE o partner.',
             tipTabEach:'Una chiusura al giorno, agli stessi orari.',
             tipTabRepeat:'Più chiusure al giorno, ripetute a intervallo regolare.',
             tipBtnValidate:'Genera le occorrenze da questa impostazione e aggiungile alla coda. In questa fase non viene scritto nulla sulla mappa.',
@@ -2695,10 +2786,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetConfirm:'Salva la configurazione attuale con questo nome.',
             tipPresetCancel:'Chiudi senza salvare.',
             // Extremities with no closable turn
-            tnOrphan:'⚠ Nessuna estremità di questo segmento consente di chiudere una svolta.',
+            tnOrphan:'⚠️ Nessuna estremità di questo segmento consente di chiudere una svolta.',
             tnOrphanHint:'Entrambe le estremità sono vicoli ciechi, o portano solo a inversioni a U, assenti dal modello dati di WME.',
             tnEndTip: (nid,n) => `Nodo ${nid} · ${n} svolta/e chiudibile/i`,
-            tnEndDead: lbl => `⚠ ${lbl} non porta ad alcuna svolta chiudibile: estremità disattivata.`,
+            tnEndDead: lbl => `⚠️ ${lbl} non porta ad alcuna svolta chiudibile: estremità disattivata.`,
             tnEndDeadTip:'Vicolo cieco, o solo inversioni a U: niente da chiudere su questa estremità.',
             csvTurnDone: n => `📥 ${n} riga/righe di svolta esportate nel formato WCT.`,
             csvTurnAdded: (n,ko) => `✅ ${n} chiusura/e di svolta aggiunte alla coda${ko?', '+ko+' riga/righe ignorate':''}.`,
@@ -2713,7 +2804,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnBannerClear:'Torna a una chiusura di segmenti',
             tnNoneSelected:'Seleziona almeno una svolta.',
             tnEntryDetail: (nt,nc,st) => `${nt} svolta/e · ${nc} chiusura/e · ${st}`,
-            tabPre:'💾 Preset', tabGpx:'🗺 Tracciati', tabSrc:'🔍 Cerca', tabHelp:'❓', tabHelpTitle:'Aiuto',
+            tabPre:'💾 Preset', tabGpx:'🗺️ Tracciati', tabSrc:'🔍 Cerca', tabHelp:'❓', tabHelpTitle:'Aiuto',
             // Search tab
             srcSectionTime:'📅 Finestra temporale',
             srcLblStartAfter:'Inizio dopo', srcLblStartBefore:'Inizio prima',
@@ -2725,7 +2816,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnSearching:'⏳ Ricerca in corso…',
             srcLoadingZone: km => `Ricerca su ${km} × ${km} km…`,
             srcBtnClear:'Cancella',
-            srcNoResults:'Nessun segmento trovato corrispondente a questi criteri.',
+            srcNoResults:'Nessun risultato con questi criteri. Controlla i filtri compressi: quelli attivi hanno un punto rosso.',
             // Search: segment / turn targets
             srcSectionTarget:'🎯 Cosa cercare', srcTgtSeg:'Segmenti', srcTgtTurn:'Svolte',
             srcTipTime:'Filtra sulle date di inizio e fine delle chiusure. I limiti sono facoltativi e combinati con E. Compresso per impostazione predefinita: è il filtro meno usato.',
@@ -2739,14 +2830,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcZoneFail: e => `❌ Ricerca dell’area fallita (${e}) — ritorno alla vista attuale.`,
             srcNameOffView:'Segmento fuori dalla vista: il suo nome non è caricato. Clicca 🎯 per andarci.',
             srcTipTarget:'Scegli cosa deve restituire la ricerca. Entrambi per impostazione predefinita.',
-            srcPickTarget:'⚠ Seleziona almeno un obiettivo: Segmenti o Svolte.',
+            srcPickTarget:'⚠️ Seleziona almeno un obiettivo: Segmenti o Svolte.',
             srcResultsSeg: n => `${n} segmento/i con una chiusura`,
             srcResultsTurn: n => `${n} svolta/e con una chiusura`,
             srcColTurn:'Svolta', srcTipColTurn:'Ordina per svolta (freccia e strade)',
             srcTipCenterTurn:'Centra la mappa sul nodo di questa svolta',
-            srcBtnExportSeg:'\u2B07 Risultati \u00B7 CSV AC',
-            srcTipExportSeg:'Esporta le chiusure di segmento TROVATE, nel formato WME Advanced Closures. Niente a che vedere con la coda. ⚠ Il flag "nodi chiusi" non può essere ripristinato: l’SDK non lo rilegge.',
-            srcBtnExportTurn:'\u2B07 Risultati \u00B7 CSV Svolte',
+            srcBtnExportSeg:'\u2B07\uFE0F Risultati \u00B7 CSV AC',
+            srcTipExportSeg:'Esporta le chiusure di segmento TROVATE, nel formato WME Advanced Closures. Niente a che vedere con la coda. ⚠️ Il flag "nodi chiusi" non può essere ripristinato: l’SDK non lo rilegge.',
+            srcBtnExportTurn:'\u2B07\uFE0F Risultati \u00B7 CSV Svolte',
             srcTipExportTurn:'Esporta le chiusure di svolta TROVATE, nel formato WCT. Niente a che vedere con la coda.',
             srcExportedSeg: n => `📥 ${n} chiusura/e di segmento esportate.`,
             srcExportedTurn: n => `📥 ${n} chiusura/e di svolta esportate.`,
@@ -2772,7 +2863,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipRangeStart:'Primo giorno dell’intervallo su cui la chiusura viene ripetuta.',
             tipRangeEnd:'Ultimo giorno dell’intervallo. Un’occorrenza che va oltre questa data non viene generata.',
             tipStartTime:'Ora in cui la chiusura inizia ogni giorno. I cambi di ora legale sono gestiti automaticamente.',
-            tipDurTime:'Durata di ogni chiusura (o:mm). Passa a Ora di fine col pulsante ⏱.',
+            tipDurTime:'Durata di ogni chiusura (o:mm). Passa a Ora di fine col pulsante ⏱️.',
             tipEndTime:'Ora di fine di ogni chiusura. Se precedente all’ora di inizio, la chiusura prosegue al giorno dopo (badge G+1).',
             tipReason:'Testo mostrato in WME per identificare la chiusura. Il pulsante 📌 inserisce un’emoji al cursore.',
             tipMteSel:'Collega le chiusure a un Major Traffic Event (MTE). 💡 La lista si riempie solo dopo aver aperto la scheda Eventi di WME: aprila, poi clicca ↻.',
@@ -2785,7 +2876,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcProvNoneTip:'Chiusura da editor: nessun partner attribuito.',
             srcNoClosures:'Nessuna chiusura caricata nella vista attuale.',
             srcResults: n => `${n} segmento/i trovati`,
-            srcBtnGoCfg:'⚙ Passa a Configura',
+            srcBtnGoCfg:'⚙️ Passa a Configura',
             srcLoading:'Ricerca in corso…',
             srcSectionStatus:'💡 Stato',
             srcStatusAll:'Tutti',
@@ -2833,7 +2924,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblStart:'Inizio', lblEnd:'Fine',
             lblStartTime:'Ora di inizio', lblDurTime:'Durata o:mm', lblDurDay:'+Giorni',
             lblEndTime:'Ora di fine',
-            btnDur:'⏱ Durata', btnEndTime:'⏱ Ora di fine',
+            btnDur:'⏱️ Durata', btnEndTime:'⏱️ Ora di fine',
             lblToggleDur:'DUR', lblToggleEnd:'FINE',
             lblDuration:'Durata',
             jpnPrefix:'G+',
@@ -2864,11 +2955,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
-            btnValidate:'✔ Convalida e aggiungi alla coda',
-            btnStop:'⏹ Ferma', btnStopping:'⏳ Arresto…', btnApply:'▶ Applica', btnClear:'🗑 Cancella',
+            btnValidate:'✔️ Convalida e aggiungi alla coda',
+            btnStop:'⏹️ Ferma', btnStopping:'⏳ Arresto…', btnApply:'▶️ Applica', btnClear:'🗑️ Cancella',
             dropText:'📥 Clicca o trascina qui un file',
             dropHint:'Il formato viene riconosciuto da solo',
-            gpxDropText:'🗺 Clicca o trascina qui un file',
+            gpxDropText:'🗺️ Clicca o trascina qui un file',
             gpxDropHint:'Formati accettati : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — i livelli sono cumulativi',
             // Coverage
             covTitle:'Verifica i segmenti del percorso non selezionati',
@@ -2919,13 +3010,24 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetLoad:'Carica', tipPresetDel:'Elimina',
             fabNoSeg:'Seleziona segmenti sulla mappa',
             btnCollapse:'Comprimi', btnClose:'Chiudi',
+            btnKeys:'Scorciatoie da tastiera e gesti del mouse',
+            keysTitle:'Scorciatoie e gesti',
+            keysSecKbd:'Tastiera', keysSecMouse:'Mouse',
+            keyEsc:'Esc', keyEnter:'Invio',
+            keysEscApply:'Interrompe l\u2019applicazione o la scansione in corso. Funziona anche quando la maschera \u00ABSalvataggio\u00BB di WME copre il pulsante Stop.',
+            keysEscZone:'Annulla le modifiche al contorno e ripristina il tracciato precedente.',
+            keysPreset:'Conferma / annulla il nome di un preset.',
+            keysDblClick:'Doppio clic nell\u2019area', keysDblClickD:'Riapre il pannello dell\u2019area disegnata.',
+            keysRightClick:'Clic destro su un vertice', keysRightClickD:'Elimina quel vertice (il contorno ne mantiene sempre tre).',
+            keysMidPoint:'Clic su un punto vuoto', keysMidPointD:'Inserisce un vertice in quel punto e lo posiziona subito.',
+            keysDrag:'Trascina la barra del titolo', keysDragD:'Sposta il pannello. Il pulsante flottante si sposta allo stesso modo.',
             presetColName:'Nome', presetColDesc:'Descrizione',
             presetColTime:'Orario', presetColDir:'Dir',
             presetNamePh:'Nome del preset…',
             presetPopupTitle:'💾 Salva preset',
-            btnPrefsExport:'\u2B07 Preset', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
-            btnPrefsImport:'\u2B06 Preset', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
-            btnPrefsURL:'\u2B06 Preset \u00B7 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
+            btnPrefsExport:'\u2B07\uFE0F Preset', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
+            btnPrefsImport:'\u2B06\uFE0F Preset', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
+            btnPrefsURL:'\u2B06\uFE0F Preset \u00B7 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
             prefsURLPrompt:'Indirizzo del file dei preset:',
             prefsExported: n => `✅ ${n} preset esportati.`,
             prefsImported: n => `✅ Preset importati — ora ne hai ${n}.`,
@@ -2982,7 +3084,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipEditLabel:'Modifica l’etichetta di questo lotto',
             // Apply done
             applyStopping:'⏳ Arresto richiesto — completo la chiusura attuale, poi interrompo.',
-            applyStopped:(ok,ko)=>`⏹ Interrotto — ${ok} applicate, ${ko} fallite`,
+            applyStopped:(ok,ko)=>`⏹️ Interrotto — ${ok} applicate, ${ko} fallite`,
             applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' errore/i':''} su ${total} chiusura/e.`,
             // Multi-country alert
             multiCountryAlert: cc => `⚠️ Selezione multi-paese (${cc}).\nImpossibile usare il filtro dei giorni festivi.\nDeseleziona i segmenti di un solo paese.`,
@@ -2993,7 +3095,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepTitle:'Seleziona i segmenti del tracciato (sposta la mappa)',
             sweepProgress: (done,total,n) => `Scansione… ${done}/${total} — ${n} segmento/i`,
             sweepDone: n => `✅ ${n} segmento/i selezionati lungo il tracciato.`,
-            sweepStopped: n => `⏹ Interrotto — ${n} segmento/i selezionati.`,
+            sweepStopped: n => `⏹️ Interrotto — ${n} segmento/i selezionati.`,
             sweepConfirm: (a,km) => `Questo tracciato è ~${km} km (${a} spostamenti mappa). La scansione può richiedere tempo e sposterà la vista. Continuare?`,
             lotsBtnTitle:'Dividi un tracciato lungo in lotti di chiusura (sposta la mappa)',
             lotsNeedConfig:'⚠️ Imposta prima la chiusura nella scheda Configura (periodo, orari, direzione…), poi riprova.',
@@ -3001,10 +3103,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsProgress: (done,total,added,seg) => `Divisione in lotti… ${done}/${total} — ${added} lotto/i, ${seg} segmento/i`,
             lotsWhyMoving:'La mappa si sposta per caricare i segmenti di ogni lotto. Non toccare la mappa durante l’operazione.',
             lotsDone: (added,seg) => `✅ ${added} lotto/i aggiunti alla coda (${seg} segmento/i). Vedi la scheda Configura per rivedere e applicare.`,
-            lotsStopped: (added,seg) => `⏹ Interrotto — ${added} lotto/i già in coda (${seg} segmento/i).`,
+            lotsStopped: (added,seg) => `⏹️ Interrotto — ${added} lotto/i già in coda (${seg} segmento/i).`,
             applyLotFocus: (k,n) => `📦 Lotto ${k}/${n}: centro la mappa per caricare i segmenti…`,
             applyLotDone: (k,n) => `📦 Lotto ${k}/${n} applicato. Controlla sulla mappa, poi continua.`,
-            applyLotNext:'▶ Continua (lotto successivo)',
+            applyLotNext:'▶️ Continua (lotto successivo)',
             lotRowLabel: (i,n) => `Lotto ${i}/${n}`,
             lotStatusTodo:'da fare',
             lotStatusDone:'configurato',
@@ -3042,13 +3144,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Etichette e tipi forniti da WME. Il numero indica i segmenti di quel tipo nell’area disegnata.',
             polyTypesApplied: (n,tot) => `✅ ${n} segmento/i tenuti su ${tot} nell’area.`,
             polyTypesEmpty:'Nessun segmento di questi tipi nell’area.',
-            polyKmlBtn:'\u2B07 Area \u00B7 KML', tipPolyKmlBtn:'Scarica l’area disegnata in formato KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Area \u00B7 WKT', tipPolyWktBtn:'Copia l’area disegnata come POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Area \u00B7 KML', tipPolyKmlBtn:'Scarica l’area disegnata in formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Area \u00B7 WKT', tipPolyWktBtn:'Copia l’area disegnata come POLYGON(…) WKT',
             polyWktCopied: n => `✅ Area copiata come WKT (${n} vertici).`,
             polyWktCopy:'Copia l’area in formato WKT:',
             polyKmlDone: f => `✅ ${f} scaricato.`,
             polyNoZone:'Nessuna area disegnata.',
-            polyImportBtn:'\u2B06 Area',
+            polyImportBtn:'\u2B06\uFE0F Area',
             tipPolyImportBtn:'Ricarica un’area da un POLYGON(…) WKT o da un file KML',
             polyImportTitle:'Importa un’area',
             polyImportWktLabel:'Incolla un POLYGON(…) WKT',
@@ -3128,21 +3230,21 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH1:'🚀 Avvio rapido', helpH2:'⚙️ Configura una chiusura',
             helpH3:'📋 Coda', helpH4:'📥 Importare un file',
             helpH5:'💾 Preset', helpH6:'⚠️ Errori comuni e limiti', helpH7:'🖥️ Barra laterale / Preferenze',
-            helpH8:'🗺 Tracciati',
+            helpH8:'🗺️ Tracciati',
             helpH9:'🔍 Ricerca chiusure',
             helpH10:'📦 Tracciati lunghi: modalità lotti',
-            helpH11:'🔀 Chiudere svolte', helpH12:'⬇ Le due esportazioni CSV',
+            helpH11:'🔀 Chiudere svolte', helpH12:'⬇️ Le due esportazioni CSV',
             helpH13:'🏷️ Fonte (partner)',
-            helpS1:'<b>Seleziona</b> uno o più segmenti sulla mappa WME — oppure <b>disegna un’area</b> dalla scheda ⚙ Configura',
+            helpS1:'<b>Seleziona</b> uno o più segmenti sulla mappa WME — oppure <b>disegna un’area</b> dalla scheda ⚙️ Configura',
             helpS2:'Clicca il pulsante 🚧 visibile sulla mappa (trascina per riposizionarlo)',
-            helpS3:'Nella scheda <b>⚙ Configura</b>, imposta i parametri della chiusura (periodo, orario, giorni…)',
-            helpS4:'Clicca <b>✔ Convalida e aggiungi alla coda</b>',
+            helpS3:'Nella scheda <b>⚙️ Configura</b>, imposta i parametri della chiusura (periodo, orario, giorni…)',
+            helpS4:'Clicca <b>✔️ Convalida e aggiungi alla coda</b>',
             helpS5:'Ripeti per altri segmenti se necessario',
-            helpS6:'Clicca <b>▶ Applica</b> per creare le chiusure in WME',
+            helpS6:'Clicca <b>▶️ Applica</b> per creare le chiusure in WME',
         },
         de: {
             // Reiter
-            tabCfg:'\u2699 Einrichten', tabCsv:'\uD83D\uDCE5 Import',
+            tabCfg:'\u2699\uFE0F Einrichten', tabCsv:'\uD83D\uDCE5 Import',
             impReconnu: (f,ty) => `✅ ${f} — erkannt: ${ty}`,
             impInconnu: f => `❌ ${f} — Format nicht erkannt. Angenommen: Sperrungs-CSV, GPX, KML, KMZ, GeoJSON, Shapefile, WCT-Vorlagen oder POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — Import fehlgeschlagen: ${m}`,
@@ -3157,15 +3259,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnMultiSel:'W\u00E4hle jeweils nur ein Segment.',
             tnSegLabel: n => `Gew\u00E4hltes Segment: ${n}`,
             tnExtremity:'Ende', tnNodeA:'Knoten A', tnNodeB:'Knoten B',
-            tnNotEditable:'\u26A0 Abbieger an diesem Knoten nicht bearbeitbar',
+            tnNotEditable:'\u26A0\uFE0F Abbieger an diesem Knoten nicht bearbeitbar',
             tnTurnsFrom:'Abbieger von diesem Segment', tnAll:'Alle', tnNone:'Keine',
             tnAllowed:'erlaubt', tnForbidden:'gesperrt',
             tnNoTurns:'Kein Abbieger an diesem Ende.',
             tnNotClosable:'nicht sperrbar', tnNotClosableTip:'Dieser Abbieger existiert nicht im WME-Datenmodell (typisch bei Wendem\u00F6glichkeiten): das SDK lehnt die Sperrung ab.',
             colTurn:'Abbieger', colTurnTip:'Ende und Richtung des gesperrten Abbiegers',
             csvTurnOnly:'\u26A0\uFE0F Die Warteschlange enth\u00E4lt nur Abbiegersperrungen: das Format WME Advanced Closures kann sie nicht abbilden. Nichts zu exportieren.',
-            btnCsvAc:'\u2B07 Liste \u00B7 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
-            btnCsvTurn:'\u2B07 Liste \u00B7 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
+            btnCsvAc:'\u2B07\uFE0F Liste \u00B7 CSV AC', btnCsvAcTip:'SEGMENT-Sperrungen im Format WME Advanced Closures exportieren (Abbieger-Pakete bleiben aussen vor: dieses Format kann sie nicht abbilden).',
+            btnCsvTurn:'\u2B07\uFE0F Liste \u00B7 CSV Abbieger', btnCsvTurnTip:'ABBIEGER-Sperrungen im WCT-Format exportieren (in WCT reimportierbar; von Advanced Closures nicht lesbar).',
             csvNoTurns:'Keine Abbiegersperrung zum Exportieren.',
             csvNothing:'Nichts mehr zu exportieren: alle Zeilen wurden gel\u00F6scht.',
             // Tooltips der Reiter und Schaltflaechen
@@ -3174,7 +3276,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipTabCsv:'Sperrungen aus einer CSV-Datei importieren (Format WME Advanced Closures).',
             tipTabGpx:'Einen Track laden (GPX, KML, KMZ, GeoJSON, Shapefile) und die Segmente entlang davon automatisch ausw\u00E4hlen.',
             tipTabPre:'Typische Sperrungs-Einstellungen speichern und wieder aufrufen.',
-            tipTabSrc:'Vorhandene Sperrungen der Ansicht durchsuchen: nach Status, Datum, Grund oder MTE-Ereignis.',
+            tipTabSrc:'Vorhandene Sperrungen suchen \u2014 Segmente und Abbieger \u2014 in der Ansicht oder bis 50 km: nach Status, Datum, Grund, MTE-Ereignis oder Partner.',
             tipTabEach:'Eine Sperrung pro Tag, zu denselben Uhrzeiten.',
             tipTabRepeat:'Mehrere Sperrungen pro Tag, in regelm\u00E4\u00DFigem Abstand wiederholt.',
             tipBtnValidate:'Die Termine aus dieser Einstellung erzeugen und zur Warteschlange hinzuf\u00FCgen. Es wird noch nichts auf die Karte geschrieben.',
@@ -3188,10 +3290,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetConfirm:'Aktuelle Einstellung unter diesem Namen speichern.',
             tipPresetCancel:'Schlie\u00DFen ohne zu speichern.',
             // Enden ohne sperrbaren Abbieger
-            tnOrphan:'\u26A0 An keinem Ende dieses Segments l\u00E4sst sich ein Abbieger sperren.',
+            tnOrphan:'\u26A0\uFE0F An keinem Ende dieses Segments l\u00E4sst sich ein Abbieger sperren.',
             tnOrphanHint:'Beide Enden sind Sackgassen oder f\u00FChren nur zu Wendem\u00F6glichkeiten, die im WME-Datenmodell fehlen.',
             tnEndTip: (nid,n) => `Knoten ${nid} \u00B7 ${n} sperrbare(r) Abbieger`,
-            tnEndDead: lbl => `\u26A0 ${lbl} f\u00FChrt zu keinem sperrbaren Abbieger: Ende deaktiviert.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} f\u00FChrt zu keinem sperrbaren Abbieger: Ende deaktiviert.`,
             tnEndDeadTip:'Sackgasse oder nur Wendem\u00F6glichkeiten: an diesem Ende ist nichts sperrbar.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} Abbieger-Zeile(n) im WCT-Format exportiert.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} Abbiegersperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Zeile(n) \u00FCbersprungen':''}.`,
@@ -3206,7 +3308,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnBannerClear:'Zur\u00FCck zu einer Segmentsperrung',
             tnNoneSelected:'Kreuze mindestens einen Abbieger an.',
             tnEntryDetail: (nt,nc,st) => `${nt} Abbieger \u00B7 ${nc} Sperrung(en) \u00B7 ${st}`,
-            tabPre:'\uD83D\uDCBE Vorlagen', tabGpx:'\uD83D\uDDFA Tracks', tabSrc:'\uD83D\uDD0D Suche', tabHelp:'\u2753', tabHelpTitle:'Hilfe',
+            tabPre:'\uD83D\uDCBE Vorlagen', tabGpx:'\uD83D\uDDFA\uFE0F Tracks', tabSrc:'\uD83D\uDD0D Suche', tabHelp:'\u2753', tabHelpTitle:'Hilfe',
             // Reiter Suche
             srcSectionTime:'\uD83D\uDCC5 Zeitfenster',
             srcLblStartAfter:'Beginn nach dem', srcLblStartBefore:'Beginn vor dem',
@@ -3218,7 +3320,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnSearching:'\u23F3 Suche\u2026',
             srcLoadingZone: km => `Suche \u00FCber ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Zur\u00FCcksetzen',
-            srcNoResults:'Keine Segmente gefunden, die diesen Kriterien entsprechen.',
+            srcNoResults:'Keine Treffer mit diesen Kriterien. Denk an die eingeklappten Filter: aktive tragen einen roten Punkt.',
             // Suche: Ziele Segmente / Abbieger
             srcSectionTarget:'\uD83C\uDFAF Wonach suchen', srcTgtSeg:'Segmente', srcTgtTurn:'Abbieger',
             srcTipTime:'Nach Start- und Enddatum der Sperrungen filtern. Grenzen optional, mit UND verknüpft. Standardmäßig eingeklappt: der am seltensten genutzte Filter.',
@@ -3232,14 +3334,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcZoneFail: e => `\u274C Gebietssuche fehlgeschlagen (${e}) \u2014 zur\u00FCck zur aktuellen Ansicht.`,
             srcNameOffView:'Segment au\u00DFerhalb der Ansicht: sein Name ist nicht geladen. Auf \uD83C\uDFAF klicken, um hinzugehen.',
             srcTipTarget:'W\u00E4hle, was die Suche liefern soll. Standardm\u00E4\u00DFig beides.',
-            srcPickTarget:'\u26A0 Kreuze mindestens ein Ziel an: Segmente oder Abbieger.',
+            srcPickTarget:'\u26A0\uFE0F Kreuze mindestens ein Ziel an: Segmente oder Abbieger.',
             srcResultsSeg: n => `${n} Segment(e) mit Sperrung`,
             srcResultsTurn: n => `${n} Abbieger mit Sperrung`,
             srcColTurn:'Abbieger', srcTipColTurn:'Nach Abbieger sortieren (Pfeil und Stra\u00DFen)',
             srcTipCenterTurn:'Karte auf den Knoten dieses Abbiegers zentrieren',
-            srcBtnExportSeg:'\u2B07 Ergebnisse \u00B7 CSV AC',
-            srcTipExportSeg:'Die GEFUNDENEN Segmentsperrungen im Format WME Advanced Closures exportieren. Hat nichts mit der Warteschlange zu tun. \u26A0 Das Kennzeichen «gesperrte Knoten» l\u00E4sst sich nicht wiederherstellen: das SDK liest es nicht zur\u00FCck.',
-            srcBtnExportTurn:'\u2B07 Ergebnisse \u00B7 CSV Abbieger',
+            srcBtnExportSeg:'\u2B07\uFE0F Ergebnisse \u00B7 CSV AC',
+            srcTipExportSeg:'Die GEFUNDENEN Segmentsperrungen im Format WME Advanced Closures exportieren. Hat nichts mit der Warteschlange zu tun. \u26A0\uFE0F Das Kennzeichen «gesperrte Knoten» l\u00E4sst sich nicht wiederherstellen: das SDK liest es nicht zur\u00FCck.',
+            srcBtnExportTurn:'\u2B07\uFE0F Ergebnisse \u00B7 CSV Abbieger',
             srcTipExportTurn:'Die GEFUNDENEN Abbiegersperrungen im WCT-Format exportieren. Hat nichts mit der Warteschlange zu tun.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} Segmentsperrung(en) exportiert.`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} Abbiegersperrung(en) exportiert.`,
@@ -3265,7 +3367,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipRangeStart:'Erster Tag des Zeitraums, \u00FCber den die Sperrung wiederholt wird.',
             tipRangeEnd:'Letzter Tag des Zeitraums. Ein Termin, der dar\u00FCber hinausreicht, wird nicht erzeugt.',
             tipStartTime:'Uhrzeit, zu der die Sperrung t\u00E4glich beginnt. Zeitumstellungen werden automatisch ber\u00FCcksichtigt.',
-            tipDurTime:'Dauer jeder Sperrung (h:mm). Wechsel zu Endzeit \u00FCber die Schaltfl\u00E4che \u23F1.',
+            tipDurTime:'Dauer jeder Sperrung (h:mm). Wechsel zu Endzeit \u00FCber die Schaltfl\u00E4che \u23F1\uFE0F.',
             tipEndTime:'Endzeit jeder Sperrung. Liegt sie vor der Startzeit, l\u00E4uft die Sperrung bis zum Folgetag (Kennzeichen T+1).',
             tipReason:'In WME angezeigter Text zur Kennzeichnung der Sperrung. Die Schaltfl\u00E4che \uD83D\uDCCC f\u00FCgt ein Emoji an der Cursorposition ein.',
             tipMteSel:'Die Sperrungen an ein Major Traffic Event (MTE) h\u00E4ngen. \uD83D\uDCA1 Die Liste f\u00FCllt sich erst, wenn der Reiter Ereignisse in WME ge\u00F6ffnet wurde: \u00F6ffne ihn und klicke dann auf \u21BB.',
@@ -3278,7 +3380,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcProvNoneTip:'Editor-Sperrung: kein Partner zugeschrieben.',
             srcNoClosures:'Keine Sperrungen in der aktuellen Ansicht geladen.',
             srcResults: n => `${n} Segment(e) gefunden`,
-            srcBtnGoCfg:'\u2699 Zu Einrichten wechseln',
+            srcBtnGoCfg:'\u2699\uFE0F Zu Einrichten wechseln',
             srcLoading:'Suche l\u00E4uft\u2026',
             srcSectionStatus:'\uD83D\uDCA1 Status',
             srcStatusAll:'Alle',
@@ -3326,7 +3428,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblStart:'Beginn', lblEnd:'Ende',
             lblStartTime:'Startzeit', lblDurTime:'Dauer h:mm', lblDurDay:'+Tage',
             lblEndTime:'Endzeit',
-            btnDur:'\u23F1 Dauer', btnEndTime:'\u23F1 Endzeit',
+            btnDur:'\u23F1\uFE0F Dauer', btnEndTime:'\u23F1\uFE0F Endzeit',
             lblToggleDur:'DAUER', lblToggleEnd:'ENDE',
             lblDuration:'Dauer',
             jpnPrefix:'T+',
@@ -3357,11 +3459,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
-            btnValidate:'\u2714 Best\u00E4tigen und zur Warteschlange',
-            btnStop:'\u23F9 Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6 Anwenden', btnClear:'\uD83D\uDDD1 Leeren',
+            btnValidate:'\u2714\uFE0F Best\u00E4tigen und zur Warteschlange',
+            btnStop:'\u23F9\uFE0F Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6\uFE0F Anwenden', btnClear:'\uD83D\uDDD1\uFE0F Leeren',
             dropText:'\uD83D\uDCE5 Datei hier klicken oder ablegen',
             dropHint:'Das Format wird selbst erkannt',
-            gpxDropText:'\uD83D\uDDFA Datei hier klicken oder ablegen',
+            gpxDropText:'\uD83D\uDDFA\uFE0F Datei hier klicken oder ablegen',
             gpxDropHint:'Zul\u00E4ssige Formate\u00A0: GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) \u2014 Ebenen summieren sich',
             // Abdeckung
             covTitle:'Auf nicht ausgew\u00E4hlte Streckensegmente pr\u00FCfen',
@@ -3412,13 +3514,24 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetLoad:'Laden', tipPresetDel:'L\u00F6schen',
             fabNoSeg:'Segmente auf der Karte ausw\u00E4hlen',
             btnCollapse:'Einklappen', btnClose:'Schlie\u00DFen',
+            btnKeys:'Tastenk\u00FCrzel und Mausgesten',
+            keysTitle:'K\u00FCrzel und Gesten',
+            keysSecKbd:'Tastatur', keysSecMouse:'Maus',
+            keyEsc:'Esc', keyEnter:'Eingabe',
+            keysEscApply:'Bricht das laufende Anwenden oder Abfahren ab. Funktioniert auch, wenn die WME-Maske \u00ABSpeichern\u00BB den Stopp-Knopf verdeckt.',
+            keysEscZone:'Verwirft die \u00C4nderungen am Umriss und stellt die vorherige Form wieder her.',
+            keysPreset:'Best\u00E4tigt / verwirft den Namen einer Vorlage.',
+            keysDblClick:'Doppelklick im Bereich', keysDblClickD:'\u00D6ffnet das Fenster des gezeichneten Bereichs erneut.',
+            keysRightClick:'Rechtsklick auf einen Punkt', keysRightClickD:'L\u00F6scht diesen Punkt (der Umriss beh\u00E4lt immer drei).',
+            keysMidPoint:'Klick auf einen hohlen Punkt', keysMidPointD:'F\u00FCgt dort einen Punkt ein und setzt ihn gleich.',
+            keysDrag:'Titelleiste ziehen', keysDragD:'Verschiebt das Fenster. Der schwebende Knopf wird genauso verschoben.',
             presetColName:'Name', presetColDesc:'Beschreibung',
             presetColTime:'Zeitplan', presetColDir:'Richt.',
             presetNamePh:'Name der Vorlage\u2026',
             presetPopupTitle:'\uD83D\uDCBE Vorlage speichern',
-            btnPrefsExport:'\u2B07 Vorlagen', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
-            btnPrefsImport:'\u2B06 Vorlagen', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
-            btnPrefsURL:'\u2B06 Vorlagen \u00B7 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
+            btnPrefsExport:'\u2B07\uFE0F Vorlagen', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
+            btnPrefsImport:'\u2B06\uFE0F Vorlagen', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
+            btnPrefsURL:'\u2B06\uFE0F Vorlagen \u00B7 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
             prefsURLPrompt:'Adresse der Vorlagen-Datei:',
             prefsExported: n => `✅ ${n} Vorlage(n) exportiert.`,
             prefsImported: n => `✅ Vorlagen importiert — du hast jetzt ${n}.`,
@@ -3475,7 +3588,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipEditLabel:'Bezeichnung dieses Pakets \u00E4ndern',
             // Anwenden beendet
             applyStopping:'\u23F3 Stopp angefordert \u2014 die laufende Sperrung wird abgeschlossen, danach wird abgebrochen.',
-            applyStopped:(ok,ko)=>`\u23F9 Abgebrochen \u2014 ${ok} angewendet, ${ko} fehlgeschlagen`,
+            applyStopped:(ok,ko)=>`\u23F9\uFE0F Abgebrochen \u2014 ${ok} angewendet, ${ko} fehlgeschlagen`,
             applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' Fehler':''} von ${total} Sperrung(en).`,
             // Warnung mehrere L\u00E4nder
             multiCountryAlert: cc => `\u26A0\uFE0F Auswahl \u00FCber mehrere L\u00E4nder (${cc}).\nDer Feiertagsfilter kann nicht verwendet werden.\nW\u00E4hle Segmente aus nur einem Land ab.`,
@@ -3486,7 +3599,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sweepTitle:'Segmente des Tracks auswählen (verschiebt die Karte)',
             sweepProgress: (done,total,n) => `Abtastung… ${done}/${total} — ${n} Segment(e)`,
             sweepDone: n => `✅ ${n} Segment(e) entlang des Tracks ausgewählt.`,
-            sweepStopped: n => `⏹ Abgebrochen — ${n} Segment(e) ausgewählt.`,
+            sweepStopped: n => `⏹️ Abgebrochen — ${n} Segment(e) ausgewählt.`,
             sweepConfirm: (a,km) => `Dieser Track ist ~${km} km lang (${a} Kartenbewegungen). Die Abtastung kann etwas dauern und verschiebt die Ansicht. Fortfahren?`,
             lotsBtnTitle:'Langen Track in Sperr-Pakete aufteilen (verschiebt die Karte)',
             lotsNeedConfig:'⚠️ Richten Sie zuerst die Sperrung im Reiter Einrichten ein (Zeitraum, Uhrzeiten, Richtung…), dann erneut versuchen.',
@@ -3494,10 +3607,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsProgress: (done,total,added,seg) => `Aufteilung in Pakete… ${done}/${total} — ${added} Paket(e), ${seg} Segment(e)`,
             lotsWhyMoving:'Die Karte bewegt sich, um die Segmente jedes Pakets zu laden. Bewegen Sie die Karte währenddessen nicht.',
             lotsDone: (added,seg) => `✅ ${added} Paket(e) zur Warteschlange hinzugefügt (${seg} Segment(e)). Reiter Einrichten zum Prüfen und Anwenden.`,
-            lotsStopped: (added,seg) => `⏹ Abgebrochen — ${added} Paket(e) bereits in der Warteschlange (${seg} Segment(e)).`,
+            lotsStopped: (added,seg) => `⏹️ Abgebrochen — ${added} Paket(e) bereits in der Warteschlange (${seg} Segment(e)).`,
             applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
             applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
-            applyLotNext:'▶ Weiter (nächstes Paket)',
+            applyLotNext:'▶️ Weiter (nächstes Paket)',
             lotRowLabel: (i,n) => `Paket ${i}/${n}`,
             lotStatusTodo:'offen',
             lotStatusDone:'konfiguriert',
@@ -3535,13 +3648,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyTypesHint:'Bezeichnungen und Typen kommen von WME. Die Zahl nennt die Segmente dieses Typs im gezeichneten Bereich.',
             polyTypesApplied: (n,tot) => `✅ ${n} von ${tot} Segment(en) im Bereich behalten.`,
             polyTypesEmpty:'Kein Segment dieser Typen im Bereich.',
-            polyKmlBtn:'\u2B07 Bereich \u00B7 KML', tipPolyKmlBtn:'Den gezeichneten Bereich als KML herunterladen (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Bereich \u00B7 WKT', tipPolyWktBtn:'Den gezeichneten Bereich als POLYGON(…) WKT kopieren',
+            polyKmlBtn:'\u2B07\uFE0F Bereich \u00B7 KML', tipPolyKmlBtn:'Den gezeichneten Bereich als KML herunterladen (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Bereich \u00B7 WKT', tipPolyWktBtn:'Den gezeichneten Bereich als POLYGON(…) WKT kopieren',
             polyWktCopied: n => `✅ Bereich als WKT kopiert (${n} Eckpunkte).`,
             polyWktCopy:'Bereich als WKT kopieren:',
             polyKmlDone: f => `✅ ${f} heruntergeladen.`,
             polyNoZone:'Kein Bereich gezeichnet.',
-            polyImportBtn:'\u2B06 Bereich',
+            polyImportBtn:'\u2B06\uFE0F Bereich',
             tipPolyImportBtn:'Einen Bereich aus einem POLYGON(…) WKT oder einer KML-Datei neu laden',
             polyImportTitle:'Bereich importieren',
             polyImportWktLabel:'Ein POLYGON(…) WKT einfügen',
@@ -3621,20 +3734,20 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             helpH1:'\uD83D\uDE80 Schnellstart', helpH2:'\u2699\uFE0F Eine Sperrung einrichten',
             helpH3:'\uD83D\uDCCB Warteschlange', helpH4:'\uD83D\uDCE5 Datei importieren',
             helpH5:'\uD83D\uDCBE Vorlagen', helpH6:'\u26A0\uFE0F H\u00E4ufige Fehler & Grenzen', helpH7:'\uD83D\uDDA5\uFE0F Seitenleiste / Einstellungen',
-            helpH8:'\uD83D\uDDFA Tracks',
+            helpH8:'\uD83D\uDDFA\uFE0F Tracks',
             helpH9:'\uD83D\uDD0D Sperrungssuche',
             helpH10:'📦 Lange Tracks: Paket-Modus',
-            helpH11:'\uD83D\uDD00 Abbieger sperren', helpH12:'\u2B07 Die zwei CSV-Exporte',
+            helpH11:'\uD83D\uDD00 Abbieger sperren', helpH12:'\u2B07\uFE0F Die zwei CSV-Exporte',
             helpH13:'\uD83C\uDFF7\uFE0F Quelle (Partner)',
-            helpS1:'<b>Wähle</b> ein oder mehrere Segmente auf der WME-Karte aus — oder <b>zeichne einen Bereich</b> im Reiter ⚙ Einrichten',
+            helpS1:'<b>Wähle</b> ein oder mehrere Segmente auf der WME-Karte aus — oder <b>zeichne einen Bereich</b> im Reiter ⚙️ Einrichten',
             helpS2:'Klicke auf die Schaltfl\u00E4che \uD83D\uDEA7 auf der Karte (per Drag & Drop verschiebbar)',
-            helpS3:'Lege im Reiter <b>\u2699 Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
-            helpS4:'Klicke auf <b>\u2714 Best\u00E4tigen und zur Warteschlange</b>',
+            helpS3:'Lege im Reiter <b>\u2699\uFE0F Einrichten</b> deine Sperrungen fest (Zeitraum, Uhrzeit, Tage\u2026)',
+            helpS4:'Klicke auf <b>\u2714\uFE0F Best\u00E4tigen und zur Warteschlange</b>',
             helpS5:'Wiederhole dies bei Bedarf f\u00FCr weitere Segmente',
-            helpS6:'Klicke auf <b>\u25B6 Anwenden</b>, um die Sperrungen in WME anzulegen',
+            helpS6:'Klicke auf <b>\u25B6\uFE0F Anwenden</b>, um die Sperrungen in WME anzulegen',
         },
         es: {
-            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            tabCfg:'⚙️ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconocido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato no reconocido. Se aceptan: CSV de cierres, GPX, KML, KMZ, GeoJSON, Shapefile, preajustes WCT o POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — la importación falló: ${m}`,
@@ -3649,15 +3762,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnMultiSel:'Selecciona un solo segmento a la vez.',
             tnSegLabel: n => `Segmento seleccionado: ${n}`,
             tnExtremity:'Extremo', tnNodeA:'Nodo A', tnNodeB:'Nodo B',
-            tnNotEditable:'\u26A0 giros no editables en este nodo',
+            tnNotEditable:'\u26A0\uFE0F giros no editables en este nodo',
             tnTurnsFrom:'Giros desde este segmento', tnAll:'Todos', tnNone:'Ninguno',
             tnAllowed:'permitido', tnForbidden:'restringido',
             tnNoTurns:'No hay giros en este extremo.',
             tnNotClosable:'no cerrable', tnNotClosableTip:'Este giro no existe en el modelo de datos de WME (t\u00EDpico en los cambios de sentido): el SDK se niega a cerrarlo.',
             colTurn:'Giro', colTurnTip:'Extremo y direcci\u00F3n del giro cerrado',
             csvTurnOnly:'\u26A0\uFE0F La cola solo contiene cierres de giro: el formato WME Advanced Closures no puede representarlos. Nada que exportar.',
-            btnCsvAc:'\u2B07 Cola \u00B7 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
-            btnCsvTurn:'\u2B07 Cola \u00B7 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F Cola \u00B7 CSV AC', btnCsvAcTip:'Exportar los cierres de SEGMENTOS en formato WME Advanced Closures (los lotes de giros quedan fuera: ese formato no puede representarlos).',
+            btnCsvTurn:'\u2B07\uFE0F Cola \u00B7 CSV Giros', btnCsvTurnTip:'Exportar los cierres de GIROS en formato WCT (reimportable en WCT; no legible por Advanced Closures).',
             csvNoTurns:'No hay ning\u00FAn cierre de giro que exportar.',
             csvNothing:'Ya no hay nada que exportar: se han eliminado todas las l\u00EDneas.',
             // Descripciones de pestanas y botones
@@ -3666,7 +3779,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipTabCsv:'Importar cierres desde un archivo CSV (formato WME Advanced Closures).',
             tipTabGpx:'Cargar una traza (GPX, KML, KMZ, GeoJSON, Shapefile) y seleccionar autom\u00E1ticamente los segmentos que recorre.',
             tipTabPre:'Guardar y recuperar configuraciones de cierre habituales.',
-            tipTabSrc:'Buscar los cierres existentes de la vista: por estado, fechas, motivo o evento MTE.',
+            tipTabSrc:'Buscar cierres existentes \u2014 segmentos y giros \u2014 en la vista o hasta 50 km: por estado, fechas, motivo, evento MTE o socio.',
             tipTabEach:'Un cierre al d\u00EDa, a las mismas horas.',
             tipTabRepeat:'Varios cierres al d\u00EDa, repetidos a intervalos regulares.',
             tipBtnValidate:'Crear las ocurrencias a partir de esta configuraci\u00F3n y a\u00F1adirlas a la cola. Todav\u00EDa no se escribe nada en el mapa.',
@@ -3680,10 +3793,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetConfirm:'Guardar la configuraci\u00F3n actual con este nombre.',
             tipPresetCancel:'Cerrar sin guardar.',
             // Extremos sin giro cerrable
-            tnOrphan:'\u26A0 Ning\u00FAn extremo de este segmento permite cerrar un giro.',
+            tnOrphan:'\u26A0\uFE0F Ning\u00FAn extremo de este segmento permite cerrar un giro.',
             tnOrphanHint:'Sus dos extremos son callejones sin salida, o solo llevan a cambios de sentido, ausentes del modelo de datos de WME.',
             tnEndTip: (nid,n) => `Nodo ${nid} \u00B7 ${n} giro(s) cerrable(s)`,
-            tnEndDead: lbl => `\u26A0 ${lbl} no lleva a ning\u00FAn giro cerrable: extremo desactivado.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} no lleva a ning\u00FAn giro cerrable: extremo desactivado.`,
             tnEndDeadTip:'Callej\u00F3n sin salida, o solo cambios de sentido: aqu\u00ED no hay nada cerrable.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} l\u00EDnea(s) de giro exportada(s) en formato WCT.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} cierre(s) de giro a\u00F1adido(s) a la cola${ko?', '+ko+' l\u00EDnea(s) omitida(s)':''}.`,
@@ -3698,7 +3811,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tnBannerClear:'Volver a un cierre de segmentos',
             tnNoneSelected:'Marca al menos un giro.',
             tnEntryDetail: (nt,nc,st) => `${nt} giro(s) \u00B7 ${nc} cierre(s) \u00B7 ${st}`,
-            tabPre:'💾 Preajustes', tabGpx:'🗺 Trazas', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ayuda',
+            tabPre:'💾 Preajustes', tabGpx:'🗺️ Trazas', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ayuda',
             // Pestaña Buscar
             srcSectionTime:'📅 Ventana temporal',
             srcLblStartAfter:'Inicio después del', srcLblStartBefore:'Inicio antes del',
@@ -3710,7 +3823,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcBtnSearching:'\u23F3 Buscando\u2026',
             srcLoadingZone: km => `Buscando en ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Borrar',
-            srcNoResults:'No se ha encontrado ningún segmento con estos criterios.',
+            srcNoResults:'Sin resultados con estos criterios. Revisa los filtros plegados: los activos llevan un punto rojo.',
             // Busqueda: objetivos segmentos / giros
             srcSectionTarget:'\uD83C\uDFAF Qu\u00E9 buscar', srcTgtSeg:'Segmentos', srcTgtTurn:'Giros',
             srcTipTime:'Filtrar por las fechas de inicio y fin de los cierres. Límites opcionales, combinados con Y. Plegada por defecto: es el filtro menos habitual.',
@@ -3724,14 +3837,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcZoneFail: e => `\u274C B\u00FAsqueda por zona imposible (${e}) \u2014 se vuelve a la vista actual.`,
             srcNameOffView:'Segmento fuera de la vista: su nombre no est\u00E1 cargado. Pulsa \uD83C\uDFAF para ir all\u00ED.',
             srcTipTarget:'Elige qu\u00E9 debe devolver la b\u00FAsqueda. Ambos por defecto.',
-            srcPickTarget:'\u26A0 Marca al menos un objetivo: Segmentos o Giros.',
+            srcPickTarget:'\u26A0\uFE0F Marca al menos un objetivo: Segmentos o Giros.',
             srcResultsSeg: n => `${n} segmento(s) con cierre`,
             srcResultsTurn: n => `${n} giro(s) con cierre`,
             srcColTurn:'Giro', srcTipColTurn:'Ordenar por giro (flecha y calles)',
             srcTipCenterTurn:'Centrar el mapa en el nodo de este giro',
-            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
-            srcTipExportSeg:'Exportar los cierres de segmentos ENCONTRADOS, en formato WME Advanced Closures. Nada que ver con la cola. \u26A0 El indicador «nodos cerrados» no puede restaurarse: el SDK no lo relee.',
-            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Giros',
+            srcBtnExportSeg:'\u2B07\uFE0F Resultados \u00B7 CSV AC',
+            srcTipExportSeg:'Exportar los cierres de segmentos ENCONTRADOS, en formato WME Advanced Closures. Nada que ver con la cola. \u26A0\uFE0F El indicador «nodos cerrados» no puede restaurarse: el SDK no lo relee.',
+            srcBtnExportTurn:'\u2B07\uFE0F Resultados \u00B7 CSV Giros',
             srcTipExportTurn:'Exportar los cierres de giros ENCONTRADOS, en formato WCT. Nada que ver con la cola.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} cierre(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} cierre(s) de giro exportado(s).`,
@@ -3757,7 +3870,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipRangeStart:'Primer d\u00EDa del rango en el que se repite el cierre.',
             tipRangeEnd:'\u00DAltimo d\u00EDa del rango. Una repetici\u00F3n que sobrepase esta fecha no se genera.',
             tipStartTime:'Hora a la que empieza el cierre cada d\u00EDa. Los cambios de hora se gestionan autom\u00E1ticamente.',
-            tipDurTime:'Duraci\u00F3n de cada cierre (h:mm). Alterna con Hora de fin mediante el bot\u00F3n \u23F1.',
+            tipDurTime:'Duraci\u00F3n de cada cierre (h:mm). Alterna con Hora de fin mediante el bot\u00F3n \u23F1\uFE0F.',
             tipEndTime:'Hora de fin de cada cierre. Si es anterior a la hora de inicio, el cierre se prolonga al d\u00EDa siguiente (distintivo D+1).',
             tipReason:'Texto mostrado en WME para identificar el cierre. El bot\u00F3n \uD83D\uDCCC inserta un emoji en la posici\u00F3n del cursor.',
             tipMteSel:'Vincular los cierres a un evento de tr\u00E1fico mayor (MTE). \uD83D\uDCA1 La lista solo se rellena tras abrir la pesta\u00F1a Eventos de WME: \u00E1brela y luego pulsa \u21BB.',
@@ -3770,7 +3883,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcProvNoneTip:'Cierre de editor: sin socio atribuido.',
             srcNoClosures:'No hay cierres cargados en la vista actual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
-            srcBtnGoCfg:'⚙ Cambiar a Configurar',
+            srcBtnGoCfg:'⚙️ Cambiar a Configurar',
             srcLoading:'Buscando…',
             srcSectionStatus:'💡 Estado',
             srcStatusAll:'Todos',
@@ -3818,7 +3931,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblStart:'Inicio', lblEnd:'Fin',
             lblStartTime:'Hora de inicio', lblDurTime:'Duración h:mm', lblDurDay:'+Días',
             lblEndTime:'Hora de fin',
-            btnDur:'⏱ Duración', btnEndTime:'⏱ Hora de fin',
+            btnDur:'⏱️ Duración', btnEndTime:'⏱️ Hora de fin',
             lblToggleDur:'DUR', lblToggleEnd:'FIN',
             lblDuration:'Duración',
             jpnPrefix:'D+',
@@ -3849,11 +3962,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
-            btnValidate:'✔ Validar y añadir a la cola',
-            btnStop:'⏹ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶ Aplicar', btnClear:'🗑 Vaciar',
+            btnValidate:'✔️ Validar y añadir a la cola',
+            btnStop:'⏹️ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Vaciar',
             dropText:'📥 Haz clic o arrastra aquí un archivo',
             dropHint:'El formato se reconoce solo',
-            gpxDropText:'🗺 Haz clic o arrastra aquí un archivo',
+            gpxDropText:'🗺️ Haz clic o arrastra aquí un archivo',
             gpxDropHint:'Formatos admitidos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — las capas se acumulan',
             // Cobertura
             covTitle:'Comprobar los segmentos del recorrido no seleccionados',
@@ -3904,13 +4017,24 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPresetLoad:'Cargar', tipPresetDel:'Eliminar',
             fabNoSeg:'Selecciona segmentos en el mapa',
             btnCollapse:'Plegar', btnClose:'Cerrar',
+            btnKeys:'Atajos de teclado y gestos del rat\u00F3n',
+            keysTitle:'Atajos y gestos',
+            keysSecKbd:'Teclado', keysSecMouse:'Rat\u00F3n',
+            keyEsc:'Esc', keyEnter:'Intro',
+            keysEscApply:'Detiene la aplicaci\u00F3n o el barrido en curso. Funciona incluso si la m\u00E1scara \u00ABGuardando\u00BB de WME tapa el bot\u00F3n Detener.',
+            keysEscZone:'Descarta los cambios del contorno y restaura el trazado anterior.',
+            keysPreset:'Confirma / cancela el nombre de un preajuste.',
+            keysDblClick:'Doble clic dentro de la zona', keysDblClickD:'Vuelve a abrir el panel de la zona dibujada.',
+            keysRightClick:'Clic derecho en un v\u00E9rtice', keysRightClickD:'Elimina ese v\u00E9rtice (el contorno siempre conserva tres).',
+            keysMidPoint:'Clic en un punto hueco', keysMidPointD:'Inserta un v\u00E9rtice ah\u00ED y lo coloca de inmediato.',
+            keysDrag:'Arrastrar la barra de t\u00EDtulo', keysDragD:'Mueve el panel. El bot\u00F3n flotante se mueve igual.',
             presetColName:'Nombre', presetColDesc:'Descripción',
             presetColTime:'Horario', presetColDir:'Sent.',
             presetNamePh:'Nombre del preajuste…',
             presetPopupTitle:'💾 Guardar el preajuste',
-            btnPrefsExport:'\u2B07 Preajustes', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
-            btnPrefsImport:'\u2B06 Preajustes', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
-            btnPrefsURL:'\u2B06 Preajustes \u00B7 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
+            btnPrefsExport:'\u2B07\uFE0F Preajustes', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
+            btnPrefsImport:'\u2B06\uFE0F Preajustes', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
+            btnPrefsURL:'\u2B06\uFE0F Preajustes \u00B7 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
             prefsURLPrompt:'Dirección del archivo de preajustes:',
             prefsExported: n => `✅ ${n} preajuste(s) exportado(s).`,
             prefsImported: n => `✅ Preajustes importados — ahora tienes ${n}.`,
@@ -3967,7 +4091,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipEditLabel:'Editar la etiqueta de este lote',
             // Aplicación terminada
             applyStopping:'⏳ Parada solicitada — se termina el cierre en curso y luego se interrumpe.',
-                        applyStopped:(ok,ko)=>`⏹ Interrumpido — ${ok} aplicado(s), ${ko} fallido(s)`,
+                        applyStopped:(ok,ko)=>`⏹️ Interrumpido — ${ok} aplicado(s), ${ko} fallido(s)`,
 applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${total} cierre(s).`,
             // Alerta varios países
             multiCountryAlert: cc => `⚠️ Selección en varios países (${cc}).\nNo se puede usar el filtro de festivos.\nDeja seleccionados solo los segmentos de un único país.`,
@@ -3978,7 +4102,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sweepTitle:'Seleccionar los segmentos de la traza (desplaza el mapa)',
             sweepProgress: (done,total,n) => `Barriendo… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) seleccionado(s) a lo largo de la traza.`,
-            sweepStopped: n => `⏹ Interrumpido — ${n} segmento(s) seleccionado(s).`,
+            sweepStopped: n => `⏹️ Interrumpido — ${n} segmento(s) seleccionado(s).`,
             sweepConfirm: (a,km) => `Esta traza mide ~${km} km (${a} movimientos de mapa). El barrido puede tardar y moverá la vista. ¿Continuar?`,
             lotsBtnTitle:'Dividir una traza larga en lotes de cierre (desplaza el mapa)',
             lotsNeedConfig:'⚠️ Configura primero el cierre en la pestaña Configurar (periodo, horas, sentido…), luego vuelve a intentarlo.',
@@ -3986,10 +4110,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotsProgress: (done,total,added,seg) => `Dividiendo en lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
             lotsWhyMoving:'El mapa se mueve para cargar los segmentos de cada lote. No toques el mapa durante la operación.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) añadidos a la cola (${seg} segmento(s)). Ve a la pestaña Configurar para revisar y aplicar.`,
-            lotsStopped: (added,seg) => `⏹ Interrumpido — ${added} lote(s) ya en la cola (${seg} segmento(s)).`,
+            lotsStopped: (added,seg) => `⏹️ Interrumpido — ${added} lote(s) ya en la cola (${seg} segmento(s)).`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
-            applyLotNext:'▶ Continuar (siguiente lote)',
+            applyLotNext:'▶️ Continuar (siguiente lote)',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendiente',
             lotStatusDone:'configurado',
@@ -4027,13 +4151,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyTypesHint:'Las etiquetas y los tipos los proporciona WME. El número indica los segmentos de ese tipo en la zona dibujada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) conservados en la zona.`,
             polyTypesEmpty:'Ningún segmento de esos tipos en la zona.',
-            polyKmlBtn:'\u2B07 Zona \u00B7 KML', tipPolyKmlBtn:'Descargar la zona dibujada en formato KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Zona \u00B7 WKT', tipPolyWktBtn:'Copiar la zona dibujada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Zona \u00B7 KML', tipPolyKmlBtn:'Descargar la zona dibujada en formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Zona \u00B7 WKT', tipPolyWktBtn:'Copiar la zona dibujada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Zona copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar la zona en formato WKT:',
             polyKmlDone: f => `✅ ${f} descargado.`,
             polyNoZone:'No hay ninguna zona dibujada.',
-            polyImportBtn:'\u2B06 Zona',
+            polyImportBtn:'\u2B06\uFE0F Zona',
             tipPolyImportBtn:'Recargar una zona desde un POLYGON(…) WKT o un archivo KML',
             polyImportTitle:'Importar una zona',
             polyImportWktLabel:'Pegar un POLYGON(…) WKT',
@@ -4113,20 +4237,20 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             helpH1:'🚀 Inicio rápido', helpH2:'⚙️ Configurar un cierre',
             helpH3:'📋 Cola', helpH4:'📥 Importar un archivo',
             helpH5:'💾 Preajustes', helpH6:'⚠️ Errores frecuentes y límites', helpH7:'🖥️ Barra lateral / Preferencias',
-            helpH8:'🗺 Trazas',
+            helpH8:'🗺️ Trazas',
             helpH9:'🔍 Búsqueda de cierres',
             helpH10:'📦 Trazas largas: modo por lotes',
-            helpH11:'\uD83D\uDD00 Cerrar giros', helpH12:'\u2B07 Las dos exportaciones CSV',
+            helpH11:'\uD83D\uDD00 Cerrar giros', helpH12:'\u2B07\uFE0F Las dos exportaciones CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fuente (socio)',
-            helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME — o <b>dibuja una zona</b> desde la pestaña ⚙ Configurar',
+            helpS1:'<b>Selecciona</b> uno o varios segmentos en el mapa de WME — o <b>dibuja una zona</b> desde la pestaña ⚙️ Configurar',
             helpS2:'Haz clic en el botón 🚧 visible en el mapa (se puede mover arrastrándolo)',
-            helpS3:'En la pestaña <b>⚙ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
-            helpS4:'Haz clic en <b>✔ Validar y añadir a la cola</b>',
+            helpS3:'En la pestaña <b>⚙️ Configurar</b>, ajusta los parámetros de tus cierres (periodo, horario, días…)',
+            helpS4:'Haz clic en <b>✔️ Validar y añadir a la cola</b>',
             helpS5:'Repite con otros segmentos si es necesario',
-            helpS6:'Haz clic en <b>▶ Aplicar</b> para crear los cierres en WME',
+            helpS6:'Haz clic en <b>▶️ Aplicar</b> para crear los cierres en WME',
         },
         'pt-BR': {
-            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            tabCfg:'⚙️ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceitos: CSV de bloqueios, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — falha na importação: ${m}`,
@@ -4141,15 +4265,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnMultiSel:'Selecione um \u00FAnico segmento por vez.',
             tnSegLabel: n => `Segmento selecionado: ${n}`,
             tnExtremity:'Extremidade', tnNodeA:'N\u00F3 A', tnNodeB:'N\u00F3 B',
-            tnNotEditable:'\u26A0 convers\u00F5es n\u00E3o edit\u00E1veis neste n\u00F3',
+            tnNotEditable:'\u26A0\uFE0F convers\u00F5es n\u00E3o edit\u00E1veis neste n\u00F3',
             tnTurnsFrom:'Convers\u00F5es a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma convers\u00E3o nesta extremidade.',
             tnNotClosable:'n\u00E3o bloque\u00E1vel', tnNotClosableTip:'Esta convers\u00E3o n\u00E3o existe no modelo de dados do WME (t\u00EDpico dos retornos): o SDK se recusa a bloque\u00E1-la.',
             colTurn:'Convers\u00E3o', colTurnTip:'Extremidade e dire\u00E7\u00E3o da convers\u00E3o bloqueada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas bloqueios de convers\u00E3o: o formato WME Advanced Closures n\u00E3o sabe represent\u00E1-los. Nada a exportar.',
-            btnCsvAc:'\u2B07 Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
-            btnCsvTurn:'\u2B07 Fila \u00B7 CSV Conversões', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os bloqueios de SEGMENTOS no formato WME Advanced Closures (os lotes de convers\u00F5es ficam de fora: esse formato n\u00E3o sabe represent\u00E1-los).',
+            btnCsvTurn:'\u2B07\uFE0F Fila \u00B7 CSV Conversões', btnCsvTurnTip:'Exportar os bloqueios de CONVERS\u00D5ES no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum bloqueio de convers\u00E3o para exportar.',
             csvNothing:'N\u00E3o h\u00E1 mais nada para exportar: todas as linhas foram exclu\u00EDdas.',
             // Dicas das abas e botoes
@@ -4158,7 +4282,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipTabCsv:'Importar bloqueios de um arquivo CSV (formato WME Advanced Closures).',
             tipTabGpx:'Carregar um trajeto (GPX, KML, KMZ, GeoJSON, Shapefile) e selecionar automaticamente os segmentos que ele percorre.',
             tipTabPre:'Salvar e recuperar configura\u00E7\u00F5es de bloqueio t\u00EDpicas.',
-            tipTabSrc:'Pesquisar os bloqueios existentes da visualiza\u00E7\u00E3o: por status, datas, motivo ou evento MTE.',
+            tipTabSrc:'Pesquisar bloqueios existentes \u2014 segmentos e convers\u00F5es \u2014 na visualiza\u00E7\u00E3o ou at\u00E9 50 km: por status, datas, motivo, evento MTE ou parceiro.',
             tipTabEach:'Um bloqueio por dia, nos mesmos hor\u00E1rios.',
             tipTabRepeat:'V\u00E1rios bloqueios por dia, repetidos em intervalos regulares.',
             tipBtnValidate:'Criar as ocorr\u00EAncias a partir desta configura\u00E7\u00E3o e adicion\u00E1-las \u00E0 fila. Nada \u00E9 gravado no mapa ainda.',
@@ -4172,10 +4296,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipPresetConfirm:'Salvar a configura\u00E7\u00E3o atual com este nome.',
             tipPresetCancel:'Fechar sem salvar.',
             // Extremidades sem conversao bloqueavel
-            tnOrphan:'\u26A0 Nenhuma extremidade deste segmento permite bloquear uma convers\u00E3o.',
+            tnOrphan:'\u26A0\uFE0F Nenhuma extremidade deste segmento permite bloquear uma convers\u00E3o.',
             tnOrphanHint:'As duas pontas s\u00E3o sem sa\u00EDda, ou s\u00F3 levam a retornos, ausentes do modelo de dados do WME.',
             tnEndTip: (nid,n) => `N\u00F3 ${nid} \u00B7 ${n} convers\u00E3o(\u00F5es) bloque\u00E1vel(is)`,
-            tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma convers\u00E3o bloque\u00E1vel: extremidade desativada.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} n\u00E3o leva a nenhuma convers\u00E3o bloque\u00E1vel: extremidade desativada.`,
             tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 retornos: nada \u00E9 bloque\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de convers\u00E3o exportada(s) no formato WCT.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} bloqueio(s) de convers\u00E3o adicionado(s) \u00E0 fila${ko?', '+ko+' linha(s) ignorada(s)':''}.`,
@@ -4190,7 +4314,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tnBannerClear:'Voltar a um bloqueio de segmentos',
             tnNoneSelected:'Marque pelo menos uma convers\u00E3o.',
             tnEntryDetail: (nt,nc,st) => `${nt} convers\u00E3o(\u00F5es) \u00B7 ${nc} bloqueio(s) \u00B7 ${st}`,
-            tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ajuda',
+            tabPre:'💾 Predefinições', tabGpx:'🗺️ Trajetos', tabSrc:'🔍 Buscar', tabHelp:'❓', tabHelpTitle:'Ajuda',
             // Aba Buscar
             srcSectionTime:'📅 Janela de tempo',
             srcLblStartAfter:'Início depois de', srcLblStartBefore:'Início antes de',
@@ -4202,7 +4326,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcBtnSearching:'\u23F3 Pesquisando\u2026',
             srcLoadingZone: km => `Pesquisando em ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Limpar',
-            srcNoResults:'Nenhum segmento encontrado com esses critérios.',
+            srcNoResults:'Nenhum resultado com esses crit\u00E9rios. Verifique os filtros recolhidos: os ativos t\u00EAm um ponto vermelho.',
             // Pesquisa: alvos segmentos / conversoes
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Convers\u00F5es',
             srcTipTime:'Filtrar pelas datas de início e fim dos bloqueios. Limites opcionais, combinados com E. Recolhida por padrão: é o filtro menos usado.',
@@ -4216,14 +4340,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcZoneFail: e => `\u274C Pesquisa por zona imposs\u00EDvel (${e}) \u2014 voltando \u00E0 visualiza\u00E7\u00E3o atual.`,
             srcNameOffView:'Segmento fora da visualiza\u00E7\u00E3o: o nome n\u00E3o est\u00E1 carregado. Clique em \uD83C\uDFAF para ir at\u00E9 l\u00E1.',
             srcTipTarget:'Escolha o que a pesquisa deve retornar. Ambos por padr\u00E3o.',
-            srcPickTarget:'\u26A0 Marque pelo menos um alvo: Segmentos ou Convers\u00F5es.',
+            srcPickTarget:'\u26A0\uFE0F Marque pelo menos um alvo: Segmentos ou Convers\u00F5es.',
             srcResultsSeg: n => `${n} segmento(s) com bloqueio`,
             srcResultsTurn: n => `${n} convers\u00E3o(\u00F5es) com bloqueio`,
             srcColTurn:'Convers\u00E3o', srcTipColTurn:'Ordenar por convers\u00E3o (seta e ruas)',
             srcTipCenterTurn:'Centralizar o mapa no n\u00F3 desta convers\u00E3o',
-            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
-            srcTipExportSeg:'Exportar os bloqueios de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s bloqueados» n\u00E3o pode ser restaurado: o SDK n\u00E3o o rel\u00EA.',
-            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Conversões',
+            srcBtnExportSeg:'\u2B07\uFE0F Resultados \u00B7 CSV AC',
+            srcTipExportSeg:'Exportar os bloqueios de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0\uFE0F O indicador «n\u00F3s bloqueados» n\u00E3o pode ser restaurado: o SDK n\u00E3o o rel\u00EA.',
+            srcBtnExportTurn:'\u2B07\uFE0F Resultados \u00B7 CSV Conversões',
             srcTipExportTurn:'Exportar os bloqueios de convers\u00F5es ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} bloqueio(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} bloqueio(s) de convers\u00E3o exportado(s).`,
@@ -4249,7 +4373,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipRangeStart:'Primeiro dia do intervalo em que o bloqueio \u00E9 repetido.',
             tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que passe desta data n\u00E3o \u00E9 gerada.',
             tipStartTime:'Hora em que o bloqueio come\u00E7a a cada dia. As mudan\u00E7as de hor\u00E1rio s\u00E3o tratadas automaticamente.',
-            tipDurTime:'Dura\u00E7\u00E3o de cada bloqueio (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
+            tipDurTime:'Dura\u00E7\u00E3o de cada bloqueio (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1\uFE0F.',
             tipEndTime:'Hora de fim de cada bloqueio. Se for anterior \u00E0 hora de in\u00EDcio, o bloqueio segue at\u00E9 o dia seguinte (selo D+1).',
             tipReason:'Texto exibido no WME para identificar o bloqueio. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
             tipMteSel:'Vincular os bloqueios a um evento de tr\u00E1fego maior (MTE). \uD83D\uDCA1 A lista s\u00F3 \u00E9 preenchida depois de abrir a aba Eventos do WME: abra-a e depois clique em \u21BB.',
@@ -4262,7 +4386,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcProvNoneTip:'Bloqueio de editor: sem parceiro atribu\u00EDdo.',
             srcNoClosures:'Nenhum bloqueio carregado na visualização atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
-            srcBtnGoCfg:'⚙ Ir para Configurar',
+            srcBtnGoCfg:'⚙️ Ir para Configurar',
             srcLoading:'Buscando…',
             srcSectionStatus:'💡 Status',
             srcStatusAll:'Todos',
@@ -4310,7 +4434,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lblStart:'Início', lblEnd:'Fim',
             lblStartTime:'Hora de início', lblDurTime:'Duração h:mm', lblDurDay:'+Dias',
             lblEndTime:'Hora de fim',
-            btnDur:'⏱ Duração', btnEndTime:'⏱ Hora de fim',
+            btnDur:'⏱️ Duração', btnEndTime:'⏱️ Hora de fim',
             lblToggleDur:'DUR', lblToggleEnd:'FIM',
             lblDuration:'Duração',
             jpnPrefix:'D+',
@@ -4341,11 +4465,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
-            btnValidate:'✔ Validar e adicionar à fila',
-            btnStop:'⏹ Parar', btnStopping:'⏳ Parando…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
+            btnValidate:'✔️ Validar e adicionar à fila',
+            btnStop:'⏹️ Parar', btnStopping:'⏳ Parando…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Limpar',
             dropText:'📥 Clique ou arraste um arquivo aqui',
             dropHint:'O formato é reconhecido sozinho',
-            gpxDropText:'🗺 Clique ou arraste um arquivo aqui',
+            gpxDropText:'🗺️ Clique ou arraste um arquivo aqui',
             gpxDropHint:'Formatos aceitos : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
             // Cobertura
             covTitle:'Verificar se há segmentos do percurso não selecionados',
@@ -4396,13 +4520,24 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipPresetLoad:'Carregar', tipPresetDel:'Excluir',
             fabNoSeg:'Selecione segmentos no mapa',
             btnCollapse:'Recolher', btnClose:'Fechar',
+            btnKeys:'Atalhos de teclado e gestos do mouse',
+            keysTitle:'Atalhos e gestos',
+            keysSecKbd:'Teclado', keysSecMouse:'Mouse',
+            keyEsc:'Esc', keyEnter:'Enter',
+            keysEscApply:'Interrompe a aplica\u00E7\u00E3o ou a varredura em curso. Funciona mesmo quando a m\u00E1scara \u00ABSalvando\u00BB do WME cobre o bot\u00E3o Parar.',
+            keysEscZone:'Descarta as altera\u00E7\u00F5es do contorno e restaura o tra\u00E7ado anterior.',
+            keysPreset:'Confirma / cancela o nome de uma predefini\u00E7\u00E3o.',
+            keysDblClick:'Clique duplo dentro da \u00E1rea', keysDblClickD:'Reabre o painel da \u00E1rea desenhada.',
+            keysRightClick:'Clique direito num v\u00E9rtice', keysRightClickD:'Exclui esse v\u00E9rtice (o contorno sempre mant\u00E9m tr\u00EAs).',
+            keysMidPoint:'Clique num ponto vazado', keysMidPointD:'Insere um v\u00E9rtice ali e o posiciona em seguida.',
+            keysDrag:'Arrastar a barra de t\u00EDtulo', keysDragD:'Move o painel. O bot\u00E3o flutuante se move do mesmo jeito.',
             presetColName:'Nome', presetColDesc:'Descrição',
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Salvar predefinição',
-            btnPrefsExport:'\u2B07 Predefinições', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
-            btnPrefsImport:'\u2B06 Predefinições', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
-            btnPrefsURL:'\u2B06 Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
+            btnPrefsExport:'\u2B07\uFE0F Predefinições', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
+            btnPrefsImport:'\u2B06\uFE0F Predefinições', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
+            btnPrefsURL:'\u2B06\uFE0F Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
             prefsURLPrompt:'Endereço do arquivo de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — agora você tem ${n}.`,
@@ -4459,7 +4594,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipEditLabel:'Editar o rótulo deste lote',
             // Aplicação concluída
             applyStopping:'⏳ Parada solicitada — concluindo o bloqueio atual e interrompendo em seguida.',
-                        applyStopped:(ok,ko)=>`⏹ Parado — ${ok} aplicado(s), ${ko} com falha`,
+                        applyStopped:(ok,ko)=>`⏹️ Parado — ${ok} aplicado(s), ${ko} com falha`,
 applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${total} bloqueio(s).`,
             // Alerta de vários países
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível usar o filtro de feriados.\nDesmarque os segmentos para manter apenas um país.`,
@@ -4470,7 +4605,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sweepTitle:'Selecionar os segmentos do trajeto (move o mapa)',
             sweepProgress: (done,total,n) => `Varrendo… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
-            sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
+            sweepStopped: n => `⏹️ Interrompido — ${n} segmento(s) selecionado(s).`,
             sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai mover a visualização. Continuar?`,
             lotsBtnTitle:'Dividir um trajeto longo em lotes de bloqueio (move o mapa)',
             lotsNeedConfig:'⚠️ Configure primeiro o bloqueio na aba Configurar (período, horários, sentido…), depois tente de novo.',
@@ -4478,10 +4613,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsProgress: (done,total,added,seg) => `Dividindo em lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
             lotsWhyMoving:'O mapa se move para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja a aba Configurar para revisar e aplicar.`,
-            lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            lotsStopped: (added,seg) => `⏹️ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
-            applyLotNext:'▶ Continuar (próximo lote)',
+            applyLotNext:'▶️ Continuar (próximo lote)',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendente',
             lotStatusDone:'configurado',
@@ -4519,13 +4654,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyTypesHint:'Os rótulos e os tipos vêm do WME. O número indica os segmentos desse tipo na área desenhada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
             polyTypesEmpty:'Nenhum segmento desses tipos na área.',
-            polyKmlBtn:'\u2B07 Área \u00B7 KML', tipPolyKmlBtn:'Baixar a área desenhada em formato KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Área \u00B7 KML', tipPolyKmlBtn:'Baixar a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} baixado.`,
             polyNoZone:'Nenhuma área desenhada.',
-            polyImportBtn:'\u2B06 Área',
+            polyImportBtn:'\u2B06\uFE0F Área',
             tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um arquivo KML',
             polyImportTitle:'Importar uma área',
             polyImportWktLabel:'Colar um POLYGON(…) WKT',
@@ -4605,20 +4740,20 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um bloqueio',
             helpH3:'📋 Fila', helpH4:'📥 Importar um arquivo',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
-            helpH8:'🗺 Trajetos',
+            helpH8:'🗺️ Trajetos',
             helpH9:'🔍 Busca de bloqueios',
             helpH10:'📦 Trajetos longos: modo em lotes',
-            helpH11:'\uD83D\uDD00 Bloquear convers\u00F5es', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
+            helpH11:'\uD83D\uDD00 Bloquear convers\u00F5es', helpH12:'\u2B07\uFE0F As duas exporta\u00E7\u00F5es CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
-            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> na aba ⚙ Configurar',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> na aba ⚙️ Configurar',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste com o mouse para reposicioná-lo)',
-            helpS3:'Na aba <b>⚙ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
-            helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
+            helpS3:'Na aba <b>⚙️ Configurar</b>, defina os parâmetros do bloqueio (período, horário, dias…)',
+            helpS4:'Clique em <b>✔️ Validar e adicionar à fila</b>',
             helpS5:'Repita para outros segmentos, se necessário',
-            helpS6:'Clique em <b>▶ Aplicar</b> para criar os bloqueios no WME',
+            helpS6:'Clique em <b>▶️ Aplicar</b> para criar os bloqueios no WME',
         },
         'pt-PT': {
-            tabCfg:'⚙ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
+            tabCfg:'⚙️ Configurar', tabCsv:'\uD83D\uDCE5 Importar',
             impReconnu: (f,ty) => `✅ ${f} — reconhecido: ${ty}`,
             impInconnu: f => `❌ ${f} — formato não reconhecido. Aceites: CSV de cortes, GPX, KML, KMZ, GeoJSON, Shapefile, predefinições do WCT ou POLYGON(…) WKT.`,
             impErreur: (f,m) => `⚠️ ${f} — falha na importação: ${m}`,
@@ -4633,15 +4768,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnMultiSel:'Seleciona apenas um segmento de cada vez.',
             tnSegLabel: n => `Segmento selecionado: ${n}`,
             tnExtremity:'Extremidade', tnNodeA:'N\u00F3 A', tnNodeB:'N\u00F3 B',
-            tnNotEditable:'\u26A0 viragens n\u00E3o edit\u00E1veis neste n\u00F3',
+            tnNotEditable:'\u26A0\uFE0F viragens n\u00E3o edit\u00E1veis neste n\u00F3',
             tnTurnsFrom:'Viragens a partir deste segmento', tnAll:'Todas', tnNone:'Nenhuma',
             tnAllowed:'permitida', tnForbidden:'restrita',
             tnNoTurns:'Nenhuma viragem nesta extremidade.',
             tnNotClosable:'n\u00E3o cort\u00E1vel', tnNotClosableTip:'Esta viragem n\u00E3o existe no modelo de dados do WME (t\u00EDpico das invers\u00F5es de marcha): o SDK recusa cort\u00E1-la.',
             colTurn:'Viragem', colTurnTip:'Extremidade e dire\u00E7\u00E3o da viragem cortada',
             csvTurnOnly:'\u26A0\uFE0F A fila cont\u00E9m apenas cortes de viragem: o formato WME Advanced Closures n\u00E3o os sabe representar. Nada a exportar.',
-            btnCsvAc:'\u2B07 Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
-            btnCsvTurn:'\u2B07 Fila \u00B7 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
+            btnCsvAc:'\u2B07\uFE0F Fila \u00B7 CSV AC', btnCsvAcTip:'Exportar os cortes de SEGMENTOS no formato WME Advanced Closures (os lotes de viragens ficam de fora: esse formato n\u00E3o os sabe representar).',
+            btnCsvTurn:'\u2B07\uFE0F Fila \u00B7 CSV Viragens', btnCsvTurnTip:'Exportar os cortes de VIRAGENS no formato WCT (reimport\u00E1vel no WCT; ileg\u00EDvel para o Advanced Closures).',
             csvNoTurns:'Nenhum corte de viragem para exportar.',
             csvNothing:'J\u00E1 n\u00E3o h\u00E1 nada para exportar: todas as linhas foram eliminadas.',
             // Dicas dos separadores e botoes
@@ -4650,7 +4785,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipTabCsv:'Importar cortes de um ficheiro CSV (formato WME Advanced Closures).',
             tipTabGpx:'Carregar um trajeto (GPX, KML, KMZ, GeoJSON, Shapefile) e selecionar automaticamente os segmentos que percorre.',
             tipTabPre:'Guardar e recuperar configura\u00E7\u00F5es de corte t\u00EDpicas.',
-            tipTabSrc:'Pesquisar os cortes existentes da vista: por estado, datas, motivo ou evento MTE.',
+            tipTabSrc:'Pesquisar cortes existentes \u2014 segmentos e viragens \u2014 na vista ou at\u00E9 50 km: por estado, datas, motivo, evento MTE ou parceiro.',
             tipTabEach:'Um corte por dia, aos mesmos hor\u00E1rios.',
             tipTabRepeat:'V\u00E1rios cortes por dia, repetidos em intervalos regulares.',
             tipBtnValidate:'Criar as ocorr\u00EAncias a partir desta configura\u00E7\u00E3o e adicion\u00E1-las \u00E0 fila. Ainda n\u00E3o \u00E9 gravado nada no mapa.',
@@ -4664,10 +4799,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipPresetConfirm:'Guardar a configura\u00E7\u00E3o atual com este nome.',
             tipPresetCancel:'Fechar sem guardar.',
             // Extremidades sem viragem cortavel
-            tnOrphan:'\u26A0 Nenhuma extremidade deste segmento permite cortar uma viragem.',
+            tnOrphan:'\u26A0\uFE0F Nenhuma extremidade deste segmento permite cortar uma viragem.',
             tnOrphanHint:'As duas pontas s\u00E3o sem sa\u00EDda, ou s\u00F3 levam a invers\u00F5es de marcha, ausentes do modelo de dados do WME.',
             tnEndTip: (nid,n) => `N\u00F3 ${nid} \u00B7 ${n} viragem(ns) cort\u00E1vel(eis)`,
-            tnEndDead: lbl => `\u26A0 ${lbl} n\u00E3o leva a nenhuma viragem cort\u00E1vel: extremidade desativada.`,
+            tnEndDead: lbl => `\u26A0\uFE0F ${lbl} n\u00E3o leva a nenhuma viragem cort\u00E1vel: extremidade desativada.`,
             tnEndDeadTip:'Sem sa\u00EDda, ou s\u00F3 invers\u00F5es de marcha: nada \u00E9 cort\u00E1vel nesta extremidade.',
             csvTurnDone: n => `\uD83D\uDCE5 ${n} linha(s) de viragem exportada(s) no formato WCT.`,
             csvTurnAdded: (n,ko) => `\u2705 ${n} corte(s) de viragem adicionado(s) \u00E0 fila${ko?', '+ko+' linha(s) ignorada(s)':''}.`,
@@ -4682,7 +4817,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tnBannerClear:'Voltar a um corte de segmentos',
             tnNoneSelected:'Marca pelo menos uma viragem.',
             tnEntryDetail: (nt,nc,st) => `${nt} viragem(ns) \u00B7 ${nc} corte(s) \u00B7 ${st}`,
-            tabPre:'💾 Predefinições', tabGpx:'🗺 Trajetos', tabSrc:'🔍 Pesquisar', tabHelp:'❓', tabHelpTitle:'Ajuda',
+            tabPre:'💾 Predefinições', tabGpx:'🗺️ Trajetos', tabSrc:'🔍 Pesquisar', tabHelp:'❓', tabHelpTitle:'Ajuda',
             // Search tab
             srcSectionTime:'📅 Janela temporal',
             srcLblStartAfter:'Início após', srcLblStartBefore:'Início antes de',
@@ -4694,7 +4829,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcBtnSearching:'\u23F3 A pesquisar\u2026',
             srcLoadingZone: km => `A pesquisar em ${km} \u00D7 ${km} km\u2026`,
             srcBtnClear:'Limpar',
-            srcNoResults:'Nenhum segmento corresponde a estes critérios.',
+            srcNoResults:'Nenhum resultado com estes crit\u00E9rios. Verifique os filtros recolhidos: os ativos t\u00EAm um ponto vermelho.',
             // Pesquisa: alvos segmentos / viragens
             srcSectionTarget:'\uD83C\uDFAF O que pesquisar', srcTgtSeg:'Segmentos', srcTgtTurn:'Viragens',
             srcTipTime:'Filtrar pelas datas de início e fim dos cortes. Limites opcionais, combinados com E. Recolhida por omissão: é o filtro menos usado.',
@@ -4708,14 +4843,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcZoneFail: e => `\u274C Pesquisa por zona imposs\u00EDvel (${e}) \u2014 a voltar \u00E0 vista atual.`,
             srcNameOffView:'Segmento fora da vista: o nome n\u00E3o est\u00E1 carregado. Clica em \uD83C\uDFAF para l\u00E1 ires.',
             srcTipTarget:'Escolhe o que a pesquisa deve devolver. Ambos por omiss\u00E3o.',
-            srcPickTarget:'\u26A0 Marca pelo menos um alvo: Segmentos ou Viragens.',
+            srcPickTarget:'\u26A0\uFE0F Marca pelo menos um alvo: Segmentos ou Viragens.',
             srcResultsSeg: n => `${n} segmento(s) com corte`,
             srcResultsTurn: n => `${n} viragem(ns) com corte`,
             srcColTurn:'Viragem', srcTipColTurn:'Ordenar por viragem (seta e ruas)',
             srcTipCenterTurn:'Centrar o mapa no n\u00F3 desta viragem',
-            srcBtnExportSeg:'\u2B07 Resultados \u00B7 CSV AC',
-            srcTipExportSeg:'Exportar os cortes de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0 O indicador «n\u00F3s cortados» n\u00E3o pode ser reposto: o SDK n\u00E3o o rel\u00EA.',
-            srcBtnExportTurn:'\u2B07 Resultados \u00B7 CSV Viragens',
+            srcBtnExportSeg:'\u2B07\uFE0F Resultados \u00B7 CSV AC',
+            srcTipExportSeg:'Exportar os cortes de segmentos ENCONTRADOS, no formato WME Advanced Closures. Nada a ver com a fila. \u26A0\uFE0F O indicador «n\u00F3s cortados» n\u00E3o pode ser reposto: o SDK n\u00E3o o rel\u00EA.',
+            srcBtnExportTurn:'\u2B07\uFE0F Resultados \u00B7 CSV Viragens',
             srcTipExportTurn:'Exportar os cortes de viragens ENCONTRADOS, no formato WCT. Nada a ver com a fila.',
             srcExportedSeg: n => `\uD83D\uDCE5 ${n} corte(s) de segmento exportado(s).`,
             srcExportedTurn: n => `\uD83D\uDCE5 ${n} corte(s) de viragem exportado(s).`,
@@ -4741,7 +4876,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipRangeStart:'Primeiro dia do intervalo em que o corte \u00E9 repetido.',
             tipRangeEnd:'\u00DAltimo dia do intervalo. Uma ocorr\u00EAncia que ultrapasse esta data n\u00E3o \u00E9 gerada.',
             tipStartTime:'Hora a que o corte come\u00E7a todos os dias. As mudan\u00E7as de hora s\u00E3o tratadas automaticamente.',
-            tipDurTime:'Dura\u00E7\u00E3o de cada corte (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1.',
+            tipDurTime:'Dura\u00E7\u00E3o de cada corte (h:mm). Alterna com Hora de fim pelo bot\u00E3o \u23F1\uFE0F.',
             tipEndTime:'Hora de fim de cada corte. Se for anterior \u00E0 hora de in\u00EDcio, o corte segue at\u00E9 ao dia seguinte (selo D+1).',
             tipReason:'Texto apresentado no WME para identificar o corte. O bot\u00E3o \uD83D\uDCCC insere um emoji na posi\u00E7\u00E3o do cursor.',
             tipMteSel:'Ligar os cortes a um evento de tr\u00E2nsito maior (MTE). \uD83D\uDCA1 A lista s\u00F3 \u00E9 preenchida depois de abrir o separador Eventos do WME: abre-o e depois clica em \u21BB.',
@@ -4754,7 +4889,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcProvNoneTip:'Corte de editor: sem parceiro atribu\u00EDdo.',
             srcNoClosures:'Nenhum corte carregado na vista atual.',
             srcResults: n => `${n} segmento(s) encontrado(s)`,
-            srcBtnGoCfg:'⚙ Mudar para Configurar',
+            srcBtnGoCfg:'⚙️ Mudar para Configurar',
             srcLoading:'A pesquisar…',
             srcSectionStatus:'💡 Estado',
             srcStatusAll:'Todos',
@@ -4802,7 +4937,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lblStart:'Início', lblEnd:'Fim',
             lblStartTime:'Hora de início', lblDurTime:'Duração h:mm', lblDurDay:'+Dias',
             lblEndTime:'Hora de fim',
-            btnDur:'⏱ Duração', btnEndTime:'⏱ Hora de fim',
+            btnDur:'⏱️ Duração', btnEndTime:'⏱️ Hora de fim',
             lblToggleDur:'DUR', lblToggleEnd:'FIM',
             lblDuration:'Duração',
             jpnPrefix:'D+',
@@ -4833,11 +4968,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
-            btnValidate:'✔ Validar e adicionar à fila',
-            btnStop:'⏹ Parar', btnStopping:'⏳ A parar…', btnApply:'▶ Aplicar', btnClear:'🗑 Limpar',
+            btnValidate:'✔️ Validar e adicionar à fila',
+            btnStop:'⏹️ Parar', btnStopping:'⏳ A parar…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Limpar',
             dropText:'📥 Clique ou arraste um ficheiro para aqui',
             dropHint:'O formato é reconhecido sozinho',
-            gpxDropText:'🗺 Clique ou arraste um ficheiro para aqui',
+            gpxDropText:'🗺️ Clique ou arraste um ficheiro para aqui',
             gpxDropHint:'Formatos aceites : GPX, KML, KMZ, GeoJSON, Shapefile (ZIP) — as camadas são cumulativas',
             // Coverage
             covTitle:'Verificar os segmentos do percurso que não estão selecionados',
@@ -4888,13 +5023,24 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipPresetLoad:'Carregar', tipPresetDel:'Eliminar',
             fabNoSeg:'Selecione segmentos no mapa',
             btnCollapse:'Recolher', btnClose:'Fechar',
+            btnKeys:'Atalhos de teclado e gestos do rato',
+            keysTitle:'Atalhos e gestos',
+            keysSecKbd:'Teclado', keysSecMouse:'Rato',
+            keyEsc:'Esc', keyEnter:'Enter',
+            keysEscApply:'Interrompe a aplica\u00E7\u00E3o ou a varredura em curso. Funciona mesmo quando a m\u00E1scara \u00ABA guardar\u00BB do WME tapa o bot\u00E3o Parar.',
+            keysEscZone:'Descarta as altera\u00E7\u00F5es do contorno e rep\u00F5e o tra\u00E7ado anterior.',
+            keysPreset:'Confirma / cancela o nome de uma predefini\u00E7\u00E3o.',
+            keysDblClick:'Duplo clique dentro da \u00E1rea', keysDblClickD:'Reabre o painel da \u00E1rea desenhada.',
+            keysRightClick:'Clique direito num v\u00E9rtice', keysRightClickD:'Elimina esse v\u00E9rtice (o contorno mant\u00E9m sempre tr\u00EAs).',
+            keysMidPoint:'Clique num ponto vazado', keysMidPointD:'Insere um v\u00E9rtice ali e posiciona-o de seguida.',
+            keysDrag:'Arrastar a barra de t\u00EDtulo', keysDragD:'Move o painel. O bot\u00E3o flutuante move-se da mesma forma.',
             presetColName:'Nome', presetColDesc:'Descrição',
             presetColTime:'Horário', presetColDir:'Sent.',
             presetNamePh:'Nome da predefinição…',
             presetPopupTitle:'💾 Guardar predefinição',
-            btnPrefsExport:'\u2B07 Predefinições', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
-            btnPrefsImport:'\u2B06 Predefinições', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
-            btnPrefsURL:'\u2B06 Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
+            btnPrefsExport:'\u2B07\uFE0F Predefinições', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
+            btnPrefsImport:'\u2B06\uFE0F Predefinições', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
+            btnPrefsURL:'\u2B06\uFE0F Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
             prefsURLPrompt:'Endereço do ficheiro de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — tem agora ${n}.`,
@@ -4951,7 +5097,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipEditLabel:'Editar a etiqueta deste lote',
             // Apply done
             applyStopping:'⏳ Paragem pedida — a terminar o corte em curso e a interromper de seguida.',
-                        applyStopped:(ok,ko)=>`⏹ Parado — ${ok} aplicado(s), ${ko} falhado(s)`,
+                        applyStopped:(ok,ko)=>`⏹️ Parado — ${ok} aplicado(s), ${ko} falhado(s)`,
 applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${total} corte(s).`,
             // Multi-country alert
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível utilizar o filtro de feriados.\nMantenha selecionados apenas os segmentos de um único país.`,
@@ -4962,7 +5108,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sweepTitle:'Selecionar os segmentos do trajeto (desloca o mapa)',
             sweepProgress: (done,total,n) => `A varrer… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
-            sweepStopped: n => `⏹ Interrompido — ${n} segmento(s) selecionado(s).`,
+            sweepStopped: n => `⏹️ Interrompido — ${n} segmento(s) selecionado(s).`,
             sweepConfirm: (a,km) => `Este trajeto tem ~${km} km (${a} movimentos de mapa). A varredura pode demorar e vai deslocar a vista. Continuar?`,
             lotsBtnTitle:'Dividir um trajeto longo em lotes de corte (desloca o mapa)',
             lotsNeedConfig:'⚠️ Configure primeiro o corte no separador Configurar (período, horas, sentido…), depois tente novamente.',
@@ -4970,10 +5116,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsProgress: (done,total,added,seg) => `A dividir em lotes… ${done}/${total} — ${added} lote(s), ${seg} segmento(s)`,
             lotsWhyMoving:'O mapa desloca-se para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja o separador Configurar para rever e aplicar.`,
-            lotsStopped: (added,seg) => `⏹ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            lotsStopped: (added,seg) => `⏹️ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
-            applyLotNext:'▶ Continuar (lote seguinte)',
+            applyLotNext:'▶️ Continuar (lote seguinte)',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendente',
             lotStatusDone:'configurado',
@@ -5011,13 +5157,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyTypesHint:'As etiquetas e os tipos são fornecidos pelo WME. O número indica os segmentos desse tipo na área desenhada.',
             polyTypesApplied: (n,tot) => `✅ ${n} de ${tot} segmento(s) mantidos na área.`,
             polyTypesEmpty:'Nenhum segmento desses tipos na área.',
-            polyKmlBtn:'\u2B07 Área \u00B7 KML', tipPolyKmlBtn:'Transferir a área desenhada em formato KML (Google Earth, QGIS)',
-            polyWktBtn:'\u2B07 Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
+            polyKmlBtn:'\u2B07\uFE0F Área \u00B7 KML', tipPolyKmlBtn:'Transferir a área desenhada em formato KML (Google Earth, QGIS)',
+            polyWktBtn:'\u2B07\uFE0F Área \u00B7 WKT', tipPolyWktBtn:'Copiar a área desenhada como POLYGON(…) WKT',
             polyWktCopied: n => `✅ Área copiada como WKT (${n} vértices).`,
             polyWktCopy:'Copiar a área em formato WKT:',
             polyKmlDone: f => `✅ ${f} transferido.`,
             polyNoZone:'Nenhuma área desenhada.',
-            polyImportBtn:'\u2B06 Área',
+            polyImportBtn:'\u2B06\uFE0F Área',
             tipPolyImportBtn:'Recarregar uma área a partir de um POLYGON(…) WKT ou de um ficheiro KML',
             polyImportTitle:'Importar uma área',
             polyImportWktLabel:'Colar um POLYGON(…) WKT',
@@ -5097,17 +5243,17 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpH1:'🚀 Início rápido', helpH2:'⚙️ Configurar um corte',
             helpH3:'📋 Fila', helpH4:'📥 Importar um ficheiro',
             helpH5:'💾 Predefinições', helpH6:'⚠️ Erros comuns e limites', helpH7:'🖥️ Barra lateral / Preferências',
-            helpH8:'🗺 Trajetos',
+            helpH8:'🗺️ Trajetos',
             helpH9:'🔍 Pesquisa de cortes',
             helpH10:'📦 Trajetos longos: modo por lotes',
-            helpH11:'\uD83D\uDD00 Cortar viragens', helpH12:'\u2B07 As duas exporta\u00E7\u00F5es CSV',
+            helpH11:'\uD83D\uDD00 Cortar viragens', helpH12:'\u2B07\uFE0F As duas exporta\u00E7\u00F5es CSV',
             helpH13:'\uD83C\uDFF7\uFE0F Fonte (parceiro)',
-            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> no separador ⚙ Configurar',
+            helpS1:'<b>Selecione</b> um ou mais segmentos no mapa do WME — ou <b>desenhe uma área</b> no separador ⚙️ Configurar',
             helpS2:'Clique no botão 🚧 visível no mapa (arraste e largue para o reposicionar)',
-            helpS3:'No separador <b>⚙ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
-            helpS4:'Clique em <b>✔ Validar e adicionar à fila</b>',
+            helpS3:'No separador <b>⚙️ Configurar</b>, defina os parâmetros do corte (período, horário, dias…)',
+            helpS4:'Clique em <b>✔️ Validar e adicionar à fila</b>',
             helpS5:'Repita para outros segmentos, se necessário',
-            helpS6:'Clique em <b>▶ Aplicar</b> para criar os cortes no WME',
+            helpS6:'Clique em <b>▶️ Aplicar</b> para criar os cortes no WME',
         }
 };
 const t = (key, ...args) => {
@@ -5129,7 +5275,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Zone</b></td><td>Bouton <b>Tracer une zone</b>, en haut de l’onglet : délimitez un secteur sur la carte et tous les segments dont plus de la moitié est à l’intérieur sont sélectionnés. Détail dans la section <b>✏️ Zone (polygone)</b>.</td></tr>
             <tr><td><b>D\u00E9but / Fin</b></td><td>Plage de dates sur laquelle r\u00E9p\u00E9ter la fermeture</td></tr>
             <tr><td><b>Heure d\u00E9but</b></td><td>Heure \u00E0 laquelle la fermeture commence chaque jour. Les changements d\u2019heure sont g\u00E9r\u00E9s automatiquement \u2014 voir Limites connues.</td></tr>
-            <tr><td><b>\u23F1 Dur\u00E9e / Heure fin</b></td><td>Bascule entre dur\u00E9e (ex\u00A0: 08:00) ou heure de fin explicite. Si heure fin &lt; heure d\u00E9but\u00A0: fermeture jusqu\u2019au lendemain (badge J+1)</td></tr>
+            <tr><td><b>\u23F1\uFE0F Dur\u00E9e / Heure fin</b></td><td>Bascule entre dur\u00E9e (ex\u00A0: 08:00) ou heure de fin explicite. Si heure fin &lt; heure d\u00E9but\u00A0: fermeture jusqu\u2019au lendemain (badge J+1)</td></tr>
             <tr><td><b>+Jours</b></td><td>Jours suppl\u00E9mentaires ajout\u00E9s \u00E0 la dur\u00E9e. En mode Dur\u00E9e\u00A0: s\u2019ajoute \u00E0 la dur\u00E9e h:mm. En mode Heure de fin\u00A0: l\u2019heure de fin est d\u00E9cal\u00E9e d\u2019autant de jours.</td></tr>
             <tr><td><b>Chaque jour</b></td><td>S\u00E9lectionnez les jours actifs. Raccourcis\u00A0: Tous, Lun\u2013Ven, Sam\u2013Dim, Aucun</td></tr>
             <tr><td><b>Sauf jours f\u00E9ri\u00E9s</b></td><td>Exclut automatiquement les jours f\u00E9ri\u00E9s du pays d\u00E9tect\u00E9. N\u00E9cessite internet. Indisponible en s\u00E9lection multi-pays.</td></tr>
@@ -5145,7 +5291,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Area</b></td><td><b>Draw an area</b> button, at the top of the tab: outline a sector on the map and every segment more than half inside it is selected. Details in the <b>✏️ Area (polygon)</b> section.</td></tr>
             <tr><td><b>Start / End</b></td><td>Date range over which to repeat the closure</td></tr>
             <tr><td><b>Start time</b></td><td>Time at which the closure starts each day. DST transitions are handled automatically \u2014 see Known limits.</td></tr>
-            <tr><td><b>\u23F1 Duration / End time</b></td><td>Toggle between duration (e.g. 08:00) or explicit end time. If end &lt; start: closure runs to next day (J+1 badge)</td></tr>
+            <tr><td><b>\u23F1\uFE0F Duration / End time</b></td><td>Toggle between duration (e.g. 08:00) or explicit end time. If end &lt; start: closure runs to next day (J+1 badge)</td></tr>
             <tr><td><b>+Days</b></td><td>Extra days added to the closure. In Duration mode: added on top of the h:mm duration. In End time mode: the end time is shifted forward by that many days.</td></tr>
             <tr><td><b>Each day</b></td><td>Select active weekdays. Shortcuts: All, Mon\u2013Fri, Sat\u2013Sun, None</td></tr>
             <tr><td><b>Except public holidays</b></td><td>Auto-excludes public holidays for the detected country. Requires internet. Unavailable for multi-country selections.</td></tr>
@@ -5161,7 +5307,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Bereich</b></td><td>Schaltfläche <b>Bereich zeichnen</b>, oben im Reiter: einen Sektor auf der Karte umreißen, und jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt. Näheres im Abschnitt <b>✏️ Bereich (Polygon)</b>.</td></tr>
             <tr><td><b>Beginn / Ende</b></td><td>Zeitraum, über den die Sperrung wiederholt wird</td></tr>
             <tr><td><b>Startzeit</b></td><td>Uhrzeit, zu der die Sperrung täglich beginnt. Zeitumstellungen werden automatisch berücksichtigt — siehe Bekannte Grenzen.</td></tr>
-            <tr><td><b>⏱ Dauer / Endzeit</b></td><td>Umschalten zwischen Dauer (z. B. 08:00) und ausdrücklicher Endzeit. Liegt die Endzeit vor der Startzeit, läuft die Sperrung bis zum Folgetag (Kennzeichnung T+1)</td></tr>
+            <tr><td><b>⏱️ Dauer / Endzeit</b></td><td>Umschalten zwischen Dauer (z. B. 08:00) und ausdrücklicher Endzeit. Liegt die Endzeit vor der Startzeit, läuft die Sperrung bis zum Folgetag (Kennzeichnung T+1)</td></tr>
             <tr><td><b>+Tage</b></td><td>Zusätzliche Tage. Im Dauer-Modus: werden zur Dauer h:mm addiert. Im Endzeit-Modus: die Endzeit wird um so viele Tage nach hinten verschoben.</td></tr>
             <tr><td><b>Wochentage</b></td><td>Wähle die aktiven Wochentage. Schnellauswahl: Alle, Mo–Fr, Sa–So, Keine</td></tr>
             <tr><td><b>Außer an Feiertagen</b></td><td>Schließt die Feiertage des erkannten Landes automatisch aus. Erfordert eine Internetverbindung. Bei einer Auswahl über mehrere Länder nicht verfügbar.</td></tr>
@@ -5177,7 +5323,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Zona</b></td><td>Botón <b>Dibujar una zona</b>, arriba en la pestaña: delimita un sector en el mapa y se selecciona todo segmento que quede dentro en más de la mitad. Detalle en la sección <b>✏️ Zona (polígono)</b>.</td></tr>
             <tr><td><b>Inicio / Fin</b></td><td>Intervalo de fechas en el que se repite el cierre</td></tr>
             <tr><td><b>Hora de inicio</b></td><td>Hora a la que empieza el cierre cada día. Los cambios de hora se gestionan automáticamente — consulta Límites conocidos.</td></tr>
-            <tr><td><b>⏱ Duración / Hora de fin</b></td><td>Alterna entre duración (p. ej. 08:00) y hora de fin explícita. Si la hora de fin &lt; la de inicio: el cierre se prolonga hasta el día siguiente (indicador D+1)</td></tr>
+            <tr><td><b>⏱️ Duración / Hora de fin</b></td><td>Alterna entre duración (p. ej. 08:00) y hora de fin explícita. Si la hora de fin &lt; la de inicio: el cierre se prolonga hasta el día siguiente (indicador D+1)</td></tr>
             <tr><td><b>+Días</b></td><td>Días adicionales que se suman al cierre. En modo Duración: se añaden a la duración h:mm. En modo Hora de fin: la hora de fin se desplaza esos días.</td></tr>
             <tr><td><b>Cada día</b></td><td>Selecciona los días activos. Atajos: Todos, Lun–Vie, Sáb–Dom, Ninguno</td></tr>
             <tr><td><b>Excepto festivos</b></td><td>Excluye automáticamente los festivos del país detectado. Requiere conexión a internet. No disponible con selecciones en varios países.</td></tr>
@@ -5193,7 +5339,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo da aba: delimite um setor no mapa e todo segmento com mais da metade dentro é selecionado. Detalhes na seção <b>✏️ Área (polígono)</b>.</td></tr>
             <tr><td><b>Início / Fim</b></td><td>Intervalo de datas em que o bloqueio será repetido</td></tr>
             <tr><td><b>Hora de início</b></td><td>Hora em que o bloqueio começa a cada dia. As mudanças de horário de verão são tratadas automaticamente — veja Limites conhecidos.</td></tr>
-            <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim for menor que a de início, o bloqueio segue até o dia seguinte (selo D+1)</td></tr>
+            <tr><td><b>⏱️ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim for menor que a de início, o bloqueio segue até o dia seguinte (selo D+1)</td></tr>
             <tr><td><b>+Dias</b></td><td>Dias adicionais somados ao bloqueio. No modo Duração: somam-se à duração h:mm. No modo Hora de fim: a hora de fim é adiada em tantos dias.</td></tr>
             <tr><td><b>Cada dia</b></td><td>Selecione os dias da semana ativos. Atalhos: Todos, Seg–Sex, Sáb–Dom, Nenhum</td></tr>
             <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detectado. Requer internet. Indisponível em seleções com vários países.</td></tr>
@@ -5209,7 +5355,7 @@ const buildHelpHTML = () => {
             <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo do separador: delimite um setor no mapa e é selecionado todo o segmento com mais de metade no interior. Detalhes na secção <b>✏️ Área (polígono)</b>.</td></tr>
             <tr><td><b>Início / Fim</b></td><td>Intervalo de datas no qual o corte é repetido</td></tr>
             <tr><td><b>Hora de início</b></td><td>Hora a que o corte começa todos os dias. As mudanças de hora são geridas automaticamente — ver Limites conhecidos.</td></tr>
-            <tr><td><b>⏱ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim &lt; hora de início: o corte prolonga-se até ao dia seguinte (indicador D+1)</td></tr>
+            <tr><td><b>⏱️ Duração / Hora de fim</b></td><td>Alterna entre duração (ex.: 08:00) e hora de fim explícita. Se a hora de fim &lt; hora de início: o corte prolonga-se até ao dia seguinte (indicador D+1)</td></tr>
             <tr><td><b>+Dias</b></td><td>Dias suplementares acrescentados ao corte. No modo Duração: somam-se à duração h:mm. No modo Hora de fim: a hora de fim é adiada esse número de dias.</td></tr>
             <tr><td><b>Cada dia</b></td><td>Selecione os dias da semana ativos. Atalhos: Todos, Seg–Sex, Sáb–Dom, Nenhum</td></tr>
             <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detetado. Requer ligação à internet. Indisponível em seleções que abranjam vários países.</td></tr>
@@ -5225,58 +5371,58 @@ const buildHelpHTML = () => {
             <p>La file accumule des <b>lots</b> de fermetures avant application.</p>
             <table class="wct-help-table">
             <tr><td><b>\uD83C\uDFAF</b></td><td>Centre la carte sur le segment correspondant</td></tr>
-            <tr><td><b>\u25BC/\u25B6</b></td><td>Replie/d\u00E9plie le tableau du lot</td></tr>
+            <tr><td><b>\u25BC/\u25B6\uFE0F</b></td><td>Replie/d\u00E9plie le tableau du lot</td></tr>
             <tr><td><b>\u2715</b></td><td>Supprime le lot de la file</td></tr>
-            <tr><td><b>🗑</b></td><td>Supprime une ligne de fermeture du lot (exclue de l'application et de l'export)</td></tr>
+            <tr><td><b>🗑️</b></td><td>Supprime une ligne de fermeture du lot (exclue de l'application et de l'export)</td></tr>
             <tr><td><b>Bordure color\u00E9e</b></td><td>\uD83D\uDD35 Configur\u00E9 manuellement \u00B7 \uD83D\uDFE2 Import\u00E9 CSV \u00B7 \uD83D\uDFE0 Charg\u00E9 depuis pr\u00E9r\u00E9glage</td></tr>
             <tr><td><b>\u00C9tat \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 En cours \u00B7 \uD83D\uDD34 Chevauchement \u00B7 \u26AB Date pass\u00E9e</td></tr>
             </table>`, en:`
             <p>The queue accumulates <b>batches</b> of closures before applying.</p>
             <table class="wct-help-table">
             <tr><td><b>\uD83C\uDFAF</b></td><td>Centers the map on the corresponding segment</td></tr>
-            <tr><td><b>\u25BC/\u25B6</b></td><td>Fold/unfold the batch table</td></tr>
+            <tr><td><b>\u25BC/\u25B6\uFE0F</b></td><td>Fold/unfold the batch table</td></tr>
             <tr><td><b>\u2715</b></td><td>Remove the batch from the queue</td></tr>
-            <tr><td><b>🗑</b></td><td>Remove an individual closure row from the batch (excluded from apply and export)</td></tr>
+            <tr><td><b>🗑️</b></td><td>Remove an individual closure row from the batch (excluded from apply and export)</td></tr>
             <tr><td><b>Colored border</b></td><td>\uD83D\uDD35 Manual \u00B7 \uD83D\uDFE2 CSV import \u00B7 \uD83D\uDFE0 From preset</td></tr>
             <tr><td><b>State \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Ongoing \u00B7 \uD83D\uDD34 Overlap \u00B7 \u26AB Past date</td></tr>
             </table>`, de:`
             <p>Die Warteschlange sammelt <b>Pakete</b> von Sperrungen, bevor sie angewendet werden.</p>
             <table class="wct-help-table">
             <tr><td><b>\uD83C\uDFAF</b></td><td>Zentriert die Karte auf das zugeh\u00F6rige Segment</td></tr>
-            <tr><td><b>\u25BC/\u25B6</b></td><td>Klappt die Tabelle des Pakets ein/aus</td></tr>
+            <tr><td><b>\u25BC/\u25B6\uFE0F</b></td><td>Klappt die Tabelle des Pakets ein/aus</td></tr>
             <tr><td><b>\u2715</b></td><td>Entfernt das Paket aus der Warteschlange</td></tr>
-            <tr><td><b>\uD83D\uDDD1</b></td><td>Entfernt eine einzelne Sperrungszeile aus dem Paket (wird beim Anwenden und beim Export \u00FCbergangen)</td></tr>
+            <tr><td><b>\uD83D\uDDD1\uFE0F</b></td><td>Entfernt eine einzelne Sperrungszeile aus dem Paket (wird beim Anwenden und beim Export \u00FCbergangen)</td></tr>
             <tr><td><b>Farbiger Rand</b></td><td>\uD83D\uDD35 Manuell eingerichtet \u00B7 \uD83D\uDFE2 CSV-Import \u00B7 \uD83D\uDFE0 Aus Vorlage geladen</td></tr>
             <tr><td><b>Zustand \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Laufend \u00B7 \uD83D\uDD34 \u00DCberschneidung \u00B7 \u26AB Vergangenes Datum</td></tr>
             </table>`, es:`
             <p>La cola acumula <b>lotes</b> de cierres antes de aplicarlos.</p>
             <table class="wct-help-table">
             <tr><td><b>🎯</b></td><td>Centra el mapa en el segmento correspondiente</td></tr>
-            <tr><td><b>▼/▶</b></td><td>Pliega/despliega la tabla del lote</td></tr>
+            <tr><td><b>▼/▶️</b></td><td>Pliega/despliega la tabla del lote</td></tr>
             <tr><td><b>✕</b></td><td>Elimina el lote de la cola</td></tr>
-            <tr><td><b>🗑</b></td><td>Elimina una fila de cierre del lote (se excluye de la aplicación y de la exportación)</td></tr>
+            <tr><td><b>🗑️</b></td><td>Elimina una fila de cierre del lote (se excluye de la aplicación y de la exportación)</td></tr>
             <tr><td><b>Borde de color</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Cargado desde preajuste</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 En curso · 🔴 Solapamiento · ⚫ Fecha pasada</td></tr>
             </table>`, 'pt-BR':`
             <p>A fila acumula <b>lotes</b> de bloqueios antes da aplicação.</p>
             <table class="wct-help-table">
             <tr><td><b>🎯</b></td><td>Centraliza o mapa no segmento correspondente</td></tr>
-            <tr><td><b>▼/▶</b></td><td>Recolhe/expande a tabela do lote</td></tr>
+            <tr><td><b>▼/▶️</b></td><td>Recolhe/expande a tabela do lote</td></tr>
             <tr><td><b>✕</b></td><td>Remove o lote da fila</td></tr>
-            <tr><td><b>🗑</b></td><td>Remove uma linha de bloqueio do lote (excluída da aplicação e da exportação)</td></tr>
+            <tr><td><b>🗑️</b></td><td>Remove uma linha de bloqueio do lote (excluída da aplicação e da exportação)</td></tr>
             <tr><td><b>Borda colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             </table>`, 'pt-PT':`
             <p>A fila acumula <b>lotes</b> de cortes antes da aplicação.</p>
             <table class="wct-help-table">
             <tr><td><b>🎯</b></td><td>Centra o mapa no segmento correspondente</td></tr>
-            <tr><td><b>▼/▶</b></td><td>Recolhe/expande a tabela do lote</td></tr>
+            <tr><td><b>▼/▶️</b></td><td>Recolhe/expande a tabela do lote</td></tr>
             <tr><td><b>✕</b></td><td>Remove o lote da fila</td></tr>
-            <tr><td><b>🗑</b></td><td>Remove uma linha de corte do lote (excluída da aplicação e da exportação)</td></tr>
+            <tr><td><b>🗑️</b></td><td>Remove uma linha de corte do lote (excluída da aplicação e da exportação)</td></tr>
             <tr><td><b>Margem colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             </table>` }) },
-        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺 Tracés, ou une zone par <b>⬆ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺 Tracks tab, or an area through <b>⬆ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, de:`
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, de:`
             <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
             <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
             <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>`, es:`
@@ -5293,32 +5439,32 @@ const buildHelpHTML = () => {
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Cliquez \uD83D\uDCBE \u00E0 droite du bouton Valider pour sauvegarder la config actuelle</li>
-            <li>Depuis l\u2019onglet Pr\u00E9r\u00E9glages\u00A0: \u21A9\uFE0F pour charger (bascule sur Configurer), \uD83D\uDDD1 pour supprimer</li>
+            <li>Depuis l\u2019onglet Pr\u00E9r\u00E9glages\u00A0: \u21A9\uFE0F pour charger (bascule sur Configurer), \uD83D\uDDD1\uFE0F pour supprimer</li>
             </ul>`, en:`
             <p>Save a configuration (schedule, days, direction\u2026) for reuse.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Click \uD83D\uDCBE next to the Validate button to save the current config</li>
-            <li>From the Presets tab: \u21A9\uFE0F to load (switches to Configure), \uD83D\uDDD1 to delete</li>
+            <li>From the Presets tab: \u21A9\uFE0F to load (switches to Configure), \uD83D\uDDD1\uFE0F to delete</li>
             </ul>`, de:`
             <p>Speichere eine Konfiguration (Zeitplan, Tage, Fahrtrichtung\u2026) zur Wiederverwendung.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Klicke auf \uD83D\uDCBE rechts neben der Schaltfl\u00E4che Best\u00E4tigen, um die aktuelle Konfiguration zu speichern</li>
-            <li>Im Reiter Vorlagen: \u21A9\uFE0F zum Laden (wechselt zu Einrichten), \uD83D\uDDD1 zum L\u00F6schen</li>
+            <li>Im Reiter Vorlagen: \u21A9\uFE0F zum Laden (wechselt zu Einrichten), \uD83D\uDDD1\uFE0F zum L\u00F6schen</li>
             </ul>`, es:`
             <p>Guarda una configuración (horarios, días, sentido…) para reutilizarla.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Haz clic en 💾 junto al botón Validar para guardar la configuración actual</li>
-            <li>Desde la pestaña Preajustes: ↩️ para cargar (cambia a Configurar), 🗑 para eliminar</li>
+            <li>Desde la pestaña Preajustes: ↩️ para cargar (cambia a Configurar), 🗑️ para eliminar</li>
             </ul>`, 'pt-BR':`
             <p>Salve uma configuração (horários, dias, sentido…) para reutilizá-la.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Clique em 💾 ao lado do botão Validar para salvar a configuração atual</li>
-            <li>Na aba Predefinições: ↩️ para carregar (vai para Configurar), 🗑 para excluir</li>
+            <li>Na aba Predefinições: ↩️ para carregar (vai para Configurar), 🗑️ para excluir</li>
             </ul>`, 'pt-PT':`
             <p>Guarde uma configuração (horário, dias, sentido…) para a reutilizar.</p>
             <ul style="margin:0;padding-left:16px;line-height:1.7">
             <li>Clique em 💾 ao lado do botão Validar para guardar a configuração atual</li>
-            <li>No separador Predefinições: ↩️ para carregar (muda para Configurar), 🗑 para eliminar</li>
+            <li>No separador Predefinições: ↩️ para carregar (muda para Configurar), 🗑️ para eliminar</li>
             </ul>` }) },
         { id:'h6', title:t('helpH6'), body: _L({ fr:`
             <table class="wct-help-table">
@@ -5416,14 +5562,14 @@ const buildHelpHTML = () => {
             <p>Superpose un ou plusieurs tracés (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sur la carte WME pour faciliter l'identification des segments à fermer.</p>
             <p><b>Chargement :</b> cliquer sur la zone ou glisser-déposer un fichier. Plusieurs fichiers et formats peuvent être chargés simultanément — les calques se cumulent.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 Fichier</b></td><td>Ligne parente : représente le fichier chargé. La coche toggle tous ses tracés. 🗑 supprime tous les calques du fichier.</td></tr>
+            <tr><td><b>📄 Fichier</b></td><td>Ligne parente : représente le fichier chargé. La coche toggle tous ses tracés. 🗑️ supprime tous les calques du fichier.</td></tr>
             <tr><td><b>↳ Tracé</b></td><td>Ligne enfant : un track GPX, un Placemark KML, une Feature GeoJSON ou une géométrie Shapefile. Coche individuelle, couleur et focus par tracé.</td></tr>
             <tr><td><b>Type</b></td><td>Format du fichier source : GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
             <tr><td><b>Swatch couleur</b></td><td>Cliquer pour changer la couleur du tracé — palette de 16 couleurs.</td></tr>
             <tr><td><b>pts</b></td><td>Nombre de points tracés (max 3 000, sous-échantillonné si nécessaire).</td></tr>
             <tr><td><b>err</b></td><td>✅ si aucune erreur — ⚠️ + nombre sinon (survoler pour le détail).</td></tr>
             <tr><td><b>🎯</b></td><td>Centre la carte sur l'étendue du tracé au zoom optimal.</td></tr>
-            <tr><td><b>🗑</b></td><td>Supprime ce tracé (ou tous les tracés du fichier pour la ligne parent).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Supprime ce tracé (ou tous les tracés du fichier pour la ligne parent).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile :</b> fournir un ZIP contenant au minimum <code>.shp</code>, <code>.dbf</code> et <code>.shx</code>. Un fichier <code>.prj</code> est recommandé pour la reprojection automatique (Lambert 93, UTM…). Sans <code>.prj</code>, WGS84 est supposé.</p>
             <p><b>Calque Tracés</b> (barre de sélection) : visible dès qu'un fichier est chargé — coche globale pour afficher/masquer tous les calques.</p>
@@ -5431,14 +5577,14 @@ const buildHelpHTML = () => {
             <p>Overlays one or more tracks (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) onto the WME map to help identify segments to close.</p>
             <p><b>Loading:</b> click the drop zone or drag and drop a file. Multiple files and formats can be loaded simultaneously — layers accumulate.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 File</b></td><td>Parent row: represents the loaded file. Checkbox toggles all its tracks. 🗑 removes all file layers.</td></tr>
+            <tr><td><b>📄 File</b></td><td>Parent row: represents the loaded file. Checkbox toggles all its tracks. 🗑️ removes all file layers.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Child row: a GPX track, a KML Placemark, a GeoJSON Feature, or a Shapefile geometry. Individual checkbox, color and focus per track.</td></tr>
             <tr><td><b>Type</b></td><td>Source file format: GPX, KML, KMZ, GeoJSON or SHP.</td></tr>
             <tr><td><b>Color swatch</b></td><td>Click to change the track color — 16-color palette.</td></tr>
             <tr><td><b>pts</b></td><td>Number of plotted points (max 3,000, subsampled if needed).</td></tr>
             <tr><td><b>err</b></td><td>✅ if no errors — ⚠️ + count otherwise (hover for details).</td></tr>
             <tr><td><b>🎯</b></td><td>Centers the map on the track extent at the optimal zoom.</td></tr>
-            <tr><td><b>🗑</b></td><td>Removes this track (or all file tracks for the parent row).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Removes this track (or all file tracks for the parent row).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> provide a ZIP containing at least <code>.shp</code>, <code>.dbf</code> and <code>.shx</code>. A <code>.prj</code> file is recommended for automatic reprojection (Lambert 93, UTM…). Without <code>.prj</code>, WGS84 is assumed.</p>
             <p><b>Tracks layer</b> (selection bar): visible once a file is loaded — global checkbox to show/hide all layers at once.</p>
@@ -5446,14 +5592,14 @@ const buildHelpHTML = () => {
             <p>Legt einen oder mehrere Tracks (GPX, KML, KMZ, GeoJSON, Shapefile-ZIP) über die WME-Karte, um die zu sperrenden Segmente leichter zu erkennen.</p>
             <p><b>Laden:</b> auf die Ablagefläche klicken oder eine Datei per Drag & Drop ablegen. Mehrere Dateien und Formate können gleichzeitig geladen werden — die Ebenen summieren sich.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 Datei</b></td><td>Übergeordnete Zeile: steht für die geladene Datei. Das Häkchen schaltet alle ihre Tracks um. 🗑 entfernt alle Ebenen der Datei.</td></tr>
+            <tr><td><b>📄 Datei</b></td><td>Übergeordnete Zeile: steht für die geladene Datei. Das Häkchen schaltet alle ihre Tracks um. 🗑️ entfernt alle Ebenen der Datei.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Untergeordnete Zeile: ein GPX-Track, ein KML-Placemark, ein GeoJSON-Feature oder eine Shapefile-Geometrie. Häkchen, Farbe und Zentrierung je Track.</td></tr>
             <tr><td><b>Type</b></td><td>Format der Quelldatei: GPX, KML, KMZ, GeoJSON oder SHP.</td></tr>
             <tr><td><b>Farbfeld</b></td><td>Anklicken, um die Farbe des Tracks zu ändern — Palette mit 16 Farben.</td></tr>
             <tr><td><b>pts</b></td><td>Anzahl der gezeichneten Punkte (max. 3.000, bei Bedarf unterabgetastet).</td></tr>
             <tr><td><b>err</b></td><td>✅ wenn kein Fehler — sonst ⚠️ + Anzahl (für Details mit der Maus darüberfahren).</td></tr>
             <tr><td><b>🎯</b></td><td>Zentriert die Karte im optimalen Zoom auf die Ausdehnung des Tracks.</td></tr>
-            <tr><td><b>🗑</b></td><td>Entfernt diesen Track (bzw. alle Tracks der Datei in der übergeordneten Zeile).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Entfernt diesen Track (bzw. alle Tracks der Datei in der übergeordneten Zeile).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> ein ZIP bereitstellen, das mindestens <code>.shp</code>, <code>.dbf</code> und <code>.shx</code> enthält. Eine <code>.prj</code>-Datei wird für die automatische Umprojektion empfohlen (Lambert 93, UTM…). Ohne <code>.prj</code> wird WGS84 angenommen.</p>
             <p><b>Track-Ebene</b> (Auswahlleiste): sichtbar, sobald eine Datei geladen ist — globales Häkchen zum Ein-/Ausblenden aller Ebenen.</p>
@@ -5461,14 +5607,14 @@ const buildHelpHTML = () => {
             <p>Superpone una o varias trazas (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sobre el mapa de WME para facilitar la identificación de los segmentos a cerrar.</p>
             <p><b>Carga:</b> haz clic en la zona o arrastra y suelta un archivo. Se pueden cargar varios archivos y formatos a la vez — las capas se acumulan.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 Archivo</b></td><td>Fila principal: representa el archivo cargado. La casilla activa o desactiva todas sus trazas. 🗑 elimina todas las capas del archivo.</td></tr>
+            <tr><td><b>📄 Archivo</b></td><td>Fila principal: representa el archivo cargado. La casilla activa o desactiva todas sus trazas. 🗑️ elimina todas las capas del archivo.</td></tr>
             <tr><td><b>↳ Traza</b></td><td>Fila secundaria: un track GPX, un Placemark KML, una Feature GeoJSON o una geometría Shapefile. Casilla, color y centrado individuales por traza.</td></tr>
             <tr><td><b>Tipo</b></td><td>Formato del archivo de origen: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
             <tr><td><b>Muestra de color</b></td><td>Haz clic para cambiar el color de la traza — paleta de 16 colores.</td></tr>
             <tr><td><b>pts</b></td><td>Número de puntos trazados (máx. 3.000, submuestreados si es necesario).</td></tr>
             <tr><td><b>err</b></td><td>✅ si no hay errores — ⚠️ + número en caso contrario (pasa el ratón por encima para ver el detalle).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra el mapa en la extensión de la traza con el zoom óptimo.</td></tr>
-            <tr><td><b>🗑</b></td><td>Elimina esta traza (o todas las trazas del archivo en la fila principal).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Elimina esta traza (o todas las trazas del archivo en la fila principal).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> proporciona un ZIP que contenga como mínimo <code>.shp</code>, <code>.dbf</code> y <code>.shx</code>. Se recomienda incluir un archivo <code>.prj</code> para la reproyección automática (Lambert 93, UTM…). Sin <code>.prj</code>, se asume WGS84.</p>
             <p><b>Capa Trazas</b> (barra de selección): visible en cuanto se carga un archivo — casilla global para mostrar u ocultar todas las capas.</p>
@@ -5476,14 +5622,14 @@ const buildHelpHTML = () => {
             <p>Sobrepõe um ou mais trajetos (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) ao mapa do WME para facilitar a identificação dos segmentos a bloquear.</p>
             <p><b>Carregamento:</b> clique na área ou arraste e solte um arquivo. Vários arquivos e formatos podem ser carregados ao mesmo tempo — as camadas se acumulam.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 Arquivo</b></td><td>Linha pai: representa o arquivo carregado. A caixa de seleção liga/desliga todos os seus trajetos. 🗑 remove todas as camadas do arquivo.</td></tr>
+            <tr><td><b>📄 Arquivo</b></td><td>Linha pai: representa o arquivo carregado. A caixa de seleção liga/desliga todos os seus trajetos. 🗑️ remove todas as camadas do arquivo.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha filha: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de seleção, cor e foco individuais por trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do arquivo de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
             <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3.000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erro — ⚠️ + quantidade caso contrário (passe o mouse para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centraliza o mapa na extensão do trajeto, no zoom ideal.</td></tr>
-            <tr><td><b>🗑</b></td><td>Remove este trajeto (ou todos os trajetos do arquivo, na linha pai).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Remove este trajeto (ou todos os trajetos do arquivo, na linha pai).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP contendo no mínimo <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Um arquivo <code>.prj</code> é recomendado para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, presume-se WGS84.</p>
             <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um arquivo é carregado — caixa de seleção global para exibir/ocultar todas as camadas de uma vez.</p>
@@ -5491,14 +5637,14 @@ const buildHelpHTML = () => {
             <p>Sobrepõe um ou vários trajetos (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) ao mapa do WME para ajudar a identificar os segmentos a cortar.</p>
             <p><b>Carregamento:</b> clique na zona de largada ou arraste e largue um ficheiro. É possível carregar vários ficheiros e formatos em simultâneo — as camadas acumulam-se.</p>
             <table class="wct-help-table">
-            <tr><td><b>📄 Ficheiro</b></td><td>Linha principal: representa o ficheiro carregado. A caixa de verificação ativa/desativa todos os seus trajetos. 🗑 remove todas as camadas do ficheiro.</td></tr>
+            <tr><td><b>📄 Ficheiro</b></td><td>Linha principal: representa o ficheiro carregado. A caixa de verificação ativa/desativa todos os seus trajetos. 🗑️ remove todas as camadas do ficheiro.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha secundária: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de verificação, cor e centragem individuais para cada trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do ficheiro de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
             <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3 000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erros — caso contrário ⚠️ + número (passe o rato por cima para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra o mapa na extensão do trajeto, no zoom ideal.</td></tr>
-            <tr><td><b>🗑</b></td><td>Remove este trajeto (ou todos os trajetos do ficheiro, na linha principal).</td></tr>
+            <tr><td><b>🗑️</b></td><td>Remove este trajeto (ou todos os trajetos do ficheiro, na linha principal).</td></tr>
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP que contenha, no mínimo, <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Recomenda-se um ficheiro <code>.prj</code> para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, assume-se WGS84.</p>
             <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um ficheiro é carregado — caixa de verificação global para mostrar/ocultar todas as camadas de uma só vez.</p>
@@ -5581,60 +5727,60 @@ const buildHelpHTML = () => {
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Sélectionne les segments du lot — la carte se déplace pour tout charger (c'est normal) — puis bascule sur <b>Configurer</b>.</td></tr>
             <tr><td><b>Valider</b></td><td>Ajoute le lot à la file, le marque <b>✅ configuré</b>, revient aux Tracés et pointe le lot suivant.</td></tr>
-            <tr><td><b>👁</b></td><td>Recadre la carte sur le lot.</td></tr>
+            <tr><td><b>👁️</b></td><td>Recadre la carte sur le lot.</td></tr>
             <tr><td><b>🔗</b></td><td>Après sélection : copie un permalien pour retrouver la sélection du lot.</td></tr>
-            <tr><td><b>▶ Appliquer</b></td><td>Pose les fermetures : la carte se recadre sur chaque lot, avec une pause « Continuer » entre les lots.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exporte les lots configurés de la trace en CSV (format WME Advanced Closures).</td></tr>
+            <tr><td><b>▶️ Appliquer</b></td><td>Pose les fermetures : la carte se recadre sur chaque lot, avec une pause « Continuer » entre les lots.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exporte les lots configurés de la trace en CSV (format WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">Le calque <b>Fermetures</b> de WME est activé automatiquement à l'ouverture du panneau (pour détecter les chevauchements) et remis dans son état d'origine à la fermeture. Une trace courte, qui tient dans une vue, n'est pas découpée : le 🧲 de la trace la sélectionne d'un seul coup.</p>`, en:`
             <p>A track that exceeds one view (~4.5 km) is automatically <b>split into batches</b>, shown as sub-rows under the track. You handle them one by one:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Selects the batch's segments — the map moves to load everything (this is normal) — then switches to <b>Configure</b>.</td></tr>
             <tr><td><b>Validate</b></td><td>Adds the batch to the queue, marks it <b>✅ configured</b>, returns to Tracks and points to the next batch.</td></tr>
-            <tr><td><b>👁</b></td><td>Centers the map on the batch.</td></tr>
+            <tr><td><b>👁️</b></td><td>Centers the map on the batch.</td></tr>
             <tr><td><b>🔗</b></td><td>After selection: copies a permalink to restore the batch selection.</td></tr>
-            <tr><td><b>▶ Apply</b></td><td>Creates the closures: the map re-centers on each batch, pausing on “Continue” between batches.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
+            <tr><td><b>▶️ Apply</b></td><td>Creates the closures: the map re-centers on each batch, pausing on “Continue” between batches.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
             </table>
             <p style="margin-top:6px">WME's <b>Closures</b> layer is enabled automatically when the panel opens (to detect overlaps) and restored to its original state on close. A short track that fits in one view is not split: the track's 🧲 selects it all at once.</p>`, de:`
             <p>Ein Track, der über eine Ansicht hinausgeht (~4,5 km), wird automatisch <b>in Pakete aufgeteilt</b>, die als Unterzeilen unter dem Track erscheinen. Man bearbeitet sie einzeln:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Wählt die Segmente des Pakets aus — die Karte bewegt sich, um alles zu laden (das ist normal) — und wechselt dann zu <b>Einrichten</b>.</td></tr>
             <tr><td><b>Bestätigen</b></td><td>Fügt das Paket zur Warteschlange hinzu, markiert es als <b>✅ konfiguriert</b>, kehrt zu Tracks zurück und zeigt auf das nächste Paket.</td></tr>
-            <tr><td><b>👁</b></td><td>Zentriert die Karte auf das Paket.</td></tr>
+            <tr><td><b>👁️</b></td><td>Zentriert die Karte auf das Paket.</td></tr>
             <tr><td><b>🔗</b></td><td>Nach der Auswahl: kopiert einen Permalink, um die Auswahl des Pakets wiederherzustellen.</td></tr>
-            <tr><td><b>▶ Anwenden</b></td><td>Erstellt die Sperrungen: die Karte zentriert sich auf jedes Paket, mit einer Pause „Weiter“ zwischen den Paketen.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exportiert die konfigurierten Pakete des Tracks als CSV (Format WME Advanced Closures).</td></tr>
+            <tr><td><b>▶️ Anwenden</b></td><td>Erstellt die Sperrungen: die Karte zentriert sich auf jedes Paket, mit einer Pause „Weiter“ zwischen den Paketen.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exportiert die konfigurierten Pakete des Tracks als CSV (Format WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">Der Kartenlayer <b>Sperrungen</b> von WME wird beim Öffnen des Panels automatisch aktiviert (zur Erkennung von Überschneidungen) und beim Schließen zurückgesetzt. Ein kurzer Track, der in eine Ansicht passt, wird nicht aufgeteilt: das 🧲 des Tracks wählt ihn auf einmal aus.</p>`, es:`
             <p>Una traza que supera una vista (~4,5 km) se <b>divide automáticamente en lotes</b>, mostrados como subfilas bajo la traza. Se tratan uno a uno:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Selecciona los segmentos del lote — el mapa se desplaza para cargarlo todo (es normal) — y luego cambia a <b>Configurar</b>.</td></tr>
             <tr><td><b>Validar</b></td><td>Añade el lote a la cola, lo marca <b>✅ configurado</b>, vuelve a Trazas y apunta al siguiente lote.</td></tr>
-            <tr><td><b>👁</b></td><td>Centra el mapa en el lote.</td></tr>
+            <tr><td><b>👁️</b></td><td>Centra el mapa en el lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Tras la selección: copia un permalink para recuperar la selección del lote.</td></tr>
-            <tr><td><b>▶ Aplicar</b></td><td>Crea los cierres: el mapa se recentra en cada lote, con una pausa «Continuar» entre lotes.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exporta los lotes configurados de la traza a CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>▶️ Aplicar</b></td><td>Crea los cierres: el mapa se recentra en cada lote, con una pausa «Continuar» entre lotes.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exporta los lotes configurados de la traza a CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">La capa <b>Cierres</b> de WME se activa automáticamente al abrir el panel (para detectar solapamientos) y se restaura a su estado original al cerrar. Una traza corta que cabe en una vista no se divide: el 🧲 de la traza la selecciona de una vez.</p>`, 'pt-BR':`
             <p>Um trajeto que ultrapassa uma visualização (~4,5 km) é <b>dividido automaticamente em lotes</b>, mostrados como sublinhas sob o trajeto. Você trata um por um:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Seleciona os segmentos do lote — o mapa se move para carregar tudo (é normal) — e depois muda para <b>Configurar</b>.</td></tr>
             <tr><td><b>Validar</b></td><td>Adiciona o lote à fila, marca como <b>✅ configurado</b>, volta para Trajetos e aponta o próximo lote.</td></tr>
-            <tr><td><b>👁</b></td><td>Centraliza o mapa no lote.</td></tr>
+            <tr><td><b>👁️</b></td><td>Centraliza o mapa no lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
-            <tr><td><b>▶ Aplicar</b></td><td>Cria os bloqueios: o mapa recentraliza em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>▶️ Aplicar</b></td><td>Cria os bloqueios: o mapa recentraliza em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">A camada <b>Bloqueios</b> do WME é ativada automaticamente ao abrir o painel (para detectar sobreposições) e restaurada ao estado original ao fechar. Um trajeto curto que cabe em uma visualização não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>`, 'pt-PT':`
             <p>Um trajeto que ultrapassa uma vista (~4,5 km) é <b>dividido automaticamente em lotes</b>, apresentados como sublinhas sob o trajeto. Trata-se um a um:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Seleciona os segmentos do lote — o mapa desloca-se para carregar tudo (é normal) — e depois muda para <b>Configurar</b>.</td></tr>
             <tr><td><b>Validar</b></td><td>Adiciona o lote à fila, marca-o como <b>✅ configurado</b>, volta aos Trajetos e aponta o lote seguinte.</td></tr>
-            <tr><td><b>👁</b></td><td>Centra o mapa no lote.</td></tr>
+            <tr><td><b>👁️</b></td><td>Centra o mapa no lote.</td></tr>
             <tr><td><b>🔗</b></td><td>Após a seleção: copia um permalink para recuperar a seleção do lote.</td></tr>
-            <tr><td><b>▶ Aplicar</b></td><td>Cria os cortes: o mapa volta a centrar-se em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
-            <tr><td><b>⬇</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
+            <tr><td><b>▶️ Aplicar</b></td><td>Cria os cortes: o mapa volta a centrar-se em cada lote, com uma pausa «Continuar» entre os lotes.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Exporta os lotes configurados do trajeto em CSV (formato WME Advanced Closures).</td></tr>
             </table>
             <p style="margin-top:6px">A camada <b>Cortes</b> do WME é ativada automaticamente ao abrir o painel (para detetar sobreposições) e reposta no estado original ao fechar. Um trajeto curto que cabe numa vista não é dividido: o 🧲 do trajeto seleciona tudo de uma vez.</p>` }) + `<p style="margin-top:6px;color:var(--wct-text2);font-style:italic">${t('shpNetworkHelp')}</p>` },
         { id:'h11', title:t('helpH11'), body: _L({ fr:`
@@ -5701,50 +5847,50 @@ const buildHelpHTML = () => {
         { id:'h12', title:t('helpH12'), body: _L({ fr:`
             <p>Les segments et les virages ne peuvent pas voyager dans le même fichier : le format de WME Advanced Closures n'a aucune colonne capable de désigner un virage. D'où <b>deux boutons</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ File · CSV AC</b></td><td>Fermetures de <b>segments</b>, au format <b>WME Advanced Closures</b>. Réimportable dans AC comme dans WCT.</td></tr>
-            <tr><td><b>⬇ File · CSV Virages</b></td><td>Fermetures de <b>virages</b>, au format <b>WCT</b>. Réimportable dans WCT ; <b>illisible par Advanced Closures</b>, qui le rejettera proprement (les lignes commencent par <code>add-turn</code> et non <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ File · CSV AC</b></td><td>Fermetures de <b>segments</b>, au format <b>WME Advanced Closures</b>. Réimportable dans AC comme dans WCT.</td></tr>
+            <tr><td><b>⬇️ File · CSV Virages</b></td><td>Fermetures de <b>virages</b>, au format <b>WCT</b>. Réimportable dans WCT ; <b>illisible par Advanced Closures</b>, qui le rejettera proprement (les lignes commencent par <code>add-turn</code> et non <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Chaque bouton ne s'allume que si la file contient de quoi l'alimenter. Les <b>lignes supprimées</b> à la main dans une carte de la file ne sont pas exportées : le fichier décrit ce qui reste, pas ce qui a été saisi.</p>
             <p style="margin-top:6px">Le CSV Virages enregistre l'identité complète du virage — segment d'origine, nœud, segment de destination — <b>en plus</b> de son identifiant. Cet identifiant dérive des segments : si un carrefour est retracé, il ne résout plus. Les trois autres colonnes permettront de retrouver le virage malgré tout.</p>`, en:`
             <p>Segments and turns cannot travel in the same file: the WME Advanced Closures format has no column able to designate a turn. Hence <b>two buttons</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ Queue · CSV AC</b></td><td><b>Segment</b> closures, in the <b>WME Advanced Closures</b> format. Re-importable into AC as well as WCT.</td></tr>
-            <tr><td><b>⬇ Queue · CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ Queue · CSV AC</b></td><td><b>Segment</b> closures, in the <b>WME Advanced Closures</b> format. Re-importable into AC as well as WCT.</td></tr>
+            <tr><td><b>⬇️ Queue · CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Each button only lights up if the queue holds something to feed it. Rows <b>deleted</b> by hand in a queue card are not exported: the file describes what is left, not what was entered.</p>
             <p style="margin-top:6px">The Turns CSV records the turn's full identity — source segment, node, destination segment — <b>on top of</b> its id. That id derives from the segments: if a junction is redrawn, it no longer resolves. The three other columns will let the turn be found anyway.</p>`, de:`
             <p>Segmente und Abbieger können nicht in derselben Datei reisen: das Format von WME Advanced Closures hat keine Spalte, die einen Abbieger bezeichnen könnte. Daher <b>zwei Schaltflächen</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ Liste · CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
-            <tr><td><b>⬇ Liste · CSV Abbieger</b></td><td><b>Abbieger</b>-Sperrungen im <b>WCT</b>-Format. In WCT reimportierbar; <b>von Advanced Closures nicht lesbar</b> — es lehnt sie sauber ab (die Zeilen beginnen mit <code>add-turn</code> statt <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ Liste · CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
+            <tr><td><b>⬇️ Liste · CSV Abbieger</b></td><td><b>Abbieger</b>-Sperrungen im <b>WCT</b>-Format. In WCT reimportierbar; <b>von Advanced Closures nicht lesbar</b> — es lehnt sie sauber ab (die Zeilen beginnen mit <code>add-turn</code> statt <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Jede Schaltfläche leuchtet nur, wenn die Warteschlange etwas dafür enthält. Von Hand <b>gelöschte Zeilen</b> einer Karte werden nicht exportiert: die Datei beschreibt, was übrig ist, nicht was eingegeben wurde.</p>
             <p style="margin-top:6px">Die Abbieger-CSV speichert die vollständige Identität des Abbiegers — Ausgangssegment, Knoten, Zielsegment — <b>zusätzlich</b> zu seiner Id. Diese Id leitet sich aus den Segmenten ab: wird eine Kreuzung neu gezeichnet, löst sie nicht mehr auf. Die drei anderen Spalten erlauben es, den Abbieger dennoch zu finden.</p>`, es:`
             <p>Los segmentos y los giros no pueden viajar en el mismo archivo: el formato de WME Advanced Closures no tiene ninguna columna capaz de designar un giro. De ahí <b>dos botones</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ Cola · CSV AC</b></td><td>Cierres de <b>segmentos</b>, en formato <b>WME Advanced Closures</b>. Reimportable tanto en AC como en WCT.</td></tr>
-            <tr><td><b>⬇ Cola · CSV Giros</b></td><td>Cierres de <b>giros</b>, en formato <b>WCT</b>. Reimportable en WCT; <b>ilegible para Advanced Closures</b>, que lo rechazará limpiamente (las líneas empiezan por <code>add-turn</code> y no <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ Cola · CSV AC</b></td><td>Cierres de <b>segmentos</b>, en formato <b>WME Advanced Closures</b>. Reimportable tanto en AC como en WCT.</td></tr>
+            <tr><td><b>⬇️ Cola · CSV Giros</b></td><td>Cierres de <b>giros</b>, en formato <b>WCT</b>. Reimportable en WCT; <b>ilegible para Advanced Closures</b>, que lo rechazará limpiamente (las líneas empiezan por <code>add-turn</code> y no <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botón solo se enciende si la cola contiene con qué alimentarlo. Las <b>líneas eliminadas</b> a mano en una tarjeta de la cola no se exportan: el archivo describe lo que queda, no lo que se introdujo.</p>
             <p style="margin-top:6px">El CSV de Giros guarda la identidad completa del giro — segmento de origen, nodo, segmento de destino — <b>además</b> de su identificador. Ese identificador deriva de los segmentos: si se vuelve a trazar un cruce, deja de resolver. Las otras tres columnas permitirán encontrar el giro igualmente.</p>`, 'pt-BR':`
             <p>Segmentos e conversões não podem viajar no mesmo arquivo: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma conversão. Daí <b>dois botões</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ Fila · CSV AC</b></td><td>Bloqueios de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC quanto no WCT.</td></tr>
-            <tr><td><b>⬇ Fila · CSV Conversões</b></td><td>Bloqueios de <b>conversões</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam com <code>add-turn</code> e não <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ Fila · CSV AC</b></td><td>Bloqueios de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC quanto no WCT.</td></tr>
+            <tr><td><b>⬇️ Fila · CSV Conversões</b></td><td>Bloqueios de <b>conversões</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam com <code>add-turn</code> e não <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botão só acende se a fila tiver com que alimentá-lo. As <b>linhas excluídas</b> à mão em um cartão da fila não são exportadas: o arquivo descreve o que resta, não o que foi digitado.</p>
             <p style="margin-top:6px">O CSV de Conversões grava a identidade completa da conversão — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, ele deixa de resolver. As outras três colunas permitirão encontrar a conversão mesmo assim.</p>`, 'pt-PT':`
             <p>Os segmentos e as viragens não podem viajar no mesmo ficheiro: o formato do WME Advanced Closures não tem nenhuma coluna capaz de designar uma viragem. Daí <b>dois botões</b>.</p>
             <table class="wct-help-table">
-            <tr><td><b>⬇ Fila · CSV AC</b></td><td>Cortes de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC como no WCT.</td></tr>
-            <tr><td><b>⬇ Fila · CSV Viragens</b></td><td>Cortes de <b>viragens</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam por <code>add-turn</code> e não <code>add</code>).</td></tr>
+            <tr><td><b>⬇️ Fila · CSV AC</b></td><td>Cortes de <b>segmentos</b>, no formato <b>WME Advanced Closures</b>. Reimportável tanto no AC como no WCT.</td></tr>
+            <tr><td><b>⬇️ Fila · CSV Viragens</b></td><td>Cortes de <b>viragens</b>, no formato <b>WCT</b>. Reimportável no WCT; <b>ilegível para o Advanced Closures</b>, que o rejeitará de forma limpa (as linhas começam por <code>add-turn</code> e não <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Cada botão só acende se a fila tiver com que o alimentar. As <b>linhas eliminadas</b> à mão num cartão da fila não são exportadas: o ficheiro descreve o que resta, não o que foi introduzido.</p>
             <p style="margin-top:6px">O CSV de Viragens guarda a identidade completa da viragem — segmento de origem, nó, segmento de destino — <b>além</b> do seu identificador. Esse identificador deriva dos segmentos: se um cruzamento for redesenhado, deixa de resolver. As outras três colunas permitirão encontrar a viragem mesmo assim.</p>` }) },
         { id:'h13', title:t('helpH13'), body: _L({ fr:`
             <p>Une fermeture peut être <b>attribuée à un partenaire</b> (une collectivité, un exploitant…), exactement comme le fait le formulaire natif de WME. Sans partenaire, c'est une fermeture d'éditeur.</p>
             <table class="wct-help-table">
-            <tr><td><b>Poser</b></td><td>Onglet <b>⚙ Configurer</b>, champ <b>Source (partenaire)</b>. La liste dépend de la <b>zone affichée</b> : les partenaires de Nice ne sont pas ceux du Mans.</td></tr>
+            <tr><td><b>Poser</b></td><td>Onglet <b>⚙️ Configurer</b>, champ <b>Source (partenaire)</b>. La liste dépend de la <b>zone affichée</b> : les partenaires de Nice ne sont pas ceux du Mans.</td></tr>
             <tr><td><b>Chercher</b></td><td>Onglet <b>🔍 Recherche</b>, section <b>🏷️ Source</b> : <i>Tous</i>, <i>Aucun</i> (fermetures d'éditeur) ou un partenaire. La colonne <b>Source</b> affiche l'attribution de chaque résultat.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Qui peut attribuer&nbsp;?</b> Seuls les comptes ayant le <b>statut partenaire</b>, accordé par Waze — pas par WCT. Si le champ est grisé, l'infobulle en donne la raison exacte. C'est une relation de confiance : attribuer une fermeture à un partenaire, c'est affirmer qu'il en est la source.</p>
@@ -5752,7 +5898,7 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>La Source ne s'applique pas aux virages : c'est un champ de fermeture de segment.</i></p>`, en:`
             <p>A closure can be <b>attributed to a partner</b> (a local authority, an operator…), exactly as WME's native form does. With no partner, it is an editor closure.</p>
             <table class="wct-help-table">
-            <tr><td><b>Set</b></td><td><b>⚙ Configure</b> tab, <b>Source (partner)</b> field. The list depends on the <b>area in view</b>: the partners of Nice are not those of Le Mans.</td></tr>
+            <tr><td><b>Set</b></td><td><b>⚙️ Configure</b> tab, <b>Source (partner)</b> field. The list depends on the <b>area in view</b>: the partners of Nice are not those of Le Mans.</td></tr>
             <tr><td><b>Search</b></td><td><b>🔍 Search</b> tab, <b>🏷️ Source</b> section: <i>All</i>, <i>None</i> (editor closures) or a partner. The <b>Source</b> column shows each result's attribution.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Who can attribute?</b> Only accounts with <b>partner status</b>, granted by Waze — not by WCT. If the field is greyed out, the tooltip gives the exact reason. It is a relationship of trust: attributing a closure to a partner asserts that they are its source.</p>
@@ -5760,7 +5906,7 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>`, de:`
             <p>Eine Sperrung kann einem <b>Partner zugeschrieben</b> werden (einer Gebietskörperschaft, einem Betreiber…), genau wie im nativen WME-Formular. Ohne Partner ist es eine Editor-Sperrung.</p>
             <table class="wct-help-table">
-            <tr><td><b>Setzen</b></td><td>Reiter <b>⚙ Einrichten</b>, Feld <b>Quelle (Partner)</b>. Die Liste hängt vom <b>angezeigten Gebiet</b> ab: die Partner von Nizza sind nicht die von Le Mans.</td></tr>
+            <tr><td><b>Setzen</b></td><td>Reiter <b>⚙️ Einrichten</b>, Feld <b>Quelle (Partner)</b>. Die Liste hängt vom <b>angezeigten Gebiet</b> ab: die Partner von Nizza sind nicht die von Le Mans.</td></tr>
             <tr><td><b>Suchen</b></td><td>Reiter <b>🔍 Suche</b>, Abschnitt <b>🏷️ Quelle</b>: <i>Alle</i>, <i>Keiner</i> (Editor-Sperrungen) oder ein Partner. Die Spalte <b>Quelle</b> zeigt die Zuschreibung jedes Treffers.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Wer darf zuschreiben?</b> Nur Konten mit <b>Partnerstatus</b>, den Waze vergibt — nicht WCT. Ist das Feld ausgegraut, nennt der Tooltip den genauen Grund. Es ist ein Vertrauensverhältnis: eine Sperrung einem Partner zuzuschreiben heißt zu behaupten, er sei ihre Quelle.</p>
@@ -5768,7 +5914,7 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Die Quelle gilt nicht für Abbieger: sie ist ein Feld der Segmentsperrung.</i></p>`, es:`
             <p>Un cierre puede <b>atribuirse a un socio</b> (un municipio, un operador…), igual que hace el formulario nativo de WME. Sin socio, es un cierre de editor.</p>
             <table class="wct-help-table">
-            <tr><td><b>Poner</b></td><td>Pestaña <b>⚙ Configurar</b>, campo <b>Fuente (socio)</b>. La lista depende de la <b>zona mostrada</b>: los socios de Niza no son los de Le Mans.</td></tr>
+            <tr><td><b>Poner</b></td><td>Pestaña <b>⚙️ Configurar</b>, campo <b>Fuente (socio)</b>. La lista depende de la <b>zona mostrada</b>: los socios de Niza no son los de Le Mans.</td></tr>
             <tr><td><b>Buscar</b></td><td>Pestaña <b>🔍 Buscar</b>, sección <b>🏷️ Fuente</b>: <i>Todos</i>, <i>Ninguno</i> (cierres de editor) o un socio. La columna <b>Fuente</b> muestra la atribución de cada resultado.</td></tr>
             </table>
             <p style="margin-top:6px"><b>¿Quién puede atribuir?</b> Solo las cuentas con <b>estado de socio</b>, concedido por Waze — no por WCT. Si el campo está atenuado, la descripción emergente da el motivo exacto. Es una relación de confianza: atribuir un cierre a un socio es afirmar que él es su fuente.</p>
@@ -5776,7 +5922,7 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>La Fuente no se aplica a los giros: es un campo del cierre de segmento.</i></p>`, 'pt-BR':`
             <p>Um bloqueio pode ser <b>atribuído a um parceiro</b> (uma prefeitura, um operador…), igual ao formulário nativo do WME. Sem parceiro, é um bloqueio de editor.</p>
             <table class="wct-help-table">
-            <tr><td><b>Definir</b></td><td>Aba <b>⚙ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área exibida</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
+            <tr><td><b>Definir</b></td><td>Aba <b>⚙️ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área exibida</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
             <tr><td><b>Pesquisar</b></td><td>Aba <b>🔍 Pesquisa</b>, seção <b>🏷️ Fonte</b>: <i>Todos</i>, <i>Nenhum</i> (bloqueios de editor) ou um parceiro. A coluna <b>Fonte</b> mostra a atribuição de cada resultado.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>status de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esmaecido, a dica informa o motivo exato. É uma relação de confiança: atribuir um bloqueio a um parceiro é afirmar que ele é a sua fonte.</p>
@@ -5784,7 +5930,7 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>A Fonte não se aplica às conversões: é um campo do bloqueio de segmento.</i></p>`, 'pt-PT':`
             <p>Um corte pode ser <b>atribuído a um parceiro</b> (uma autarquia, um operador…), tal como faz o formulário nativo do WME. Sem parceiro, é um corte de editor.</p>
             <table class="wct-help-table">
-            <tr><td><b>Definir</b></td><td>Separador <b>⚙ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área apresentada</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
+            <tr><td><b>Definir</b></td><td>Separador <b>⚙️ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área apresentada</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
             <tr><td><b>Pesquisar</b></td><td>Separador <b>🔍 Pesquisa</b>, secção <b>🏷️ Fonte</b>: <i>Todos</i>, <i>Nenhum</i> (cortes de editor) ou um parceiro. A coluna <b>Fonte</b> mostra a atribuição de cada resultado.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>estatuto de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esbatido, a dica indica o motivo exato. É uma relação de confiança: atribuir um corte a um parceiro é afirmar que ele é a sua fonte.</p>
@@ -5793,10 +5939,10 @@ const buildHelpHTML = () => {
         { id:'h14', title:t('helpH14'), body: _L({ fr:`
             <p>Fermer <b>tout un quartier</b> sans cliquer les segments un par un : on trace une zone sur la carte, WCT sélectionne ce qu'elle contient, puis la fermeture se règle comme d'habitude.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Tracer</b></td><td>Onglet <b>⚙ Configurer</b>. Le panneau se replie, <b>un clic par sommet</b>, <b>double-clic</b> pour fermer. L'onglet reste accessible même sans sélection : c'est ce bouton qui la crée.</td></tr>
+            <tr><td><b>✏️ Tracer</b></td><td>Onglet <b>⚙️ Configurer</b>. Le panneau se replie, <b>un clic par sommet</b>, <b>double-clic</b> pour fermer. L'onglet reste accessible même sans sélection : c'est ce bouton qui la crée.</td></tr>
             <tr><td><b>🛣️ Types</b></td><td>Choisit les types de routes retenus, en affichant le <b>nombre de segments de chaque type</b> présents dans la zone. Réglable <b>après coup</b> : la sélection se recalcule sans retracer. Par défaut, les voies non carrossables sont écartées (voie ferrée, ferry, escaliers, piste d'aéroport, chemin piéton non routable).</td></tr>
-            <tr><td><b>⬇ Zone · KML</b> · <b>⬇ Zone · WKT</b></td><td>Exporte <b>la zone seule</b> (pas les segments), pour l'archiver ou la partager : fichier KML, ou <code>POLYGON(…)</code> copié dans le presse-papiers.</td></tr>
-            <tr><td><b>⬆ Zone</b></td><td>Recharge une zone : coller un WKT, ou choisir un fichier KML. Le format est reconnu tout seul.</td></tr>
+            <tr><td><b>⬇️ Zone · KML</b> · <b>⬇️ Zone · WKT</b></td><td>Exporte <b>la zone seule</b> (pas les segments), pour l'archiver ou la partager : fichier KML, ou <code>POLYGON(…)</code> copié dans le presse-papiers.</td></tr>
+            <tr><td><b>⬆️ Zone</b></td><td>Recharge une zone : coller un WKT, ou choisir un fichier KML. Le format est reconnu tout seul.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quels segments sont pris ?</b> Ceux dont <b>plus de la moitié de la longueur</b> est à l'intérieur. Un segment qui effleure la zone est écarté ; un segment majoritairement dedans est retenu.</p>
             <p style="margin-top:6px">⚠️ <b>La fermeture porte sur le segment ENTIER</b>, pas sur la portion contenue dans la zone : Waze ne sait pas fermer un bout de segment. Un segment retenu à 60 % sera fermé sur toute sa longueur, y compris hors de la zone. Tracez au plus juste, et vérifiez la sélection avant de valider.</p>
@@ -5804,10 +5950,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>La zone ne sélectionne que des <b>segments</b> : les fermetures de virage passent par l'onglet 🔀 Virages. Si l'inventaire est indisponible, WCT le signale et se replie sur les segments déjà chargés — il ne rend jamais moins en silence.</i></p>`, en:`
             <p>Close <b>a whole neighbourhood</b> without clicking segments one by one: draw an area on the map, WCT selects what it holds, then the closure is set up as usual.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Draw</b></td><td>Tab <b>⚙ Configure</b>. The panel folds away, <b>one click per corner</b>, <b>double-click</b> to close. The tab stays reachable even without a selection: this button is what creates one.</td></tr>
+            <tr><td><b>✏️ Draw</b></td><td>Tab <b>⚙️ Configure</b>. The panel folds away, <b>one click per corner</b>, <b>double-click</b> to close. The tab stays reachable even without a selection: this button is what creates one.</td></tr>
             <tr><td><b>🛣️ Types</b></td><td>Picks which road types are kept, showing <b>how many segments of each type</b> the area holds. Adjustable <b>afterwards</b>: the selection is recomputed without redrawing. By default the non-drivable ways are left out (railroad, ferry, stairway, runway, non-routable pedestrian path).</td></tr>
-            <tr><td><b>⬇ Area · KML</b> · <b>⬇ Area · WKT</b></td><td>Exports <b>the area alone</b> (not the segments), to archive or share it: a KML file, or <code>POLYGON(…)</code> copied to the clipboard.</td></tr>
-            <tr><td><b>⬆ Area</b></td><td>Reloads an area: paste a WKT, or pick a KML file. The format is detected on its own.</td></tr>
+            <tr><td><b>⬇️ Area · KML</b> · <b>⬇️ Area · WKT</b></td><td>Exports <b>the area alone</b> (not the segments), to archive or share it: a KML file, or <code>POLYGON(…)</code> copied to the clipboard.</td></tr>
+            <tr><td><b>⬆️ Area</b></td><td>Reloads an area: paste a WKT, or pick a KML file. The format is detected on its own.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Which segments are kept?</b> Those with <b>more than half their length</b> inside. A segment merely grazing the area is left out; one mostly inside is kept.</p>
             <p style="margin-top:6px">⚠️ <b>The closure covers the WHOLE segment</b>, not the part inside the area: Waze cannot close a piece of a segment. A segment kept at 60 % will be closed over its full length, outside the area included. Draw tightly, and check the selection before validating.</p>
@@ -5815,10 +5961,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>An area only selects <b>segments</b>: turn closures go through the 🔀 Turns tab. If the scan is unavailable, WCT says so and falls back on the already-loaded segments — it never returns less in silence.</i></p>`, he:`
             <p>לסגור <b>שכונה שלמה</b> בלי ללחוץ על כל מקטע בנפרד: משרטטים אזור על המפה, WCT בוחר את מה שנמצא בתוכו, ואז מגדירים את החסימה כרגיל.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ שרטוט</b></td><td>לשונית <b>⚙ הגדרה</b>. החלונית מתקפלת, <b>לחיצה אחת לכל פינה</b>, <b>לחיצה כפולה</b> לסגירה. הלשונית נגישה גם ללא בחירה: הכפתור הזה הוא שיוצר אותה.</td></tr>
+            <tr><td><b>✏️ שרטוט</b></td><td>לשונית <b>⚙️ הגדרה</b>. החלונית מתקפלת, <b>לחיצה אחת לכל פינה</b>, <b>לחיצה כפולה</b> לסגירה. הלשונית נגישה גם ללא בחירה: הכפתור הזה הוא שיוצר אותה.</td></tr>
             <tr><td><b>🛣️ סוגים</b></td><td>בוחר אילו סוגי דרכים נשמרים, ומציג <b>כמה מקטעים מכל סוג</b> יש באזור. ניתן לשינוי <b>בדיעבד</b>: הבחירה מחושבת מחדש בלי שרטוט נוסף. כברירת מחדל מושמטות הדרכים שאינן לנסיעה (מסילה, מעבורת, מדרגות, מסלול המראה, שביל להולכי רגל שאינו לניווט).</td></tr>
-            <tr><td><b>⬇ אזור · KML</b> · <b>⬇ אזור · WKT</b></td><td>מייצא <b>את האזור בלבד</b> (לא את המקטעים), לארכיון או לשיתוף: קובץ KML, או <code>POLYGON(…)</code> המועתק ללוח.</td></tr>
-            <tr><td><b>⬆ אזור</b></td><td>טוען אזור מחדש: הדבקת WKT, או בחירת קובץ KML. הפורמט מזוהה אוטומטית.</td></tr>
+            <tr><td><b>⬇️ אזור · KML</b> · <b>⬇️ אזור · WKT</b></td><td>מייצא <b>את האזור בלבד</b> (לא את המקטעים), לארכיון או לשיתוף: קובץ KML, או <code>POLYGON(…)</code> המועתק ללוח.</td></tr>
+            <tr><td><b>⬆️ אזור</b></td><td>טוען אזור מחדש: הדבקת WKT, או בחירת קובץ KML. הפורמט מזוהה אוטומטית.</td></tr>
             </table>
             <p style="margin-top:6px"><b>אילו מקטעים נבחרים?</b> אלה שיותר <b>ממחצית אורכם</b> נמצא בפנים. מקטע שרק נוגע באזור מושמט; מקטע שרובו בפנים נשמר.</p>
             <p style="margin-top:6px">⚠️ <b>החסימה חלה על המקטע כולו</b>, ולא על החלק שבתוך האזור: Waze אינו יודע לחסום קטע חלקי. מקטע שנשמר ב-60% ייחסם לכל אורכו, גם מחוץ לאזור. שרטט בדיוק, ובדוק את הבחירה לפני אישור.</p>
@@ -5826,10 +5972,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>אזור בוחר <b>מקטעים</b> בלבד: חסימות פנייה נעשות בלשונית 🔀 פניות. אם הסריקה אינה זמינה, WCT מודיע על כך ונסוג למקטעים שכבר נטענו — הוא לעולם אינו מחזיר פחות בשקט.</i></p>`, it:`
             <p>Chiudere <b>un intero quartiere</b> senza cliccare i segmenti uno a uno: si disegna un’area sulla mappa, WCT seleziona ciò che contiene, poi la chiusura si imposta come sempre.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Disegna</b></td><td>Scheda <b>⚙ Configura</b>. Il pannello si richiude, <b>un clic per ogni vertice</b>, <b>doppio clic</b> per chiudere. La scheda resta accessibile anche senza selezione: è questo pulsante a crearla.</td></tr>
+            <tr><td><b>✏️ Disegna</b></td><td>Scheda <b>⚙️ Configura</b>. Il pannello si richiude, <b>un clic per ogni vertice</b>, <b>doppio clic</b> per chiudere. La scheda resta accessibile anche senza selezione: è questo pulsante a crearla.</td></tr>
             <tr><td><b>🛣️ Tipi</b></td><td>Sceglie quali tipi di strada vengono tenuti, mostrando <b>quanti segmenti di ciascun tipo</b> ci sono nell’area. Modificabile <b>in seguito</b>: la selezione si ricalcola senza ridisegnare. Per impostazione predefinita sono escluse le vie non percorribili (ferrovia, traghetto, scale, pista aeroportuale, percorso pedonale non navigabile).</td></tr>
-            <tr><td><b>⬇ Area · KML</b> · <b>⬇ Area · WKT</b></td><td>Esporta <b>la sola area</b> (non i segmenti), per archiviarla o condividerla: file KML, oppure <code>POLYGON(…)</code> copiato negli appunti.</td></tr>
-            <tr><td><b>⬆ Area</b></td><td>Ricarica un’area: incolla un WKT, o scegli un file KML. Il formato viene riconosciuto da solo.</td></tr>
+            <tr><td><b>⬇️ Area · KML</b> · <b>⬇️ Area · WKT</b></td><td>Esporta <b>la sola area</b> (non i segmenti), per archiviarla o condividerla: file KML, oppure <code>POLYGON(…)</code> copiato negli appunti.</td></tr>
+            <tr><td><b>⬆️ Area</b></td><td>Ricarica un’area: incolla un WKT, o scegli un file KML. Il formato viene riconosciuto da solo.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quali segmenti vengono presi?</b> Quelli con <b>più di metà della lunghezza</b> all’interno. Un segmento che sfiora l’area viene escluso; uno per lo più dentro viene tenuto.</p>
             <p style="margin-top:6px">⚠️ <b>La chiusura riguarda il segmento INTERO</b>, non la porzione dentro l’area: Waze non sa chiudere un pezzo di segmento. Un segmento tenuto al 60 % sarà chiuso per tutta la sua lunghezza, anche fuori dall’area. Disegna con precisione e controlla la selezione prima di convalidare.</p>
@@ -5837,10 +5983,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Un’area seleziona solo <b>segmenti</b>: le chiusure di svolta passano dalla scheda 🔀 Svolte. Se la scansione non è disponibile, WCT lo segnala e ripiega sui segmenti già caricati — non restituisce mai meno in silenzio.</i></p>`, de:`
             <p><b>Ein ganzes Viertel</b> sperren, ohne die Segmente einzeln anzuklicken: Du zeichnest einen Bereich auf der Karte, WCT wählt aus, was darin liegt, und die Sperrung richtest du wie gewohnt ein.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Zeichnen</b></td><td>Reiter <b>⚙ Einrichten</b>. Das Fenster klappt zu, <b>ein Klick je Eckpunkt</b>, <b>Doppelklick</b> zum Schließen. Der Reiter bleibt auch ohne Auswahl erreichbar: dieser Knopf erzeugt sie ja gerade.</td></tr>
+            <tr><td><b>✏️ Zeichnen</b></td><td>Reiter <b>⚙️ Einrichten</b>. Das Fenster klappt zu, <b>ein Klick je Eckpunkt</b>, <b>Doppelklick</b> zum Schließen. Der Reiter bleibt auch ohne Auswahl erreichbar: dieser Knopf erzeugt sie ja gerade.</td></tr>
             <tr><td><b>🛣️ Typen</b></td><td>Legt fest, welche Straßentypen behalten werden, und zeigt <b>wie viele Segmente jedes Typs</b> im Bereich liegen. <b>Nachträglich</b> änderbar: die Auswahl wird ohne neues Zeichnen neu berechnet. Voreingestellt bleiben die nicht befahrbaren Wege außen vor (Bahn, Fähre, Treppe, Rollbahn, nicht routbarer Fußweg).</td></tr>
-            <tr><td><b>⬇ Bereich · KML</b> · <b>⬇ Bereich · WKT</b></td><td>Exportiert <b>nur den Bereich</b> (nicht die Segmente), zum Ablegen oder Weitergeben: KML-Datei oder <code>POLYGON(…)</code> in der Zwischenablage.</td></tr>
-            <tr><td><b>⬆ Bereich</b></td><td>Lädt einen Bereich neu: WKT einfügen oder eine KML-Datei wählen. Das Format wird selbst erkannt.</td></tr>
+            <tr><td><b>⬇️ Bereich · KML</b> · <b>⬇️ Bereich · WKT</b></td><td>Exportiert <b>nur den Bereich</b> (nicht die Segmente), zum Ablegen oder Weitergeben: KML-Datei oder <code>POLYGON(…)</code> in der Zwischenablage.</td></tr>
+            <tr><td><b>⬆️ Bereich</b></td><td>Lädt einen Bereich neu: WKT einfügen oder eine KML-Datei wählen. Das Format wird selbst erkannt.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Welche Segmente werden genommen?</b> Die, deren <b>Länge zu mehr als der Hälfte</b> innen liegt. Ein Segment, das den Bereich nur streift, fällt heraus; ein überwiegend innen liegendes wird behalten.</p>
             <p style="margin-top:6px">⚠️ <b>Die Sperrung gilt dem GANZEN Segment</b>, nicht dem Stück im Bereich: Waze kann kein Teilstück sperren. Ein zu 60 % erfasstes Segment wird auf voller Länge gesperrt, auch außerhalb. Zeichne knapp und prüfe die Auswahl vor dem Bestätigen.</p>
@@ -5848,10 +5994,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Ein Bereich wählt nur <b>Segmente</b>: Abbiegersperrungen laufen über den Reiter 🔀 Abbieger. Ist die Erfassung nicht verfügbar, sagt WCT es und weicht auf die bereits geladenen Segmente aus — es liefert nie stillschweigend weniger.</i></p>`, es:`
             <p>Cerrar <b>todo un barrio</b> sin ir pinchando segmento a segmento: dibujas una zona en el mapa, WCT selecciona lo que contiene y el cierre se configura como siempre.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Dibujar</b></td><td>Pestaña <b>⚙ Configurar</b>. El panel se pliega, <b>un clic por vértice</b>, <b>doble clic</b> para cerrar. La pestaña sigue accesible aunque no haya selección: es este botón el que la crea.</td></tr>
+            <tr><td><b>✏️ Dibujar</b></td><td>Pestaña <b>⚙️ Configurar</b>. El panel se pliega, <b>un clic por vértice</b>, <b>doble clic</b> para cerrar. La pestaña sigue accesible aunque no haya selección: es este botón el que la crea.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Elige qué tipos de vía se conservan, mostrando <b>cuántos segmentos de cada tipo</b> hay en la zona. Ajustable <b>después</b>: la selección se recalcula sin volver a dibujar. Por defecto quedan fuera las vías no transitables (ferrocarril, ferry, escaleras, pista de aeropuerto, senda peatonal no enrutable).</td></tr>
-            <tr><td><b>⬇ Zona · KML</b> · <b>⬇ Zona · WKT</b></td><td>Exporta <b>solo la zona</b> (no los segmentos), para archivarla o compartirla: archivo KML, o <code>POLYGON(…)</code> copiado al portapapeles.</td></tr>
-            <tr><td><b>⬆ Zona</b></td><td>Recarga una zona: pega un WKT o elige un archivo KML. El formato se reconoce solo.</td></tr>
+            <tr><td><b>⬇️ Zona · KML</b> · <b>⬇️ Zona · WKT</b></td><td>Exporta <b>solo la zona</b> (no los segmentos), para archivarla o compartirla: archivo KML, o <code>POLYGON(…)</code> copiado al portapapeles.</td></tr>
+            <tr><td><b>⬆️ Zona</b></td><td>Recarga una zona: pega un WKT o elige un archivo KML. El formato se reconoce solo.</td></tr>
             </table>
             <p style="margin-top:6px"><b>¿Qué segmentos entran?</b> Aquellos con <b>más de la mitad de su longitud</b> dentro. Un segmento que solo roza la zona queda fuera; uno mayoritariamente dentro se conserva.</p>
             <p style="margin-top:6px">⚠️ <b>El cierre afecta al segmento ENTERO</b>, no al tramo que está dentro de la zona: Waze no sabe cerrar un trozo de segmento. Un segmento tomado al 60 % se cerrará en toda su longitud, también fuera de la zona. Dibuja ajustado y revisa la selección antes de validar.</p>
@@ -5859,10 +6005,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Una zona solo selecciona <b>segmentos</b>: los cierres de giro van por la pestaña 🔀 Giros. Si el rastreo no está disponible, WCT lo avisa y recurre a los segmentos ya cargados — nunca devuelve menos en silencio.</i></p>`, 'pt-BR':`
             <p>Bloquear <b>um bairro inteiro</b> sem clicar segmento por segmento: você desenha uma área no mapa, o WCT seleciona o que ela contém e o bloqueio é configurado como sempre.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Desenhar</b></td><td>Aba <b>⚙ Configurar</b>. O painel se recolhe, <b>um clique por vértice</b>, <b>clique duplo</b> para fechar. A aba continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
+            <tr><td><b>✏️ Desenhar</b></td><td>Aba <b>⚙️ Configurar</b>. O painel se recolhe, <b>um clique por vértice</b>, <b>clique duplo</b> para fechar. A aba continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Escolhe quais tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem redesenhar. Por padrão ficam de fora as vias não trafegáveis (ferrovia, balsa, escadaria, pista de aeroporto, caminho de pedestres não roteável).</td></tr>
-            <tr><td><b>⬇ Área · KML</b> · <b>⬇ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou compartilhar: arquivo KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
-            <tr><td><b>⬆ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um arquivo KML. O formato é reconhecido sozinho.</td></tr>
+            <tr><td><b>⬇️ Área · KML</b> · <b>⬇️ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou compartilhar: arquivo KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>⬆️ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um arquivo KML. O formato é reconhecido sozinho.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Quais segmentos entram?</b> Aqueles com <b>mais da metade do comprimento</b> dentro. Um segmento que apenas encosta na área fica de fora; um majoritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O bloqueio vale para o segmento INTEIRO</b>, não para o trecho dentro da área: o Waze não sabe bloquear um pedaço de segmento. Um segmento pego a 60 % será bloqueado em todo o comprimento, inclusive fora da área. Desenhe justo e confira a seleção antes de validar.</p>
@@ -5870,10 +6016,10 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os bloqueios de conversão passam pela aba 🔀 Conversões. Se a varredura estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>`, 'pt-PT':`
             <p>Cortar <b>um bairro inteiro</b> sem clicar segmento a segmento: desenha uma área no mapa, o WCT seleciona o que ela contém e o corte configura-se como sempre.</p>
             <table class="wct-help-table">
-            <tr><td><b>✏️ Desenhar</b></td><td>Separador <b>⚙ Configurar</b>. O painel recolhe-se, <b>um clique por vértice</b>, <b>duplo clique</b> para fechar. O separador continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
+            <tr><td><b>✏️ Desenhar</b></td><td>Separador <b>⚙️ Configurar</b>. O painel recolhe-se, <b>um clique por vértice</b>, <b>duplo clique</b> para fechar. O separador continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
             <tr><td><b>🛣️ Tipos</b></td><td>Escolhe que tipos de via são mantidos, mostrando <b>quantos segmentos de cada tipo</b> há na área. Ajustável <b>depois</b>: a seleção é recalculada sem desenhar de novo. Por predefinição ficam de fora as vias não transitáveis (via férrea, ferry, escadas, pista de aeroporto, caminho pedonal não navegável).</td></tr>
-            <tr><td><b>⬇ Área · KML</b> · <b>⬇ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou partilhar: ficheiro KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
-            <tr><td><b>⬆ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um ficheiro KML. O formato é reconhecido sozinho.</td></tr>
+            <tr><td><b>⬇️ Área · KML</b> · <b>⬇️ Área · WKT</b></td><td>Exporta <b>apenas a área</b> (não os segmentos), para arquivar ou partilhar: ficheiro KML, ou <code>POLYGON(…)</code> copiado para a área de transferência.</td></tr>
+            <tr><td><b>⬆️ Área</b></td><td>Recarrega uma área: cole um WKT ou escolha um ficheiro KML. O formato é reconhecido sozinho.</td></tr>
             </table>
             <p style="margin-top:6px"><b>Que segmentos entram?</b> Aqueles com <b>mais de metade do comprimento</b> lá dentro. Um segmento que apenas toca a área fica de fora; um maioritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O corte abrange o segmento INTEIRO</b>, não o troço dentro da área: o Waze não sabe cortar um pedaço de segmento. Um segmento apanhado a 60 % será cortado em todo o comprimento, incluindo fora da área. Desenhe justo e verifique a seleção antes de validar.</p>
@@ -6045,7 +6191,7 @@ const TURN_SECTORS=[
     {max:22.5 , arrow:'↑', key:'turnStraight'},
     {max:67.5 , arrow:'↗', key:'turnSlightRight'},
     {max:157.5, arrow:'↱', key:'turnRight'},
-    {max:202.5, arrow:'↩', key:'turnUturn'},
+    {max:202.5, arrow:'↩️', key:'turnUturn'},
     {max:292.5, arrow:'↰', key:'turnLeft'},
     {max:337.5, arrow:'↖', key:'turnSlightLeft'},
     {max:360  , arrow:'↑', key:'turnStraight'},
@@ -6057,7 +6203,7 @@ const TURN_SECTORS=[
 const getTurnGeom=(nodeId,turn)=>{
     try{
         if(turn.isUTurn||Number(turn.toSegmentId)===Number(turn.fromSegmentId))
-            return {delta:180, arrow:'↩', key:'turnUturn'};
+            return {delta:180, arrow:'↩️', key:'turnUturn'};
         const eIn=_segEndAt(turn.fromSegmentId,nodeId), eOut=_segEndAt(turn.toSegmentId,nodeId);
         if(!eIn||!eOut) return null;
         const inB=_bearing(eIn.nxt,eIn.at);          // cap d'ARRIVEE au noeud
@@ -8257,6 +8403,14 @@ const makeDraggable=(el,handle)=>{
             x=Math.max(0,Math.min(x,window.innerWidth-el.offsetWidth));
             y=Math.max(0,Math.min(y,window.innerHeight-30));
             el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';
+            // ⚠️ La hauteur maximale est calculée en CSS sur la FENÊTRE (100vh - N), pas
+            // sur la position courante du panneau : en le descendant, il s'étendait donc
+            // au-delà du bas de l'écran et emportait avec lui son pied fixe — « Valider »
+            // et « Appliquer ». Et comme il est en position:fixed, plus rien ne permettait
+            // de les atteindre. C'est le piège des 185 px sous le pli, revenu par une
+            // porte que les media queries ne peuvent pas fermer. On borne à ce qui reste
+            // sous le bandeau, sans brider le déplacement lui-même.
+            el.style.maxHeight=Math.max(120,window.innerHeight-y-8)+'px';
         };
         const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
         document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
@@ -9757,6 +9911,13 @@ const _lotSelect = async (trackId, lotIdx) => {
         _lotFocus(lot); // zoom auto pour voir tout le lot
         // Basculer sur Configurer pour régler la fermeture
         document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
+        // ⚠️ _sweepShowText écrit dans #wct-coverage-result, qui vit dans le volet Tracés
+        // — celui qu'on vient de masquer. Le message y reste (utile au retour sur l'onglet)
+        // mais il ne peut pas être LU au moment où il compte : c'est la seule phrase qui
+        // dit quoi faire ensuite dans une boucle de 18 tours. D'où le toast.
+        // La preuve que c'était un oubli et non un choix : la branche d'échec (lotNone,
+        // quelques lignes plus haut) sort AVANT la bascule, donc elle, on la voit.
+        showToast(t('lotSelected', ids.length), 3500, '#43a047');
         _sweepShowText(`<div style="color:var(--wct-green,#2e7d32);font-weight:600">${escHtml(t('lotSelected', ids.length))}</div>`);
         updateFab(); updateCountryInfo();
     } catch(e){ _sweepRunning = false; log('lotSelect error: '+e.message); }
@@ -11131,8 +11292,8 @@ const traceRenderTable = () => {
             <td style="text-align:end;color:#2e7d32">${fileTracks.reduce((s,t)=>s+(t.olLayer?t.sampled:0),0)||'—'}</td>
             <td class="wct-gpx-swatch-cell"><span class="wct-trace-file-swatch wct-gpx-swatch" data-fid="${file.fileId}" style="${fileSwatchStyle}" title="${fileSwatchTitle}"></span></td>
             <td class="wct-gpx-err ${fileErrCount>0?'wct-gpx-has-err':''}">${fileErrCount>0?'⚠️':'✅'}</td>
-            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">⬇</button></td>
-            <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑</button></td>
+            <td style="white-space:nowrap"><button class="wct-trace-file-sel wct-ico" data-fid="${file.fileId}" title="${t('sweepTitle')}">🧲</button><button class="wct-trace-file-cov wct-ico" data-fid="${file.fileId}" title="${t('covTitle')}" style="${hasSel()?'':'display:none'}">📐</button><button class="wct-trace-file-csv wct-ico" data-fid="${file.fileId}" title="${t('lotCsvTitle')}">⬇️</button></td>
+            <td><button class="wct-trace-file-del wct-ico" data-fid="${file.fileId}" title="${t('trkTipDelFile')}">🗑️</button></td>
         </tr>`;
         // Lignes enfants — masquées si replié
         fileTracks.forEach(trk => {
@@ -11149,7 +11310,7 @@ const traceRenderTable = () => {
                 <td class="wct-gpx-swatch-cell"><span class="wct-gpx-swatch" data-tid="${trk.trackId}" style="background:${trk.color}" title="${t('trkTipColor')}"></span></td>
                 <td class="wct-gpx-err ${errCount>0?'wct-gpx-has-err':''}" title="${escHtml(errTip)}">${errCount>0?'⚠️ '+errCount:'✅'}</td>
                 <td><button class="wct-trace-trk-pos wct-ico" data-tid="${trk.trackId}" title="${t('trkTipFocus')}">🎯</button></td>
-                <td><button class="wct-trace-trk-del wct-ico" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑</button></td>
+                <td><button class="wct-trace-trk-del wct-ico" data-tid="${trk.trackId}" title="${t('trkTipDel')}">🗑️</button></td>
             </tr>`;
             // Lignes de lot : trace trop longue découpée automatiquement
             if(trk.lots && trk.lots.length){
@@ -11164,7 +11325,7 @@ const traceRenderTable = () => {
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td style="white-space:nowrap"><button class="wct-trace-lot-show wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotShowTitle')}">👁</button><button class="wct-trace-lot-sel wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotSelTitle')}">🧲</button></td>
+                        <td style="white-space:nowrap"><button class="wct-trace-lot-show wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotShowTitle')}">👁️</button><button class="wct-trace-lot-sel wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotSelTitle')}">🧲</button></td>
                         <td>${lot.segIds&&lot.segIds.length?`<button class="wct-trace-lot-perma wct-ico" data-tid="${trk.trackId}" data-lot="${lot.idx}" title="${t('lotPermaTitle')}">🔗</button>`:''}</td>
                     </tr>`;
                 });
@@ -11338,6 +11499,48 @@ const traceHandleFiles = (files) => {
         }
     }
 };
+// Panneau des raccourcis et gestes, ouvert par le bouton ⌨️ du bandeau de titre.
+// ⚠️ N'Y METTRE QUE CE QUI EXISTE VRAIMENT DANS LE CODE. Une aide qui annonce un
+// raccourci absent est pire que pas d'aide du tout : elle se retourne contre celui qui
+// s'y fie au mauvais moment. Chaque ligne ci-dessous a été relue dans le code le
+// 01/08/2026, avec sa source :
+//   • Échap application/balayage → écouteur en capture posé par connectOverlay
+//   • Échap édition de contour   → `echap` de _zoneEntrerEdition (rend le tracé d'avant)
+//   • Entrée / Échap préréglage  → écouteur du champ de nom
+//   • double-clic dans la zone   → _zoneInstallerDblClic
+//   • clic droit sur un sommet / clic sur un point creux → _zoneDessinerPoignees
+//   • glisser le bandeau ou le bouton flottant → makeDraggable / makeFabDraggable
+// Si l'un d'eux disparaît un jour, retirer sa ligne ICI dans le même commit.
+// Ouvre / ferme / bascule le panneau des raccourcis. Sans argument : bascule.
+// L'état vit dans le DOM et non en variable : contrairement à l'aperçu replié, ce
+// panneau n'a rien à survivre à une reconstruction de l'overlay — il se rouvre d'un clic.
+const _keysPop = (v) => {
+    const p = $id('wct-keys-pop'); if(!p) return;
+    p.style.display = ((v === undefined) ? p.style.display !== 'block' : !!v) ? 'block' : 'none';
+};
+const buildKeysPanel = () => {
+    const kbd = s => `<kbd>${escHtml(s)}</kbd>`;
+    const l = (geste, effet) => `<tr><td>${geste}</td><td>${escHtml(effet)}</td></tr>`;
+    return `
+    <div id="wct-keys-pop" style="display:none">
+      <div class="wct-keys-hdr">&#x2328;&#xFE0F; <span style="flex:1">${escHtml(t('keysTitle'))}</span>
+        <button class="wct-hdr-btn" id="wct-keys-close" title="${escHtml(t('btnClose'))}" style="background:var(--wct-bg2);color:var(--wct-text)">&#x2715;</button>
+      </div>
+      <div class="wct-keys-sec">${escHtml(t('keysSecKbd'))}</div>
+      <table>
+        ${l(kbd(t('keyEsc')), t('keysEscApply'))}
+        ${l(kbd(t('keyEsc')), t('keysEscZone'))}
+        ${l(kbd(t('keyEnter')) + ' / ' + kbd(t('keyEsc')), t('keysPreset'))}
+      </table>
+      <div class="wct-keys-sec">${escHtml(t('keysSecMouse'))}</div>
+      <table>
+        ${l(escHtml(t('keysDblClick')), t('keysDblClickD'))}
+        ${l(escHtml(t('keysRightClick')), t('keysRightClickD'))}
+        ${l(escHtml(t('keysMidPoint')), t('keysMidPointD'))}
+        ${l(escHtml(t('keysDrag')), t('keysDragD'))}
+      </table>
+    </div>`;
+};
 const buildOverlay=()=>{
     const today=todayStr();
     const days=t('days');
@@ -11353,10 +11556,12 @@ const buildOverlay=()=>{
             <span id="wct-hdr-badge" style="font-size:0.917em;opacity:.75;margin-left:4px"></span>
         </div>
         <div class="wct-hdr-btns">
+            <button class="wct-hdr-btn" id="wct-btn-keys" title="${t('btnKeys')}">&#x2328;&#xFE0F;</button>
             <button class="wct-hdr-btn" id="wct-btn-collapse" title="${t('btnCollapse')}">&#x2014;</button>
             <button class="wct-hdr-btn" id="wct-btn-close" title="${t('btnClose')}">&#x2715;</button>
         </div>
     </div>
+    ${buildKeysPanel()}
     <div id="wct-sel-strip">
         <div class="wct-sel-dot"></div>
         <span class="wct-sel-text" id="wct-sel-text">${t('noSel')}</span>
@@ -11682,7 +11887,11 @@ const buildOverlay=()=>{
       <!-- FILE D'ATTENTE -->
       <div class="wct-section" style="margin-top:12px;cursor:pointer" id="wct-queue-section-hdr">
         ${t('sectionQueue')}
-        <span id="wct-queue-chevron" style="float:right;font-size:1.083em">&#x25BC;</span>
+        <!-- ⚠️ margin-inline-start:auto et NON float:right : le parent .wct-section est en
+             display:flex, où un float est purement et simplement ignoré. Le chevron
+             restait donc collé au titre, alors que ceux de l'onglet Recherche sont bien
+             plaqués au bord — ils utilisent déjà cette recette (.wct-src-chev). -->
+        <span id="wct-queue-chevron" style="margin-inline-start:auto;font-size:1.083em">&#x25BC;</span>
       </div>
       <div id="wct-queue-body">
         <hr style="border:none;border-top:1px solid var(--wct-border);margin:6px 0 0">
@@ -12137,7 +12346,23 @@ const connectOverlay=ov=>{
     $id('wct-btn-collapse')?.addEventListener('click',()=>{
         collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
         $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
+        if(collapsed) _keysPop(false);   // replier le panneau referme les raccourcis
     });
+    // \u2500\u2500\u2500 Raccourcis et gestes \u2500\u2500\u2500
+    // Trois sorties : la croix, \u00C9chap, et un clic hors du panneau. Une fen\u00EAtre qu'on ne
+    // sait pas fermer est une g\u00EAne, et celle-ci recouvre le contenu.
+    $id('wct-btn-keys')?.addEventListener('click',e=>{ e.stopPropagation(); _keysPop(); });
+    $id('wct-keys-close')?.addEventListener('click',()=>_keysPop(false));
+    // \u26A0\uFE0F \u00C9couteur NON capturant, contrairement \u00E0 celui de l'interruption : si une
+    // application tourne, \u00C9chap doit d'abord l'arr\u00EAter. Ici on ne fait que fermer une
+    // fen\u00EAtre d'aide, \u00E7a passe apr\u00E8s.
+    document.addEventListener('keydown',e=>{
+        if(e.key==='Escape' && $id('wct-keys-pop')?.style.display==='block') _keysPop(false);
+    },{signal:sig});
+    document.addEventListener('click',e=>{
+        const p=$id('wct-keys-pop');
+        if(p&&p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('#wct-btn-keys')) _keysPop(false);
+    },{signal:sig});
     $id('wct-btn-close')?.addEventListener('click',()=>{
         ov.classList.remove('open');
         restoreClosuresLayer();
@@ -12163,6 +12388,12 @@ const connectOverlay=ov=>{
             ['cfg','turn','csv','pre','gpx','src','help'].forEach(id=>$id('wct-pane-'+id)?.classList.remove('on'));
             tab.classList.add('on');
             $id('wct-pane-'+tab.dataset.tab)?.classList.add('on');
+            // ⚠️ Tous les volets partagent UN seul conteneur défilant (#wct-body) : sans
+            // ça, on arrive dans le nouvel onglet à la hauteur où on avait laissé le
+            // précédent. Le plus visible est le parcours des lots : Valider défile
+            // jusqu'à la file, on rebascule sur Tracés déjà défilé, puis sur Configurer
+            // — qui s'ouvre sur sa FIN au lieu de son formulaire. Dix-huit fois par tracé.
+            const corps=$id('wct-body'); if(corps) corps.scrollTop=0;
             if(tab.dataset.tab==='pre') renderPresetsTable();
             if(tab.dataset.tab==='turn') renderTurnsPane();
             // La liste du filtre partenaire est bâtie sur les fermetures chargées :
@@ -12502,7 +12733,12 @@ const connectOverlay=ov=>{
             return;
         }
         const sel=getSelection();
-        if(!sel.ids.length||sel.objectType!=='segment'){showToast('\u26A0\uFE0F Aucun segment s\u00E9lectionn\u00E9','2500','#e53935');return;}
+        // \u26A0\uFE0F Pass\u00E9 par le dictionnaire : ce toast \u00E9tait en FRAN\u00C7AIS EN DUR, sur le bouton
+        // principal du script. Un \u00E9diteur italien ou h\u00E9breu lisait du fran\u00E7ais au moment
+        // le plus utile. La cl\u00E9 noSel existait d\u00E9j\u00E0. (La dur\u00E9e \u00E9tait aussi pass\u00E9e en
+        // cha\u00EEne, '2500' : setTimeout la convertit, \u00E7a ne cassait rien, mais un nombre
+        // est un nombre.)
+        if(!sel.ids.length||sel.objectType!=='segment'){showToast('\u26A0\uFE0F '+t('noSel'),2500,'#e53935');return;}
         // Vérif multipays
         const cc=checkSelectionCountry(sel.ids);
         if(!cc.ok&&cc.countries.length>1){
@@ -13255,14 +13491,20 @@ const updateFab=()=>{
         strip.classList.toggle('has-sel',hasSeg);
         text.textContent=hasSeg?t('hasSel',sel.ids.length):t('noSel');
     }
-    // Onglets : griser Préréglages si pas de sélection.
     // ⚠️ Configurer N'EST PLUS grisé depuis la 0.88.00 : il héberge « Tracer une zone »,
     // seul moyen de PRODUIRE une sélection — le condamner faute de sélection fermait la
     // porte de l'intérieur. C'est son CONTENU qui est grisé (refreshCfgGate), pas l'accès.
+    // ⚠️ Préréglages NON PLUS depuis la 1.04.00, pour exactement la même raison : le
+    // raisonnement ci-dessus n'y avait pas été reporté. Vérifié fonction par fonction —
+    // RIEN dans ce volet ne dépend d'une sélection : l'export, l'import, le partage par
+    // URL, la table de relecture et la suppression n'en ont pas besoin, et le ↩️ ne fait
+    // que remplir le formulaire (applyConfig) avant de basculer sur Configurer, dont le
+    // contenu est déjà grisé le cas échéant. On condamnait donc l'accès à ses propres
+    // sauvegardes tant qu'aucun segment n'était sélectionné.
     const cfgTab=document.querySelector('.wct-main-tab[data-tab="cfg"]');
     const preTab=document.querySelector('.wct-main-tab[data-tab="pre"]');
     if(cfgTab) cfgTab.classList.remove('disabled');
-    if(preTab) preTab.classList.toggle('disabled',!hasSeg);
+    if(preTab) preTab.classList.remove('disabled');
     refreshCfgGate();
     // Aide toujours accessible
     document.querySelector('.wct-main-tab[data-tab="help"]')?.classList.remove('disabled');
