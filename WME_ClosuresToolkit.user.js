@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.07.01
+// @version      1.07.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -277,7 +277,7 @@ GM_addStyle(`
    Ne pas ajouter une troisième dette RTL pour un panneau écrit aujourd'hui. */
 #wct-keys-pop {
     position: absolute; inset-inline: 10px; top: 46px; z-index: 20;
-    background: var(--wct-card); border: 1px solid var(--wct-border);
+    background: var(--wct-surface); border: 1px solid var(--wct-border);
     border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.22);
     max-height: calc(100% - 60px); overflow-y: auto; padding: 0 0 6px;
 }
@@ -285,7 +285,7 @@ GM_addStyle(`
     display: flex; align-items: center; gap: 6px;
     padding: 7px 9px; border-bottom: 1px solid var(--wct-border);
     font-weight: 700; font-size: 0.917em; position: sticky; top: 0;
-    background: var(--wct-card);
+    background: var(--wct-surface);
 }
 #wct-keys-pop .wct-keys-sec {
     font-size: 0.833em; font-weight: 700; text-transform: uppercase;
@@ -295,11 +295,18 @@ GM_addStyle(`
 #wct-keys-pop table { width: 100%; border-collapse: collapse; font-size: 0.917em; }
 #wct-keys-pop td { padding: 3px 9px; vertical-align: top; }
 #wct-keys-pop td:first-child { width: 38%; white-space: nowrap; }
+/* ⚠️ La couleur DOIT être posée explicitement : WME définit son propre style pour la
+   balise kbd (il s'en sert pour ses raccourcis d'éditeur) et impose du texte BLANC.
+   Sans cette ligne, les touches s'affichaient blanc sur fond clair — donc vides.
+   Règle générale pour un script greffé : ne jamais compter sur l'héritage pour une
+   balise sémantique, la page hôte a le sien. */
 #wct-keys-pop kbd {
-    display: inline-block; background: var(--wct-bg2); border: 1px solid var(--wct-border);
+    display: inline-block; background: var(--wct-bg); color: var(--wct-text);
+    border: 1px solid var(--wct-border);
     border-bottom-width: 2px; border-radius: 3px; padding: 0 5px;
     font-family: ui-monospace,Menlo,Consolas,monospace; font-size: 0.917em; line-height: 1.5;
 }
+#wct-overlay.wct-compact #wct-keys-pop kbd { color: #000; }
 #wct-overlay.wct-compact #wct-keys-pop { border-radius: 0; border: 2px outset #fff; }
 #wct-overlay.wct-compact #wct-keys-pop kbd { border-radius: 0; background: #c0c0c0; }
 
@@ -818,7 +825,7 @@ GM_addStyle(`
 .wct-src-andor-wrap { display:flex; align-items:center; gap:5px; margin:5px 0 3px; }
 .wct-src-andor-lbl { font-size:0.75em; color:var(--wct-text2); }
 .wct-src-andor-toggle { display:flex; border:1px solid var(--wct-border); border-radius:3px; overflow:hidden; }
-.wct-src-andor-btn { padding:1px 7px; font-size:0.75em; font-weight:500; cursor:pointer; border:none; background:var(--wct-bg2); color:var(--wct-text2); transition:background .12s,color .12s; line-height:1.6; }
+.wct-src-andor-btn { padding:1px 7px; font-size:0.75em; font-weight:500; cursor:pointer; border:none; background:var(--wct-bg); color:var(--wct-text2); transition:background .12s,color .12s; line-height:1.6; }
 .wct-src-andor-btn + .wct-src-andor-btn { border-inline-start:1px solid var(--wct-border); }
 .wct-src-andor-btn.on { background:#6c8ebf; color:#fff; }
 /* Checkboxes statut */
@@ -851,7 +858,7 @@ GM_addStyle(`
    en ayant perdu depuis longtemps le nom des colonnes. L'onglet Tracés a déjà un thead
    collant (.wct-gpx-table), c'est la même recette. */
 #wct-src-results { max-height:40vh; overflow-y:auto; }
-.wct-src-table th { position:sticky; top:0; z-index:1; background:var(--wct-card); padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:start; white-space:nowrap; cursor:pointer; user-select:none; }
+.wct-src-table th { position:sticky; top:0; z-index:1; background:var(--wct-surface); padding:0.25em 0.333em; color:var(--wct-text2); font-weight:600; border-bottom:2px solid var(--wct-border); text-align:start; white-space:nowrap; cursor:pointer; user-select:none; }
 .wct-src-table th:hover { color:var(--wct-blue); }
 /* ⚠️ 0.9em et non 0.75em : les em s'empilent. Dans .wct-src-table (0.833em) et sous la
    media query des écrans courts (--wct-fs-base:11px, soit tout portable), 0.75em donnait
@@ -11623,7 +11630,23 @@ const traceHandleFiles = (files) => {
 // panneau n'a rien à survivre à une reconstruction de l'overlay — il se rouvre d'un clic.
 const _keysPop = (v) => {
     const p = $id('wct-keys-pop'); if(!p) return;
-    p.style.display = ((v === undefined) ? p.style.display !== 'block' : !!v) ? 'block' : 'none';
+    const ouvrir = (v === undefined) ? p.style.display !== 'block' : !!v;
+    p.style.display = ouvrir ? 'block' : 'none';
+    // ⚠️ Position CALCULÉE et non codée en dur. Le `top:46px` d'origine plaçait le
+    // panneau par-dessus la barre d'onglets — signalé par l'auteur, capture à l'appui :
+    // le bandeau de sélection et les onglets passaient au travers. Leurs hauteurs
+    // varient (mode compact, écran court, badge de file present ou non), donc la seule
+    // valeur juste est celle qu'on mesure à l'ouverture.
+    if(ouvrir){
+        const ov = $id('wct-overlay'), tabs = $id('wct-main-tabs');
+        if(ov && tabs){
+            const rOv = ov.getBoundingClientRect();
+            const haut = Math.max(0, Math.round(tabs.getBoundingClientRect().bottom - rOv.top));
+            p.style.top = haut + 'px';
+            // Et la hauteur disponible en découle : sinon le panneau déborde du bas.
+            p.style.maxHeight = Math.max(120, Math.round(rOv.height - haut - 12)) + 'px';
+        }
+    }
 };
 const buildKeysPanel = () => {
     const kbd = s => `<kbd>${escHtml(s)}</kbd>`;
@@ -11631,7 +11654,7 @@ const buildKeysPanel = () => {
     return `
     <div id="wct-keys-pop" style="display:none">
       <div class="wct-keys-hdr">&#x2328;&#xFE0F; <span style="flex:1">${escHtml(t('keysTitle'))}</span>
-        <button class="wct-hdr-btn" id="wct-keys-close" title="${escHtml(t('btnClose'))}" style="background:var(--wct-bg2);color:var(--wct-text)">&#x2715;</button>
+        <button class="wct-hdr-btn" id="wct-keys-close" title="${escHtml(t('btnClose'))}" style="background:var(--wct-bg);color:var(--wct-text)">&#x2715;</button>
       </div>
       <div class="wct-keys-sec">${escHtml(t('keysSecKbd'))}</div>
       <table>
