@@ -20,6 +20,17 @@ while ((m = re.exec(txt)) !== null) {
     // hidden / file interne / bouton d'icone deja titre ailleurs : on regarde juste title
     if (/\stitle\s*=/.test(balise)) continue;
     if (/type\s*=\s*["']hidden["']/.test(balise)) continue;
+    // ⚠️ Un champ ENVELOPPE par un <label> est deja nomme : l'association est implicite,
+    // c'est la forme la plus sure et le script l'emploie deja (.wct-check, les radios de
+    // format de date). Les signaler etait un FAUX POSITIF — et un outil qui reclame de
+    // « corriger » ce qui va bien fait ajouter du bruit, ou pire, fait douter du reste.
+    // On remonte jusqu'au <label> ouvrant le plus proche : s'il n'est pas encore ferme
+    // quand le champ arrive, le champ est dedans.
+    const avant = txt.slice(Math.max(0, debut - 600), debut);
+    const dernierLabel = avant.lastIndexOf('<label');
+    if (dernierLabel >= 0 && !avant.slice(dernierLabel).includes('</label>')) continue;
+    // Idem pour aria-label / aria-labelledby, qui nomment tout aussi bien.
+    if (/\saria-label(ledby)?\s*=/.test(balise)) continue;
     const noLigne = txt.slice(0, debut).split('\n').length;
     sansTitre.push({ ligne: noLigne, tag, extrait: balise.replace(/\s+/g, ' ').slice(0, 110) });
 }

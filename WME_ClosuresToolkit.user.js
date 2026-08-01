@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.06.00
+// @version      1.07.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -229,6 +229,48 @@ GM_addStyle(`
 }
 .wct-hdr-btn:hover { background: rgba(255,255,255,.35); }
 
+/* ⚠️ Focus visible sur TOUT ce qui est atteignable au clavier. Sans cette règle on
+   tabule à l'aveugle : le navigateur dessine bien un anneau par défaut, mais le panneau
+   pose outline:none sur ses champs, et les éléments rendus focalisables par script
+   n'en avaient aucun. :focus-visible ne s'affiche qu'au clavier — la souris ne voit
+   rien changer.
+   ⚠️ Pas de backtick dans ce commentaire : tout ce CSS vit dans un template literal,
+   un seul backtick le referme et casse le script entier. Piège maison, 7 fois. */
+#wct-overlay :focus-visible, #wct-fab-btn:focus-visible, #wct-zone-panel :focus-visible {
+    outline: 2px solid var(--wct-blue); outline-offset: 1px; border-radius: 3px;
+}
+#wct-overlay.wct-compact :focus-visible { outline: 2px dotted #000; }
+
+/* ══════════════════════════════════════════
+   ÉCRITURE DROITE-À-GAUCHE (hébreu)
+══════════════════════════════════════════ */
+/* ⚠️ CE BLOC N'EXISTAIT PAS. Le commentaire de buildOverlay l'annonçait depuis la
+   0.86.00 — « le bloc CSS #wct-overlay[dir=rtl] corrige ensuite ce qui ne se retourne
+   pas seul » — mais il n'a jamais été écrit : dir=rtl était posé sur la racine, et tout
+   ce qui suit restait du mauvais côté. Personne ne l'a vu parce que personne dans le
+   projet ne lit l'hébreu.
+   La plupart du panneau se retourne seul (flux du texte, axe des flex row) et le CSS
+   emploie déjà 19 propriétés logiques. Ne restent ici que les cas qui ne PEUVENT pas se
+   retourner d'eux-mêmes : positions absolues et transforms.
+   ⚠️ Ce bloc n'a PAS été vu à l'écran — protocole de vérification dans le commit. */
+
+/* Le panneau est ancré à droite en LTR ; en RTL il doit l'être à gauche. */
+#wct-overlay[dir="rtl"] { right: auto; left: 60px; }
+
+/* Interrupteur : la pastille et son déplacement sont géométriques, donc à miroiter. */
+#wct-overlay[dir="rtl"] .wct-toggle-slider:before { left: auto; right: 3px; }
+#wct-overlay[dir="rtl"] .wct-toggle input:checked + .wct-toggle-slider:before { transform: translateX(-16px); }
+
+/* Popovers ancrés en dur : sans ça ils sortent du panneau. */
+#wct-overlay[dir="rtl"] #wct-emoji-picker { right: auto; left: 0; }
+#wct-overlay[dir="rtl"] #wct-preset-popup { right: auto; left: 14px; }
+
+/* Barre d'attente indéterminée : elle balaie dans le sens de lecture. */
+#wct-overlay[dir="rtl"] .wct-src-busy::after { left: auto; right: 0; }
+
+/* Infobulle du bouton flottant : elle sort du côté opposé. */
+#wct-fab-wrap[dir="rtl"] .wct-tooltip { right: auto; left: calc(100% + 8px); }
+
 /* Panneau des raccourcis et gestes — ouvert par le bouton du bandeau de titre.
    ⚠️ Positionné en propriétés LOGIQUES (inset-inline) et non en left/right : les deux
    popovers existants (emoji, préréglages) sont en dur et sortent du panneau en hébreu.
@@ -347,9 +389,15 @@ GM_addStyle(`
 
 /* Day chips */
 .wct-days { display: flex; flex-wrap: nowrap; gap: 0.25em; margin-top: 0.333em; }
+/* ⚠️ .wct-chip et .wct-sc sont des <button> depuis la 1.07.00 (avant : des <span>, donc
+   inatteignables au clavier). D'où font-family/padding remis a plat — un bouton hérite
+   sinon de la police du navigateur — et min-height : la hauteur en em tombait à 15 px
+   calculés sur écran court, alors que ces pastilles sont le contrôle le plus cliqué du
+   script et qu'une erreur de jour pose une fermeture la mauvaise nuit. */
 .wct-chip {
     display: inline-flex; align-items: center; justify-content: center;
-    flex: 1; height: 1.667em; border-radius: 50px;
+    flex: 1; height: 1.667em; min-height: 22px; padding: 0;
+    font-family: inherit; border-radius: 50px;
     font-size: 0.833em; font-weight: 700; cursor: pointer; user-select: none;
     border: 1px solid var(--wct-border); background: #fff; color: var(--wct-text2);
     transition: background .12s, color .12s, border-color .12s;
@@ -357,8 +405,8 @@ GM_addStyle(`
 .wct-chip.on { background: var(--wct-blue); color: #fff; border-color: var(--wct-blue); }
 .wct-shortcuts { display: flex; gap: 0.25em; margin-top: 0.25em; }
 .wct-sc {
-    flex: 1; padding: 0.083em 0.333em; border-radius: 50px;
-    border: 1px solid var(--wct-border); font-size: 0.833em;
+    flex: 1; padding: 0.083em 0.333em; min-height: 22px; border-radius: 50px;
+    border: 1px solid var(--wct-border); font-size: 0.833em; font-family: inherit;
     cursor: pointer; background: #fff; color: var(--wct-text2);
     text-align: center; white-space: nowrap;
 }
@@ -5266,7 +5314,7 @@ const t = (key, ...args) => {
 const buildHelpHTML = () => {
     const sections = [
         { id:'h1', title:t('helpH1'), open:true, body:`
-            <ol style="margin:0;padding-left:16px;line-height:1.8">
+            <ol style="margin:0;padding-inline-start:16px;line-height:1.8">
                 <li>${t('helpS1')}</li><li>${t('helpS2')}</li><li>${t('helpS3')}</li>
                 <li>${t('helpS4')}</li><li>${t('helpS5')}</li><li>${t('helpS6')}</li>
             </ol>` },
@@ -5437,32 +5485,32 @@ const buildHelpHTML = () => {
             <p>O formato exportado por este script é compatível com o script WME Advanced Closures original.</p>` }) },
         { id:'h5', title:t('helpH5'), body: _L({ fr:`
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Cliquez \uD83D\uDCBE \u00E0 droite du bouton Valider pour sauvegarder la config actuelle</li>
             <li>Depuis l\u2019onglet Pr\u00E9r\u00E9glages\u00A0: \u21A9\uFE0F pour charger (bascule sur Configurer), \uD83D\uDDD1\uFE0F pour supprimer</li>
             </ul>`, en:`
             <p>Save a configuration (schedule, days, direction\u2026) for reuse.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Click \uD83D\uDCBE next to the Validate button to save the current config</li>
             <li>From the Presets tab: \u21A9\uFE0F to load (switches to Configure), \uD83D\uDDD1\uFE0F to delete</li>
             </ul>`, de:`
             <p>Speichere eine Konfiguration (Zeitplan, Tage, Fahrtrichtung\u2026) zur Wiederverwendung.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Klicke auf \uD83D\uDCBE rechts neben der Schaltfl\u00E4che Best\u00E4tigen, um die aktuelle Konfiguration zu speichern</li>
             <li>Im Reiter Vorlagen: \u21A9\uFE0F zum Laden (wechselt zu Einrichten), \uD83D\uDDD1\uFE0F zum L\u00F6schen</li>
             </ul>`, es:`
             <p>Guarda una configuración (horarios, días, sentido…) para reutilizarla.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Haz clic en 💾 junto al botón Validar para guardar la configuración actual</li>
             <li>Desde la pestaña Preajustes: ↩️ para cargar (cambia a Configurar), 🗑️ para eliminar</li>
             </ul>`, 'pt-BR':`
             <p>Salve uma configuração (horários, dias, sentido…) para reutilizá-la.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Clique em 💾 ao lado do botão Validar para salvar a configuração atual</li>
             <li>Na aba Predefinições: ↩️ para carregar (vai para Configurar), 🗑️ para excluir</li>
             </ul>`, 'pt-PT':`
             <p>Guarde uma configuração (horário, dias, sentido…) para a reutilizar.</p>
-            <ul style="margin:0;padding-left:16px;line-height:1.7">
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Clique em 💾 ao lado do botão Validar para guardar a configuração atual</li>
             <li>No separador Predefinições: ↩️ para carregar (muda para Configurar), 🗑️ para eliminar</li>
             </ul>` }) },
@@ -6126,6 +6174,31 @@ const getSelection=()=>{
     return {ids:[],objectType:'none'};
 };
 const hasSel=()=>{const s=getSelection();return s.ids.length>0&&s.objectType==='segment';};
+// Bascule une pastille de jour. ⚠️ Passer par ici et non par classList.toggle seul :
+// l'état doit être porté par aria-pressed en plus de la classe, sinon un jour actif et
+// un jour inactif sont indiscernables pour tout ce qui n'est pas l'œil. Trois endroits
+// basculent ces pastilles (clic, raccourcis, chargement d'un préréglage) — les trois
+// doivent rester d'accord.
+const _chipSet=(c,actif)=>{ if(!c) return; c.classList.toggle('on',actif); c.setAttribute('aria-pressed',String(actif)); };
+// Rend atteignables au clavier les éléments cliquables qui ne sont pas des <button>.
+// ⚠️ Le panneau en compte des dizaines : en-têtes repliables, chevrons, lignes de
+// tableau. Les convertir un par un en <button> casserait des mises en page — un <td> ne
+// peut pas devenir un bouton sans perdre son alignement de colonne. On leur donne donc
+// ce qu'un bouton apporte : la tabulation, un rôle annoncé, et Entrée/Espace qui
+// déclenchent le clic déjà branché. Appelé après chaque construction de l'overlay.
+const _clavierPourCliquables = (racine) => {
+    if(!racine) return;
+    const SEL = '.wct-section[id], .wct-src-fold, .wct-qcard-hdr, .wct-prev-toggle, .wct-help-h, .wct-trace-file-chev';
+    racine.querySelectorAll(SEL).forEach(el => {
+        if(el.tagName === 'BUTTON' || el.hasAttribute('tabindex')) return;
+        el.tabIndex = 0;
+        if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
+        el.addEventListener('keydown', e => {
+            // Espace fait defiler la page par defaut : il faut le retenir.
+            if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+        });
+    });
+};
 // ═══════════════════════════════════════════════════════════════════════════
 //  WME HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -6794,7 +6867,7 @@ const applyConfig=cfg=>{
     if($id('wct-hol-skip'))$id('wct-hol-skip').checked=(hm==='skip');
     if($id('wct-hol-only'))$id('wct-hol-only').checked=(hm==='only');
     if($id('wct-hol-add'))$id('wct-hol-add').checked=(hm==='add');
-    if(cfg.days)[0,1,2,3,4,5,6].forEach(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);if(c)c.classList.toggle('on',cfg.days[i]);});
+    if(cfg.days)[0,1,2,3,4,5,6].forEach(i=>_chipSet(document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`),cfg.days[i]));
     if(cfg.activeTab){
         document.querySelectorAll('#wct-body .wct-tab').forEach(t=>t.classList.remove('on'));
         document.querySelectorAll('#wct-body .wct-pane').forEach(p=>p.classList.remove('on'));
@@ -10470,6 +10543,8 @@ const _zoneSurvol = (ev) => {
     if(!el){
         el = make('div');
         el.id = 'wct-zone-tip';
+        // Pose dans <body> : n'herite pas du dir de l'overlay, il faut le lui donner.
+        el.dir = isRTL() ? 'rtl' : 'ltr';
         el.textContent = t('zoneRappel');
         document.body.appendChild(el);
     }
@@ -10492,6 +10567,7 @@ const _zonePanelShow = (html) => {
     _zonePanelHide();
     const el = make('div');
     el.id = 'wct-zone-panel';
+    el.dir = isRTL() ? 'rtl' : 'ltr';   // idem : pose dans <body>, hors de l'overlay
     el.innerHTML = html;
     document.body.appendChild(el);
     _zonePanelPlace();
@@ -11303,7 +11379,7 @@ const traceRenderTable = () => {
             tbody += `<tr class="wct-trace-trk-row" data-tid="${trk.trackId}" data-fid="${file.fileId}" style="${isCollapsed?'display:none':''}">
                 <td></td>
                 <td><input type="checkbox" class="wct-trace-trk-chk" data-tid="${trk.trackId}" data-fid="${trk.fileId}" ${trk.visible?'checked':''}></td>
-                <td class="wct-gpx-name" colspan="2" title="${escHtml(trk.name)}" style="padding-left:1.2em">↳ ${escHtml(trk.name)}</td>
+                <td class="wct-gpx-name" colspan="2" title="${escHtml(trk.name)}" style="padding-inline-start:1.2em">↳ ${escHtml(trk.name)}</td>
                 <td class="wct-gpx-time"></td>
                 <td class="wct-trace-col-type" style="color:var(--wct-text2)">${typeLabel}</td>
                 <td style="text-align:end;color:#2e7d32">${okCount>0?okCount:'—'}</td>
@@ -11319,7 +11395,7 @@ const traceRenderTable = () => {
                     tbody += `<tr class="wct-trace-lot-row" data-tid="${trk.trackId}" data-lot="${lot.idx}" data-fid="${file.fileId}" style="${isCollapsed?'display:none':''}${done?'opacity:.75':''}">
                         <td></td>
                         <td style="text-align:center">${done?'✅':'⬜'}</td>
-                        <td class="wct-gpx-name" colspan="2" style="padding-left:2.4em;font-size:0.9em" title="${t('lotShowTitle')}">📦 ${escHtml(t('lotRowLabel', lot.idx, trk.lots.length))}</td>
+                        <td class="wct-gpx-name" colspan="2" style="padding-inline-start:2.4em;font-size:0.9em" title="${t('lotShowTitle')}">📦 ${escHtml(t('lotRowLabel', lot.idx, trk.lots.length))}</td>
                         <td class="wct-gpx-time"></td>
                         <td class="wct-trace-col-type" style="color:var(--wct-text2);font-size:0.8em">${done?t('lotStatusDone'):t('lotStatusTodo')}</td>
                         <td></td>
@@ -11544,7 +11620,18 @@ const buildKeysPanel = () => {
 const buildOverlay=()=>{
     const today=todayStr();
     const days=t('days');
-    const chips=[1,2,3,4,5,6,0].map(dow=>`<span class="wct-chip${[1,2,3,4,5].includes(dow)?' on':''}" data-dow="${dow}">${days[dow]}</span>`).join('');
+    // ⚠️ <button> et non <span> : le choix des jours est le contrôle le plus utilisé du
+    // script, et il était INATTEIGNABLE au clavier. Un éditeur sans souris pouvait régler
+    // les dates et les heures (champs natifs) mais pas les jours — donc pas configurer
+    // une fermeture récurrente du tout. Le <button> apporte d'un coup la tabulation, le
+    // focus visible, Entrée/Espace et l'annonce par les lecteurs d'écran.
+    // aria-pressed dit l'état : sans lui, un jour actif et un jour inactif se ressemblent
+    // pour tout ce qui n'est pas l'œil. type="button" est obligatoire — sans lui, un
+    // bouton dans un formulaire vaut « envoyer ».
+    const chips=[1,2,3,4,5,6,0].map(dow=>{
+        const actif=[1,2,3,4,5].includes(dow);
+        return `<button type="button" class="wct-chip${actif?' on':''}" data-dow="${dow}" aria-pressed="${actif}">${days[dow]}</button>`;
+    }).join('');
     const ov=make('div',{id:'wct-overlay'});
     // Écriture droite-à-gauche pour l'hébreu : dir="rtl" sur la racine cascade sur tout le
     // panneau (flux du texte, axe des flex "row", alignements). Le bloc CSS #wct-overlay[dir="rtl"]
@@ -11564,7 +11651,7 @@ const buildOverlay=()=>{
     ${buildKeysPanel()}
     <div id="wct-sel-strip">
         <div class="wct-sel-dot"></div>
-        <span class="wct-sel-text" id="wct-sel-text">${t('noSel')}</span>
+        <span class="wct-sel-text" id="wct-sel-text" role="status" aria-live="polite">${t('noSel')}</span>
         <label id="wct-gpx-layer-ctrl" class="wct-gpx-layer-ctrl" style="display:none">
             <input type="checkbox" id="wct-gpx-layer-chk" checked>
             <span id="wct-gpx-layer-lbl"></span>
@@ -11641,12 +11728,13 @@ const buildOverlay=()=>{
             </div>
             <div id="wct-tab-each" class="wct-pane on">
               <div class="wct-days">${chips}</div>
+              <!-- Même raison que les pastilles : des <button>, pas des <span>. -->
               <div class="wct-shortcuts">
-                <span class="wct-sc" id="wct-sc-all">${t('scAll')}</span>
-                <span class="wct-sc" id="wct-sc-wth">${t('scWth')}</span>
-                <span class="wct-sc" id="wct-sc-wd">${t('scWd')}</span>
-                <span class="wct-sc" id="wct-sc-we">${t('scWe')}</span>
-                <span class="wct-sc" id="wct-sc-none">${t('scNone')}</span>
+                <button type="button" class="wct-sc" id="wct-sc-all">${t('scAll')}</button>
+                <button type="button" class="wct-sc" id="wct-sc-wth">${t('scWth')}</button>
+                <button type="button" class="wct-sc" id="wct-sc-wd">${t('scWd')}</button>
+                <button type="button" class="wct-sc" id="wct-sc-we">${t('scWe')}</button>
+                <button type="button" class="wct-sc" id="wct-sc-none">${t('scNone')}</button>
               </div>
               <label class="wct-check" style="margin-top:6px" title="${t('tipHolSkip')}"><input type="checkbox" id="wct-hol-skip"> ${t('holidayModeSkip')}</label>
               <label class="wct-check" title="${t('tipHolOnly')}"><input type="checkbox" id="wct-hol-only"> ${t('holidayModeOnly')}</label>
@@ -11902,7 +11990,7 @@ const buildOverlay=()=>{
       <!-- Progression + Stop : collés en bas de la zone défilante, sinon le bouton
            reste sous le pli pendant l'application (petit écran / mode compact). -->
       <div class="wct-progress-dock">
-        <div class="wct-pb-wrap" id="wct-pb-wrap"><div class="wct-pb-fill" id="wct-pb-fill"></div></div>
+        <div class="wct-pb-wrap" id="wct-pb-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div class="wct-pb-fill" id="wct-pb-fill"></div></div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
           <div class="wct-pb-text" id="wct-pb-text" style="flex:1"></div>
           <button id="wct-btn-stop" type="button" class="wct-btn wct-btn-danger wct-btn-sm" title="${t('tipBtnStop')}" style="display:none;flex-shrink:0">${t('btnStop')}</button>
@@ -11913,7 +12001,7 @@ const buildOverlay=()=>{
     <!-- Progression du balayage : pied FIXE (hors défilement du tableau des tracés) -->
     <div id="wct-sweep-footer" style="display:none;margin:0 10px 4px;padding:5px 7px;border:1px solid var(--wct-border);border-radius:var(--wct-radius);background:var(--wct-bg)"></div>
     <!-- Log application -->
-    <div id="wct-apply-log" class="wct-log" style="display:none;margin:0 10px 4px"></div>
+    <div id="wct-apply-log" class="wct-log" role="log" aria-live="polite" style="display:none;margin:0 10px 4px"></div>
     <!-- Pied fixe : Valider (hors défilement, visible seulement sur l'onglet Configurer via :has) -->
     <div class="wct-validate-footer" style="display:flex;gap:8px;align-items:center">
       <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate" title="${t('tipBtnValidate')}">${t('btnValidate')}</button>
@@ -11928,7 +12016,10 @@ const buildOverlay=()=>{
     </div>
 
     <!-- TOAST -->
-    <div id="wct-toast"></div>
+    <!-- role=status + aria-live : le toast est le SEUL canal de retour d'erreur du
+         script, et il changeait en silence total. « polite » et non « assertive » : il ne
+         doit pas couper la parole au milieu d'une saisie. -->
+    <div id="wct-toast" role="status" aria-live="polite"></div>
 
     <!-- POPUP SAVE PRESET -->
     <div id="wct-preset-popup" style="display:none;position:absolute;bottom:60px;right:14px;
@@ -12337,6 +12428,11 @@ const connectOverlay=ov=>{
     _ovAbort?.abort();
     _ovAbort = new AbortController();
     const sig = _ovAbort.signal;
+    // Clavier : poser tabindex/role/Entrée-Espace sur les cliquables qui ne sont pas des
+    // <button>. Ici et non dans buildOverlay, parce que c'est un COMPORTEMENT et que
+    // connectOverlay est l'endroit qui en pose — et parce que l'overlay est reconstruit
+    // à chaque changement de langue : les écouteurs doivent repartir avec lui.
+    _clavierPourCliquables(ov);
     makeDraggable(ov,$id('wct-hdr'));
     $id('wct-poly-btn')?.addEventListener('click',()=>{ polyDrawAndSelect(); });
     $id('wct-poly-types-btn')?.addEventListener('click',()=>{ renderPolyTypesPanel(); });
@@ -12411,8 +12507,8 @@ const connectOverlay=ov=>{
         });
     });
     // Day chips
-    ov.querySelectorAll('.wct-chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');refreshSmallPreview();}));
-    const setDays=(...dows)=>{ov.querySelectorAll('.wct-chip').forEach(c=>c.classList.toggle('on',dows.includes(Number(c.dataset.dow))));refreshSmallPreview();};
+    ov.querySelectorAll('.wct-chip').forEach(c=>c.addEventListener('click',()=>{_chipSet(c,!c.classList.contains('on'));refreshSmallPreview();}));
+    const setDays=(...dows)=>{ov.querySelectorAll('.wct-chip').forEach(c=>_chipSet(c,dows.includes(Number(c.dataset.dow))));refreshSmallPreview();};
     $id('wct-sc-all')?.addEventListener('click',()=>setDays(0,1,2,3,4,5,6));
     $id('wct-sc-wth')?.addEventListener('click',()=>setDays(1,2,3,4));
     $id('wct-sc-wd')?.addEventListener('click',()=>setDays(1,2,3,4,5));
@@ -13337,6 +13433,10 @@ const doInjectFab=(silent)=>{
 
     const wrap=document.createElement('div');
     wrap.id='wct-fab-wrap';
+    // Le FAB vit dans le conteneur natif de WME, donc hors de l'overlay : il n'hérite pas
+    // de son dir. Sans cette ligne, son infobulle sort du mauvais côté en hébreu — et la
+    // règle #wct-fab-wrap[dir="rtl"] de la feuille de style ne s'appliquerait jamais.
+    wrap.dir = isRTL() ? 'rtl' : 'ltr';
 
     const wzBtn=document.createElement('button');
     wzBtn.id='wct-fab-btn';
