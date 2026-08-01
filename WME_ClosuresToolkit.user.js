@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.02.00
+// @version      1.03.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1140,8 +1140,22 @@ const resolveLang = () => (_langPref !== 'auto' && LANGS.some(x => x.code === _l
 // libellés qui ne peuvent pas vivre dans le dictionnaire.
 const _L = obj => obj[_lang] ?? obj.en;
 
-const t = (key, ...args) => {
-    const D = {
+// ⚠️⚠️ LE DICTIONNAIRE VIT ICI, HORS DE t() — NE JAMAIS LE REMETTRE DANS LE CORPS.
+// Il y était jusqu'au 01/08/2026, ce qui le faisait reconstruire ENTIÈREMENT — les 8
+// langues, ~4 500 clés, plus de 800 fonctions fléchées — À CHAQUE APPEL de t().
+// Mesuré : 34 µs par appel contre 0,017 µs une fois sorti, soit ×2000, sur 657 sites
+// d'appel. buildQueueCard à lui seul en fait 49 par entrée de file.
+// ⚠️ Le nom `D` est CONSERVÉ à dessein : trois scripts de tools/ repèrent ce littéral
+// par sa déclaration exacte — check-keys.js, check-help.js et audit.js. Le renommer
+// casserait les trois pour un gain purement cosmétique. Si tu le renommes un jour,
+// adapte les trois dans le même commit.
+// ⚠️ Et ne recopie JAMAIS cette déclaration mot pour mot dans un commentaire : les
+// trois scripts la cherchent par indexOf et tomberaient sur le commentaire au lieu du
+// dictionnaire. (Vécu à l'écriture de ces lignes : les trois sont tombés d'un coup.)
+// ⚠️ L'indentation interne n'a pas été reprise : la corriger produirait un diff de
+// 3 900 lignes, illisible en relecture, pour zéro effet. Le déplacement tient en deux
+// hunks et se vérifie d'un coup d'œil.
+const D = {
         fr: {
             // Onglets
             tabCfg:'\u2699 Configurer', tabCsv:'\uD83D\uDCE5 Import',
@@ -5095,7 +5109,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             helpS5:'Repita para outros segmentos, se necessário',
             helpS6:'Clique em <b>▶ Aplicar</b> para criar os cortes no WME',
         }
-    };
+};
+const t = (key, ...args) => {
     const s = D[_lang] || D.en;
     const v = s[key];
     if (typeof v === 'function') return v(...args);
@@ -9826,15 +9841,64 @@ const _polyRingsOf = (res) => {
     }
     return [];
 };
-// Point dans polygone — lancer de rayon. La PARITÉ cumulée sur tous les anneaux gère
-// les trous gratuitement : un point dans un trou traverse un nombre pair de bords.
-const _polyPtIn = (x, y, rings) => {
-    let inside = false;
+// Index géométrique du polygone, construit UNE fois par jeu d'anneaux puis mémorisé.
+// ⚠️ Pourquoi il existe (mesuré le 01/08/2026) : _polyPtIn parcourait TOUS les sommets
+// du polygone à chaque échantillon, et _polyInsideFrac échantillonne tous les 5 m. Sur
+// une trame urbaine de 5 km, la sélection prenait 20 ms avec un tracé à la main (8
+// sommets) mais 1 537 ms avec une commune importée (500 sommets) et 8 532 ms sur une
+// trame dense — l'onglet gelait, sans rien afficher.
+// Deux idées, dont AUCUNE ne change le résultat :
+//   1. l'emprise : un point hors de la bbox sort en 4 comparaisons ;
+//   2. les arêtes rangées par bande de latitude : le lancer de rayon ne teste que celles
+//      qui enjambent la latitude du point — les seules qui puissent croiser le rayon.
+// ⚠️ Le cache est indexé sur l'OBJET rings : il suppose qu'un jeu d'anneaux n'est jamais
+// muté en place après construction (c'est le cas — _polyRingsOf en rend un neuf). Si un
+// jour on modifie des anneaux sur place, il faudra invalider ici.
+const _polyIdxCache = new WeakMap();
+const _polyIndexOf = (rings) => {
+    let idx = _polyIdxCache.get(rings);
+    if(idx) return idx;
+    const aretes = [];
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for(const ring of rings){
         for(let i = 0, j = ring.length - 1; i < ring.length; j = i++){
-            const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
-            if(((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+            aretes.push([ring[i][0], ring[i][1], ring[j][0], ring[j][1]]);
+            const xi = ring[i][0], yi = ring[i][1];
+            if(xi < minX) minX = xi; if(xi > maxX) maxX = xi;
+            if(yi < minY) minY = yi; if(yi > maxY) maxY = yi;
         }
+    }
+    const n = Math.max(1, Math.min(512, Math.ceil(aretes.length / 4)));
+    const h = ((maxY - minY) / n) || 1;
+    const bandes = Array.from({length: n}, () => []);
+    for(const a of aretes){
+        const lo = Math.min(a[1], a[3]), hi = Math.max(a[1], a[3]);
+        let b0 = Math.floor((lo - minY) / h), b1 = Math.floor((hi - minY) / h);
+        if(b0 < 0) b0 = 0; if(b1 > n - 1) b1 = n - 1;
+        for(let b = b0; b <= b1; b++) bandes[b].push(a);
+    }
+    idx = {minX, maxX, minY, maxY, n, h, bandes};
+    _polyIdxCache.set(rings, idx);
+    return idx;
+};
+// Point dans polygone — lancer de rayon vers la gauche. La PARITÉ cumulée sur tous les
+// anneaux gère les trous gratuitement : un point dans un trou traverse un nombre pair
+// de bords. Résultat strictement identique à la version sans index (28 tests le vérifient).
+const _polyPtIn = (x, y, rings) => {
+    if(!rings || !rings.length) return false;
+    const idx = _polyIndexOf(rings);
+    // Hors emprise en latitude : aucune arête ne peut enjamber y.
+    if(y < idx.minY || y > idx.maxY) return false;
+    // À droite de l'emprise : le rayon part vers la gauche, il ne croise rien.
+    // À gauche : il croise TOUTES les arêtes qui enjambent y, donc un nombre PAIR
+    // (le polygone est fermé) — la parité rend « dehors » dans les deux cas.
+    if(x < idx.minX || x > idx.maxX) return false;
+    let b = Math.floor((y - idx.minY) / idx.h);
+    if(b < 0) b = 0; if(b > idx.n - 1) b = idx.n - 1;
+    let inside = false;
+    for(const a of idx.bandes[b]){
+        const xi = a[0], yi = a[1], xj = a[2], yj = a[3];
+        if(((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
     }
     return inside;
 };
@@ -9854,6 +9918,18 @@ const _polyBBoxOf = (rings) => {
 // dégénéré (sommet pile sur un bord, arête colinéaire au bord).
 const _polyInsideFrac = (coords, rings) => {
     if(!Array.isArray(coords) || coords.length < 2 || !rings.length) return 0;
+    // Pré-filtre d'emprise : un segment dont la bbox ne touche pas celle du polygone ne
+    // peut avoir aucun point dedans. On le règle en quelques comparaisons au lieu de
+    // l'échantillonner tous les 5 m. C'est le cas le PLUS FRÉQUENT : les segments sont
+    // chargés par tuiles carrées autour d'un polygone qui, lui, ne l'est jamais.
+    const _idx = _polyIndexOf(rings);
+    let sMinX = Infinity, sMaxX = -Infinity, sMinY = Infinity, sMaxY = -Infinity;
+    for(const p of coords){
+        if(!p) continue;
+        if(p[0] < sMinX) sMinX = p[0]; if(p[0] > sMaxX) sMaxX = p[0];
+        if(p[1] < sMinY) sMinY = p[1]; if(p[1] > sMaxY) sMaxY = p[1];
+    }
+    if(sMaxX < _idx.minX || sMinX > _idx.maxX || sMaxY < _idx.minY || sMinY > _idx.maxY) return 0;
     let total = 0, dedans = 0;
     for(let i = 0; i < coords.length - 1; i++){
         const a = coords[i], b = coords[i + 1];
@@ -13449,12 +13525,22 @@ const init=async()=>{
         // pouvoir le priver de son tour.
         try{ ensureFab(); }catch(e){ log('onSel/ensureFab: '+e.message); }
         try{ updateFab(); }catch(e){ log('onSel/updateFab: '+e.message); }
-        try{ updateCountryInfo(); }catch(e){ log('onSel/updateCountryInfo: '+e.message); }
         try{
             const s=getSelection();
             const sig=s.objectType+':'+s.ids.join(',');
             if(sig!==_lastSelSig){
                 _lastSelSig=sig;
+                // ⚠️ updateCountryInfo interroge l'ADRESSE DE CHAQUE SEGMENT sélectionné
+                // (updateCountryInfo → checkSelectionCountry → getSegmentCountry →
+                // sdk.DataModel.Segments.getAddress, un appel par segment). Il était appelé
+                // à CHAQUE tour de onSel, donc 2×/seconde, donc ~2 400 appels au SDK par
+                // seconde avec 1 200 segments sélectionnés — panneau fermé compris, et
+                // alors que rien n'avait bougé. Le pays ne dépend QUE de la sélection : il
+                // n'a aucune raison d'être recalculé tant qu'elle est identique.
+                // Il garde son try/catch propre : l'isolation étape par étape de onSel est
+                // ce qui empêche une exception de priver le FAB de son tour (cf. plus haut).
+                // NB : setLang() le rappelle de son côté après reconstruction de l'overlay.
+                try{ updateCountryInfo(); }catch(e){ log('onSel/updateCountryInfo: '+e.message); }
                 if($id('wct-pane-turn')?.classList.contains('on')) renderTurnsPane();
                 refreshCfgGate();
             }
