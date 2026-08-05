@@ -28,6 +28,10 @@ const CIBLES = [
     [0x2139, 'info'],         [0x270F, 'crayon'],      [0x2328, 'clavier'],
     [0x1F441, 'oeil'],        [0x1F5FA, 'carte'],      [0x21A9, 'retour'],
 ];
+// ⚠️ Ne PAS ajouter U+274C (croix rouge, employee ~50 fois dans le dictionnaire) :
+// /\p{Emoji_Presentation}/u rend TRUE pour elle, elle se rend deja en couleur et n'a
+// pas besoin du selecteur. Verifie le 02/08/2026 apres l'avoir ajoutee a tort — le
+// controle avait alors signale 50 faux positifs.
 const VS16 = 0xFE0F;
 
 // Remplace les echappements \uXXXX (et les paires de substitution) par leurs caracteres,

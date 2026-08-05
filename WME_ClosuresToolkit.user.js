@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.08.00
+// @version      1.09.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -549,6 +549,8 @@ GM_addStyle(`
 .wct-prev-head { font-weight:700; color:var(--wct-blue); margin-bottom:3px; position:sticky; top:-5px; background:inherit; padding:2px 0; }
 .wct-prev-row { font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--wct-text2); white-space:nowrap; }
 .wct-prev-more { color:var(--wct-grey); font-style:italic; margin-top:3px; }
+/* Débordement de plage : une information, pas une erreur — ni rouge, ni orange. */
+.wct-prev-past { color:var(--wct-text2); font-style:italic; margin-bottom:3px; }
 
 /* Sidebar */
 #wct-sidebar { padding: 10px 12px; font-family: 'Rubik','Open Sans',sans-serif; font-size:12px; }
@@ -1537,6 +1539,7 @@ const D = {
             // Toasts
             toastOk: (n,s,b) => b>0 ? `\u26A0\uFE0F ${n} fermeture(s) pour ${s} segment(s) valide(s) \u2014 ${b} segment(s) ignor\u00E9(s)` : `\u2705 ${n} fermeture(s) ajout\u00E9e(s) pour ${s} segment(s).`,
             errNone:'\u274C Aucune fermeture g\u00E9n\u00E9r\u00E9e.',
+            warnPastRange:(d,f) => `\u2139\uFE0F La derni\u00E8re d\u00E9borde de la plage\u00A0: ${d} \u2192 ${f}.`,
             fillForm:'Remplissez le formulaire\u2026',
             closuresN: n => `${n} fermeture(s) configur\u00E9e(s)`,
             previewHead: n => `${n} fermeture(s) \u00E0 appliquer\u00A0:`,
@@ -2060,6 +2063,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             multiCountry: cc => `\u26A0\uFE0F Multi-country: ${cc} \u2014 holiday filter unavailable.`,
             toastOk: (n,s,b) => b>0 ? `\u26A0\uFE0F ${n} closure(s) for ${s} valid segment(s) \u2014 ${b} segment(s) skipped` : `\u2705 ${n} closure(s) added for ${s} segment(s).`,
             errNone:'\u274C No closure generated.',
+            warnPastRange:(d,f) => `\u2139\uFE0F The last one runs past the range: ${d} \u2192 ${f}.`,
             fillForm:'Fill in the form\u2026',
             closuresN: n => `${n} closure(s) configured`,
             previewHead: n => `${n} closure(s) to apply:`,
@@ -2579,6 +2583,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountry: cc => `⚠️ ריבוי מדינות: ${cc} — סינון חגים לא זמין.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} חסימות עבור ${s} מקטעים תקינים — ${b} מקטעים דולגו` : `✅ ${n} חסימות נוספו עבור ${s} מקטעים.`,
             errNone:'❌ לא נוצרה חסימה.',
+            warnPastRange:(d,f) => `ℹ️ האחרונה חורגת מהטווח: ${d} → ${f}.`,
             fillForm:'מלא את הטופס…',
             closuresN: n => `${n} חסימות הוגדרו`,
             previewHead: n => `${n} חסימות ליישום:`,
@@ -3098,6 +3103,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountry: cc => `⚠️ Multi-paese: ${cc} — filtro festività non disponibile.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} chiusura/e per ${s} segmento/i validi — ${b} segmento/i saltati` : `✅ ${n} chiusura/e aggiunte per ${s} segmento/i.`,
             errNone:'❌ Nessuna chiusura generata.',
+            warnPastRange:(d,f) => `ℹ️ L’ultima va oltre l’intervallo: ${d} → ${f}.`,
             fillForm:'Compila il modulo…',
             closuresN: n => `${n} chiusura/e configurate`,
             previewHead: n => `${n} chiusura/e da applicare:`,
@@ -3618,6 +3624,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountry: cc => `\u26A0\uFE0F Mehrere L\u00E4nder: ${cc} \u2014 Feiertagsfilter nicht verf\u00FCgbar.`,
             toastOk: (n,s,b) => b>0 ? `\u26A0\uFE0F ${n} Sperrung(en) f\u00FCr ${s} g\u00FCltige(s) Segment(e) \u2014 ${b} Segment(e) \u00FCbersprungen` : `\u2705 ${n} Sperrung(en) f\u00FCr ${s} Segment(e) hinzugef\u00FCgt.`,
             errNone:'\u274C Keine Sperrung erzeugt.',
+            warnPastRange:(d,f) => `\u2139\uFE0F Die letzte reicht \u00FCber den Zeitraum hinaus: ${d} \u2192 ${f}.`,
             fillForm:'Formular ausf\u00FCllen\u2026',
             closuresN: n => `${n} Sperrung(en) eingerichtet`,
             previewHead: n => `${n} anzuwendende Sperrung(en):`,
@@ -4137,6 +4144,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountry: cc => `⚠️ Varios países: ${cc} — filtro de festivos no disponible.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} cierre(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) descartado(s)` : `✅ ${n} cierre(s) añadido(s) para ${s} segmento(s).`,
             errNone:'❌ No se ha generado ningún cierre.',
+            warnPastRange:(d,f) => `ℹ️ El último se sale del intervalo: ${d} → ${f}.`,
             fillForm:'Rellena el formulario…',
             closuresN: n => `${n} cierre(s) configurado(s)`,
             previewHead: n => `${n} cierre(s) a aplicar:`,
@@ -4656,6 +4664,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             multiCountry: cc => `⚠️ Vários países: ${cc} — filtro de feriados indisponível.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} bloqueio(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) ignorado(s)` : `✅ ${n} bloqueio(s) adicionado(s) para ${s} segmento(s).`,
             errNone:'❌ Nenhum bloqueio gerado.',
+            warnPastRange:(d,f) => `ℹ️ O último ultrapassa o intervalo: ${d} → ${f}.`,
             fillForm:'Preencha o formulário…',
             closuresN: n => `${n} bloqueio(s) configurado(s)`,
             previewHead: n => `${n} bloqueio(s) a aplicar:`,
@@ -5175,6 +5184,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             multiCountry: cc => `⚠️ Vários países: ${cc} — filtro de feriados indisponível.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} corte(s) para ${s} segmento(s) válido(s) — ${b} segmento(s) ignorado(s)` : `✅ ${n} corte(s) adicionado(s) para ${s} segmento(s).`,
             errNone:'❌ Nenhum corte gerado.',
+            warnPastRange:(d,f) => `ℹ️ O último ultrapassa o intervalo: ${d} → ${f}.`,
             fillForm:'Preencha o formulário…',
             closuresN: n => `${n} corte(s) configurado(s)`,
             previewHead: n => `${n} corte(s) a aplicar:`,
@@ -6882,10 +6892,37 @@ const buildClosureList=async()=>{
         dur=extraDays*1440+(dH||0)*60+(dM||0);
         if(dur<=0)return{list:[],error:t('errNone')};
     }
-    const reDT=re.clone().addMinutes(1440);
+    // ⚠️ Fin de la plage = minuit LOCAL au lendemain du dernier jour. Construite comme les
+    // occurrences elles-mêmes, sinon on compare des pommes et des poires : `re` sort de
+    // new JDate('AAAA-MM-JJ'), que JS parse en UTC minuit, tandis que les fermetures sont
+    // bâties en heure locale par makeDSTSafeDate. À l'est d'UTC la borne tombait donc APRÈS
+    // minuit — 02:00 du matin en France l'été — et acceptait des débuts qui n'appartenaient
+    // plus à la plage. Le piège est déjà documenté sur makeDSTSafeDate : il vaut ici aussi.
+    const reDT=makeDSTSafeDate(v('wct-rangeend'),1,0,0);
     const pane=document.querySelector('#wct-body .wct-pane.on');
     const tabId=pane?pane.id:'wct-tab-each';
     const list=[];
+    // ⚠️⚠️ LA BORNE PORTE SUR LE DÉBUT DE L'OCCURRENCE, PAS SUR SA FIN (1.09.00).
+    // Jusque-là elle regardait la fin : toute fermeture passant minuit perdait donc le
+    // DERNIER jour de la plage, en silence. « Du 1er au 31 août, 21h → 5h » ne posait que
+    // 30 nuits ; l'éditeur croyait avoir couvert le mois et rien ne le détrompait. Le reste
+    // de la fonction raisonnait DÉJÀ sur le début — le filtre des jours de la semaine, celui
+    // des jours fériés, et la boucle qui parcourt les jours calendaires de la plage. Seule
+    // cette borne regardait ailleurs, et c'est cette incohérence qui mangeait un jour.
+    // Le débordement n'est pas supprimé pour autant : il est ANNONCÉ dans l'aperçu
+    // (pastRangeEnd, plus bas) plutôt que réglé en douce dans le dos de l'éditeur.
+    // Calculé sur la liste FINALE, après le filtre des jours fériés : c'est lui qui peut
+    // retirer la dernière occurrence, et annoncer un débordement qui n'existe plus serait
+    // aussi faux que de taire celui qui existe.
+    const sortie=l=>{
+        const der=l.length?l[l.length-1]:null;
+        const deborde=!!der&&der.end>reDT;
+        return{
+            list:l, error:'',
+            pastRangeStart:deborde?formatDateDisplay(der.start):undefined,
+            pastRangeEnd:deborde?formatDateDisplay(der.end):undefined,
+        };
+    };
     if(tabId==='wct-tab-repeat'){
         const n=parseInt(v('wct-rep-ntimes'));
         if(isNaN(n)||n<1)return{list:[],error:t('errRepeat')};
@@ -6902,7 +6939,7 @@ const buildClosureList=async()=>{
         const first=makeDSTSafeDate(v('wct-rangestart'),0,stH,stM);
         for(let i=0;i<n;i++){
             if(list.length>=MAX_CLOSURES)return{list:[],error:t('errMaxItems',MAX_CLOSURES)};
-            const s=first.clone().addMinutes(evMin*i),e=s.clone().addMinutes(dur);if(e>reDT)break;list.push({start:new Date(s),end:new Date(e)});
+            const s=first.clone().addMinutes(evMin*i);if(s>reDT)break;const e=s.clone().addMinutes(dur);list.push({start:new Date(s),end:new Date(e)});
         }
     }else{
         const dow=[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c&&c.classList.contains('on');});
@@ -6916,8 +6953,8 @@ const buildClosureList=async()=>{
             const s=makeDSTSafeDate(rs,d,stH,stM);
             const localDow=new Date(s.getTime()).getUTCDay(); // jour UTC (cohérent avec timestamp décalé)
             if(!dow[localDow])continue;
+            if(s>reDT)break;
             const e=s.clone().addMinutes(dur);
-            if(e>reDT)break;
             list.push({start:new Date(s),end:new Date(e)});
         }
     }
@@ -6939,7 +6976,7 @@ const buildClosureList=async()=>{
             if(hols===null){
                 const warnKo=$id('wct-holidays-warn');
                 if(warnKo){ warnKo.style.display='block'; warnKo.style.color='#f57c00'; warnKo.textContent=t('holidaysUnavailable'); }
-                return{list,error:''};
+                return sortie(list);
             }
             const filtered=list.filter(cl=>{
                 const d=cl.start;
@@ -6966,19 +7003,19 @@ const buildClosureList=async()=>{
                     if(h<rsStr||h>reStr) continue;
                     if(existingDateStrs.has(h)) continue;
                     const s=makeDSTSafeDate(h,0,stH,stM);
+                    if(s>reDT) continue;   // même borne que la boucle : sur le DÉBUT
                     const e=s.clone().addMinutes(dur);
-                    if(e>reDT) continue;
                     extra.push({start:new Date(s),end:new Date(e)});
                 }
                 const merged=[...list,...extra].sort((a,b)=>a.start-b.start);
                 const warnElAdd=$id('wct-holidays-warn');
                 if(warnElAdd){warnElAdd.style.display='block';warnElAdd.style.color='';warnElAdd.textContent=extra.length>0?t('holidaysAdded',extra.length):t('holidaysNone');}
-                return{list:merged,error:''};
+                return sortie(merged);
             }
-            return{list:filtered,error:''};
+            return sortie(filtered);
         }
     }
-    return{list,error:''};
+    return sortie(list);
 };
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIG READ / APPLY
@@ -8150,7 +8187,14 @@ const refreshSmallPreview=async()=>{
     const more=n>PREVIEW_MAX_ROWS?`<div class="wct-prev-more">${t('previewMore',n-PREVIEW_MAX_ROWS)}</div>`:'';
     // Repliable : le COMPTEUR reste toujours visible — c'est le filet qui evite de poser
     // 90 fermetures de travers. On replie le detail, jamais l'information.
+    // La dernière fermeture peut finir APRÈS la date de fin de la plage : c'est le cas normal
+    // d'une fermeture de nuit posée le dernier jour. On l'annonce plutôt que de l'escamoter
+    // — et HORS du bloc repliable, avec le compteur : on replie le détail, jamais l'information.
+    const past=rc.pastRangeEnd
+        ? `<div class="wct-prev-past">${escHtml(t('warnPastRange',rc.pastRangeStart,rc.pastRangeEnd))}</div>`
+        : '';
     el.innerHTML=`<div class="wct-prev-head wct-prev-toggle" title="${escHtml(t('tipPrevToggle'))}">${t('previewHead',n)}<span class="wct-prev-chevron">${_prevCollapsed?'&#x25B6;':'&#x25BC;'}</span></div>`
+        + past
         + `<div class="wct-prev-rows"${_prevCollapsed?' style="display:none"':''}>${rows}${more}</div>`;
 };
 // ═══════════════════════════════════════════════════════════════════════════
@@ -13094,8 +13138,16 @@ const connectOverlay=ov=>{
         const rs=new Date($id('wct-rangestart')?.value||'');
         const re=new Date($id('wct-rangeend')?.value||'');
         if(!isNaN(rs)&&!isNaN(re)){
-            const plageMin=Math.ceil((re-rs)/60000)+1440;
-            const maxOcc=Math.floor(plageMin/evMin);
+            // ⚠️ Ce que l'on mesure ici, c'est la fenêtre des DÉBUTS possibles — depuis la
+            // 1.09.00 où la borne de plage porte sur le début de l'occurrence. Elle ne
+            // s'ouvre pas à minuit mais à l'heure de début, et elle compte le premier
+            // départ : compter depuis minuit sans le « +1 » annonçait un maximum qui ne
+            // correspondait à aucune génération réelle. Un avertissement qui se trompe
+            // sur le nombre se fait désobéir aussi vite qu'un qui se trompe sur le fond.
+            const stD=($id('wct-starttime')?.value||'00:00').split(':').map(Number);
+            const stMinD=(stD[0]||0)*60+(stD[1]||0);
+            const plageMin=Math.ceil((re-rs)/60000)+1440-stMinD;
+            const maxOcc=Math.floor(plageMin/evMin)+1;
             if(ntimes>maxOcc) msgs.push(t('warnOcc',maxOcc,ntimes));
         }
         warn.style.display=msgs.length?'block':'none';
