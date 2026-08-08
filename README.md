@@ -23,6 +23,10 @@ Drop any file into the Import tab — the content decides where it goes:
 ## Features
 
 - **Recurring closures with a queue** — build up a batch, review it, apply it in one pass.
+- **Three ways to lay out time, one queue for all of them** — *Each day* for a weekly pattern,
+  *Repeat* for N occurrences at a fixed interval, and *Continuous* for the simplest case of all:
+  one closure running without interruption from a start date and time to an end date and time.
+  A single event usually needs several of these at once — they all land in the same queue.
 - **Draw an area, then keep working on it** — outline a neighbourhood and it stays on the map as
   a layer. Double-click it to pick it back up: drag a corner to move it, right-click to delete
   one, click a hollow dot to insert one. Only once you accept the outline does WCT ask whether to

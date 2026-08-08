@@ -299,6 +299,84 @@ const verifier = (titre, condition, detail) => {
         if (tzAvant === undefined) delete process.env.TZ; else process.env.TZ = tzAvant;
     }
 
+    console.log('\n— ⏩ En continu : UNE fermeture, du debut a la fin —');
+    {
+        // Le mode le plus simple, et le dernier arrive (1.10.00) : fermer sans interruption
+        // d une date+heure a une autre. Il ne partage avec les deux autres onglets QUE les
+        // champs de saisie — aucun de leurs filtres ne s y applique. Ce que ce bloc verrouille :
+        //   1. il sort exactement une fermeture, quelle que soit la longueur de la plage ;
+        //   2. aucun filtre ne mord : ni jours de la semaine, ni jours feries ;
+        //   3. une fin anterieure au debut est REFUSEE et dite, pas rattrapee en douce ;
+        //   4. les deux bornes sont construites en heure locale — donc justes a l ouest
+        //      d UTC, et justes de part et d autre d un changement d heure.
+        const CONT = { onglet: 'wct-tab-cont' };
+        {
+            const r = await lancer(Object.assign({}, CONT, { debut: '2026-08-05', fin: '2026-08-20', heureDebut: '21:00', heureFin: '05:00' }));
+            verifier('une seule fermeture sur 15 jours', r.list.length === 1, 'obtenu ' + r.list.length);
+            const d = r.list[0];
+            verifier('elle commence le 05/08 a 21:00', d && d.start.getDate() === 5 && d.start.getHours() === 21);
+            verifier('elle finit le 20/08 a 05:00', d && d.end.getDate() === 20 && d.end.getHours() === 5);
+            verifier('duree totale de 14 j 8 h', d && Math.round((d.end - d.start) / 60000) === 14 * 1440 + 8 * 60,
+                'obtenu ' + (d ? Math.round((d.end - d.start) / 60000) : '?') + ' min');
+            verifier('aucune annonce de debordement', r.pastRangeEnd === undefined, 'obtenu : ' + r.pastRangeEnd);
+        }
+        {
+            // Toutes les pastilles decochees et « sauf jours feries » actif : en « Chaque
+            // jour » cette configuration ne produirait RIEN. En continu elle ne change rien,
+            // et c est le point : une fermeture continue qui sauterait un dimanche ou le
+            // 15 aout ne serait plus continue.
+            const r = await lancer(Object.assign({}, CONT, {
+                debut: '2026-08-13', fin: '2026-08-18', heureDebut: '08:00', heureFin: '18:00',
+                jours: [false, false, false, false, false, false, false],
+                pays: 'FR', joursFeries: ['2026-08-15'], feries: 'skip',
+            }));
+            verifier('aucun filtre ne mord : la fermeture est generee', r.list.length === 1, 'obtenu ' + r.list.length);
+            verifier('elle enjambe bien le 15 aout ferie',
+                r.list[0] && r.list[0].start.getDate() === 13 && r.list[0].end.getDate() === 18);
+        }
+        {
+            // Fin avant debut : c est la configuration par defaut du panneau (meme jour,
+            // 21:00 -> 05:00) des qu on ouvre cet onglet sans toucher aux dates. On refuse
+            // en le disant plutot que de deviner « le lendemain » : ici la date de fin est
+            // saisie explicitement, la corriger dans le dos de l editeur serait pire.
+            const r = await lancer(Object.assign({}, CONT, { debut: '2026-08-05', fin: '2026-08-05', heureDebut: '21:00', heureFin: '05:00' }));
+            verifier('fin avant debut : refuse', r.list.length === 0 && !!r.error, 'obtenu ' + r.list.length + ' / ' + r.error);
+            verifier('le refus nomme sa cause (errContEnd)', r.error === 'errContEnd', 'obtenu : ' + r.error);
+        }
+        {
+            const r = await lancer(Object.assign({}, CONT, { debut: '2026-08-05', fin: '2026-08-05', heureDebut: '09:00', heureFin: '17:00' }));
+            verifier('journee unique 09:00 -> 17:00 : 8 h', r.list.length === 1 && (r.list[0].end - r.list[0].start) === 8 * 3600000);
+        }
+        {
+            // Changement d heure : le dernier dimanche d octobre, la nuit dure 25 h en
+            // Europe. Une soustraction de dates brutes annoncerait 48 h la ou il s en ecoule
+            // 49 : les deux bornes passent donc par makeDSTSafeDate, comme les occurrences.
+            const tzAvant = process.env.TZ;
+            process.env.TZ = 'Europe/Paris';
+            const r = await lancer(Object.assign({}, CONT, { debut: '2026-10-24', fin: '2026-10-26', heureDebut: '00:00', heureFin: '00:00' }));
+            verifier('le passage a l heure d hiver ajoute bien une heure reelle (49 h)',
+                r.list.length === 1 && Math.round((r.list[0].end - r.list[0].start) / 3600000) === 49,
+                'obtenu ' + (r.list.length ? Math.round((r.list[0].end - r.list[0].start) / 3600000) : '?') + ' h');
+            // Et a l ouest d UTC, la fermeture part bien du jour demande — c est la faute
+            // n°3 de la 1.09.01, qui aurait ete recopiee telle quelle dans ce nouveau mode
+            // si la branche avait relu `rs` au lieu de la chaine du champ.
+            process.env.TZ = 'America/New_York';
+            const r2 = await lancer(Object.assign({}, CONT, { debut: '2026-07-01', fin: '2026-07-06', heureDebut: '21:00', heureFin: '05:00' }));
+            verifier('New York : la fermeture part du 1er juillet, pas du 30 juin',
+                r2.list.length === 1 && r2.list[0].start.getDate() === 1 && r2.list[0].end.getDate() === 6,
+                'obtenu ' + (r2.list.length ? r2.list[0].start.getDate() + ' -> ' + r2.list[0].end.getDate() : 'rien'));
+            if (tzAvant === undefined) delete process.env.TZ; else process.env.TZ = tzAvant;
+        }
+        {
+            // Temoin : le meme reglage dans l onglet « Chaque jour » produit 16 occurrences,
+            // pas une. Si ce cas se mettait a rendre 1, c est que l onglet ne serait plus lu
+            // du tout et que le mode continu aurait avale les deux autres.
+            const r = await lancer({ debut: '2026-08-05', fin: '2026-08-20', heureDebut: '21:00', heureFin: '05:00' });
+            verifier('temoin : le meme reglage en « Chaque jour » donne 16 occurrences',
+                r.list.length === 16, 'obtenu ' + r.list.length);
+        }
+    }
+
     console.log('\n' + (ko === 0 ? 'TOUT PASSE : ' + ok + ' verifications' : '❌ ' + ko + ' ECHEC(S) sur ' + (ok + ko)));
     process.exit(ko === 0 ? 0 : 1);
 })();

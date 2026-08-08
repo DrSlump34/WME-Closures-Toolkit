@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.09.01
+// @version      1.10.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -439,9 +439,19 @@ GM_addStyle(`
 
 
 /* Tabs */
-.wct-tabs { display: flex; border-bottom: 2px solid var(--wct-blue); margin: 0.417em 0 0; }
+/* flex-wrap : filet, pas décor. Cette barre est un flex ; sans lui, des libellés trop
+   larges DÉBORDENT de la colonne au lieu de passer à la ligne, et le panneau part en
+   défilement horizontal. Il ne se déclenche dans aucune des 8 langues (mesuré), mais une
+   police de repli plus large ou un zoom navigateur suffirait à l atteindre. */
+.wct-tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid var(--wct-blue); margin: 0.417em 0 0; }
 .wct-tab {
-    padding: 0.25em 0.75em; font-size: 0.917em; font-weight: 600; cursor: pointer;
+    /* ⚠️ Padding horizontal ramené de 0.75em à 0.5em en 1.10.00, sur MESURE. Avec un
+       troisième onglet, les trois libellés allemands occupaient 296 px dans une colonne
+       de 296 : zéro marge, donc un débordement chez le premier éditeur dont la police
+       rend deux pixels plus large. Le padding était le seul poste réductible sans
+       toucher aux mots — 3 onglets x 2 côtés, c est lui qui payait la place. */
+    padding: 0.25em 0.5em; font-size: 0.917em; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
     border: 1px solid transparent; border-bottom: none;
     border-radius: var(--wct-radius) var(--wct-radius) 0 0;
     color: var(--wct-text2); background: transparent; margin-right: 2px;
@@ -551,6 +561,16 @@ GM_addStyle(`
 .wct-prev-more { color:var(--wct-grey); font-style:italic; margin-top:3px; }
 /* Débordement de plage : une information, pas une erreur — ni rouge, ni orange. */
 .wct-prev-past { color:var(--wct-text2); font-style:italic; margin-bottom:3px; }
+
+/* En continu : un récapitulatif, aucun champ. Il énonce ce que les champs Période
+   au-dessus veulent dire, la durée totale comprise — la seule information que
+   l éditeur ne peut pas lire directement sur son écran. */
+.wct-cont-recap { text-align:start; font-size:0.917em; line-height:1.6; color:var(--wct-text);
+    padding:0.5em 0.667em; background:var(--wct-bg); border:1px solid var(--wct-border);
+    border-radius:var(--wct-radius); }
+.wct-cont-span  { display:block; font-weight:700; margin-top:0.25em; }
+.wct-cont-total { display:block; margin-top:0.25em; color:var(--wct-text2); }
+.wct-cont-err   { color:var(--wct-red); font-weight:600; }
 
 /* Sidebar */
 #wct-sidebar { padding: 10px 12px; font-family: 'Rubik','Open Sans',sans-serif; font-size:12px; }
@@ -1478,7 +1498,14 @@ const D = {
             lblDuration:'Durée',
             jpnPrefix:'J+',
             tipToggle:'Mode Dur\u00E9e\u00A0: saisir une dur\u00E9e (H:MM) \u2014 Mode Heure de fin\u00A0: saisir l\u2019heure exacte de fin. Cliquez pour basculer.',
-            tabEachDay:'\uD83D\uDCC6 Chaque jour', tabRepeat:'\uD83D\uDD01 R\u00E9p\u00E9ter',
+            tabEachDay:'\uD83D\uDCC6 Chaque jour', tabRepeat:'\uD83D\uDD01 R\u00E9p\u00E9ter', tabCont:'\u23E9 En continu',
+            tipTabCont:'Une seule fermeture, sans interruption, de la date et l\u2019heure de d\u00E9but \u00E0 la date et l\u2019heure de fin. Ni jours de la semaine, ni jours f\u00E9ri\u00E9s, ni r\u00E9p\u00E9tition.',
+            contIntro:'Une seule fermeture, sans interruption :',
+            contSpan:(d,f)=>`du ${d} au ${f}`,
+            contTotal:s=>`\u23F1\uFE0F Dur\u00E9e totale : ${s}`,
+            contLong:n=>`\u26A0\uFE0F Cette fermeture dure ${n} jours d\u2019affil\u00E9e. V\u00E9rifiez les deux dates avant de valider.`,
+            errContEnd:'La fin doit venir apr\u00E8s le d\u00E9but. Pour une fermeture qui passe minuit, portez la date de fin au lendemain.',
+            unitDShort:'j', unitHShort:'h', unitMShort:'min',
             days:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],
             scAll:'Tous', scWth:'Lun\u2013Jeu', scWd:'Lun\u2013Ven', scWe:'Sam\u2013Dim', scNone:'Aucun',
             skipHolidays:'Sauf jours f\u00E9ri\u00E9s',
@@ -2012,7 +2039,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lblDuration:'Duration',
             jpnPrefix:'D+',
             tipToggle:'Duration mode\u00A0: enter a duration (H:MM) \u2014 End time mode\u00A0: enter the exact end time. Click to switch.',
-            tabEachDay:'\uD83D\uDCC6 Each day', tabRepeat:'\uD83D\uDD01 Repeat',
+            tabEachDay:'\uD83D\uDCC6 Each day', tabRepeat:'\uD83D\uDD01 Repeat', tabCont:'\u23E9 Continuous',
+            tipTabCont:'A single closure, without interruption, from the start date and time to the end date and time. No weekdays, no holidays, no repetition.',
+            contIntro:'A single closure, without interruption:',
+            contSpan:(d,f)=>`from ${d} to ${f}`,
+            contTotal:s=>`\u23F1\uFE0F Total duration: ${s}`,
+            contLong:n=>`\u26A0\uFE0F This closure runs for ${n} days in a row. Check both dates before validating.`,
+            errContEnd:'The end must come after the start. For a closure running past midnight, move the end date to the next day.',
+            unitDShort:'d', unitHShort:'h', unitMShort:'min',
             days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
             scAll:'All', scWth:'Mon\u2013Thu', scWd:'Mon\u2013Fri', scWe:'Sat\u2013Sun', scNone:'None',
             skipHolidays:'Except public holidays',
@@ -2532,7 +2566,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'משך',
             jpnPrefix:'D+',
             tipToggle:'מצב משך : הזן משך זמן (ש:דד) — מצב שעת סיום : הזן את שעת הסיום המדויקת. לחץ כדי להחליף.',
-            tabEachDay:'📆 כל יום', tabRepeat:'🔁 חזרה',
+            tabEachDay:'📆 כל יום', tabRepeat:'🔁 חזרה', tabCont:'⏩ רציף',
+            tipTabCont:'חסימה אחת בלבד, ללא הפסקה, מתאריך ושעת ההתחלה ועד תאריך ושעת הסיום. ללא ימי שבוע, ללא חגים, ללא חזרות.',
+            contIntro:'חסימה אחת בלבד, ללא הפסקה:',
+            contSpan:(d,f)=>`מ־${d} עד ${f}`,
+            contTotal:s=>`⏱️ משך כולל: ${s}`,
+            contLong:n=>`⚠️ חסימה זו נמשכת ${n} ימים ברצף. בדוק את שני התאריכים לפני האישור.`,
+            errContEnd:'הסיום חייב לבוא אחרי ההתחלה. עבור חסימה שחוצה את חצות, העבר את תאריך הסיום ליום הבא.',
+            unitDShort:'ימים', unitHShort:'שעות', unitMShort:'דקות',
             days:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],
             scAll:'הכול', scWth:'ב׳–ה׳', scWd:'א׳–ה׳', scWe:'ו׳–ש׳', scNone:'כלום',
             skipHolidays:'למעט חגים',
@@ -3052,7 +3093,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Durata',
             jpnPrefix:'G+',
             tipToggle:'Modalità durata : inserisci una durata (O:MM) — Modalità ora di fine : inserisci l’ora di fine esatta. Clicca per cambiare.',
-            tabEachDay:'📆 Ogni giorno', tabRepeat:'🔁 Ripeti',
+            tabEachDay:'📆 Ogni giorno', tabRepeat:'🔁 Ripeti', tabCont:'⏩ Continuo',
+            tipTabCont:'Una sola chiusura, senza interruzione, dalla data e ora di inizio alla data e ora di fine. Nessun giorno della settimana, nessun festivo, nessuna ripetizione.',
+            contIntro:'Una sola chiusura, senza interruzione:',
+            contSpan:(d,f)=>`dal ${d} al ${f}`,
+            contTotal:s=>`⏱️ Durata totale: ${s}`,
+            contLong:n=>`⚠️ Questa chiusura dura ${n} giorni consecutivi. Controlla entrambe le date prima di confermare.`,
+            errContEnd:'La fine deve venire dopo l’inizio. Per una chiusura che supera la mezzanotte, sposta la data di fine al giorno successivo.',
+            unitDShort:'g', unitHShort:'h', unitMShort:'min',
             days:['Dom','Lun','Mar','Mer','Gio','Ven','Sab'],
             scAll:'Tutti', scWth:'Lun–Gio', scWd:'Lun–Ven', scWe:'Sab–Dom', scNone:'Nessuno',
             skipHolidays:'Tranne i giorni festivi',
@@ -3573,7 +3621,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Dauer',
             jpnPrefix:'T+',
             tipToggle:'Dauer-Modus\u00A0: eine Dauer eingeben (H:MM) \u2014 Endzeit-Modus\u00A0: die genaue Endzeit eingeben. Zum Umschalten klicken.',
-            tabEachDay:'\uD83D\uDCC6 Wochentage', tabRepeat:'\uD83D\uDD01 Wiederholen',
+            tabEachDay:'\uD83D\uDCC6 Wochentage', tabRepeat:'\uD83D\uDD01 Wiederholen', tabCont:'\u23E9 Am St\u00FCck',
+            tipTabCont:'Eine einzige Sperrung, ohne Unterbrechung, von Startdatum und -zeit bis Enddatum und -zeit. Keine Wochentage, keine Feiertage, keine Wiederholung.',
+            contIntro:'Eine einzige Sperrung, ohne Unterbrechung:',
+            contSpan:(d,f)=>`vom ${d} bis ${f}`,
+            contTotal:s=>`\u23F1\uFE0F Gesamtdauer: ${s}`,
+            contLong:n=>`\u26A0\uFE0F Diese Sperrung dauert ${n} Tage am St\u00FCck. Pr\u00FCfe beide Daten, bevor du best\u00E4tigst.`,
+            errContEnd:'Das Ende muss nach dem Beginn liegen. Bei einer Sperrung \u00FCber Mitternacht das Enddatum auf den Folgetag setzen.',
+            unitDShort:'T', unitHShort:'Std', unitMShort:'Min',
             days:['So','Mo','Di','Mi','Do','Fr','Sa'],
             scAll:'Alle', scWth:'Mo\u2013Do', scWd:'Mo\u2013Fr', scWe:'Sa\u2013So', scNone:'Keine',
             skipHolidays:'Au\u00DFer an Feiertagen',
@@ -4093,7 +4148,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Duración',
             jpnPrefix:'D+',
             tipToggle:'Modo Duración : introduce una duración (H:MM) — Modo Hora de fin : introduce la hora exacta de fin. Haz clic para cambiar.',
-            tabEachDay:'📆 Cada día', tabRepeat:'🔁 Repetir',
+            tabEachDay:'📆 Cada día', tabRepeat:'🔁 Repetir', tabCont:'⏩ Continuo',
+            tipTabCont:'Un solo cierre, sin interrupción, desde la fecha y hora de inicio hasta la fecha y hora de fin. Sin días de la semana, sin festivos, sin repetición.',
+            contIntro:'Un solo cierre, sin interrupción:',
+            contSpan:(d,f)=>`del ${d} al ${f}`,
+            contTotal:s=>`⏱️ Duración total: ${s}`,
+            contLong:n=>`⚠️ Este cierre dura ${n} días seguidos. Comprueba ambas fechas antes de validar.`,
+            errContEnd:'El fin debe ser posterior al inicio. Para un cierre que pasa de medianoche, cambia la fecha de fin al día siguiente.',
+            unitDShort:'d', unitHShort:'h', unitMShort:'min',
             days:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],
             scAll:'Todos', scWth:'Lun–Jue', scWd:'Lun–Vie', scWe:'Sáb–Dom', scNone:'Ninguno',
             skipHolidays:'Excepto festivos',
@@ -4613,7 +4675,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração : informe uma duração (H:MM) — Modo Hora de fim : informe a hora exata do fim. Clique para alternar.',
-            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir',
+            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir', tabCont:'⏩ Contínuo',
+            tipTabCont:'Um único bloqueio, sem interrupção, da data e hora de início até a data e hora de fim. Sem dias da semana, sem feriados, sem repetição.',
+            contIntro:'Um único bloqueio, sem interrupção:',
+            contSpan:(d,f)=>`de ${d} até ${f}`,
+            contTotal:s=>`⏱️ Duração total: ${s}`,
+            contLong:n=>`⚠️ Este bloqueio dura ${n} dias seguidos. Confira as duas datas antes de validar.`,
+            errContEnd:'O fim deve vir depois do início. Para um bloqueio que passa da meia-noite, mude a data de fim para o dia seguinte.',
+            unitDShort:'d', unitHShort:'h', unitMShort:'min',
             days:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
             scAll:'Todos', scWth:'Seg–Qui', scWd:'Seg–Sex', scWe:'Sáb–Dom', scNone:'Nenhum',
             skipHolidays:'Exceto feriados',
@@ -5133,7 +5202,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração: introduza uma duração (H:MM) — Modo Hora de fim: introduza a hora exata de fim. Clique para alternar.',
-            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir',
+            tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir', tabCont:'⏩ Contínuo',
+            tipTabCont:'Um único corte, sem interrupção, da data e hora de início até à data e hora de fim. Sem dias da semana, sem feriados, sem repetição.',
+            contIntro:'Um único corte, sem interrupção:',
+            contSpan:(d,f)=>`de ${d} até ${f}`,
+            contTotal:s=>`⏱️ Duração total: ${s}`,
+            contLong:n=>`⚠️ Este corte dura ${n} dias seguidos. Verifique as duas datas antes de validar.`,
+            errContEnd:'O fim deve vir depois do início. Para um corte que passa da meia-noite, mude a data de fim para o dia seguinte.',
+            unitDShort:'d', unitHShort:'h', unitMShort:'min',
             days:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
             scAll:'Todos', scWth:'Seg–Qui', scWd:'Seg–Sex', scWe:'Sáb–Dom', scNone:'Nenhum',
             skipHolidays:'Exceto feriados',
@@ -5489,6 +5565,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Sauf jours f\u00E9ri\u00E9s</b></td><td>Exclut automatiquement les jours f\u00E9ri\u00E9s du pays d\u00E9tect\u00E9. N\u00E9cessite internet. Indisponible en s\u00E9lection multi-pays.</td></tr>
             <tr><td><b>Uniquement jours f\u00E9ri\u00E9s</b></td><td>Ne conserve que les occurrences tombant sur un jour f\u00E9ri\u00E9 (utile pour les restrictions annuelles \u00E0 dates variables). N\u00E9cessite internet.</td></tr>
             <tr><td><b>R\u00E9p\u00E9ter</b></td><td>G\u00E9n\u00E8re N occurrences toutes les X jours/heures/minutes. Avertissement si intervalle &lt; dur\u00E9e.</td></tr>
+            <tr><td><b>\u23E9 En continu</b></td><td>Une <b>seule</b> fermeture, de la date et l\u2019heure de d\u00E9but \u00E0 la date et l\u2019heure de fin, sans interruption. Les jours de la semaine, les jours f\u00E9ri\u00E9s et <b>+Jours</b> n\u2019y ont pas d\u2019objet et sont gris\u00E9s. La dur\u00E9e totale est affich\u00E9e en clair \u2014 c\u2019est le seul chiffre que vous ne pouvez pas lire directement sur vos champs.</td></tr>
             <tr><td><b>Description</b></td><td>Texte affich\u00E9 dans WME pour identifier la fermeture. Cliquez sur le bouton \uD83D\uDCCC \u00e0 droite du champ pour ins\u00e9rer un \u00e9moji (travaux, sport, m\u00e9t\u00e9o\u2026) \u00e0 la position du curseur.</td></tr>
             <tr><td><b>Sens</b></td><td>Double sens, A \u21D2 B ou B \u21D2 A. Attention\u00A0: sur les longs tron\u00E7ons, le sens peut diff\u00E9rer par segment.</td></tr>
             <tr><td><b>MTE</b></td><td>Ouvrez l\u2019onglet \u00C9v\u00E9nements dans WME, puis cliquez \u21BB dans le champ MTE pour charger la liste.</td></tr>
@@ -5505,6 +5582,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Except public holidays</b></td><td>Auto-excludes public holidays for the detected country. Requires internet. Unavailable for multi-country selections.</td></tr>
             <tr><td><b>Public holidays only</b></td><td>Keeps only occurrences falling on a public holiday (useful for annual variable-date restrictions). Requires internet.</td></tr>
             <tr><td><b>Repeat</b></td><td>Generates N occurrences every X days/hours/minutes. Warning shown if interval &lt; duration.</td></tr>
+            <tr><td><b>⏩ Continuous</b></td><td>A <b>single</b> closure, from the start date and time to the end date and time, without interruption. Weekdays, holidays and <b>+Days</b> have no meaning here and are greyed out. The total duration is spelled out — the one figure you cannot read straight off your fields.</td></tr>
             <tr><td><b>Description</b></td><td>Text displayed in WME to identify the closure. Click the \uD83D\uDCCC button to the right of the field to insert an emoji (works, sport, weather\u2026) at the cursor position.</td></tr>
             <tr><td><b>Direction</b></td><td>Both ways, A \u21D2 B or B \u21D2 A. Caution: on long segments, direction may differ per segment.</td></tr>
             <tr><td><b>MTE</b></td><td>Open the Events tab in WME, then click \u21BB in the MTE field to load the list.</td></tr>
@@ -5521,6 +5599,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Außer an Feiertagen</b></td><td>Schließt die Feiertage des erkannten Landes automatisch aus. Erfordert eine Internetverbindung. Bei einer Auswahl über mehrere Länder nicht verfügbar.</td></tr>
             <tr><td><b>Nur an Feiertagen</b></td><td>Behält nur die Termine, die auf einen Feiertag fallen (nützlich für jährliche Beschränkungen mit wechselndem Datum). Erfordert eine Internetverbindung.</td></tr>
             <tr><td><b>Wiederholen</b></td><td>Erzeugt N Termine alle X Tage/Stunden/Minuten. Warnung, wenn das Intervall kleiner als die Dauer ist.</td></tr>
+            <tr><td><b>⏩ Am Stück</b></td><td>Eine <b>einzige</b> Sperrung, von Startdatum und -zeit bis Enddatum und -zeit, ohne Unterbrechung. Wochentage, Feiertage und <b>+Tage</b> haben hier keinen Sinn und sind ausgegraut. Die Gesamtdauer wird ausgeschrieben — die einzige Zahl, die du deinen Feldern nicht direkt ablesen kannst.</td></tr>
             <tr><td><b>Beschreibung</b></td><td>Text, der in WME zur Kennzeichnung der Sperrung angezeigt wird. Klicke auf die Schaltfläche 📌 rechts neben dem Feld, um an der Cursorposition ein Emoji einzufügen (Bauarbeiten, Sport, Wetter…).</td></tr>
             <tr><td><b>Fahrtrichtung</b></td><td>Beide Richtungen, A ⇒ B oder B ⇒ A. Achtung: Bei langen Abschnitten kann die Richtung je Segment unterschiedlich sein.</td></tr>
             <tr><td><b>MTE</b></td><td>Öffne den Reiter Ereignisse in WME und klicke dann im MTE-Feld auf ↻, um die Liste zu laden.</td></tr>
@@ -5537,6 +5616,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Excepto festivos</b></td><td>Excluye automáticamente los festivos del país detectado. Requiere conexión a internet. No disponible con selecciones en varios países.</td></tr>
             <tr><td><b>Solo festivos</b></td><td>Conserva únicamente las ocurrencias que caen en un día festivo (útil para restricciones anuales de fecha variable). Requiere conexión a internet.</td></tr>
             <tr><td><b>Repetir</b></td><td>Genera N ocurrencias cada X días/horas/minutos. Se muestra un aviso si el intervalo &lt; la duración.</td></tr>
+            <tr><td><b>⏩ Continuo</b></td><td>Un <b>solo</b> cierre, desde la fecha y hora de inicio hasta la fecha y hora de fin, sin interrupción. Los días de la semana, los festivos y <b>+Días</b> no tienen sentido aquí y aparecen atenuados. La duración total se muestra en claro: es la única cifra que no puedes leer directamente en tus campos.</td></tr>
             <tr><td><b>Descripción</b></td><td>Texto que se muestra en WME para identificar el cierre. Haz clic en el botón 📌 a la derecha del campo para insertar un emoji (obras, deporte, meteorología…) en la posición del cursor.</td></tr>
             <tr><td><b>Sentido</b></td><td>Ambos sentidos, A ⇒ B o B ⇒ A. Atención: en tramos largos, el sentido puede variar según el segmento.</td></tr>
             <tr><td><b>MTE</b></td><td>Abre la pestaña Eventos en WME y haz clic en ↻ en el campo MTE para cargar la lista.</td></tr>
@@ -5553,6 +5633,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detectado. Requer internet. Indisponível em seleções com vários países.</td></tr>
             <tr><td><b>Somente feriados</b></td><td>Mantém apenas as ocorrências que caem em feriado (útil para restrições anuais com datas variáveis). Requer internet.</td></tr>
             <tr><td><b>Repetir</b></td><td>Gera N ocorrências a cada X dias/horas/minutos. Um aviso é exibido se o intervalo for menor que a duração.</td></tr>
+            <tr><td><b>⏩ Contínuo</b></td><td>Um <b>único</b> bloqueio, da data e hora de início até a data e hora de fim, sem interrupção. Dias da semana, feriados e <b>+Dias</b> não têm sentido aqui e ficam esmaecidos. A duração total é exibida por extenso: é o único número que você não consegue ler direto nos seus campos.</td></tr>
             <tr><td><b>Descrição</b></td><td>Texto exibido no WME para identificar o bloqueio. Clique no botão 📌 à direita do campo para inserir um emoji (obras, esporte, clima…) na posição do cursor.</td></tr>
             <tr><td><b>Sentido</b></td><td>Ambos os sentidos, A ⇒ B ou B ⇒ A. Atenção: em trechos longos, o sentido pode variar de um segmento para outro.</td></tr>
             <tr><td><b>MTE</b></td><td>Abra a aba Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
@@ -5569,6 +5650,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Exceto feriados</b></td><td>Exclui automaticamente os feriados do país detetado. Requer ligação à internet. Indisponível em seleções que abranjam vários países.</td></tr>
             <tr><td><b>Apenas feriados</b></td><td>Mantém apenas as ocorrências que caem num feriado (útil para restrições anuais de data variável). Requer ligação à internet.</td></tr>
             <tr><td><b>Repetir</b></td><td>Gera N ocorrências a cada X dias/horas/minutos. É apresentado um aviso se o intervalo for menor do que a duração.</td></tr>
+            <tr><td><b>⏩ Contínuo</b></td><td>Um <b>único</b> corte, da data e hora de início até à data e hora de fim, sem interrupção. Dias da semana, feriados e <b>+Dias</b> não têm sentido aqui e ficam esbatidos. A duração total é apresentada por extenso: é o único número que não consegue ler diretamente nos seus campos.</td></tr>
             <tr><td><b>Descrição</b></td><td>Texto apresentado no WME para identificar o corte. Clique no botão 📌 à direita do campo para inserir um emoji (obras, desporto, meteorologia…) na posição do cursor.</td></tr>
             <tr><td><b>Sentido</b></td><td>Ambos os sentidos, A ⇒ B ou B ⇒ A. Atenção: em troços longos, o sentido pode variar de segmento para segmento.</td></tr>
             <tr><td><b>MTE</b></td><td>Abra o separador Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
@@ -6932,6 +7014,25 @@ const buildClosureList=async()=>{
             pastRangeEnd:deborde?formatDateDisplay(der.end):undefined,
         };
     };
+    if(tabId==='wct-tab-cont'){
+        // ── EN CONTINU (1.10.00) ────────────────────────────────────────────
+        // Une seule fermeture, de la date+heure de début à la date+heure de fin. C'est le
+        // cas le plus simple, et c'était le seul qu'on ne savait pas exprimer : il fallait
+        // passer par « Chaque jour » avec une plage d'un seul jour et compter soi-même les
+        // jours à mettre dans « + jours ». Le moteur savait déjà le faire, l'interface non.
+        // Aucun filtre ne s'applique ici : ni jours de la semaine, ni jours fériés, ni
+        // répétition. Une fermeture continue qui sauterait le 15 août ne serait plus continue.
+        const[enH,enM]=(v('wct-endtime')||'00:00').split(':').map(Number);
+        const s=makeDSTSafeDate(v('wct-rangestart'),0,stH,stM);
+        // Les deux bornes passent par makeDSTSafeDate : construites en heure locale, elles
+        // encadrent correctement un changement d'heure qui tomberait au milieu.
+        const e=makeDSTSafeDate(v('wct-rangeend'),0,enH||0,enM||0);
+        if(e<=s)return{list:[],error:t('errContEnd')};
+        list.push({start:new Date(s),end:new Date(e)});
+        // Sortie directe : le filtre des jours fériés plus bas n'a pas d'objet, et la borne
+        // de débordement non plus — la fin EST la date de fin, elle ne peut pas la dépasser.
+        return{list, error:''};
+    }
     if(tabId==='wct-tab-repeat'){
         const n=parseInt(v('wct-rep-ntimes'));
         if(isNaN(n)||n<1)return{list:[],error:t('errRepeat')};
@@ -7113,6 +7214,9 @@ const applyConfig=cfg=>{
         $id(cfg.activeTab)?.classList.add('on');
         document.querySelector(`#wct-body .wct-tab[data-target="${cfg.activeTab}"]`)?.classList.add('on');
     }
+    // L'onglet vient de changer sous les pieds de l'interface : remettre d'accord ce que le
+    // mode continu grise, force et affiche. Un clic de l'éditeur passe par le même chemin.
+    _contSync();
 };
 // ═══════════════════════════════════════════════════════════════════════════
 //  ONGLET VIRAGES
@@ -8191,6 +8295,60 @@ const PREVIEW_MAX_ROWS=200; // plafond d'affichage des occurrences en live previ
 // fermeture de VIRAGE. Utilisee partout ou l'utilisateur lit ce qui va etre ferme
 // (apercu live, file d'attente, log d'application).
 const TARGET_ICON={seg:'\uD83D\uDEE3\uFE0F', turn:'\uD83D\uDD00'};
+// ═══════════════════════════════════════════════════════════════════════════
+//  EN CONTINU — récapitulatif du volet
+// ═══════════════════════════════════════════════════════════════════════════
+// Au-delà de ce seuil, la durée est signalée en orange. ⚠️ VALEUR DE DÉPART, à trancher :
+// rien dans WME ne l'impose, elle ne bloque rien et ne fait que demander une relecture des
+// deux dates. Un mois de fermeture ininterrompue reste un geste rare — assez pour mériter
+// une question, pas assez pour mériter un refus.
+const CONT_WARN_DAYS=30;
+// Le volet « En continu » est-il celui qui est ouvert ? Plusieurs réglages du bloc Période
+// n'ont de sens que hors de lui. Une seule fonction pour le dire : deux tests séparés qui
+// finissent par diverger, c'est un champ grisé dans un mode qui l'utilise encore.
+const _contActif=()=>!!$id('wct-tab-cont')?.classList.contains('on');
+// Relais vers applyContMode, installé par connectOverlay (voir là-bas). Avant l'installation
+// — et si le panneau n'est pas encore bâti — il ne fait rien de plus que rafraîchir le
+// récapitulatif, ce qui est sans effet quand le volet n'existe pas.
+let _contSync=()=>renderContPane();
+// Durée en minutes → « 14 j 8 h », « 3 j », « 45 min ». Les unités nulles sont tues : on
+// n'écrit pas « 14 j 0 h 0 min », qui donne à lire trois fois plus pour la même information.
+const _dureeLisible=min=>{
+    const j=Math.floor(min/1440), h=Math.floor((min%1440)/60), m=min%60;
+    const bouts=[];
+    if(j) bouts.push(j+' '+t('unitDShort'));
+    if(h) bouts.push(h+' '+t('unitHShort'));
+    if(m) bouts.push(m+' '+t('unitMShort'));
+    return bouts.length?bouts.join(' '):'0 '+t('unitMShort');
+};
+// Le volet « En continu » n'a aucun champ : il relit ceux du bloc Période et les énonce.
+// Il se rend même quand il est masqué — c'est deux lectures de champ, et cela garantit
+// qu'il est déjà juste au moment où l'onglet s'affiche.
+const renderContPane=()=>{
+    const el=$id('wct-cont-recap'); if(!el) return;
+    const warn=$id('wct-cont-warn');
+    const val=id=>($id(id)?$id(id).value.trim():'');
+    const[stH,stM]=(val('wct-starttime')||'00:00').split(':').map(Number);
+    const[enH,enM]=(val('wct-endtime')||'00:00').split(':').map(Number);
+    const s=makeDSTSafeDate(val('wct-rangestart'),0,stH||0,stM||0);
+    const e=makeDSTSafeDate(val('wct-rangeend'),0,enH||0,enM||0);
+    if(!isValidDate(s)||!isValidDate(e)||e<=s){
+        // Même diagnostic que buildClosureList, dit au même endroit que la saisie fautive.
+        el.innerHTML=`${escHtml(t('contIntro'))}<span class="wct-cont-span wct-cont-err">${escHtml(t('errContEnd'))}</span>`;
+        if(warn){ warn.style.display='none'; warn.textContent=''; }
+        return;
+    }
+    const minutes=Math.round((e-s)/60000);
+    el.innerHTML=`${escHtml(t('contIntro'))}`
+        + `<span class="wct-cont-span">${escHtml(t('contSpan',formatDateDisplay(s),formatDateDisplay(e)))}</span>`
+        + `<span class="wct-cont-total">${escHtml(t('contTotal',_dureeLisible(minutes)))}</span>`;
+    const jours=Math.floor(minutes/1440);
+    if(warn){
+        const trop=jours>CONT_WARN_DAYS;
+        warn.style.display=trop?'block':'none';
+        warn.textContent=trop?t('contLong',jours):'';
+    }
+};
 // Etat replie de l'apercu. ⚠️ DOIT vivre en variable, pas dans le DOM : refreshSmallPreview
 // reconstruit le innerHTML a CHAQUE frappe, un etat porte par le DOM se rouvrirait tout seul.
 // (C'est la difference avec la File d'attente, qui n'est re-rendue qu'a la demande.)
@@ -12103,7 +12261,7 @@ const buildOverlay=()=>{
                   <span id="wct-endtime-jpn" style="display:none;background:#f57c00;color:#fff;
                     border-radius:50px;font-size:9px;font-weight:700;padding:1px 4px;white-space:nowrap"></span>
                 </div>
-                <label class="wct-label">${t('lblDurDay')}</label>
+                <label id="wct-lbl-durday" class="wct-label">${t('lblDurDay')}</label>
                 <!-- Ligne inputs -->
                 <input id="wct-starttime" class="wct-input" type="time" title="${t('tipStartTime')}" value="21:00">
                 <div id="wct-mode-dur" style="display:flex">
@@ -12116,6 +12274,7 @@ const buildOverlay=()=>{
             <div class="wct-tabs">
               <button class="wct-tab on" data-target="wct-tab-each" title="${t('tipTabEach')}">${t('tabEachDay')}</button>
               <button class="wct-tab" data-target="wct-tab-repeat" title="${t('tipTabRepeat')}">${t('tabRepeat')}</button>
+              <button class="wct-tab" data-target="wct-tab-cont" title="${t('tipTabCont')}">${t('tabCont')}</button>
             </div>
             <div id="wct-tab-each" class="wct-pane on">
               <div class="wct-days">${chips}</div>
@@ -12154,6 +12313,14 @@ const buildOverlay=()=>{
                 </div>
               </div>
               <div id="wct-rep-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.417em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
+            </div>
+            <!-- ⏩ En continu : le volet n'a AUCUN champ à lui. Tout se saisit dans le bloc
+                 Période au-dessus (date+heure de début, date+heure de fin) ; ce volet ne fait
+                 que relire ce qui a été saisi et l'énoncer en clair, avec la durée totale que
+                 personne n'a envie de calculer de tête. -->
+            <div id="wct-tab-cont" class="wct-pane">
+              <div id="wct-cont-recap" class="wct-cont-recap"></div>
+              <div id="wct-cont-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.417em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
             </div>
           </div>
           <div>
@@ -12894,6 +13061,7 @@ const connectOverlay=ov=>{
             ov.querySelectorAll('.wct-tab').forEach(t=>t.classList.remove('on'));
             ov.querySelectorAll('.wct-pane').forEach(p=>p.classList.remove('on'));
             tab.classList.add('on');$id(tab.dataset.target)?.classList.add('on');
+            applyContMode();
             refreshSmallPreview();
         });
     });
@@ -12908,7 +13076,20 @@ const connectOverlay=ov=>{
     // Toggle durée / heure de fin
     let timeMode=localStorage.WCT_timeMode||'end'; // 'dur' ou 'end' — 'end' par défaut
     const applyTimeMode=()=>{
-        const isEnd=timeMode==='end';
+        // ⚠️ Relire la préférence STOCKÉE avant de s'en servir. `timeMode` et
+        // localStorage.WCT_timeMode disent la même chose, et applyConfig (chargement d'un
+        // préréglage) n'écrit que le second — il n'a pas accès à cette closure. Deux
+        // sources de vérité pour une même information : l'une finit toujours par mentir.
+        // Sans cette ligne, charger un préréglage en mode « durée » puis rafraîchir
+        // l'affichage le renvoyait sur « heure de fin », et il fallait cliquer DEUX fois
+        // sur la bascule pour la faire bouger — défaut déjà présent avant le mode continu,
+        // que le point de synchronisation rendait simplement visible.
+        timeMode=localStorage.WCT_timeMode||timeMode;
+        // ⏩ En continu, l'affichage passe d'office sur « heure de fin » : une fermeture
+        // continue s'arrête à une DATE et une heure, pas au bout d'une durée. On force
+        // l'affichage sans toucher à `timeMode` ni au localStorage — la préférence de
+        // l'éditeur lui revient donc intacte dès qu'il quitte l'onglet.
+        const isEnd=_contActif()||timeMode==='end';
         $id('wct-mode-dur').style.display=isEnd?'none':'flex';
         $id('wct-mode-end').style.display=isEnd?'flex':'none';
         const lblEnd=$id('wct-lbl-end'); if(lblEnd) lblEnd.style.display=isEnd?'flex':'none';
@@ -12917,11 +13098,37 @@ const connectOverlay=ov=>{
         if(btn){ btn.classList.toggle('end',isEnd); }
         refreshSmallPreview();
     };
+    // Le volet « En continu » n'a pas de champ à lui : il emprunte ceux du bloc Période.
+    // Deux d'entre eux n'ont alors plus d'objet — la bascule Durée/Heure de fin, et
+    // « + jours » (la date de fin porte déjà le nombre de jours). Ils sont GRISÉS et non
+    // masqués : consigne de l'auteur, un seul langage visuel dans tout le panneau, et un
+    // champ qui disparaît laisse croire qu'on a perdu un réglage. Leur libellé est grisé
+    // avec eux, sans quoi il resterait net au-dessus d'un champ éteint.
+    const applyContMode=()=>{
+        const cont=_contActif();
+        _grise($id('wct-time-toggle'),cont);
+        _grise($id('wct-dur-day'),cont);
+        _grise($id('wct-lbl-durday'),cont);
+        applyTimeMode();
+        checkJpN();
+        renderContPane();
+    };
+    // ⚠️ Point de synchronisation exposé au reste du script : applyContMode vit dans la
+    // closure de connectOverlay (il lui faut `timeMode`), mais applyConfig — qui restaure
+    // l'onglet actif d'un préréglage — est ailleurs. Sans ce relais, charger un préréglage
+    // « en continu » rétablissait l'onglet sans griser ce qui n'a plus de sens dedans.
+    _contSync=applyContMode;
     $id('wct-time-toggle')?.addEventListener('click',()=>{
         setTimeout(checkJpN,0); // recalc badge après switch mode
         timeMode=timeMode==='dur'?'end':'dur';
         localStorage.WCT_timeMode=timeMode;
         applyTimeMode();
+    });
+    // Le récapitulatif du volet continu se relit sur les mêmes champs que la génération :
+    // s'ils divergeaient, l'éditeur lirait une période et en poserait une autre.
+    ['wct-rangestart','wct-rangeend','wct-starttime','wct-endtime'].forEach(id=>{
+        $id(id)?.addEventListener('change',renderContPane);
+        $id(id)?.addEventListener('input',renderContPane);
     });
     applyTimeMode(); // Appliquer le mode mémorisé (ou 'end' par défaut) au rendu initial
     // ── Emoji picker ──
@@ -12994,6 +13201,15 @@ const connectOverlay=ov=>{
     }
     // Badge J+N sur l'heure de fin (dynamique selon +Jours et heure de fin vs heure de début)
     const checkJpN=()=>{
+        // ⏩ En continu, ce badge MENTIRAIT. Il annonce « la fin tombe le lendemain » en
+        // comparant deux heures ; or la fin porte ici sa propre DATE, qui peut être à deux
+        // semaines de là. « J+1 » sous une fermeture de 15 jours est pire qu'aucun badge.
+        if(_contActif()){
+            const bE=$id('wct-endtime-jpn'), bD=$id('wct-dur-jpn');
+            if(bE) bE.style.display='none';
+            if(bD) bD.style.display='none';
+            return;
+        }
         const extra=parseInt($id('wct-dur-day')?.value)||0;
         const modeEnd=$id('wct-mode-end')?.style.display!=='none';
         let n=0;
@@ -13026,6 +13242,10 @@ const connectOverlay=ov=>{
     $id('wct-dur-day')?.addEventListener('input',checkJpN);
     $id('wct-dur-day')?.addEventListener('change',checkJpN);
     checkJpN(); // Init badge J+N
+    // ⏩ Après checkJpN, dont applyContMode a besoin : l'onglet restauré peut être « En
+    // continu » (préréglage ou dernier état), et le grisage doit alors être déjà en place
+    // à l'ouverture du panneau, pas au premier clic.
+    applyContMode();
 
     ov.querySelectorAll('input,select').forEach(el=>el.addEventListener('change',refreshSmallPreview));
     $id('wct-rangestart')?.addEventListener('change',refreshMTE);
@@ -13125,7 +13345,10 @@ const connectOverlay=ov=>{
         const msgs=[];
         if(!isNaN(rs.getTime())&&startEl.value<todayStr()) msgs.push(t('warnDatePast'));
         if(!isNaN(rs.getTime())&&!isNaN(re.getTime())&&re<rs) msgs.push(t('warnDateEnd'));
-        if(!isNaN(rs.getTime())&&!isNaN(re.getTime())&&re>=rs){
+        // ⏩ Sans objet en continu : ce mode ne produit qu'UNE fermeture, quelle que soit la
+        // longueur de la plage. Annoncer « plus de 500 fermetures » sur une plage d'un an
+        // serait un avertissement faux, et un avertissement faux se fait désobéir.
+        if(!isNaN(rs.getTime())&&!isNaN(re.getTime())&&re>=rs&&!_contActif()){
             // Estimation rapide du nombre de jours (pire cas : tous les jours cochés)
             const days=Math.ceil((re-rs)/86400000)+1;
             if(days>MAX_CLOSURES) msgs.push(t('warnDateMax',MAX_CLOSURES));
