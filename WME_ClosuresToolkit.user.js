@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.11.00
+// @version      1.11.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -555,15 +555,33 @@ GM_addStyle(`
    vit desormais sur sa carte ; ce bloc ne sort qu'a la FIN, et ne s'ouvre de lui-meme que
    s'il a quelque chose a apprendre. Fond du panneau et non fond noir : c'est un resultat
    a lire, pas une console. */
+/* ⚠️⚠️ TROIS PIECES, ET CHACUNE A SA RAISON — signale par l auteur : « le bilan n est pas
+   defilable une fois deplie, on ne voit que les 5 premieres lignes ». Le corps portait
+   pourtant max-height + overflow-y:auto. Le defaut n etait pas dans le corps mais dans la
+   CHAINE : #wct-overlay est un flex column borne a calc(100vh - 110px), le bilan y est un
+   item comme un autre, donc COMPRIME quand la place manque — et son overflow:hidden, pose
+   pour les coins arrondis, coupait alors le bas de la zone defilante, barre comprise.
+   Mesure avant correction : a 620 px de fenetre le corps se croyait haut de 174 px, le
+   parent n en montrait que 127. Le contenu etait la, atteignable par la molette, mais
+   nulle part visible.
+   1. flex-shrink:0 : le bilan ne cede plus. C est la FILE qui cede — elle sait defiler,
+      c est sa fonction, et pendant qu on lit un bilan on ne lit pas la file.
+   2. display:flex + min-height:0 : si malgre tout la place manque, le corps RETRECIT au
+      lieu d etre rogne. Sans min-height:0, un item flex refuse de passer sous la taille de
+      son contenu et deborde en silence.
+   3. max-height en min(170px, 30vh) : sur un ecran court le bilan se borne de lui-meme,
+      plutot que de pousser les boutons du bas hors de l ecran. */
 .wct-bilan { margin-top:0.417em; border:1px solid var(--wct-border); border-radius:var(--wct-radius);
-    background:var(--wct-bg); font-size:0.917em; overflow:hidden; }
+    background:var(--wct-bg); font-size:0.917em; overflow:hidden;
+    display:flex; flex-direction:column; min-height:0; flex-shrink:0; }
 .wct-bilan-hdr { display:flex; align-items:center; gap:6px; padding:0.417em 0.583em;
-    cursor:pointer; user-select:none; font-weight:600; color:var(--wct-text); }
+    cursor:pointer; user-select:none; font-weight:600; color:var(--wct-text); flex:0 0 auto; }
 .wct-bilan-hdr:hover { color:var(--wct-blue); }
 /* Le point rouge du bilan replie : meme regle que les filtres de Recherche — un detail
    replie qui contient une anomalie doit le dire, sinon le repli devient un oubli. */
 .wct-bilan-dot { color:var(--wct-red); font-size:1.1em; line-height:1; }
-.wct-bilan-corps { max-height:170px; overflow-y:auto; padding:0 0.583em 0.417em;
+.wct-bilan-corps { flex:1 1 auto; min-height:0; max-height:min(170px, 30vh); overflow-y:auto;
+    padding:0 0.583em 0.417em;
     font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.833em; line-height:1.5; }
 .wct-bilan-l { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
