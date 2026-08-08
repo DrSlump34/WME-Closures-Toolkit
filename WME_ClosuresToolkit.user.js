@@ -8516,10 +8516,16 @@ const TARGET_ICON={seg:'\uD83D\uDEE3\uFE0F', turn:'\uD83D\uDD00'};
 // ═══════════════════════════════════════════════════════════════════════════
 //  EN CONTINU — récapitulatif du volet
 // ═══════════════════════════════════════════════════════════════════════════
-// Au-delà de ce seuil, la durée est signalée en orange. ⚠️ VALEUR DE DÉPART, à trancher :
-// rien dans WME ne l'impose, elle ne bloque rien et ne fait que demander une relecture des
-// deux dates. Un mois de fermeture ininterrompue reste un geste rare — assez pour mériter
-// une question, pas assez pour mériter un refus.
+// Au-delà de ce seuil, la durée est signalée en orange. Rien dans WME ne l'impose : le
+// seuil ne bloque rien et ne fait que demander une relecture des deux dates. Un mois de
+// fermeture ininterrompue reste un geste rare — assez pour mériter une question, pas assez
+// pour mériter un refus.
+// ✅ Valeur proposée par moi, puis TRANCHÉE PAR L'AUTEUR le 08/08/2026 : « on reste sur
+// 30 jours pour l'instant ». Décision assumée et révisable.
+// ⚠️ Le chiffre est écrit AILLEURS QU'ICI : dans l'annonce Discuss de la 1.10.00 (post 62,
+// sections EN et FR). Il n'est PAS dans l'aide, qui décrit le mode continu sans citer de
+// seuil. Le faire varier oblige donc à rééditer ce post — sans quoi le fil annoncerait une
+// règle que le script n'applique plus.
 const CONT_WARN_DAYS=30;
 // Le volet « En continu » est-il celui qui est ouvert ? Plusieurs réglages du bloc Période
 // n'ont de sens que hors de lui. Une seule fonction pour le dire : deux tests séparés qui
