@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.09.00
+// @version      1.09.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -6298,7 +6298,16 @@ const makeDSTSafeDate=(baseDate,dayOffset,localHour,localMin)=>{
     const localDate=new Date(y,m,day+dayOffset,localHour,localMin,0,0);
     return new JDate(localDate);
 };
-const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;};
+// dayKey : clé de jour CALENDAIRE LOCAL, au format AAAA-MM-JJ — celui des jours fériés
+// rendus par date.nager.at et celui des champs <input type="date">.
+// ⚠️⚠️ SE LIT EN LOCAL, JAMAIS EN UTC (1.09.01). Le filtre des jours fériés composait cette
+// même clé avec getUTCFullYear/Month/Date sur une date pourtant construite en local : à
+// New York, une fermeture partant le 4 juillet à 21:00 s'écrivait « 2026-07-05 » et
+// échappait donc à « sauf jours fériés », pendant que celle du 3 juillet se faisait
+// exclure à sa place. Les bornes rsStr/reStr, elles, se lisaient déjà en local juste à
+// côté : les deux clés ne parlaient pas de la même journée.
+const dayKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayStr=()=>dayKey(new Date());
 const MAX_CLOSURES=500;
 const download=(data,fn)=>{const a=make('a');a.style.display='none';a.href=encodeURI('data:text/plain,'+data);a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);};
 // ⚠️ Le CSV STANDARD échappe un guillemet en le DOUBLANT ("") — pas avec un antislash.
@@ -6950,8 +6959,28 @@ const buildClosureList=async()=>{
         // Évite le décalage d'1h sur les occurrences post-changement d'heure.
         for(let d=0;d<days;d++){
             if(list.length>=MAX_CLOSURES)return{list:[],error:t('errMaxItems',MAX_CLOSURES)};
-            const s=makeDSTSafeDate(rs,d,stH,stM);
-            const localDow=new Date(s.getTime()).getUTCDay(); // jour UTC (cohérent avec timestamp décalé)
+            // ⚠️⚠️ ON PART DE LA CHAÎNE DU CHAMP, PAS DE `rs` (1.09.01). `rs` sort de
+            // new JDate('AAAA-MM-JJ'), que JS parse en MINUIT UTC ; makeDSTSafeDate relit
+            // ensuite ses composantes en LOCAL. À l'ouest d'UTC les deux lectures ne
+            // désignent pas le même jour et la plage ENTIÈRE glissait vers le passé :
+            // « du 1er au 6 juillet » posait des fermetures du 30 juin au 5 juillet à New
+            // York, Los Angeles et Honolulu — le dernier jour demandé étant en prime amputé
+            // par la borne de fin. L'onglet Répéter, lui, passait déjà la chaîne (plus bas) :
+            // c'est cette branche-ci qui était seule à convertir pour rien.
+            const s=makeDSTSafeDate(v('wct-rangestart'),d,stH,stM);
+            // ⚠️⚠️ LE JOUR DE LA SEMAINE SE LIT EN LOCAL (1.09.01). Il se lisait en UTC, sous
+            // un commentaire qui affirmait « cohérent avec timestamp décalé » : le décalage
+            // (valueOf() - tzOffset) n'est appliqué que bien plus tard, dans addClosure. Ici
+            // makeDSTSafeDate rend une date LOCALE, et la lire en UTC décale d'un jour entier
+            // dès que l'heure de début tombe de l'autre côté de minuit UTC :
+            //   — à l'EST, il faut une heure de début petite (01:00 à Paris l'été → jeudi
+            //     alors que l'éditeur a coché mercredi) ;
+            //   — à l'OUEST, TOUTE fermeture de soirée suffit (21:00 à New York : « lundi »
+            //     coché ferme le DIMANCHE soir).
+            // Ce n'était pas un décalage d'affichage : ça change les jours réellement fermés
+            // sur la carte. Le reste de la fonction raisonne en local, cette ligne était seule
+            // à ne pas le faire. `tools/test-plage.js` la tient désormais sur quatre fuseaux.
+            const localDow=s.getDay();
             if(!dow[localDow])continue;
             if(s>reDT)break;
             const e=s.clone().addMinutes(dur);
@@ -6979,8 +7008,9 @@ const buildClosureList=async()=>{
                 return sortie(list);
             }
             const filtered=list.filter(cl=>{
-                const d=cl.start;
-                const dateStr=`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+                // Le jour férié est celui où la fermeture COMMENCE — même règle que la borne
+                // de plage et que le filtre des jours de la semaine. Lu en local (cf. dayKey).
+                const dateStr=dayKey(cl.start);
                 return holidayMode==='only' ? hols.includes(dateStr) : !hols.includes(dateStr);
             });
             const delta=list.length-filtered.length;
@@ -6995,9 +7025,12 @@ const buildClosureList=async()=>{
                 }
             }
             if(holidayMode==='add'){
-                const rsStr=`${new Date(rs).getFullYear()}-${pad(new Date(rs).getMonth()+1)}-${pad(new Date(rs).getDate())}`;
-                const reStr=`${new Date(re).getFullYear()}-${pad(new Date(re).getMonth()+1)}-${pad(new Date(re).getDate())}`;
-                const existingDateStrs=new Set(list.map(cl=>{const d=cl.start;return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;}));
+                // Bornes du filtre : la valeur BRUTE des champs date, déjà au format
+                // AAAA-MM-JJ des jours fériés. Aucune conversion, donc aucun fuseau —
+                // relire `rs`/`re` (minuit UTC) donnait la veille à l'ouest d'UTC.
+                const rsStr=v('wct-rangestart');
+                const reStr=v('wct-rangeend');
+                const existingDateStrs=new Set(list.map(cl=>dayKey(cl.start)));
                 const extra=[];
                 for(const h of hols){
                     if(h<rsStr||h>reStr) continue;

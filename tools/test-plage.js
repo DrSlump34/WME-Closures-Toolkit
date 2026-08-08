@@ -57,6 +57,14 @@ const faireDom = (cfg) => {
     const parId = { 'wct-mode-end': { style: { display: modeEnd ? '' : 'none' } } };
     for (const [id, valeur] of Object.entries(champs)) parId[id] = { value: valeur };
     const jours = cfg.jours || [true, true, true, true, true, true, true];
+    // Jours feries : les trois cases sont absentes du DOM par defaut ($id rend null, donc
+    // holidayMode vaut 'none'). On ne les pose que si le cas de test les demande.
+    if (cfg.feries) {
+        parId['wct-hol-skip'] = { checked: cfg.feries === 'skip' };
+        parId['wct-hol-only'] = { checked: cfg.feries === 'only' };
+        parId['wct-hol-add'] = { checked: cfg.feries === 'add' };
+        parId['wct-holidays-warn'] = { style: {}, textContent: '' };
+    }
     const document = {
         querySelector: (sel) => {
             if (sel.includes('.wct-pane.on')) return { id: cfg.onglet || 'wct-tab-each' };
@@ -74,7 +82,11 @@ const fabriquer = new Function('$id', 'document', 't', 'getSelection', 'checkSel
 
 const lancer = async (cfg) => {
     const { $id, document } = faireDom(cfg);
-    return fabriquer($id, document, tTest, () => ({ ids: [] }), () => ({ ok: false, country: null, countries: [] }), async () => null)();
+    // Par defaut aucun pays n est resolu : le filtre des jours feries ne s execute pas.
+    // cfg.pays + cfg.joursFeries (tableau 'AAAA-MM-JJ') l allument pour les cas qui le visent.
+    const pays = cfg.pays ? { ok: true, country: cfg.pays } : { ok: false, country: null, countries: [] };
+    const feries = async () => (cfg.joursFeries === undefined ? null : cfg.joursFeries);
+    return fabriquer($id, document, tTest, () => ({ ids: [] }), () => pays, feries)();
 };
 const LUN_VEN = [false, true, true, true, true, true, false];
 
@@ -214,6 +226,77 @@ const verifier = (titre, condition, detail) => {
             verifier(c.note + ' : annonce ' + annonce + ', genere ' + r.list.length,
                 annonce === r.list.length, 'les deux calculs doivent tomber d accord');
         }
+    }
+
+    console.log('\n— Le jour coche est le jour LOCAL, dans tous les fuseaux —');
+    {
+        // Pourquoi ce bloc (2026-08-08) : la boucle lisait le jour de la semaine avec
+        // getUTCDay() sur une date pourtant construite en heure LOCALE par makeDSTSafeDate.
+        // Un commentaire affirmait « coherent avec timestamp decale » — le decalage
+        // (valueOf() - tzOffset) n est applique que bien plus tard, dans addClosure. Le
+        // resultat : des que l heure de debut tombe de l autre cote de minuit UTC, le filtre
+        // se decale d un jour entier et ferme le mauvais jour sur une carte publique.
+        //   - a l EST d UTC il faut une heure de debut petite (01:00 a Paris l ete) ;
+        //   - a l OUEST, TOUTE fermeture de soiree suffit (des 20:00 a New York).
+        // Un test cale sur le seul fuseau de la machine ne verrait qu une moitie du defaut :
+        // on balaie donc quatre fuseaux, dont un a offset non entier.
+        const tzAvant = process.env.TZ;
+        const cas = [
+            { tz: 'Europe/Paris',     heure: '01:00', jour: 3, nom: 'mercredi', note: 'Paris, UTC+2 l ete, debut a 01:00' },
+            { tz: 'America/New_York', heure: '21:00', jour: 1, nom: 'lundi',    note: 'New York, UTC-4, fermeture de soiree' },
+            { tz: 'Asia/Kolkata',     heure: '03:00', jour: 5, nom: 'vendredi', note: 'Inde, UTC+5:30, offset non entier' },
+            { tz: 'Pacific/Auckland', heure: '09:00', jour: 6, nom: 'samedi',   note: 'Auckland, UTC+12' },
+        ];
+        for (const c of cas) {
+            process.env.TZ = c.tz;
+            const jours = [false, false, false, false, false, false, false];
+            jours[c.jour] = true;
+            const r = await lancer({ debut: '2026-08-01', fin: '2026-08-31', heureDebut: c.heure, heureFin: '05:00', jours });
+            const tous = r.list.length > 0 && r.list.every(cl => cl.start.getDay() === c.jour);
+            const vus = [...new Set(r.list.map(cl => cl.start.getDay()))].join(',');
+            verifier(c.note + ' : seuls des ' + c.nom + ' (' + r.list.length + ')',
+                tous, 'jours locaux obtenus : [' + vus + '], attendu [' + c.jour + ']');
+        }
+        // Le DEBUT DE PLAGE lui-meme, sans aucun filtre : la boucle part de `rs`, un JDate
+        // issu de new JDate('AAAA-MM-JJ') — donc MINUIT UTC — que makeDSTSafeDate relit
+        // ensuite en composantes LOCALES. A l ouest d UTC ces deux lectures ne designent pas
+        // le meme jour : la plage entiere glissait d un jour vers le passe, et la borne de
+        // fin amputait le dernier. Tous les jours coches ici : seul le calendrier est en jeu.
+        for (const tz of ['America/New_York', 'America/Los_Angeles', 'Pacific/Honolulu', 'Europe/Paris', 'Asia/Kolkata']) {
+            process.env.TZ = tz;
+            const r = await lancer({ debut: '2026-07-01', fin: '2026-07-06', heureDebut: '21:00', heureFin: '05:00' });
+            const jours = r.list.map(cl => cl.start.getDate());
+            verifier(tz + ' : la plage du 1er au 6 donne bien les jours 1 a 6',
+                jours.length === 6 && jours.every((j, i) => j === i + 1),
+                'jours locaux obtenus : [' + jours.join(',') + ']');
+        }
+        // Filtre des jours feries : meme faute, meme consequence. Le 4 juillet ferme a 21:00
+        // a New York s ecrit 2026-07-05 en UTC — « sauf jours feries » le laissait donc
+        // passer, et « uniquement les jours feries » ne le trouvait pas.
+        process.env.TZ = 'America/New_York';
+        const feries = ['2026-07-03', '2026-07-04'];
+        const rSkip = await lancer({ debut: '2026-07-01', fin: '2026-07-06', heureDebut: '21:00', heureFin: '05:00',
+                                     pays: 'US', joursFeries: feries, feries: 'skip' });
+        const datesSkip = rSkip.list.map(cl => cl.start.getDate());
+        verifier('New York, « sauf jours feries » : les 3 et 4 juillet sont bien retires',
+            !datesSkip.includes(3) && !datesSkip.includes(4) && datesSkip.length === 4,
+            'jours locaux retenus : [' + datesSkip.join(',') + '], attendu [1,2,5,6]');
+        const rOnly = await lancer({ debut: '2026-07-01', fin: '2026-07-06', heureDebut: '21:00', heureFin: '05:00',
+                                     pays: 'US', joursFeries: feries, feries: 'only' });
+        const datesOnly = rOnly.list.map(cl => cl.start.getDate());
+        verifier('New York, « uniquement les jours feries » : les 3 et 4 juillet, et eux seuls',
+            datesOnly.length === 2 && datesOnly.includes(3) && datesOnly.includes(4),
+            'jours locaux retenus : [' + datesOnly.join(',') + '], attendu [3,4]');
+        // Temoin : en UTC pur, local et UTC coincident. Ce cas passe AVANT comme APRES le
+        // correctif — s il venait a echouer, c est le harnais qui serait en cause, pas la
+        // regle. Il distingue « le test attrape le defaut » de « le test attrape tout ».
+        process.env.TZ = 'UTC';
+        const rTemoin = await lancer({ debut: '2026-08-01', fin: '2026-08-31', heureDebut: '01:00', heureFin: '05:00',
+                                       jours: [false, false, false, true, false, false, false] });
+        verifier('temoin en UTC : rien ne bouge quand local et UTC coincident',
+            rTemoin.list.length > 0 && rTemoin.list.every(cl => cl.start.getDay() === 3),
+            'obtenu ' + rTemoin.list.length + ' occurrences');
+        if (tzAvant === undefined) delete process.env.TZ; else process.env.TZ = tzAvant;
     }
 
     console.log('\n' + (ko === 0 ? 'TOUT PASSE : ' + ok + ' verifications' : '❌ ' + ko + ' ECHEC(S) sur ' + (ok + ko)));
