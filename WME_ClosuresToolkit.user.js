@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.10.00
+// @version      1.11.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -549,6 +549,24 @@ GM_addStyle(`
     overflow-y: auto; margin-top: 0.417em; color: #d4d4d4; display: none;
 }
 
+/* Bilan d'application (1.11.00). Il REMPLACE le journal deroulant sur fond noir, qui
+   ecrivait une ligne par OCCURRENCE : une file de dix cartes en produisait deux cents,
+   dont cent-quatre-vingt-dix-neuf disaient que tout allait bien. L'etat de chaque entree
+   vit desormais sur sa carte ; ce bloc ne sort qu'a la FIN, et ne s'ouvre de lui-meme que
+   s'il a quelque chose a apprendre. Fond du panneau et non fond noir : c'est un resultat
+   a lire, pas une console. */
+.wct-bilan { margin-top:0.417em; border:1px solid var(--wct-border); border-radius:var(--wct-radius);
+    background:var(--wct-bg); font-size:0.917em; overflow:hidden; }
+.wct-bilan-hdr { display:flex; align-items:center; gap:6px; padding:0.417em 0.583em;
+    cursor:pointer; user-select:none; font-weight:600; color:var(--wct-text); }
+.wct-bilan-hdr:hover { color:var(--wct-blue); }
+/* Le point rouge du bilan replie : meme regle que les filtres de Recherche — un detail
+   replie qui contient une anomalie doit le dire, sinon le repli devient un oubli. */
+.wct-bilan-dot { color:var(--wct-red); font-size:1.1em; line-height:1; }
+.wct-bilan-corps { max-height:170px; overflow-y:auto; padding:0 0.583em 0.417em;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.833em; line-height:1.5; }
+.wct-bilan-l { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
 /* Small preview */
 #wct-small-prev { font-size:0.917em; color:var(--wct-text2); padding:0.333em 0; margin-top:0.5em; }
 /* Aperçu repliable : l'en-tête (le compteur) reste toujours lisible, seul le détail se replie. */
@@ -638,6 +656,13 @@ GM_addStyle(`
 .wct-main-pane.on { display:block; }
 /* Queue cards */
 .wct-qcard { border-radius:var(--wct-radius); margin-bottom:6px; overflow:hidden; }
+/* État d'application, en TÊTE de l'en-tête de carte : pendant l'application toutes les
+   cartes sont repliées, c'est le seul endroit qui reste visible. En tête et non parmi les
+   badges de droite, pour que la colonne d'états s'aligne et se balaie d'un coup d'oeil —
+   les badges de droite ont des largeurs variables, un état s'y perdrait.
+   Largeur réservée en permanence : sans elle, l'apparition du premier état décalerait
+   toute la ligne au moment precis ou l'editeur la regarde. */
+.wct-qcard-etat { flex-shrink:0; width:15px; text-align:center; font-size:12px; line-height:1; }
 .wct-qcard-hdr:hover { background:#eef4fb !important; }
 /* Onglets — couleur toujours visible */
 .wct-main-tab[data-tab="cfg"] { border-top:3px solid #2196f3 !important; }
@@ -1498,6 +1523,15 @@ const D = {
             lblDuration:'Durée',
             jpnPrefix:'J+',
             tipToggle:'Mode Dur\u00E9e\u00A0: saisir une dur\u00E9e (H:MM) \u2014 Mode Heure de fin\u00A0: saisir l\u2019heure exacte de fin. Cliquez pour basculer.',
+            bilanPosees:n=>`${n} pos\u00E9e(s)`,
+            bilanPartielles:n=>`${n} partielle(s)`,
+            bilanEchecs:n=>`${n} en \u00E9chec`,
+            bilanInterrompu:'interrompu',
+            tipBilanToggle:'Afficher ou masquer le d\u00E9tail ligne par ligne de cette application.',
+            tipEtatEncours:'En cours d\u2019application\u2026',
+            tipEtatOk:'Appliqu\u00E9e : toutes les fermetures de ce lot ont \u00E9t\u00E9 pos\u00E9es.',
+            tipEtatPartiel:'Partielle : une partie seulement a \u00E9t\u00E9 pos\u00E9e. D\u00E9pliez le bilan pour savoir laquelle, et repassez sur ce lot.',
+            tipEtatEchec:'\u00C9chec : rien n\u2019a \u00E9t\u00E9 pos\u00E9 pour ce lot.',
             tabEachDay:'\uD83D\uDCC6 Chaque jour', tabRepeat:'\uD83D\uDD01 R\u00E9p\u00E9ter', tabCont:'\u23E9 En continu',
             tipTabCont:'Une seule fermeture, sans interruption, de la date et l\u2019heure de d\u00E9but \u00E0 la date et l\u2019heure de fin. Ni jours de la semaine, ni jours f\u00E9ri\u00E9s, ni r\u00E9p\u00E9tition.',
             contIntro:'Une seule fermeture, sans interruption :',
@@ -2039,6 +2073,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lblDuration:'Duration',
             jpnPrefix:'D+',
             tipToggle:'Duration mode\u00A0: enter a duration (H:MM) \u2014 End time mode\u00A0: enter the exact end time. Click to switch.',
+            bilanPosees:n=>`${n} applied`,
+            bilanPartielles:n=>`${n} partial`,
+            bilanEchecs:n=>`${n} failed`,
+            bilanInterrompu:'stopped',
+            tipBilanToggle:'Show or hide the line-by-line detail of this run.',
+            tipEtatEncours:'Applying\u2026',
+            tipEtatOk:'Applied: every closure in this batch was written.',
+            tipEtatPartiel:'Partial: only some of it was written. Unfold the summary to see which, and go over this batch again.',
+            tipEtatEchec:'Failed: nothing was written for this batch.',
             tabEachDay:'\uD83D\uDCC6 Each day', tabRepeat:'\uD83D\uDD01 Repeat', tabCont:'\u23E9 Continuous',
             tipTabCont:'A single closure, without interruption, from the start date and time to the end date and time. No weekdays, no holidays, no repetition.',
             contIntro:'A single closure, without interruption:',
@@ -2566,6 +2609,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'משך',
             jpnPrefix:'D+',
             tipToggle:'מצב משך : הזן משך זמן (ש:דד) — מצב שעת סיום : הזן את שעת הסיום המדויקת. לחץ כדי להחליף.',
+            bilanPosees:n=>`${n} הוחלו`,
+            bilanPartielles:n=>`${n} חלקיות`,
+            bilanEchecs:n=>`${n} נכשלו`,
+            bilanInterrompu:'הופסק',
+            tipBilanToggle:'הצגה או הסתרה של הפירוט שורה אחר שורה של הפעלה זו.',
+            tipEtatEncours:'מחיל…',
+            tipEtatOk:'הוחל: כל החסימות במנה זו נכתבו.',
+            tipEtatPartiel:'חלקי: רק חלק נכתב. פתח את הסיכום כדי לראות מה, ועבור שוב על מנה זו.',
+            tipEtatEchec:'נכשל: דבר לא נכתב עבור מנה זו.',
             tabEachDay:'📆 כל יום', tabRepeat:'🔁 חזרה', tabCont:'⏩ רציף',
             tipTabCont:'חסימה אחת בלבד, ללא הפסקה, מתאריך ושעת ההתחלה ועד תאריך ושעת הסיום. ללא ימי שבוע, ללא חגים, ללא חזרות.',
             contIntro:'חסימה אחת בלבד, ללא הפסקה:',
@@ -3093,6 +3145,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Durata',
             jpnPrefix:'G+',
             tipToggle:'Modalità durata : inserisci una durata (O:MM) — Modalità ora di fine : inserisci l’ora di fine esatta. Clicca per cambiare.',
+            bilanPosees:n=>`${n} applicate`,
+            bilanPartielles:n=>`${n} parziali`,
+            bilanEchecs:n=>`${n} non riuscite`,
+            bilanInterrompu:'interrotto',
+            tipBilanToggle:'Mostra o nascondi il dettaglio riga per riga di questa esecuzione.',
+            tipEtatEncours:'Applicazione in corso…',
+            tipEtatOk:'Applicato: tutte le chiusure di questo lotto sono state scritte.',
+            tipEtatPartiel:'Parziale: solo una parte è stata scritta. Apri il riepilogo per sapere quale, e ripassa su questo lotto.',
+            tipEtatEchec:'Non riuscito: nulla è stato scritto per questo lotto.',
             tabEachDay:'📆 Ogni giorno', tabRepeat:'🔁 Ripeti', tabCont:'⏩ Continuo',
             tipTabCont:'Una sola chiusura, senza interruzione, dalla data e ora di inizio alla data e ora di fine. Nessun giorno della settimana, nessun festivo, nessuna ripetizione.',
             contIntro:'Una sola chiusura, senza interruzione:',
@@ -3621,6 +3682,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Dauer',
             jpnPrefix:'T+',
             tipToggle:'Dauer-Modus\u00A0: eine Dauer eingeben (H:MM) \u2014 Endzeit-Modus\u00A0: die genaue Endzeit eingeben. Zum Umschalten klicken.',
+            bilanPosees:n=>`${n} gesetzt`,
+            bilanPartielles:n=>`${n} teilweise`,
+            bilanEchecs:n=>`${n} fehlgeschlagen`,
+            bilanInterrompu:'abgebrochen',
+            tipBilanToggle:'Die zeilenweise Aufstellung dieses Durchlaufs ein- oder ausblenden.',
+            tipEtatEncours:'Wird gesetzt\u2026',
+            tipEtatOk:'Gesetzt: alle Sperrungen dieses Pakets wurden geschrieben.',
+            tipEtatPartiel:'Teilweise: nur ein Teil wurde geschrieben. Klapp die Bilanz auf, um zu sehen welcher, und geh dieses Paket erneut durch.',
+            tipEtatEchec:'Fehlgeschlagen: f\u00FCr dieses Paket wurde nichts geschrieben.',
             tabEachDay:'\uD83D\uDCC6 Wochentage', tabRepeat:'\uD83D\uDD01 Wiederholen', tabCont:'\u23E9 Am St\u00FCck',
             tipTabCont:'Eine einzige Sperrung, ohne Unterbrechung, von Startdatum und -zeit bis Enddatum und -zeit. Keine Wochentage, keine Feiertage, keine Wiederholung.',
             contIntro:'Eine einzige Sperrung, ohne Unterbrechung:',
@@ -4148,6 +4218,15 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Duración',
             jpnPrefix:'D+',
             tipToggle:'Modo Duración : introduce una duración (H:MM) — Modo Hora de fin : introduce la hora exacta de fin. Haz clic para cambiar.',
+            bilanPosees:n=>`${n} aplicados`,
+            bilanPartielles:n=>`${n} parciales`,
+            bilanEchecs:n=>`${n} fallidos`,
+            bilanInterrompu:'interrumpido',
+            tipBilanToggle:'Mostrar u ocultar el detalle línea por línea de esta ejecución.',
+            tipEtatEncours:'Aplicando…',
+            tipEtatOk:'Aplicado: se han escrito todos los cierres de este lote.',
+            tipEtatPartiel:'Parcial: solo se ha escrito una parte. Despliega el resumen para ver cuál y vuelve a pasar por este lote.',
+            tipEtatEchec:'Fallido: no se ha escrito nada para este lote.',
             tabEachDay:'📆 Cada día', tabRepeat:'🔁 Repetir', tabCont:'⏩ Continuo',
             tipTabCont:'Un solo cierre, sin interrupción, desde la fecha y hora de inicio hasta la fecha y hora de fin. Sin días de la semana, sin festivos, sin repetición.',
             contIntro:'Un solo cierre, sin interrupción:',
@@ -4675,6 +4754,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração : informe uma duração (H:MM) — Modo Hora de fim : informe a hora exata do fim. Clique para alternar.',
+            bilanPosees:n=>`${n} aplicados`,
+            bilanPartielles:n=>`${n} parciais`,
+            bilanEchecs:n=>`${n} com falha`,
+            bilanInterrompu:'interrompido',
+            tipBilanToggle:'Mostrar ou ocultar o detalhe linha a linha desta execução.',
+            tipEtatEncours:'Aplicando…',
+            tipEtatOk:'Aplicado: todos os bloqueios deste lote foram gravados.',
+            tipEtatPartiel:'Parcial: apenas parte foi gravada. Abra o resumo para saber qual e passe de novo neste lote.',
+            tipEtatEchec:'Falhou: nada foi gravado para este lote.',
             tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir', tabCont:'⏩ Contínuo',
             tipTabCont:'Um único bloqueio, sem interrupção, da data e hora de início até a data e hora de fim. Sem dias da semana, sem feriados, sem repetição.',
             contIntro:'Um único bloqueio, sem interrupção:',
@@ -5202,6 +5290,15 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração: introduza uma duração (H:MM) — Modo Hora de fim: introduza a hora exata de fim. Clique para alternar.',
+            bilanPosees:n=>`${n} aplicados`,
+            bilanPartielles:n=>`${n} parciais`,
+            bilanEchecs:n=>`${n} falhados`,
+            bilanInterrompu:'interrompido',
+            tipBilanToggle:'Mostrar ou ocultar o detalhe linha a linha desta execução.',
+            tipEtatEncours:'A aplicar…',
+            tipEtatOk:'Aplicado: todos os cortes deste lote foram gravados.',
+            tipEtatPartiel:'Parcial: apenas parte foi gravada. Abra o resumo para saber qual e passe de novo neste lote.',
+            tipEtatEchec:'Falhou: nada foi gravado para este lote.',
             tabEachDay:'📆 Cada dia', tabRepeat:'🔁 Repetir', tabCont:'⏩ Contínuo',
             tipTabCont:'Um único corte, sem interrupção, da data e hora de início até à data e hora de fim. Sem dias da semana, sem feriados, sem repetição.',
             contIntro:'Um único corte, sem interrupção:',
@@ -5666,6 +5763,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑️</b></td><td>Supprime une ligne de fermeture du lot (exclue de l'application et de l'export)</td></tr>
             <tr><td><b>Bordure color\u00E9e</b></td><td>\uD83D\uDD35 Configur\u00E9 manuellement \u00B7 \uD83D\uDFE2 Import\u00E9 CSV \u00B7 \uD83D\uDFE0 Charg\u00E9 depuis pr\u00E9r\u00E9glage</td></tr>
             <tr><td><b>\u00C9tat \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 En cours \u00B7 \uD83D\uDD34 Chevauchement \u00B7 \u26AB Date pass\u00E9e</td></tr>
+            <tr><td><b>\u00C9tat d\u2019application \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Pos\u00E9 sur l\u2019en-t\u00EAte du lot pendant l\u2019application\u00A0: \u23F3 en cours \u00B7 \u2705 appliqu\u00E9 \u00B7 \u26A0\uFE0F partiel \u00B7 \u274C \u00E9chec. Un lot jamais atteint reste sans marque. Le d\u00E9tail ligne \u00E0 ligne s\u2019affiche dans le <b>bilan</b>, sous la file, \u00E0 la fin de l\u2019application.</td></tr>
             </table>`, en:`
             <p>The queue accumulates <b>batches</b> of closures before applying.</p>
             <table class="wct-help-table">
@@ -5675,6 +5773,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑️</b></td><td>Remove an individual closure row from the batch (excluded from apply and export)</td></tr>
             <tr><td><b>Colored border</b></td><td>\uD83D\uDD35 Manual \u00B7 \uD83D\uDFE2 CSV import \u00B7 \uD83D\uDFE0 From preset</td></tr>
             <tr><td><b>State \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Ongoing \u00B7 \uD83D\uDD34 Overlap \u00B7 \u26AB Past date</td></tr>
+            <tr><td><b>Apply state \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Shown on the batch header while applying: \u23F3 running \u00B7 \u2705 applied \u00B7 \u26A0\uFE0F partial \u00B7 \u274C failed. A batch never reached stays unmarked. The line-by-line detail appears in the <b>summary</b>, below the queue, once the run is over.</td></tr>
             </table>`, de:`
             <p>Die Warteschlange sammelt <b>Pakete</b> von Sperrungen, bevor sie angewendet werden.</p>
             <table class="wct-help-table">
@@ -5684,6 +5783,7 @@ const buildHelpHTML = () => {
             <tr><td><b>\uD83D\uDDD1\uFE0F</b></td><td>Entfernt eine einzelne Sperrungszeile aus dem Paket (wird beim Anwenden und beim Export \u00FCbergangen)</td></tr>
             <tr><td><b>Farbiger Rand</b></td><td>\uD83D\uDD35 Manuell eingerichtet \u00B7 \uD83D\uDFE2 CSV-Import \u00B7 \uD83D\uDFE0 Aus Vorlage geladen</td></tr>
             <tr><td><b>Zustand \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Laufend \u00B7 \uD83D\uDD34 \u00DCberschneidung \u00B7 \u26AB Vergangenes Datum</td></tr>
+            <tr><td><b>Anwendungsstatus \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Wird w\u00E4hrend des Setzens auf der Paket-Kopfzeile angezeigt: \u23F3 l\u00E4uft \u00B7 \u2705 gesetzt \u00B7 \u26A0\uFE0F teilweise \u00B7 \u274C fehlgeschlagen. Ein nie erreichtes Paket bleibt ohne Markierung. Die zeilenweise Aufstellung steht am Ende in der <b>Bilanz</b> unter der Warteschlange.</td></tr>
             </table>`, es:`
             <p>La cola acumula <b>lotes</b> de cierres antes de aplicarlos.</p>
             <table class="wct-help-table">
@@ -5693,6 +5793,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑️</b></td><td>Elimina una fila de cierre del lote (se excluye de la aplicación y de la exportación)</td></tr>
             <tr><td><b>Borde de color</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Cargado desde preajuste</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 En curso · 🔴 Solapamiento · ⚫ Fecha pasada</td></tr>
+            <tr><td><b>Estado de aplicación ⏳✅⚠️❌</b></td><td>Se muestra en la cabecera del lote durante la aplicación: ⏳ en curso · ✅ aplicado · ⚠️ parcial · ❌ fallido. Un lote nunca alcanzado se queda sin marca. El detalle línea por línea aparece en el <b>resumen</b>, bajo la cola, al terminar.</td></tr>
             </table>`, 'pt-BR':`
             <p>A fila acumula <b>lotes</b> de bloqueios antes da aplicação.</p>
             <table class="wct-help-table">
@@ -5702,6 +5803,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑️</b></td><td>Remove uma linha de bloqueio do lote (excluída da aplicação e da exportação)</td></tr>
             <tr><td><b>Borda colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
+            <tr><td><b>Estado de aplicação ⏳✅⚠️❌</b></td><td>Exibido no cabeçalho do lote durante a aplicação: ⏳ em curso · ✅ aplicado · ⚠️ parcial · ❌ falhou. Um lote nunca alcançado fica sem marca. O detalhe linha a linha aparece no <b>resumo</b>, abaixo da fila, ao terminar.</td></tr>
             </table>`, 'pt-PT':`
             <p>A fila acumula <b>lotes</b> de cortes antes da aplicação.</p>
             <table class="wct-help-table">
@@ -5711,6 +5813,7 @@ const buildHelpHTML = () => {
             <tr><td><b>🗑️</b></td><td>Remove uma linha de corte do lote (excluída da aplicação e da exportação)</td></tr>
             <tr><td><b>Margem colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
+            <tr><td><b>Estado de aplicação ⏳✅⚠️❌</b></td><td>Apresentado no cabeçalho do lote durante a aplicação: ⏳ em curso · ✅ aplicado · ⚠️ parcial · ❌ falhou. Um lote nunca alcançado fica sem marca. O detalhe linha a linha surge no <b>resumo</b>, por baixo da fila, no fim.</td></tr>
             </table>` }) },
         { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, de:`
             <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
@@ -7405,6 +7508,41 @@ const renderQueue=()=>{
     queue.forEach((entry,i)=>{ ul.appendChild(buildQueueCard(entry,i)); });
     updateActionBtns();
 };
+// ═══════════════════════════════════════════════════════════════════════════
+//  ÉTAT D'APPLICATION, POSÉ SUR LA CARTE DE FILE (1.11.00)
+// ═══════════════════════════════════════════════════════════════════════════
+// Avant : un journal déroulant sur fond noir s'intercalait entre la file et les boutons,
+// et écrivait UNE LIGNE PAR OCCURRENCE — « 21×5 seg » en produisait 21, une file de dix
+// cartes en produisait deux cents. Illisible, et pour rien : la quasi-totalité de ces
+// lignes annonçaient un succès, c'est-à-dire ce qu'on attendait. L'information rare —
+// le partiel, l'échec — s'y noyait.
+// Maintenant : l'état va sur l'objet qu'il décrit. Une entrée de file = une carte = un
+// état, posé sur l'EN-TÊTE (le seul endroit visible, applyQueue repliant toutes les
+// cartes). Rien ne s'insère, rien ne pousse la mise en page.
+const APPLY_ETAT={ encours:'⏳', ok:'✅', partiel:'⚠️', echec:'❌' };
+// La règle qui décide de l'état d'une entrée, sortie de applyQueue pour être VÉRIFIABLE :
+// dedans, elle aurait été noyée dans 200 lignes d'asynchrone et de SDK, donc jamais testée.
+// ⚠️ « échec » est réservé au cas où RIEN n'a été posé. Dès qu'une seule fermeture est
+// passée, l'entrée est partielle et non en échec : dire « échec » sur un lot à moitié
+// écrit enverrait l'éditeur tout refaire, et il poserait des doublons sur la carte.
+// ⚠️ Un manque n'est pas une erreur : le serveur n'a rien refusé, ce sont des segments
+// absents du modèle (hors vue). Les deux mènent à « partiel », mais par des chemins
+// différents — et un manque seul ne doit jamais donner « échec ».
+const _etatEntree=(ok,manques,erreurs)=>
+    (erreurs>0&&ok===0) ? 'echec' : (erreurs>0||manques>0) ? 'partiel' : 'ok';
+const _setEtatCarte=(idx,etat,titre)=>{
+    const carte=document.querySelector(`#wct-queue-ul .wct-qcard[data-idx="${idx}"]`);
+    if(!carte) return;                       // file re-rendue entre-temps : rien à décorer
+    const cel=carte.querySelector('.wct-qcard-etat');
+    if(!cel) return;
+    cel.textContent=etat?APPLY_ETAT[etat]||'':'';
+    cel.title=titre||'';
+};
+// Efface tous les états : au DÉBUT d'une application, jamais à la fin. Les garder après
+// coup est justement l'intérêt — c'est ce qui reste à l'écran quand tout est fini.
+const _resetEtatsCartes=()=>{
+    document.querySelectorAll('#wct-queue-ul .wct-qcard-etat').forEach(c=>{ c.textContent=''; c.title=''; });
+};
 const updateActionBtns=()=>{
     const has=queue.length>0;
     ['wct-btn-apply','wct-btn-clear'].forEach(id=>$id(id)?.classList.toggle('wct-btn-dis',!has));
@@ -8558,16 +8696,26 @@ const requestApplyAbort=()=>{
     _applyAborted=true;
     const b=$id('wct-btn-stop');
     if(b){b.disabled=true;b.classList.add('wct-btn-dis');b.textContent=t('btnStopping');}
-    const lg=$id('wct-apply-log');
-    if(lg){const line=document.createElement('div');line.style.color='#f57c00';line.textContent=t('applyStopping');lg.appendChild(line);lg.scrollTop=lg.scrollHeight;}
+    // ⚠️ N'écrit plus dans le journal (1.11.00) : celui-ci ne s'affiche plus en direct.
+    // Le retour immédiat — le seul qui comptait ici — reste le bouton grisé et renommé
+    // « Arrêt… », et l'interruption sera dite dans le bilan de fin.
 };
-// Pause assistée entre deux lots : affiche « lot k/N appliqué » + bouton Continuer
-// dans le log, et attend le clic. Résout false si l'utilisateur a cliqué Stop entre-temps.
+// Pause assistée entre deux lots : « lot k/N appliqué » + bouton Continuer, et on attend
+// le clic. Résout false si l'utilisateur a cliqué Stop entre-temps.
+// ⚠️⚠️ LE BOUTON VIT DANS LE DOCK DE PROGRESSION, PLUS DANS LE JOURNAL (1.11.00). Il y
+// était, et cela faisait du journal bien autre chose qu'un journal : un CONTRÔLE. Le
+// replier ou le supprimer — ce que fait précisément cette version — aurait figé
+// l'application sans un mot, en attente d'un clic sur un bouton devenu invisible. Sa
+// place est auprès du Stop : ce sont deux commandes d'exécution, et le dock est collé en
+// bas, donc toujours visible. C'est aussi le seul emplacement qui laisse voir la CARTE,
+// que WCT vient justement de recadrer sur le lot suivant.
 const _applyLotPause = (lotNo, total) => new Promise(resolve => {
-    const log = $id('wct-apply-log');
-    if(!log){ resolve(true); return; }
+    const dock = document.querySelector('.wct-progress-dock');
+    const stop = $id('wct-btn-stop');
+    if(!dock){ resolve(true); return; }
     const box = document.createElement('div');
-    box.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 6px;background:rgba(142,36,170,.12);border-inline-start:3px solid #8e24aa;border-radius:3px';
+    box.id = 'wct-lot-pause';
+    box.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:4px;padding:4px 6px;background:rgba(142,36,170,.12);border-inline-start:3px solid #8e24aa;border-radius:3px';
     const txt = document.createElement('span');
     txt.style.cssText = 'flex:1;color:#8e24aa;font-weight:600;font-size:0.917em';
     txt.textContent = t('applyLotDone', lotNo, total);
@@ -8575,10 +8723,56 @@ const _applyLotPause = (lotNo, total) => new Promise(resolve => {
     btn.className = 'wct-btn wct-btn-primary wct-btn-sm';
     btn.textContent = t('applyLotNext');
     box.appendChild(txt); box.appendChild(btn);
-    log.appendChild(box); log.scrollTop = log.scrollHeight;
-    const chk = setInterval(() => { if(_applyAborted){ clearInterval(chk); box.remove(); resolve(false); } }, 200);
-    btn.addEventListener('click', () => { clearInterval(chk); box.remove(); resolve(true); });
+    dock.appendChild(box);
+    btn.focus();   // Entrée suffit alors à enchaîner : c'est l'action la plus répétée
+    const fin = (v) => { clearInterval(chk); box.remove(); if(stop) stop.style.display='inline-flex'; resolve(v); };
+    const chk = setInterval(() => { if(_applyAborted) fin(false); }, 200);
+    btn.addEventListener('click', () => fin(true));
 });
+// ═══════════════════════════════════════════════════════════════════════════
+//  BILAN D'APPLICATION
+// ═══════════════════════════════════════════════════════════════════════════
+// Il ne s'affiche qu'À LA FIN, et il n'est pas bavard : le compte tient sur une ligne,
+// le détail se déplie. Replié quand tout s'est bien passé — il n'y a alors rien à
+// apprendre d'une liste de succès. Ouvert dès qu'une pose a manqué, parce que c'est
+// exactement ce qu'on est venu chercher, et signalé par un point ● rouge s'il est refermé :
+// même règle que les sections de filtres de Recherche, un détail replié qui contient une
+// anomalie doit le dire, sinon le repli devient un oubli.
+// ⚠️ Le COMPTE reste visible dans les deux cas — on replie le détail, jamais l'information.
+const COUL_BILAN={ ok:'#43a047', partiel:'#f57c00', echec:'#e53935', info:'#8e24aa', stop:'#f57c00' };
+const _afficherBilan=(journal,compte)=>{
+    const box=$id('wct-apply-log'); if(!box) return;
+    const anomalies=journal.filter(l=>l.niveau==='partiel'||l.niveau==='echec').length;
+    const parts=[`${APPLY_ETAT.ok} ${t('bilanPosees',compte.done)}`];
+    if(compte.partiels) parts.push(`${APPLY_ETAT.partiel} ${t('bilanPartielles',compte.partiels)}`);
+    if(compte.echecs)   parts.push(`${APPLY_ETAT.echec} ${t('bilanEchecs',compte.echecs)}`);
+    if(compte.interrompu) parts.push(t('bilanInterrompu'));
+    const ouvert=anomalies>0||!!compte.interrompu;
+    box.className='wct-bilan';
+    box.style.display='block';
+    box.innerHTML=`<div class="wct-bilan-hdr" title="${escHtml(t('tipBilanToggle'))}">
+        <span class="wct-bilan-txt" style="flex:1">${escHtml(parts.join(' · '))}</span>
+        ${!ouvert&&anomalies?'<span class="wct-bilan-dot">●</span>':''}
+        <span class="wct-bilan-chev">${ouvert?'&#x25BC;':'&#x25B6;'}</span>
+    </div>
+    <div class="wct-bilan-corps"${ouvert?'':' style="display:none"'}>${
+        journal.map(l=>`<div class="wct-bilan-l" style="color:${COUL_BILAN[l.niveau]||'inherit'}" title="${escHtml(l.txt)}">${escHtml(l.txt)}</div>`).join('')
+    }</div>`;
+    // Écouteur posé ici et non délégué : ce bloc est reconstruit à chaque application,
+    // un écouteur de plus s'empilerait sinon à chaque fois sur le même conteneur.
+    const hdr=box.querySelector('.wct-bilan-hdr'), corps=box.querySelector('.wct-bilan-corps');
+    hdr.addEventListener('click',()=>{
+        const cache=corps.style.display==='none';
+        corps.style.display=cache?'block':'none';
+        // ⚠️ innerHTML + entité, comme TOUS les autres chevrons du panneau (aperçu, cartes
+        // de file, sections d'aide). Le sélecteur U+FE0F les rendrait en emoji coloré :
+        // ce chevron-ci jurerait alors avec les cinquante autres, restés en glyphe texte
+        // par décision assumée en 0.81.00.
+        box.querySelector('.wct-bilan-chev').innerHTML=cache?'&#x25BC;':'&#x25B6;';
+        const dot=box.querySelector('.wct-bilan-dot');
+        if(dot) dot.style.display=cache?'none':'';   // déplié : le point a fait son office
+    });
+};
 // Nombre de fermetures que la file va REELLEMENT ecrire : cibles x occurrences, hors
 // lignes supprimees a la main et hors segments defaillants.
 // ⚠️ Sorti de applyQueue le 01/08/2026 pour etre disponible AVANT le confirm : il etait
@@ -8617,32 +8811,53 @@ const applyQueue=async()=>{
     if(stopBtn){stopBtn.disabled=false;stopBtn.classList.remove('wct-btn-dis');stopBtn.textContent=t('btnStop');stopBtn.style.display='inline-flex';}
     _applyRunning=true;
     const upd=n=>{const p=Math.round(n*100/total);if(pbf)pbf.style.width=p+'%';if(pbt)pbt.textContent=`${n}/${total} (${p}%)`;};
+    // ── Journal : accumulé en mémoire, rendu UNE FOIS à la fin (1.11.00) ──
+    // Il s'écrivait en direct dans un encart sur fond noir intercalé entre la file et les
+    // boutons. Une ligne par OCCURRENCE — « 21×5 seg » en produisait 21 — dans une boîte
+    // de 180 px, qui poussait la mise en page au moment même où l'on regardait la file.
+    // Ce qui se passe en direct se lit désormais sur les cartes ; le détail attend la fin.
     const applyLog=$id('wct-apply-log');
-    if(applyLog){
-        applyLog.style.display='block';
-        applyLog.innerHTML='';
-        // Scroll vers le log
-        setTimeout(()=>applyLog.scrollIntoView({behavior:'smooth',block:'end'}),100);
-    }
-    const logApply=(msg,color)=>{
-        if(!applyLog) return;
-        const line=document.createElement('div');
-        line.style.color=color||'inherit';
-        line.textContent=msg;
-        applyLog.appendChild(line);
-        applyLog.scrollTop=applyLog.scrollHeight;
+    if(applyLog){ applyLog.style.display='none'; applyLog.innerHTML=''; }
+    _resetEtatsCartes();
+    const journal=[];
+    const logApply=(msg,niveau)=>{ journal.push({ txt:msg, niveau:niveau||'info' }); };
+    // Décompte PAR ENTRÉE : c'est la granularité de la carte, donc celle de l'état affiché.
+    // `done`/`failed` comptent des occurrences et servent la barre de progression ; ils ne
+    // disent pas si UNE entrée est passée, partiellement passée, ou pas passée du tout.
+    let entryOk=0, entryManques=0, entryErreurs=0;
+    const nbPartiels=[], nbEchecs=[];
+    const clotureEntree=(idx)=>{
+        const etat=_etatEntree(entryOk,entryManques,entryErreurs);
+        if(etat==='echec') nbEchecs.push(idx);
+        else if(etat==='partiel') nbPartiels.push(idx);
+        // ⚠️ Clés écrites EN CLAIR, jamais composées ('tipEtat'+etat) : une clé construite
+        // à l'exécution est introuvable par recherche littérale, donc invisible pour
+        // check-keys.js et audit.js — c'est le piège `srcSelOff_` qui a éteint un contrôle
+        // entier pendant des mois.
+        const tip = etat==='ok' ? t('tipEtatOk') : etat==='partiel' ? t('tipEtatPartiel') : t('tipEtatEchec');
+        _setEtatCarte(idx, etat, tip);
+        entryOk=0; entryManques=0; entryErreurs=0;
+        entreeClose=true;
     };
+    // Entrée en cours de traitement : sert uniquement à ne pas laisser un ⏳ éternel sur
+    // une carte quand l'application est interrompue en plein milieu (voir le finally).
+    let idxCourant=-1, entreeClose=true;
     // Lots issus du mode balayage : recadrage de la carte + pause assistée entre chaque.
     let lotNo=0;
     const totalLots=queue.filter(e=>e.source==='sweep'&&e.lotBbox).length;
     try{
-        for(const e of queue){
+        for(const [idxEntree,e] of queue.entries()){
             if(_applyAborted) break;
+            idxCourant=idxEntree;
+            // L'entrée s'annonce AVANT de commencer : sur une file longue, savoir laquelle
+            // est en train d'être traitée vaut autant que le pourcentage global.
+            _setEtatCarte(idxEntree,'encours',t('tipEtatEncours'));
+            entreeClose=false;
             const isLot=e.source==='sweep'&&e.lotBbox;
             // Recadrer sur le lot pour recharger ses segments avant de les fermer
             if(isLot){
                 lotNo++;
-                logApply(t('applyLotFocus',lotNo,totalLots),'#8e24aa');
+                logApply(t('applyLotFocus',lotNo,totalLots),'info');
                 // ⚠️ Charger TOUTE l'emprise du lot, pas seulement son centre : les
                 // segments absents du modèle sont sautés en silence à l'application.
                 try{ await _chargerEmprise(e.lotBbox); }catch(err){ log('applyQueue/chargerEmprise: '+err.message); }
@@ -8687,7 +8902,9 @@ const applyQueue=async()=>{
                 const resolus=_resolveTurnIds(e);
                 if(!resolus.length){
                     failed+=e.turnIds.length*e.closures.length; upd(done+failed);
-                    logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'#e53935');
+                    logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'echec');
+                    entryErreurs+=e.turnIds.length*e.closures.length;
+                    clotureEntree(idxEntree);
                     continue;
                 }
                 const exclT=e.excludedRows||new Set();
@@ -8700,10 +8917,11 @@ const applyQueue=async()=>{
                     if(_applyAborted) break;
                     await new Promise(res=>{
                         addTurnClosure({turnIds:ids,reason:e.config.reason,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
-                            ()=>{done+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'#43a047');res();},
-                            (errs)=>{failed+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                            ()=>{done+=ids.length;entryOk+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'ok');res();},
+                            (errs)=>{failed+=ids.length;entryErreurs+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                     });
                 }
+                clotureEntree(idxEntree);
                 continue;
             }
             const dir=parseInt(e.config.direction);
@@ -8732,13 +8950,15 @@ const applyQueue=async()=>{
                             const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
                             // Un succès partiel n'est PAS un succès : il se voit en orange et
                             // il se chiffre, parce que l'éditeur doit savoir qu'il faut repasser.
-                            if(manques>0) logApply(TARGET_ICON.seg+' '+t('applyPartial',e.config.reason,ls,poses,activeSegs.length),'#f57c00');
-                            else logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'#43a047');
+                            entryOk+=poses; entryManques+=manques;
+                            if(manques>0) logApply(TARGET_ICON.seg+' '+t('applyPartial',e.config.reason,ls,poses,activeSegs.length),'partiel');
+                            else logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'ok');
                             res();
                         },
-                        (errs)=>{failed+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'#e53935');res();});
+                        (errs)=>{failed+=activeSegs.length;entryErreurs+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                 });
             }
+            clotureEntree(idxEntree);
             // Pause assistée entre les lots (sauf après le dernier, et jamais pour une
             // zone : voir lotKind. Signalé par l'auteur le 30/07/2026 — une zone de
             // 20 segments réclamait trois clics de confirmation pour rien.)
@@ -8751,6 +8971,21 @@ const applyQueue=async()=>{
         // Toujours réarmer, y compris si addClosure lève : sinon le Stop reste grisé pour de bon.
         _applyRunning=false;
         if(stopBtn){stopBtn.style.display='none';stopBtn.disabled=false;stopBtn.classList.remove('wct-btn-dis');stopBtn.textContent=t('btnStop');}
+        document.querySelector('#wct-lot-pause')?.remove();   // une pause en attente ne survit pas à la sortie
+        // ⚠️ Une entrée interrompue EN PLEIN MILIEU n'a jamais été clôturée : son ⏳ resterait
+        // affiché pour toujours, et un sablier immobile se lit comme « ça travaille encore ».
+        // On la ferme avec ce qu'elle a réellement obtenu (partiel si des poses ont abouti),
+        // ou on efface son état si elle n'avait rien commencé.
+        if(!entreeClose && idxCourant>=0){
+            if(entryOk||entryManques||entryErreurs) clotureEntree(idxCourant);
+            else _setEtatCarte(idxCourant,null,'');
+        }
+        // ⚠️ Le bilan s'affiche DANS le finally : une exception au milieu de l'application
+        // ne doit pas emporter avec elle le compte rendu de ce qui a déjà été écrit sur la
+        // carte. C'est justement là qu'on en a le plus besoin.
+        _afficherBilan(journal,{ done, partiels:nbPartiels.length, echecs:nbEchecs.length, interrompu:_applyAborted });
+        // Les entrées jamais atteintes (interruption) restent SANS état : un ✅ ou un ❌ y
+        // serait faux, et un blanc se lit correctement comme « pas traité ».
     }
     setTimeout(()=>{if(pbw)pbw.style.display='none';if(pbt)pbt.textContent='';},2000);
     showToast(_applyAborted?t('applyStopped',done,failed):t('applyDone',done,failed,total),4000,failed||_applyAborted?'#f57c00':'#43a047');
@@ -12678,12 +12913,17 @@ const buildQueueCard=(entry,idx)=>{
 
     const card=document.createElement('div');
     card.className='wct-qcard';
+    // ⚠️ L'index sert à retrouver la carte d'une entrée PENDANT l'application, pour y poser
+    // son état sans re-rendre la file : un renderQueue() en cours de route rouvrirait les
+    // cartes repliées et effacerait les états déjà acquis.
+    card.dataset.idx=String(idx);
     card.style.cssText='border-radius:var(--wct-radius);margin-bottom:6px;overflow:hidden;border:1px solid var(--wct-border);border-inline-start:3px solid '+color+';';
     // ── Header du lot ──
     const hdr=document.createElement('div');
     hdr.className='wct-qcard-hdr';
     hdr.style.cssText='display:flex;align-items:center;gap:5px;padding:6px 8px;background:var(--wct-bg);';
     hdr.innerHTML=`
+        <span class="wct-qcard-etat" title="" aria-live="polite"></span>
         <span class="wct-qcard-chevron" style="font-size:12px;color:var(--wct-text2);cursor:pointer;flex-shrink:0;width:14px">&#x25BC;</span>
         <span class="wct-qcard-tgt" title="${escHtml(isTurnEntry?t('tgtTurn'):t('tgtSeg'))}" style="flex-shrink:0;font-size:13px">${isTurnEntry?TARGET_ICON.turn:TARGET_ICON.seg}</span>
         <span class="wct-qcard-label" style="flex:1;font-size:1em;font-weight:700;color:var(--wct-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.label)}</span>
