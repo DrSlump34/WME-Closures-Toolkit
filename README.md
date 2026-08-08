@@ -27,6 +27,10 @@ Drop any file into the Import tab — the content decides where it goes:
   *Repeat* for N occurrences at a fixed interval, and *Continuous* for the simplest case of all:
   one closure running without interruption from a start date and time to an end date and time.
   A single event usually needs several of these at once — they all land in the same queue.
+- **You can see what the run is doing, and what it did** — while applying, each queue batch
+  carries its own state on its header (running · applied · partial · failed); a batch never
+  reached stays unmarked. The line-by-line detail waits for the end, in a summary that stays
+  folded when everything went through and opens itself when something did not.
 - **Draw an area, then keep working on it** — outline a neighbourhood and it stays on the map as
   a layer. Double-click it to pick it back up: drag a corner to move it, right-click to delete
   one, click a hollow dot to insert one. Only once you accept the outline does WCT ask whether to

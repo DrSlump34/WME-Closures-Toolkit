@@ -25,15 +25,49 @@ for (const L of LANGUES) {
     console.log('  ok   ' + L + ' : ' + sections + ' sections, ' + html.length + ' car.');
 }
 
-// h14 doit exister partout ET differer de l'anglais dans chaque langue
-console.log('\n— Section h14 (Zone) —');
-const extraitH14 = h => { const i2 = h.indexOf('id="h14"'); return i2 < 0 ? null : h.slice(i2, i2 + 900); };
-const refEn = extraitH14(rendu.en);
-for (const L of LANGUES) {
-    const s = extraitH14(rendu[L]);
-    if (!s) { console.log('  ECHEC ' + L + ' : h14 absente'); ko++; continue; }
-    if (L !== 'en' && s === refEn) { console.log('  ECHEC ' + L + ' : h14 retombe sur l anglais'); ko++; continue; }
-    console.log('  ok   ' + L + ' : h14 traduite (' + s.length + ' car. echantillonnes)');
+// ⚠️⚠️ AVANT LE 08/08/2026, CE CONTROLE NE REGARDAIT QUE h14. Il annoncait « AIDE COMPLETE
+// DANS LES 8 LANGUES » pendant que DIX sections sur onze ne portaient que 6 langues : un
+// editeur italien ou israelien lisait l aide en anglais, et rien ne le disait. C est
+// exactement la famille de defauts que ce projet connait — un controle qui ne trouve jamais
+// rien est indistinguable d un controle casse. Il mesure desormais CHAQUE section.
+//
+// La dette restante est NOMMEE ci-dessous, section par section, et affichee a chaque
+// execution : elle ne peut plus se faire oublier. Ce n est pas une exemption qui eteint le
+// controle (le piege `srcSelOff_`) — chaque section est bel et bien testee, et toute section
+// hors de cette liste qui retomberait sur l anglais fait ECHOUER le contrôle.
+// ⚠️ Liste etablie sur le RENDU, pas sur le source. Un premier audit lu dans le code source
+// s etait trompe deux fois : il donnait h5 incomplete (elle est traduite) et ne voyait pas
+// h9 ni h10 (elles retombent bel et bien sur l anglais). Seul le croisement des deux
+// lectures a departage — et c est le rendu qui fait foi, puisque c est ce que l editeur voit.
+const DETTE = {   // section -> langues encore en anglais, dette anterieure a l ajout de it/he
+    h4: ['it', 'he'], h6: ['it', 'he'], h7: ['it', 'he'], h8: ['it', 'he'],
+    h9: ['it', 'he'], h10: ['it', 'he'], h11: ['it', 'he'], h12: ['it', 'he'], h13: ['it', 'he'],
+};
+console.log('\n— Repli silencieux sur l anglais, section par section —');
+const idsSections = [...new Set((rendu.en.match(/id="(h\d+)"/g) || []).map(s => s.slice(4, -1)))];
+const extrait = (h, id) => { const i2 = h.indexOf('id="' + id + '"'); return i2 < 0 ? null : h.slice(i2, i2 + 900); };
+let dettesVues = 0;
+for (const id of idsSections) {
+    const ref = extrait(rendu.en, id);
+    const repli = [];
+    for (const L of LANGUES) {
+        if (L === 'en') continue;
+        const s = extrait(rendu[L], id);
+        if (!s) { console.log('  ECHEC ' + id + ' : absente en ' + L); ko++; continue; }
+        if (s === ref) repli.push(L);
+    }
+    const attendu = DETTE[id] || [];
+    const inattendu = repli.filter(L => !attendu.includes(L));
+    const reparees = attendu.filter(L => !repli.includes(L));
+    if (inattendu.length) { console.log('  ECHEC ' + id.padEnd(4) + ' retombe sur l anglais en : ' + inattendu.join(', ')); ko++; }
+    else if (repli.length) { dettesVues++; console.log('  dette ' + id.padEnd(4) + ' en anglais pour : ' + repli.join(', ')); }
+    else console.log('  ok   ' + id.padEnd(4) + ' traduite dans les ' + LANGUES.length + ' langues');
+    // Une section reparee doit sortir de la liste, sinon la dette affichee ment par exces.
+    if (reparees.length) { console.log('  ECHEC ' + id + ' : traduite en ' + reparees.join(', ') + ' — la retirer de DETTE dans ce fichier'); ko++; }
+}
+if (dettesVues) {
+    console.log('\n  ⚠️ ' + dettesVues + ' section(s) d aide encore en anglais pour l italien et l hebreu.');
+    console.log('     Dette anterieure a l ajout de ces deux langues, connue et chiffree.');
 }
 
 // Aucune section ne doit etre vide, et le compte doit etre le meme partout
@@ -48,5 +82,11 @@ for (const L of LANGUES) {
 }
 if (!LANGUES.some(L => (rendu[L].match(/class="wct-help-body" id="h\d+"[^>]*>\s*<\/div>/g) || []).length)) console.log('  ok   aucune section vide');
 
-console.log('\n' + (ko === 0 ? 'AIDE COMPLETE DANS LES 8 LANGUES' : ko + ' PROBLEME(S)'));
+// ⚠️ LE VERDICT DIT CE QUI EST VRAI, PAS CE QUI RASSURE. « AIDE COMPLETE DANS LES 8 LANGUES »
+// s affichait meme quand dix sections sur onze rendaient de l anglais a l italien et a
+// l hebreu : c est cette phrase-la qui a laisse la dette invisible pendant des versions.
+const verdict = ko !== 0 ? ko + ' PROBLEME(S)'
+    : dettesVues === 0 ? 'AIDE COMPLETE DANS LES ' + LANGUES.length + ' LANGUES'
+    : 'AUCUNE REGRESSION — mais ' + dettesVues + ' section(s) encore en anglais pour it/he';
+console.log('\n' + verdict);
 process.exit(ko === 0 ? 0 : 1);

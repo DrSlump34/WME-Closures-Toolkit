@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.11.01
+// @version      1.11.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1764,6 +1764,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
             applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
             applyLotNext:'▶️ Continuer (lot suivant)',
+            tipApplyLotNext:'Applique le lot suivant. La carte a d\u00E9j\u00E0 \u00E9t\u00E9 recadr\u00E9e dessus\u00A0: v\u00E9rifiez-la avant de continuer. Un seul lot \u00E0 la fois \u2014 pour tout arr\u00EAter, utilisez Stop.',
             lotRowLabel: (i,n) => `Lot ${i}/${n}`,
             lotStatusTodo:'à traiter',
             lotStatusDone:'configuré',
@@ -2302,6 +2303,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
             applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
             applyLotNext:'▶️ Continue (next batch)',
+            tipApplyLotNext:'Applies the next batch. The map has already moved to it: check it before continuing. One batch at a time — use Stop to halt everything.',
             lotRowLabel: (i,n) => `Batch ${i}/${n}`,
             lotStatusTodo:'to do',
             lotStatusDone:'configured',
@@ -2838,6 +2840,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 מנה ${k}/${n}: ממרכז את המפה כדי לטעון את המקטעים…`,
             applyLotDone: (k,n) => `📦 מנה ${k}/${n} יושמה. בדוק במפה, ואז המשך.`,
             applyLotNext:'▶️ המשך (מנה הבאה)',
+            tipApplyLotNext:'מחיל את המנה הבאה. המפה כבר מוקמה עליה: בדוק אותה לפני שתמשיך. מנה אחת בכל פעם — לעצירה מלאה השתמש בעצור.',
             lotRowLabel: (i,n) => `מנה ${i}/${n}`,
             lotStatusTodo:'לביצוע',
             lotStatusDone:'מוגדרת',
@@ -3374,6 +3377,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 Lotto ${k}/${n}: centro la mappa per caricare i segmenti…`,
             applyLotDone: (k,n) => `📦 Lotto ${k}/${n} applicato. Controlla sulla mappa, poi continua.`,
             applyLotNext:'▶️ Continua (lotto successivo)',
+            tipApplyLotNext:'Applica il lotto successivo. La mappa \u00E8 gi\u00E0 stata centrata su di esso: controllala prima di continuare. Un lotto alla volta — per fermare tutto usa Stop.',
             lotRowLabel: (i,n) => `Lotto ${i}/${n}`,
             lotStatusTodo:'da fare',
             lotStatusDone:'configurato',
@@ -3911,6 +3915,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
             applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
             applyLotNext:'▶️ Weiter (nächstes Paket)',
+            tipApplyLotNext:'Setzt das n\u00E4chste Paket. Die Karte wurde bereits darauf ausgerichtet: pr\u00FCfe sie, bevor du fortf\u00E4hrst. Immer nur ein Paket — zum Abbrechen Stop verwenden.',
             lotRowLabel: (i,n) => `Paket ${i}/${n}`,
             lotStatusTodo:'offen',
             lotStatusDone:'konfiguriert',
@@ -4447,6 +4452,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
             applyLotNext:'▶️ Continuar (siguiente lote)',
+            tipApplyLotNext:'Aplica el siguiente lote. El mapa ya se ha centrado en \u00E9l: compru\u00E9balo antes de continuar. Un lote cada vez — usa Stop para detenerlo todo.',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendiente',
             lotStatusDone:'configurado',
@@ -4983,6 +4989,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
             applyLotNext:'▶️ Continuar (próximo lote)',
+            tipApplyLotNext:'Aplica o próximo lote. O mapa já foi centralizado nele: confira antes de continuar. Um lote por vez — use Parar para interromper tudo.',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendente',
             lotStatusDone:'configurado',
@@ -5519,6 +5526,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
             applyLotNext:'▶️ Continuar (lote seguinte)',
+            tipApplyLotNext:'Aplica o lote seguinte. O mapa já foi centrado nele: verifique antes de continuar. Um lote de cada vez — use Parar para interromper tudo.',
             lotRowLabel: (i,n) => `Lote ${i}/${n}`,
             lotStatusTodo:'pendente',
             lotStatusDone:'configurado',
@@ -5703,6 +5711,40 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Open the Events tab in WME, then click \u21BB in the MTE field to load the list.</td></tr>
             <tr><td><b>Node closures</b></td><td>None / Inner nodes (shared between segments) / All</td></tr>
             <tr><td><b>Ignore traffic</b></td><td>If checked, closure applies regardless of actual traffic. Waze will not automatically reopen the segment even if it detects traffic passing through.</td></tr>
+            </table>`, it:`
+            <table class="wct-help-table">
+            <tr><td><b>✏️ Zona</b></td><td>Pulsante <b>Traccia una zona</b>, in cima alla scheda: delimita un settore sulla mappa e ogni segmento per più di metà all'interno viene selezionato. Dettagli nella sezione <b>✏️ Zona (poligono)</b>.</td></tr>
+            <tr><td><b>Inizio / Fine</b></td><td>Intervallo di date su cui ripetere la chiusura</td></tr>
+            <tr><td><b>Ora di inizio</b></td><td>Ora in cui la chiusura inizia ogni giorno. I cambi di ora legale sono gestiti automaticamente — vedi Limiti noti.</td></tr>
+            <tr><td><b>⏱️ Durata / Ora di fine</b></td><td>Alterna tra durata (es. 08:00) e ora di fine esplicita. Se fine &lt; inizio: la chiusura prosegue al giorno dopo (badge G+1)</td></tr>
+            <tr><td><b>+Giorni</b></td><td>Giorni supplementari aggiunti alla chiusura. In modalità Durata: si sommano alla durata o:mm. In modalità Ora di fine: l'ora di fine slitta di altrettanti giorni.</td></tr>
+            <tr><td><b>Ogni giorno</b></td><td>Seleziona i giorni attivi. Scorciatoie: Tutti, Lun–Ven, Sab–Dom, Nessuno</td></tr>
+            <tr><td><b>Esclusi i festivi</b></td><td>Esclude automaticamente i giorni festivi del paese rilevato. Richiede internet. Non disponibile su selezioni multi-paese.</td></tr>
+            <tr><td><b>Solo festivi</b></td><td>Conserva solo le occorrenze che cadono in un giorno festivo (utile per le limitazioni annuali a data variabile). Richiede internet.</td></tr>
+            <tr><td><b>Ripeti</b></td><td>Genera N occorrenze ogni X giorni/ore/minuti. Avviso se l'intervallo è minore della durata.</td></tr>
+            <tr><td><b>⏩ Continuo</b></td><td>Una <b>sola</b> chiusura, dalla data e ora di inizio alla data e ora di fine, senza interruzione. Giorni della settimana, festivi e <b>+Giorni</b> non hanno senso qui e sono disattivati. La durata totale è scritta per esteso — l'unico dato che non puoi leggere direttamente sui tuoi campi.</td></tr>
+            <tr><td><b>Descrizione</b></td><td>Testo mostrato in WME per identificare la chiusura. Clicca il pulsante 📌 a destra del campo per inserire un'emoji (lavori, sport, meteo…) nella posizione del cursore.</td></tr>
+            <tr><td><b>Direzione</b></td><td>Doppio senso, A ⇒ B o B ⇒ A. Attenzione: sui tratti lunghi la direzione può cambiare da segmento a segmento.</td></tr>
+            <tr><td><b>MTE</b></td><td>Apri la scheda Eventi in WME, poi clicca ↻ nel campo MTE per caricare l'elenco.</td></tr>
+            <tr><td><b>Chiusure ai nodi</b></td><td>Nessuna / Interne (nodi condivisi tra segmenti) / Tutte</td></tr>
+            <tr><td><b>Ignora traffico</b></td><td>Se selezionato, la chiusura si applica senza tenere conto del traffico reale. Waze non riaprirà automaticamente il segmento anche se rileva traffico in transito.</td></tr>
+            </table>`, he:`
+            <table class="wct-help-table">
+            <tr><td><b>✏️ אזור</b></td><td>כפתור <b>שרטוט אזור</b>, בראש הלשונית: סמן אזור על המפה וכל מקטע שיותר ממחציתו בתוכו ייבחר. פרטים בסעיף <b>✏️ אזור (מצולע)</b>.</td></tr>
+            <tr><td><b>התחלה / סיום</b></td><td>טווח התאריכים שבו תחזור החסימה</td></tr>
+            <tr><td><b>שעת התחלה</b></td><td>השעה שבה החסימה מתחילה בכל יום. מעברי שעון הקיץ מטופלים אוטומטית — ראה מגבלות ידועות.</td></tr>
+            <tr><td><b>⏱️ משך / שעת סיום</b></td><td>מעבר בין משך זמן (למשל 08:00) לבין שעת סיום מפורשת. אם הסיום מוקדם מההתחלה: החסימה נמשכת ליום הבא (תג D+1)</td></tr>
+            <tr><td><b>+ימים</b></td><td>ימים נוספים לחסימה. במצב משך: נוספים למשך ש:דד. במצב שעת סיום: שעת הסיום נדחית במספר הימים הזה.</td></tr>
+            <tr><td><b>כל יום</b></td><td>בחר את ימי השבוע הפעילים. קיצורים: הכול, ב׳–ו׳, ש׳–א׳, ללא</td></tr>
+            <tr><td><b>למעט חגים</b></td><td>מחריג אוטומטית את חגי המדינה שזוהתה. דורש אינטרנט. לא זמין בבחירה רב-מדינתית.</td></tr>
+            <tr><td><b>חגים בלבד</b></td><td>שומר רק מופעים שנופלים בחג (שימושי להגבלות שנתיות בתאריך משתנה). דורש אינטרנט.</td></tr>
+            <tr><td><b>חזרה</b></td><td>יוצר N מופעים כל X ימים/שעות/דקות. מוצגת אזהרה אם המרווח קטן מהמשך.</td></tr>
+            <tr><td><b>⏩ רציף</b></td><td>חסימה <b>אחת בלבד</b>, מתאריך ושעת ההתחלה עד תאריך ושעת הסיום, ללא הפסקה. ימי שבוע, חגים ו<b>+ימים</b> חסרי משמעות כאן ומוצגים מעומעמים. המשך הכולל נכתב במפורש — הנתון היחיד שאי אפשר לקרוא ישירות מהשדות.</td></tr>
+            <tr><td><b>תיאור</b></td><td>הטקסט שמוצג ב-WME לזיהוי החסימה. לחץ על הכפתור 📌 שמימין לשדה כדי להוסיף אמוג׳י (עבודות, ספורט, מזג אוויר…) במיקום הסמן.</td></tr>
+            <tr><td><b>כיוון</b></td><td>דו-כיווני, A ⇒ B או B ⇒ A. שים לב: במקטעים ארוכים הכיוון עשוי להשתנות ממקטע למקטע.</td></tr>
+            <tr><td><b>MTE</b></td><td>פתח את לשונית האירועים ב-WME, ואז לחץ ↻ בשדה MTE כדי לטעון את הרשימה.</td></tr>
+            <tr><td><b>חסימות צמתים</b></td><td>ללא / פנימיים (צמתים משותפים בין מקטעים) / הכול</td></tr>
+            <tr><td><b>התעלם מתנועה</b></td><td>אם מסומן, החסימה חלה ללא תלות בתנועה בפועל. Waze לא יפתח מחדש את המקטע אוטומטית גם אם יזהה תנועה עוברת.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>✏️ Bereich</b></td><td>Schaltfläche <b>Bereich zeichnen</b>, oben im Reiter: einen Sektor auf der Karte umreißen, und jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt. Näheres im Abschnitt <b>✏️ Bereich (Polygon)</b>.</td></tr>
@@ -5792,6 +5834,26 @@ const buildHelpHTML = () => {
             <tr><td><b>Colored border</b></td><td>\uD83D\uDD35 Manual \u00B7 \uD83D\uDFE2 CSV import \u00B7 \uD83D\uDFE0 From preset</td></tr>
             <tr><td><b>State \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Ongoing \u00B7 \uD83D\uDD34 Overlap \u00B7 \u26AB Past date</td></tr>
             <tr><td><b>Apply state \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Shown on the batch header while applying: \u23F3 running \u00B7 \u2705 applied \u00B7 \u26A0\uFE0F partial \u00B7 \u274C failed. A batch never reached stays unmarked. The line-by-line detail appears in the <b>summary</b>, below the queue, once the run is over.</td></tr>
+            </table>`, it:`
+            <p>La coda accumula <b>lotti</b> di chiusure prima dell'applicazione.</p>
+            <table class="wct-help-table">
+            <tr><td><b>🎯</b></td><td>Centra la mappa sul segmento corrispondente</td></tr>
+            <tr><td><b>▼/▶️</b></td><td>Chiude/apre la tabella del lotto</td></tr>
+            <tr><td><b>✕</b></td><td>Rimuove il lotto dalla coda</td></tr>
+            <tr><td><b>🗑️</b></td><td>Rimuove una singola riga di chiusura dal lotto (esclusa dall'applicazione e dall'esportazione)</td></tr>
+            <tr><td><b>Bordo colorato</b></td><td>🔵 Manuale · 🟢 Importato da CSV · 🟠 Caricato da modello</td></tr>
+            <tr><td><b>Stato 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 In corso · 🔴 Sovrapposta · ⚫ Data passata</td></tr>
+            <tr><td><b>Stato di applicazione ⏳✅⚠️❌</b></td><td>Mostrato sull'intestazione del lotto durante l'applicazione: ⏳ in corso · ✅ applicato · ⚠️ parziale · ❌ non riuscito. Un lotto mai raggiunto resta senza segno. Il dettaglio riga per riga compare nel <b>riepilogo</b>, sotto la coda, al termine.</td></tr>
+            </table>`, he:`
+            <p>התור צובר <b>מנות</b> של חסימות לפני ההחלה.</p>
+            <table class="wct-help-table">
+            <tr><td><b>🎯</b></td><td>ממרכז את המפה על המקטע המתאים</td></tr>
+            <tr><td><b>▼/▶️</b></td><td>מקפל/פורש את טבלת המנה</td></tr>
+            <tr><td><b>✕</b></td><td>מסיר את המנה מהתור</td></tr>
+            <tr><td><b>🗑️</b></td><td>מסיר שורת חסימה בודדת מהמנה (מוחרגת מההחלה ומהייצוא)</td></tr>
+            <tr><td><b>מסגרת צבעונית</b></td><td>🔵 ידני · 🟢 יובא מ-CSV · 🟠 נטען מתבנית</td></tr>
+            <tr><td><b>מצב 🟢🟠🔴⚫</b></td><td>🟢 תקין · 🟠 מתמשך · 🔴 חפיפה · ⚫ תאריך שעבר</td></tr>
+            <tr><td><b>מצב החלה ⏳✅⚠️❌</b></td><td>מוצג בכותרת המנה במהלך ההחלה: ⏳ בתהליך · ✅ הוחל · ⚠️ חלקי · ❌ נכשל. מנה שלא הגיע אליה התור נשארת ללא סימון. הפירוט שורה אחר שורה מופיע ב<b>סיכום</b>, מתחת לתור, בסיום.</td></tr>
             </table>`, de:`
             <p>Die Warteschlange sammelt <b>Pakete</b> von Sperrungen, bevor sie angewendet werden.</p>
             <table class="wct-help-table">
@@ -8740,6 +8802,7 @@ const _applyLotPause = (lotNo, total) => new Promise(resolve => {
     const btn = document.createElement('button');
     btn.className = 'wct-btn wct-btn-primary wct-btn-sm';
     btn.textContent = t('applyLotNext');
+    btn.title = t('tipApplyLotNext');   // règle du projet : aucun élément interactif sans infobulle
     box.appendChild(txt); box.appendChild(btn);
     dock.appendChild(box);
     btn.focus();   // Entrée suffit alors à enchaîner : c'est l'action la plus répétée
