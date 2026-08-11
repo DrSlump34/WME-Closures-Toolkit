@@ -2711,7 +2711,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountry: cc => `⚠️ ריבוי מדינות: ${cc} — סינון חגים לא זמין.`,
             toastOk: (n,s,b) => b>0 ? `⚠️ ${n} חסימות עבור ${s} מקטעים תקינים — ${b} מקטעים דולגו` : `✅ ${n} חסימות נוספו עבור ${s} מקטעים.`,
             errNone:'❌ לא נוצרה חסימה.',
-            warnPastRange:(d,f) => `ℹ️ האחרונה חורגת מהטווח: ${d} → ${f}.`,
+            // ⚠️ Les deux dates et leur flèche sont isolées en lecture gauche-à-droite
+            // (U+2066 … U+2069). Sans cela, l'algorithme bidi traite les nombres comme
+            // du droite-à-gauche : l'ordre de lecture restait juste, mais le glyphe →
+            // pointait vers la date de DÉBUT, à contresens du mouvement. Les isolats sont
+            // invisibles et sans effet dans une langue qui s'écrit de gauche à droite ;
+            // ils sont écrits en \u pour rester visibles à la relecture.
+            warnPastRange:(d,f) => `ℹ️ האחרונה חורגת מהטווח: \u2066${d} → ${f}\u2069.`,
             fillForm:'מלא את הטופס…',
             closuresN: n => `${n} חסימות הוגדרו`,
             previewHead: n => `${n} חסימות ליישום:`,
