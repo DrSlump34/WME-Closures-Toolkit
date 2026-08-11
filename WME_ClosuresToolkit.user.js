@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.11.03
+// @version      1.11.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -5916,7 +5916,7 @@ const buildHelpHTML = () => {
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             <tr><td><b>Estado de aplicação ⏳✅⚠️❌</b></td><td>Apresentado no cabeçalho do lote durante a aplicação: ⏳ em curso · ✅ aplicado · ⚠️ parcial · ❌ falhou. Um lote nunca alcançado fica sem marca. O detalhe linha a linha surge no <b>resumo</b>, por baixo da fila, no fim.</td></tr>
             </table>` }) },
-        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, de:`
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, it:`<p><b>Un unico punto di ingresso per tutti i file.</b> Trascinalo qui: WCT ne riconosce il formato, lo elabora e ti porta dove prosegue il lavoro.</p><table class="wct-help-table"><tr><td><b>CSV di chiusure</b></td><td>Segmenti (formato Advanced Closures) o svolte (formato WCT) — aggiunti alla <b>coda</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Le <b>linee</b> diventano <b>tracciati</b>; un <b>poligono</b> diventa un’<b>area</b> di selezione. Se il file contiene entrambi, WCT ti chiede quale intendevi.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Diventa un’<b>area</b> di selezione.</td></tr><tr><td><b>Preset WCT</b></td><td>Un file esportato dalla scheda 💾 Preset — si <b>aggiungono</b> ai tuoi, nulla viene cancellato.</td></tr></table><p style="margin-top:6px">I punti di ingresso abituali restano validi: trascinare un tracciato direttamente nella scheda 🗺️ Tracciati, o un’area tramite <b>⬆️ Area</b>, funziona ancora.</p><p style="margin-top:6px"><i>Un file non riconosciuto viene rifiutato dicendolo, con l’elenco dei formati accettati — non succede nulla in silenzio.</i></p>`, he:`<p><b>נקודת כניסה אחת לכל הקבצים.</b> גררו אותו לכאן: WCT מזהה את הפורמט, מטפל בו, ומעביר אתכם למקום שבו העבודה נמשכת.</p><table class="wct-help-table"><tr><td><b>CSV של חסימות</b></td><td>מקטעים (פורמט Advanced Closures) או פניות (פורמט WCT) — נוספים ל<b>תור</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>קווים</b> הופכים ל<b>מסלולים</b>; <b>מצולע</b> הופך ל<b>אזור</b> בחירה. אם הקובץ מכיל את שניהם, WCT שואל למה התכוונתם.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>הופך ל<b>אזור</b> בחירה.</td></tr><tr><td><b>תבניות WCT</b></td><td>קובץ שיוצא מלשונית 💾 תבניות — הן <b>מתווספות</b> לשלכם, שום דבר לא נמחק.</td></tr></table><p style="margin-top:6px">נקודות הכניסה הרגילות נשארות: גרירת מסלול ישירות ללשונית 🗺️ מסלולים, או אזור דרך <b>⬆️ אזור</b>, עדיין עובדות.</p><p style="margin-top:6px"><i>קובץ שאינו מזוהה נדחה בקול, עם רשימת הפורמטים הנתמכים — שום דבר לא קורה בשקט.</i></p>`, de:`
             <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
             <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
             <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>`, es:`
@@ -5939,6 +5939,16 @@ const buildHelpHTML = () => {
             <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
             <li>Click \uD83D\uDCBE next to the Validate button to save the current config</li>
             <li>From the Presets tab: \u21A9\uFE0F to load (switches to Configure), \uD83D\uDDD1\uFE0F to delete</li>
+            </ul>`, it:`
+            <p>Salva una configurazione (orari, giorni, senso…) per riutilizzarla.</p>
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
+            <li>Clicca 💾 accanto al pulsante Convalida per salvare la configurazione attuale</li>
+            <li>Dalla scheda Preset: ↩️ per caricare (passa a Configura), 🗑️ per eliminare</li>
+            </ul>`, he:`
+            <p>שמרו תצורה (שעות, ימים, כיוון…) לשימוש חוזר.</p>
+            <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
+            <li>לחצו 💾 ליד כפתור אישור כדי לשמור את התצורה הנוכחית</li>
+            <li>מלשונית תבניות: ↩️ לטעינה (עובר להגדרה), 🗑️ למחיקה</li>
             </ul>`, de:`
             <p>Speichere eine Konfiguration (Zeitplan, Tage, Fahrtrichtung\u2026) zur Wiederverwendung.</p>
             <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
@@ -5978,6 +5988,24 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE not found</b></td><td>Open the WME Events tab and click \u21BB to reload the list.</td></tr>
             <tr><td><b>Interval &lt; duration</b></td><td>In Repeat mode, occurrences overlap. Increase interval or reduce duration.</td></tr>
             <tr><td><b>DST / time zone (limit)</b></td><td>Schedules are interpreted in the <b>browser\u2019s time zone</b>. If you are editing segments in a different time zone from your system (e.g. a French editor working on Japanese segments), the entered times will be offset accordingly. In that case, manually convert the times to your local time zone before entering them.</td></tr>
+            </table>`, it:`
+            <table class="wct-help-table">
+            <tr><td><b>Segmento non modificabile</b></td><td>Non hai i permessi di modifica su questo segmento.</td></tr>
+            <tr><td><b>Sovrapposizione</b></td><td>Esiste già una chiusura su questo segmento per queste date. Mostrata in rosso nella coda.</td></tr>
+            <tr><td><b>Data passata</b></td><td>WME rifiuta le chiusure nel passato. Mostrata in grigio.</td></tr>
+            <tr><td><b>Più Paesi</b></td><td>La selezione copre più Paesi — filtro festività disattivato.</td></tr>
+            <tr><td><b>MTE non trovato</b></td><td>Apri la scheda Eventi di WME e clicca ↻ per ricaricare l’elenco.</td></tr>
+            <tr><td><b>Intervallo &lt; durata</b></td><td>In modalità Ripeti le occorrenze si sovrappongono. Aumenta l’intervallo o riduci la durata.</td></tr>
+            <tr><td><b>Ora legale / fuso orario (limite)</b></td><td>Gli orari sono interpretati nel <b>fuso orario del browser</b>. Se modifichi segmenti in un fuso diverso da quello del tuo sistema (per esempio un editor italiano che lavora su segmenti giapponesi), gli orari inseriti risulteranno sfasati di conseguenza. In quel caso converti manualmente gli orari nel tuo fuso locale prima di inserirli.</td></tr>
+            </table>`, he:`
+            <table class="wct-help-table">
+            <tr><td><b>מקטע לא ניתן לעריכה</b></td><td>אין לכם הרשאות עריכה על המקטע הזה.</td></tr>
+            <tr><td><b>חפיפה</b></td><td>כבר קיימת חסימה על המקטע הזה בתאריכים האלה. מוצגת באדום בתור.</td></tr>
+            <tr><td><b>תאריך שעבר</b></td><td>WME דוחה חסימות בעבר. מוצגת באפור.</td></tr>
+            <tr><td><b>כמה מדינות</b></td><td>הבחירה משתרעת על יותר ממדינה אחת — מסנן החגים מושבת.</td></tr>
+            <tr><td><b>MTE לא נמצא</b></td><td>פתחו את לשונית האירועים של WME ולחצו ↻ כדי לטעון מחדש את הרשימה.</td></tr>
+            <tr><td><b>מרווח &lt; משך</b></td><td>במצב חזרה המופעים חופפים. הגדילו את המרווח או קצרו את המשך.</td></tr>
+            <tr><td><b>שעון קיץ / אזור זמן (מגבלה)</b></td><td>השעות מתפרשות לפי <b>אזור הזמן של הדפדפן</b>. אם אתם עורכים מקטעים באזור זמן שונה מזה של המערכת שלכם (למשל עורך ישראלי שעובד על מקטעים ביפן), השעות שתזינו יוסטו בהתאם. במקרה כזה המירו את השעות ידנית לאזור הזמן המקומי שלכם לפני ההזנה.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>Segment nicht bearbeitbar</b></td><td>Du hast keine Bearbeitungsrechte f\u00fcr dieses Segment.</td></tr>
@@ -6027,6 +6055,18 @@ const buildHelpHTML = () => {
             <tr><td><b>Display mode</b></td><td>Choose between <b>Normal</b> (standard) and <b>Windows 95</b> (ultra-compact, square corners, classic grey). Preference saved.</td></tr>
             <tr><td><b>Date format</b></td><td>Controls display in the queue and logs.<br><b>DD/MM/YYYY</b> — Europe (default)<br><b>MM/DD/YYYY</b> — USA<br><b>YYYY-MM-DD</b> — ISO<br>Auto-detected via <code>navigator.language</code>, overridable manually. Preference saved.<br>⚠️ The <b>input fields</b> (dates and times) do not follow this setting: the browser draws them itself, in its own display language. To change them — <b>Firefox</b>: in <code>about:config</code>, set <code>intl.regional_prefs.use_os_locales</code> to <code>true</code> (Firefox ignores your OS regional settings as long as its interface language differs from the system one). <b>Chrome</b>: in <code>chrome://settings/languages</code>, move your language to the top and tick the option to display Chrome in that language.</td></tr>
             <tr><td><b>Reset button position</b></td><td>Moves the 🚧 button back to its default position on the map.</td></tr>
+            </table>`, it:`
+            <table class="wct-help-table">
+            <tr><td><b>Attiva strumento</b></td><td>Attiva o disattiva WCT. Se disattivato, il pulsante 🚧 resta visibile ma il pannello non si apre.</td></tr>
+            <tr><td><b>Modalità di visualizzazione</b></td><td>Scegli tra <b>Normale</b> (standard) e <b>Windows 95</b> (ultra compatta, angoli squadrati, grigio classico). Preferenza salvata.</td></tr>
+            <tr><td><b>Formato data</b></td><td>Regola la visualizzazione nella coda e nei registri.<br><b>GG/MM/AAAA</b> — Europa (predefinito)<br><b>MM/GG/AAAA</b> — USA<br><b>AAAA-MM-GG</b> — ISO<br>Rilevato automaticamente tramite <code>navigator.language</code>, modificabile a mano. Preferenza salvata.<br>⚠️ I <b>campi di immissione</b> (date e orari) non seguono questa impostazione: è il browser a disegnarli, nella propria lingua di visualizzazione. Per cambiarli — <b>Firefox</b>: in <code>about:config</code>, imposta <code>intl.regional_prefs.use_os_locales</code> su <code>true</code> (Firefox ignora le impostazioni regionali del sistema finché la lingua della sua interfaccia è diversa da quella di sistema). <b>Chrome</b>: in <code>chrome://settings/languages</code>, sposta la tua lingua in cima e spunta l’opzione per visualizzare Chrome in quella lingua.</td></tr>
+            <tr><td><b>Reimposta posizione pulsante</b></td><td>Riporta il pulsante 🚧 nella sua posizione predefinita sulla mappa.</td></tr>
+            </table>`, he:`
+            <table class="wct-help-table">
+            <tr><td><b>הפעלת הכלי</b></td><td>מפעיל או מכבה את WCT. כשהוא כבוי, כפתור 🚧 נשאר גלוי אבל החלונית לא נפתחת.</td></tr>
+            <tr><td><b>מצב תצוגה</b></td><td>בחרו בין <b>רגיל</b> (סטנדרטי) ל<b>Windows 95</b> (דחוס במיוחד, פינות ישרות, אפור קלאסי). ההעדפה נשמרת.</td></tr>
+            <tr><td><b>תבנית תאריך</b></td><td>קובעת את התצוגה בתור וביומנים.<br><b>DD/MM/YYYY</b> — אירופה (ברירת מחדל)<br><b>MM/DD/YYYY</b> — ארה״ב<br><b>YYYY-MM-DD</b> — ISO<br>מזוהה אוטומטית דרך <code>navigator.language</code>, וניתן לשנות ידנית. ההעדפה נשמרת.<br>⚠️ <b>שדות הקלט</b> (תאריכים ושעות) אינם מושפעים מההגדרה הזו: הדפדפן מצייר אותם בעצמו, בשפת התצוגה שלו. כדי לשנות אותם — <b>Firefox</b>: ב־<code>about:config</code>, הגדירו את <code>intl.regional_prefs.use_os_locales</code> ל־<code>true</code> (פיירפוקס מתעלם מהגדרות האזור של מערכת ההפעלה כל עוד שפת הממשק שלו שונה משפת המערכת). <b>Chrome</b>: ב־<code>chrome://settings/languages</code>, העבירו את השפה שלכם לראש הרשימה וסמנו את האפשרות להציג את כרום בשפה הזו.</td></tr>
+            <tr><td><b>איפוס מיקום הכפתור</b></td><td>מחזיר את כפתור 🚧 למיקום ברירת המחדל שלו על המפה.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>Werkzeug aktivieren</b></td><td>Aktiviert oder deaktiviert WCT. Ist es deaktiviert, bleibt die Schaltfläche 🚧 sichtbar, das Overlay öffnet sich jedoch nicht.</td></tr>
@@ -6082,7 +6122,37 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Shapefile:</b> provide a ZIP containing at least <code>.shp</code>, <code>.dbf</code> and <code>.shx</code>. A <code>.prj</code> file is recommended for automatic reprojection (Lambert 93, UTM…). Without <code>.prj</code>, WGS84 is assumed.</p>
             <p><b>Tracks layer</b> (selection bar): visible once a file is loaded — global checkbox to show/hide all layers at once.</p>
-            <p><b>Limitation:</b> visual layer only. No automatic segment selection — selection remains manual in WME.</p>`, de:`
+            <p><b>Limitation:</b> visual layer only. No automatic segment selection — selection remains manual in WME.</p>`, it:`
+            <p>Sovrappone uno o più tracciati (GPX, KML, KMZ, GeoJSON, ZIP Shapefile) alla mappa di WME per aiutarti a individuare i segmenti da chiudere.</p>
+            <p><b>Caricamento:</b> clicca sull’area di rilascio oppure trascina un file. Si possono caricare più file e più formati insieme — i livelli si sommano.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 File</b></td><td>Riga padre: rappresenta il file caricato. La casella attiva o disattiva tutti i suoi tracciati. 🗑️ rimuove tutti i livelli del file.</td></tr>
+            <tr><td><b>↳ Tracciato</b></td><td>Riga figlia: un tracciato GPX, un Placemark KML, una Feature GeoJSON o una geometria Shapefile. Casella, colore e messa a fuoco indipendenti per ogni tracciato.</td></tr>
+            <tr><td><b>Tipo</b></td><td>Formato del file di origine: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
+            <tr><td><b>Riquadro colore</b></td><td>Clicca per cambiare il colore del tracciato — tavolozza di 16 colori.</td></tr>
+            <tr><td><b>pti</b></td><td>Numero di punti tracciati (massimo 3.000, sottocampionati se necessario).</td></tr>
+            <tr><td><b>err</b></td><td>✅ se non ci sono errori — ⚠️ + conteggio in caso contrario (passa il mouse per i dettagli).</td></tr>
+            <tr><td><b>🎯</b></td><td>Centra la mappa sull’estensione del tracciato allo zoom ottimale.</td></tr>
+            <tr><td><b>🗑️</b></td><td>Rimuove questo tracciato (o tutti i tracciati del file, sulla riga padre).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> fornisci uno ZIP contenente almeno <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Un file <code>.prj</code> è consigliato per la riproiezione automatica (Lambert 93, UTM…). Senza <code>.prj</code> si assume WGS84.</p>
+            <p><b>Livello Tracciati</b> (barra di selezione): compare appena un file è caricato — casella globale per mostrare o nascondere tutti i livelli in una volta.</p>
+            <p><b>Limite:</b> è solo un livello visivo. Nessuna selezione automatica dei segmenti — la selezione resta manuale in WME.</p>`, he:`
+            <p>מציג מסלול אחד או יותר (GPX, KML, KMZ, GeoJSON, ZIP של Shapefile) מעל מפת WME כדי לעזור לזהות את המקטעים שיש לחסום.</p>
+            <p><b>טעינה:</b> לחצו על אזור הגרירה או גררו קובץ. אפשר לטעון כמה קבצים ופורמטים יחד — השכבות מצטברות.</p>
+            <table class="wct-help-table">
+            <tr><td><b>📄 קובץ</b></td><td>שורת אב: מייצגת את הקובץ שנטען. תיבת הסימון מפעילה או מכבה את כל המסלולים שלו. 🗑️ מסיר את כל שכבות הקובץ.</td></tr>
+            <tr><td><b>↳ מסלול</b></td><td>שורת בן: מסלול GPX, Placemark של KML, Feature של GeoJSON או גאומטריה של Shapefile. תיבת סימון, צבע ומיקוד נפרדים לכל מסלול.</td></tr>
+            <tr><td><b>סוג</b></td><td>פורמט קובץ המקור: GPX, KML, KMZ, GeoJSON או SHP.</td></tr>
+            <tr><td><b>ריבוע צבע</b></td><td>לחצו כדי לשנות את צבע המסלול — לוח של 16 צבעים.</td></tr>
+            <tr><td><b>נק׳</b></td><td>מספר הנקודות המשורטטות (עד 3,000, בדגימה מדללת במידת הצורך).</td></tr>
+            <tr><td><b>שג׳</b></td><td>✅ אם אין שגיאות — ⚠️ ומספר אחרת (רחפו עם העכבר לפרטים).</td></tr>
+            <tr><td><b>🎯</b></td><td>ממרכז את המפה על תחום המסלול ברמת הזום המיטבית.</td></tr>
+            <tr><td><b>🗑️</b></td><td>מסיר את המסלול הזה (או את כל מסלולי הקובץ, בשורת האב).</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Shapefile:</b> ספקו קובץ ZIP שמכיל לפחות <code>.shp</code>, <code>.dbf</code> ו־<code>.shx</code>. קובץ <code>.prj</code> מומלץ להטלה מחדש אוטומטית (Lambert 93, UTM…). בלי <code>.prj</code> מונחת מערכת WGS84.</p>
+            <p><b>שכבת המסלולים</b> (סרגל הבחירה): מופיעה ברגע שנטען קובץ — תיבת סימון כללית להצגה או להסתרה של כל השכבות בבת אחת.</p>
+            <p><b>מגבלה:</b> זו שכבה חזותית בלבד. אין בחירה אוטומטית של מקטעים — הבחירה נשארת ידנית ב־WME.</p>`, de:`
             <p>Legt einen oder mehrere Tracks (GPX, KML, KMZ, GeoJSON, Shapefile-ZIP) über die WME-Karte, um die zu sperrenden Segmente leichter zu erkennen.</p>
             <p><b>Laden:</b> auf die Ablagefläche klicken oder eine Datei per Drag & Drop ablegen. Mehrere Dateien und Formate können gleichzeitig geladen werden — die Ebenen summieren sich.</p>
             <table class="wct-help-table">
@@ -6167,7 +6237,31 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Collapsible sections</b> — each header folds with one click, like the Queue. ⚠️ A collapsed section whose filter is <b>active</b> carries a <span style="color:#e53935">●</span> dot: a hidden filter thinning your results without you knowing would be worse than a few pixels too many.</p>
             <p style="margin-top:6px"><b>Results</b>: sortable table (ID, street, closure count, status, description, Source, MTE). <b>Turn results</b> draw a red-and-white "roadworks ribbon" ring on the map around each junction. 🎯 re-centres — even outside the view.</p>
-            <p style="margin-top:6px"><b>Export what you found</b> (≠ export the queue): the buttons sit under each result block — <i>CSV AC</i> for segments, <i>CSV Turns</i> for turns. The bottom bar keeps talking about the queue only. ⚠️ These exports produce <code>add</code> rows: re-importing them <b>recreates</b> the closures. The "closed nodes" flag cannot be restored (WME does not read it back).</p>`, de:`
+            <p style="margin-top:6px"><b>Export what you found</b> (≠ export the queue): the buttons sit under each result block — <i>CSV AC</i> for segments, <i>CSV Turns</i> for turns. The bottom bar keeps talking about the queue only. ⚠️ These exports produce <code>add</code> rows: re-importing them <b>recreates</b> the closures. The "closed nodes" flag cannot be restored (WME does not read it back).</p>`, it:`
+            <p>Trova le <b>chiusure esistenti</b> — sia di segmento <i>sia</i> di svolta. Utile per raccogliere le chiusure di un evento, controllare che cosa è attivo in un periodo, o <b>salvare un’area</b> prima di riproporla.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Che cosa cercare</b></td><td>Bersagli <b>Segmenti</b> e/o <b>Svolte</b> (entrambi per impostazione predefinita) → due blocchi di risultati separati.</td></tr>
+            <tr><td><b>Area di ricerca</b></td><td><b>Vista corrente</b>, oppure <b>5 / 20 / 50 km</b> attorno al centro della mappa. La mappa non si sposta. ⚠️ Oltre la vista i <b>nomi delle strade</b> non vengono caricati (peserebbero decine di MB): la colonna Via mostra «—», ma l’ID del segmento è completo e 🎯 ti ci porta.</td></tr>
+            <tr><td><b>Stato</b></td><td>Stati da includere. <b>Tutti</b> seleziona o deseleziona ogni voce.</td></tr>
+            <tr><td><b>Finestra temporale</b></td><td>Limiti facoltativi sulle date di inizio e di fine, combinati con AND. <b>Ripiegata per impostazione predefinita</b>: è il filtro meno usato.</td></tr>
+            <tr><td><b>Parole chiave / MTE</b></td><td>Testo nella descrizione e nome dell’evento MTE. L’interruttore <b>AND / OR</b> lega soltanto questi due.</td></tr>
+            <tr><td><b>Fonte</b></td><td>Filtro per partner: <i>Tutti</i>, <i>Nessuno</i> (chiusure di editor) o un partner. L’elenco contiene solo i partner <b>presenti nei risultati caricati</b> — così non può proporre una scelta che non restituirebbe nulla.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Sezioni ripiegabili</b> — ogni intestazione si chiude con un clic, come la Coda. ⚠️ Una sezione ripiegata il cui filtro è <b>attivo</b> porta un punto <span style="color:#e53935">●</span>: un filtro nascosto che assottiglia i risultati a tua insaputa sarebbe peggio di qualche pixel di troppo.</p>
+            <p style="margin-top:6px"><b>Risultati</b>: tabella ordinabile (ID, via, numero di chiusure, stato, descrizione, Fonte, MTE). I <b>risultati delle svolte</b> disegnano sulla mappa un anello a nastro da cantiere, bianco e rosso, attorno a ogni incrocio. 🎯 ricentra — anche fuori dalla vista.</p>
+            <p style="margin-top:6px"><b>Esporta ciò che hai trovato</b> (≠ esportare la coda): i pulsanti stanno sotto ciascun blocco di risultati — <i>CSV AC</i> per i segmenti, <i>CSV Svolte</i> per le svolte. La barra in basso continua a parlare solo della coda. ⚠️ Queste esportazioni producono righe <code>add</code>: reimportarle <b>ricrea</b> le chiusure. Il contrassegno «nodi chiusi» non può essere ripristinato (WME non lo rilegge).</p>`, he:`
+            <p>מוצא <b>חסימות קיימות</b> — גם של מקטעים <i>וגם</i> של פניות. שימושי כדי לאסוף את החסימות של אירוע, לבדוק מה פעיל בתקופה מסוימת, או <b>לשמור אזור</b> לפני שמשחזרים אותו.</p>
+            <table class="wct-help-table">
+            <tr><td><b>מה לחפש</b></td><td>יעדי <b>מקטעים</b> ו/או <b>פניות</b> (שניהם כברירת מחדל) ← שני בלוקי תוצאות נפרדים.</td></tr>
+            <tr><td><b>אזור החיפוש</b></td><td><b>התצוגה הנוכחית</b>, או <b>5 / 20 / 50 ק״מ</b> סביב מרכז המפה. המפה לא זזה. ⚠️ מעבר לתצוגה <b>שמות הרחובות</b> אינם נטענים (הם היו שוקלים עשרות מגה־בייט): עמודת הרחוב מציגה «—», אבל מזהה המקטע מלא ו־🎯 לוקח אתכם לשם.</td></tr>
+            <tr><td><b>סטטוס</b></td><td>הסטטוסים שייכללו. <b>הכול</b> מסמן או מבטל את כולם.</td></tr>
+            <tr><td><b>חלון זמן</b></td><td>גבולות אופציונליים על תאריכי ההתחלה והסיום, המשולבים ב־AND. <b>מקופל כברירת מחדל</b>: זהו המסנן הפחות נפוץ.</td></tr>
+            <tr><td><b>מילות מפתח / MTE</b></td><td>טקסט בתיאור, ושם אירוע ה־MTE. המתג <b>AND / OR</b> מקשר רק בין שני אלה.</td></tr>
+            <tr><td><b>מקור</b></td><td>סינון לפי שותף: <i>הכול</i>, <i>ללא</i> (חסימות של עורכים) או שותף מסוים. הרשימה מכילה רק שותפים <b>שנמצאים בתוצאות שנטענו</b> — כך היא לא יכולה להציע בחירה שלא תחזיר כלום.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>מקטעים מתקפלים</b> — כל כותרת נסגרת בלחיצה, כמו התור. ⚠️ מקטע מקופל שהמסנן שלו <b>פעיל</b> נושא נקודה <span style="color:#e53935">●</span>: מסנן נסתר שמדלל לכם את התוצאות בלי ידיעתכם גרוע יותר מכמה פיקסלים מיותרים.</p>
+            <p style="margin-top:6px"><b>תוצאות</b>: טבלה הניתנת למיון (מזהה, רחוב, מספר חסימות, סטטוס, תיאור, מקור, MTE). <b>תוצאות הפניות</b> מציירות על המפה טבעת בדוגמת סרט עבודות, אדום־לבן, סביב כל צומת. 🎯 ממרכז מחדש — גם מחוץ לתצוגה.</p>
+            <p style="margin-top:6px"><b>ייצוא מה שמצאתם</b> (≠ ייצוא התור): הכפתורים נמצאים מתחת לכל בלוק תוצאות — <i>CSV AC</i> למקטעים, <i>CSV פניות</i> לפניות. הסרגל התחתון ממשיך לדבר על התור בלבד. ⚠️ הייצואים האלה מפיקים שורות <code>add</code>: ייבוא חוזר שלהן <b>יוצר מחדש</b> את החסימות. את הסימון «צמתים חסומים» אי אפשר לשחזר (WME לא קורא אותו בחזרה).</p>`, de:`
             <p>Findet <b>vorhandene Sperrungen</b> — Segment- <i>und</i> Abbiegersperrungen. Nützlich, um die Sperrungen eines Ereignisses zu sammeln, zu prüfen was in einem Zeitraum aktiv ist, oder ein <b>Gebiet zu sichern</b>, bevor man es erneut abspielt.</p>
             <table class="wct-help-table">
             <tr><td><b>Wonach suchen</b></td><td>Ziele <b>Segmente</b> und/oder <b>Abbieger</b> (standardmäßig beides) → zwei getrennte Ergebnisblöcke.</td></tr>
@@ -6236,7 +6330,27 @@ const buildHelpHTML = () => {
             <tr><td><b>▶️ Apply</b></td><td>Creates the closures: the map re-centers on each batch, pausing on “Continue” between batches.</td></tr>
             <tr><td><b>⬇️</b></td><td>Exports the track's configured batches to CSV (WME Advanced Closures format).</td></tr>
             </table>
-            <p style="margin-top:6px">WME's <b>Closures</b> layer is enabled automatically when the panel opens (to detect overlaps) and restored to its original state on close. A short track that fits in one view is not split: the track's 🧲 selects it all at once.</p>`, de:`
+            <p style="margin-top:6px">WME's <b>Closures</b> layer is enabled automatically when the panel opens (to detect overlaps) and restored to its original state on close. A short track that fits in one view is not split: the track's 🧲 selects it all at once.</p>`, it:`
+            <p>Un tracciato che supera una vista (~4,5 km) viene <b>diviso automaticamente in lotti</b>, mostrati come sotto-righe sotto il tracciato. Li gestisci uno a uno:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>Seleziona i segmenti del lotto — la mappa si sposta per caricare tutto (è normale) — poi passa a <b>Configura</b>.</td></tr>
+            <tr><td><b>Convalida</b></td><td>Aggiunge il lotto alla coda, lo segna <b>✅ configurato</b>, torna a Tracciati e punta al lotto successivo.</td></tr>
+            <tr><td><b>👁️</b></td><td>Centra la mappa sul lotto.</td></tr>
+            <tr><td><b>🔗</b></td><td>Dopo la selezione: copia un permalink per ripristinare la selezione del lotto.</td></tr>
+            <tr><td><b>▶️ Applica</b></td><td>Crea le chiusure: la mappa si ricentra su ogni lotto, con una pausa su «Continua» tra un lotto e l’altro.</td></tr>
+            <tr><td><b>⬇️</b></td><td>Esporta in CSV i lotti configurati del tracciato (formato WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">Il livello <b>Chiusure</b> di WME viene attivato automaticamente all’apertura del pannello (per rilevare le sovrapposizioni) e riportato al suo stato originario alla chiusura. Un tracciato corto che entra in una sola vista non viene diviso: il 🧲 del tracciato lo seleziona tutto in una volta.</p>`, he:`
+            <p>מסלול שחורג מתצוגה אחת (כ־4.5 ק״מ) מחולק אוטומטית ל<b>מנות</b>, המוצגות כשורות משנה מתחת למסלול. מטפלים בהן אחת אחת:</p>
+            <table class="wct-help-table">
+            <tr><td><b>🧲</b></td><td>בוחר את מקטעי המנה — המפה זזה כדי לטעון הכול (זה תקין) — ואז עובר ל<b>הגדרה</b>.</td></tr>
+            <tr><td><b>אישור</b></td><td>מוסיף את המנה לתור, מסמן אותה <b>✅ מוגדרת</b>, חוזר למסלולים ומצביע על המנה הבאה.</td></tr>
+            <tr><td><b>👁️</b></td><td>ממרכז את המפה על המנה.</td></tr>
+            <tr><td><b>🔗</b></td><td>אחרי הבחירה: מעתיק קישור קבוע לשחזור בחירת המנה.</td></tr>
+            <tr><td><b>▶️ החל</b></td><td>יוצר את החסימות: המפה ממרכזת מחדש על כל מנה, עם השהיה על «המשך» בין מנה למנה.</td></tr>
+            <tr><td><b>⬇️</b></td><td>מייצא ל־CSV את המנות המוגדרות של המסלול (פורמט WME Advanced Closures).</td></tr>
+            </table>
+            <p style="margin-top:6px">שכבת <b>החסימות</b> של WME מופעלת אוטומטית עם פתיחת החלונית (כדי לזהות חפיפות) ומוחזרת למצבה המקורי בסגירה. מסלול קצר שנכנס בתצוגה אחת אינו מחולק: ה־🧲 של המסלול בוחר את כולו בבת אחת.</p>`, de:`
             <p>Ein Track, der über eine Ansicht hinausgeht (~4,5 km), wird automatisch <b>in Pakete aufgeteilt</b>, die als Unterzeilen unter dem Track erscheinen. Man bearbeitet sie einzeln:</p>
             <table class="wct-help-table">
             <tr><td><b>🧲</b></td><td>Wählt die Segmente des Pakets aus — die Karte bewegt sich, um alles zu laden (das ist normal) — und wechselt dann zu <b>Einrichten</b>.</td></tr>
@@ -6297,7 +6411,27 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Why the angle?</b> One node often offers <b>two turns into the same street</b>. The destination name alone cannot tell them apart: the angle does.</p>
             <p style="margin-top:6px"><b>"Not closable" turns</b>: WME lists turns that do not exist in its data model — typically <b>U-turns</b>. They show greyed out: this is not a WCT bug, the SDK refuses to close them.</p>
-            <p style="margin-top:6px">In Configure, anything meaningless for a turn is <b>greyed out</b>: the A/B direction (a turn already carries its own) and closed nodes.</p>`, de:`
+            <p style="margin-top:6px">In Configure, anything meaningless for a turn is <b>greyed out</b>: the A/B direction (a turn already carries its own) and closed nodes.</p>`, it:`
+            <p>Una svolta a sinistra vietata ogni notte per tre settimane si imposta come una chiusura di segmento: stessa ricorrenza, stesse festività, stessa coda.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>Seleziona <b>un solo segmento</b> sulla mappa, poi apri la scheda <b>🔀 Svolte</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>Scegli l’<b>estremità</b> (nodo A o B). Il numero tra parentesi è il conteggio delle svolte chiudibili. Un’estremità che non ne ha — un vicolo cieco — è barrata e disattivata.</td></tr>
+            <tr><td><b>3.</b></td><td>Spunta le svolte. Ogni riga mostra la <b>freccia</b>, la via di destinazione, l’<b>angolo in gradi</b> e lo stato.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 Invia a Configura</b>: imposta date, orari e ricorrenza come al solito, poi <b>Convalida</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Perché l’angolo?</b> Uno stesso nodo offre spesso <b>due svolte verso la stessa via</b>. Il nome della destinazione da solo non le distingue: l’angolo sì.</p>
+            <p style="margin-top:6px"><b>Svolte «non chiudibili»</b>: WME elenca svolte che non esistono nel suo modello di dati — tipicamente le <b>inversioni a U</b>. Appaiono in grigio: non è un difetto di WCT, è l’SDK che rifiuta di chiuderle.</p>
+            <p style="margin-top:6px">In Configura, tutto ciò che non ha senso per una svolta è <b>disattivato in grigio</b>: il senso A/B (una svolta porta già il proprio) e i nodi chiusi.</p>`, he:`
+            <p>פנייה שמאלה שאסורה כל לילה במשך שלושה שבועות מוגדרת בדיוק כמו חסימת מקטע: אותה חזרתיות, אותם חגים, אותו תור.</p>
+            <table class="wct-help-table">
+            <tr><td><b>1.</b></td><td>בחרו <b>מקטע יחיד</b> על המפה, ואז פתחו את לשונית <b>🔀 פניות</b>.</td></tr>
+            <tr><td><b>2.</b></td><td>בחרו את ה<b>קצה</b> (צומת A או B). המספר בסוגריים הוא מספר הפניות הניתנות לחסימה. קצה שאין לו אף אחת — מבוי סתום — מוצג עם קו חוצה ומושבת.</td></tr>
+            <tr><td><b>3.</b></td><td>סמנו את הפניות. כל שורה מציגה את ה<b>חץ</b>, את רחוב היעד, את ה<b>זווית במעלות</b> ואת הסטטוס.</td></tr>
+            <tr><td><b>4.</b></td><td><b>🧲 שלח להגדרה</b>: קבעו תאריכים, שעות וחזרתיות כרגיל, ואז <b>אישור</b>.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>למה צריך את הזווית?</b> צומת אחד מציע לא פעם <b>שתי פניות לאותו רחוב</b>. שם היעד לבדו אינו מבחין ביניהן: הזווית כן.</p>
+            <p style="margin-top:6px"><b>פניות «שאי אפשר לחסום»</b>: WME מציג פניות שאינן קיימות במודל הנתונים שלו — בדרך כלל <b>פניות פרסה</b>. הן מוצגות באפור: זו אינה תקלה של WCT, אלא ה־SDK שמסרב לחסום אותן.</p>
+            <p style="margin-top:6px">בהגדרה, כל מה שחסר משמעות עבור פנייה מוצג <b>באפור ומושבת</b>: כיוון A/B (לפנייה כבר יש כיוון משלה) והצמתים החסומים.</p>`, de:`
             <p>Ein Linksabbiegeverbot, das drei Wochen lang jede Nacht gilt, wird wie eine Segmentsperrung eingerichtet: gleiche Wiederholung, gleiche Feiertage, gleiche Warteschlange.</p>
             <table class="wct-help-table">
             <tr><td><b>1.</b></td><td>Wähle <b>ein einziges Segment</b> auf der Karte und öffne den Reiter <b>🔀 Abbieger</b>.</td></tr>
@@ -6352,7 +6486,21 @@ const buildHelpHTML = () => {
             <tr><td><b>⬇️ Queue · CSV Turns</b></td><td><b>Turn</b> closures, in the <b>WCT</b> format. Re-importable into WCT; <b>unreadable by Advanced Closures</b>, which will cleanly reject it (rows start with <code>add-turn</code>, not <code>add</code>).</td></tr>
             </table>
             <p style="margin-top:6px">Each button only lights up if the queue holds something to feed it. Rows <b>deleted</b> by hand in a queue card are not exported: the file describes what is left, not what was entered.</p>
-            <p style="margin-top:6px">The Turns CSV records the turn's full identity — source segment, node, destination segment — <b>on top of</b> its id. That id derives from the segments: if a junction is redrawn, it no longer resolves. The three other columns will let the turn be found anyway.</p>`, de:`
+            <p style="margin-top:6px">The Turns CSV records the turn's full identity — source segment, node, destination segment — <b>on top of</b> its id. That id derives from the segments: if a junction is redrawn, it no longer resolves. The three other columns will let the turn be found anyway.</p>`, it:`
+            <p>Segmenti e svolte non possono viaggiare nello stesso file: il formato WME Advanced Closures non ha alcuna colonna capace di designare una svolta. Da qui i <b>due pulsanti</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇️ Coda · CSV AC</b></td><td>Chiusure di <b>segmento</b>, nel formato <b>WME Advanced Closures</b>. Reimportabile sia in AC sia in WCT.</td></tr>
+            <tr><td><b>⬇️ Coda · CSV Svolte</b></td><td>Chiusure di <b>svolta</b>, nel formato <b>WCT</b>. Reimportabile in WCT; <b>illeggibile per Advanced Closures</b>, che lo rifiuterà in modo pulito (le righe iniziano con <code>add-turn</code>, non con <code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">Ogni pulsante si accende solo se la coda contiene qualcosa da dargli. Le righe <b>eliminate</b> a mano in una scheda della coda non vengono esportate: il file descrive quel che resta, non quel che è stato inserito.</p>
+            <p style="margin-top:6px">Il CSV delle svolte registra l’identità completa della svolta — segmento di partenza, nodo, segmento di destinazione — <b>oltre</b> al suo id. Quell’id deriva dai segmenti: se un incrocio viene ridisegnato, non si risolve più. Le altre tre colonne permetteranno comunque di ritrovare la svolta.</p>`, he:`
+            <p>מקטעים ופניות אינם יכולים לנסוע באותו קובץ: לפורמט WME Advanced Closures אין עמודה שמסוגלת לציין פנייה. מכאן <b>שני הכפתורים</b>.</p>
+            <table class="wct-help-table">
+            <tr><td><b>⬇️ תור · CSV AC</b></td><td>חסימות <b>מקטעים</b>, בפורמט <b>WME Advanced Closures</b>. ניתן לייבא מחדש הן ל־AC והן ל־WCT.</td></tr>
+            <tr><td><b>⬇️ תור · CSV פניות</b></td><td>חסימות <b>פניות</b>, בפורמט <b>WCT</b>. ניתן לייבא מחדש ל־WCT; <b>אינו קריא ל־Advanced Closures</b>, שידחה אותו בצורה נקייה (השורות מתחילות ב־<code>add-turn</code> ולא ב־<code>add</code>).</td></tr>
+            </table>
+            <p style="margin-top:6px">כל כפתור נדלק רק אם יש בתור משהו להאכיל אותו. שורות ש<b>נמחקו</b> ידנית בכרטיס בתור אינן מיוצאות: הקובץ מתאר את מה שנשאר, לא את מה שהוזן.</p>
+            <p style="margin-top:6px">קובץ ה־CSV של הפניות רושם את הזהות המלאה של הפנייה — מקטע מוצא, צומת, מקטע יעד — <b>נוסף על</b> המזהה שלה. המזהה הזה נגזר מהמקטעים: אם צומת משורטט מחדש, הוא כבר לא נפתר. שלוש העמודות האחרות יאפשרו למצוא את הפנייה בכל זאת.</p>`, de:`
             <p>Segmente und Abbieger können nicht in derselben Datei reisen: das Format von WME Advanced Closures hat keine Spalte, die einen Abbieger bezeichnen könnte. Daher <b>zwei Schaltflächen</b>.</p>
             <table class="wct-help-table">
             <tr><td><b>⬇️ Liste · CSV AC</b></td><td><b>Segment</b>-Sperrungen im Format <b>WME Advanced Closures</b>. Sowohl in AC als auch in WCT reimportierbar.</td></tr>
@@ -6397,7 +6545,23 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Who can attribute?</b> Only accounts with <b>partner status</b>, granted by Waze — not by WCT. If the field is greyed out, the tooltip gives the exact reason. It is a relationship of trust: attributing a closure to a partner asserts that they are its source.</p>
             <p style="margin-top:6px"><b>If Waze changes:</b> WCT checks at startup that everything is in place (status, API, data structure). At the slightest doubt the field disables itself and says why, rather than risk a wrong attribution. And if setting it fails midway, <b>nothing is saved</b>: better no closure than a falsely attributed one.</p>
-            <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>`, de:`
+            <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>`, it:`
+            <p>Una chiusura può essere <b>attribuita a un partner</b> (un ente locale, un gestore…), esattamente come fa il modulo nativo di WME. Senza partner, è una chiusura di editor.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Impostare</b></td><td>Scheda <b>⚙️ Configura</b>, campo <b>Fonte (partner)</b>. L’elenco dipende dall’<b>area inquadrata</b>: i partner di Nizza non sono quelli di Milano.</td></tr>
+            <tr><td><b>Cercare</b></td><td>Scheda <b>🔍 Ricerca</b>, sezione <b>🏷️ Fonte</b>: <i>Tutti</i>, <i>Nessuno</i> (chiusure di editor) o un partner. La colonna <b>Fonte</b> mostra l’attribuzione di ogni risultato.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>Chi può attribuire?</b> Solo gli account con <b>stato di partner</b>, concesso da Waze — non da WCT. Se il campo è disattivato, il suggerimento ne dà il motivo esatto. È un rapporto di fiducia: attribuire una chiusura a un partner afferma che ne è la fonte.</p>
+            <p style="margin-top:6px"><b>Se Waze cambia:</b> all’avvio WCT verifica che tutto sia al suo posto (stato, API, struttura dei dati). Al minimo dubbio il campo si disattiva da solo e dice perché, piuttosto che rischiare un’attribuzione sbagliata. E se l’impostazione fallisce a metà strada, <b>non viene salvato nulla</b>: meglio nessuna chiusura che una attribuita a torto.</p>
+            <p style="margin-top:6px"><i>La Fonte non si applica alle svolte: è un campo delle chiusure di segmento.</i></p>`, he:`
+            <p>אפשר <b>לשייך חסימה לשותף</b> (רשות מקומית, מפעיל…), בדיוק כפי שעושה הטופס המובנה של WME. בלי שותף, מדובר בחסימה של עורך.</p>
+            <table class="wct-help-table">
+            <tr><td><b>הגדרה</b></td><td>לשונית <b>⚙️ הגדרה</b>, שדה <b>מקור (שותף)</b>. הרשימה תלויה ב<b>אזור שבתצוגה</b>: השותפים בחיפה אינם השותפים בתל אביב.</td></tr>
+            <tr><td><b>חיפוש</b></td><td>לשונית <b>🔍 חיפוש</b>, מקטע <b>🏷️ מקור</b>: <i>הכול</i>, <i>ללא</i> (חסימות של עורכים) או שותף מסוים. עמודת <b>המקור</b> מציגה את השיוך של כל תוצאה.</td></tr>
+            </table>
+            <p style="margin-top:6px"><b>מי יכול לשייך?</b> רק חשבונות בעלי <b>מעמד שותף</b>, שמוענק על ידי Waze — לא על ידי WCT. אם השדה מושבת, החלונית הצפה נותנת את הסיבה המדויקת. זו מערכת יחסים של אמון: שיוך חסימה לשותף מצהיר שהוא המקור שלה.</p>
+            <p style="margin-top:6px"><b>אם Waze משתנה:</b> בהפעלה WCT בודק שהכול במקומו (מעמד, API, מבנה הנתונים). בכל ספק קל השדה משבית את עצמו ואומר מדוע, במקום להסתכן בשיוך שגוי. ואם ההגדרה נכשלת באמצע, <b>שום דבר לא נשמר</b>: מוטב בלי חסימה מאשר חסימה משויכת בטעות.</p>
+            <p style="margin-top:6px"><i>המקור אינו חל על פניות: זהו שדה של חסימות מקטעים.</i></p>`, de:`
             <p>Eine Sperrung kann einem <b>Partner zugeschrieben</b> werden (einer Gebietskörperschaft, einem Betreiber…), genau wie im nativen WME-Formular. Ohne Partner ist es eine Editor-Sperrung.</p>
             <table class="wct-help-table">
             <tr><td><b>Setzen</b></td><td>Reiter <b>⚙️ Einrichten</b>, Feld <b>Quelle (Partner)</b>. Die Liste hängt vom <b>angezeigten Gebiet</b> ab: die Partner von Nizza sind nicht die von Le Mans.</td></tr>

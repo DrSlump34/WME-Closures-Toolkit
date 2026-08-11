@@ -39,10 +39,11 @@ for (const L of LANGUES) {
 // s etait trompe deux fois : il donnait h5 incomplete (elle est traduite) et ne voyait pas
 // h9 ni h10 (elles retombent bel et bien sur l anglais). Seul le croisement des deux
 // lectures a departage — et c est le rendu qui fait foi, puisque c est ce que l editeur voit.
-const DETTE = {   // section -> langues encore en anglais, dette anterieure a l ajout de it/he
-    h4: ['it', 'he'], h5: ['it', 'he'], h6: ['it', 'he'], h7: ['it', 'he'], h8: ['it', 'he'],
-    h9: ['it', 'he'], h10: ['it', 'he'], h11: ['it', 'he'], h12: ['it', 'he'], h13: ['it', 'he'],
-};
+// ✅ 11/08/2026 : la dette est SOLDEE — les 14 sections sont ecrites dans les 8 langues.
+// La liste reste ici, vide, parce qu elle est le seul endroit ou une dette d aide peut se
+// declarer sans faire echouer le controle. Toute section qui retomberait sur l anglais sans
+// figurer ici fait desormais ECHOUER ce fichier : c est le comportement voulu.
+const DETTE = {};   // section -> langues encore en anglais
 
 // ── DEUXIEME LECTURE : les langues DECLAREES dans le source, section par section ──
 // ⚠️ Le rendu seul ne suffit pas a conclure. Une section non traduite dont le corps
@@ -136,6 +137,25 @@ for (const L of LANGUES) {
     if (vides) { console.log('  ECHEC ' + L + ' : ' + vides + ' section(s) vide(s)'); ko++; }
 }
 if (!LANGUES.some(L => (rendu[L].match(/class="wct-help-body" id="h\d+"[^>]*>\s*<\/div>/g) || []).length)) console.log('  ok   aucune section vide');
+
+// Balises equilibrees. Une aide est du HTML ecrit a la main, langue par langue : un </td>
+// oublie ne fait echouer aucun autre controle — le script se charge, les cles sont bonnes,
+// les tests passent — et disloque tout le tableau chez le seul editeur qui lit cette
+// langue-la. Le cout de la verification est nul, la panne serait invisible d ici.
+const BALISES = ['p', 'b', 'i', 'table', 'tr', 'td', 'ul', 'li', 'code', 'span', 'div'];
+let desequilibres = 0;
+for (const L of LANGUES) {
+    const mauvaises = BALISES.filter(b => {
+        const ouv = (rendu[L].match(new RegExp('<' + b + '(?=[ >])', 'g')) || []).length;
+        const fer = (rendu[L].match(new RegExp('</' + b + '>', 'g')) || []).length;
+        return ouv !== fer;
+    });
+    if (mauvaises.length) {
+        console.log('  ECHEC ' + L + ' : balises desequilibrees — ' + mauvaises.join(', '));
+        ko++; desequilibres++;
+    }
+}
+if (!desequilibres) console.log('  ok   balises equilibrees dans les ' + LANGUES.length + ' langues');
 
 // ⚠️ LE VERDICT DIT CE QUI EST VRAI, PAS CE QUI RASSURE. « AIDE COMPLETE DANS LES 8 LANGUES »
 // s affichait meme quand dix sections sur onze rendaient de l anglais a l italien et a
