@@ -40,21 +40,76 @@ for (const L of LANGUES) {
 // h9 ni h10 (elles retombent bel et bien sur l anglais). Seul le croisement des deux
 // lectures a departage — et c est le rendu qui fait foi, puisque c est ce que l editeur voit.
 const DETTE = {   // section -> langues encore en anglais, dette anterieure a l ajout de it/he
-    h4: ['it', 'he'], h6: ['it', 'he'], h7: ['it', 'he'], h8: ['it', 'he'],
+    h4: ['it', 'he'], h5: ['it', 'he'], h6: ['it', 'he'], h7: ['it', 'he'], h8: ['it', 'he'],
     h9: ['it', 'he'], h10: ['it', 'he'], h11: ['it', 'he'], h12: ['it', 'he'], h13: ['it', 'he'],
 };
+
+// ── DEUXIEME LECTURE : les langues DECLAREES dans le source, section par section ──
+// ⚠️ Le rendu seul ne suffit pas a conclure. Une section non traduite dont le corps
+// contient une interpolation traduite — h10 porte un ${t('shpNetworkHelp')} — rend un
+// texte DIFFERENT de l anglais tout en restant integralement en anglais. Le controle la
+// declarait « traduite ». Le source, lui, dit sans ambiguite quelles langues _L connait.
+// On garde donc les deux lectures, et TOUT DESACCORD est signale : c est le desaccord
+// entre elles qui a revele les trois mensonges successifs de ce fichier.
+const declarees = (() => {
+    const par = {};
+    const parts = corps.split(/\{\s*id:\s*'(h\d+)'/).slice(1);
+    for (let i = 0; i < parts.length; i += 2) {
+        par[parts[i]] = new Set([...parts[i + 1].matchAll(
+            /(?:^|[,{]\s*)('pt-BR'|'pt-PT'|fr|en|de|es|it|he)\s*:\s*`/g)].map(m => m[1].replace(/'/g, '')));
+    }
+    return par;
+})();
 console.log('\n— Repli silencieux sur l anglais, section par section —');
 const idsSections = [...new Set((rendu.en.match(/id="(h\d+)"/g) || []).map(s => s.slice(4, -1)))];
-const extrait = (h, id) => { const i2 = h.indexOf('id="' + id + '"'); return i2 < 0 ? null : h.slice(i2, i2 + 900); };
-let dettesVues = 0;
+// ⚠️ On decoupe la section JUSQU A LA SUIVANTE, pas sur une longueur fixe. Une fenetre de
+// 900 caracteres debordait sur la section d apres des que la section etait courte, et le
+// TITRE de cette suivante — toujours traduit, car il vient de t() et non de _L() — suffisait
+// a rendre les deux extraits differents. Le repli passait alors inapercu : h5 (390 car.)
+// etait annoncee « traduite dans les 8 langues » alors qu elle n a jamais eu ni it ni he.
+// Le controle mentait donc exactement sur les sections les plus courtes.
+// ⚠️ On decoupe le CORPS de la section, du id="hN" jusqu au debut de la section suivante.
+// Deux decoupages faux ont precede celui-ci, et chacun mentait dans un sens :
+//   - une fenetre FIXE de 900 caracteres debordait sur la section d apres des que la
+//     section etait courte. Le TITRE de cette suivante est traduit (il vient de t(), pas
+//     de _L()), donc les deux extraits differaient et le repli passait inapercu : h5
+//     (390 car.) etait annoncee « traduite dans les 8 langues » sans avoir ni it ni he ;
+//   - decouper jusqu au prochain id="h" ramenait le titre suivant dans TOUS les cas, et
+//     le controle declarait alors les 14 sections traduites.
+// Le titre vit dans data-help="hN", AVANT le corps : s arreter au conteneur suivant est
+// le seul decoupage qui ne ramene que du texte issu de _L().
+const extrait = (h, id) => {
+    const i2 = h.indexOf('id="' + id + '"');
+    if (i2 < 0) return null;
+    const suite = h.indexOf('class="wct-help-section"', i2);
+    return h.slice(i2, suite < 0 ? h.length : suite);
+};
+let dettesVues = 0, desaccords = 0;
 for (const id of idsSections) {
     const ref = extrait(rendu.en, id);
-    const repli = [];
+    const repli = [], memeRendu = [];
     for (const L of LANGUES) {
         if (L === 'en') continue;
         const s = extrait(rendu[L], id);
         if (!s) { console.log('  ECHEC ' + id + ' : absente en ' + L); ko++; continue; }
-        if (s === ref) repli.push(L);
+        if (s === ref) memeRendu.push(L);
+        // Le SOURCE fait foi : une langue absente du _L rend de l anglais, meme si une
+        // interpolation traduite fait differer le rendu.
+        // ⚠️ Sauf pour une section SANS _L : h1 est batie uniquement avec des t(), donc
+        // traduite clef par clef, et le source n a rien a en dire. La reconnaitre au fait
+        // qu elle ne declare ni fr ni en — sinon on l accuserait d etre en anglais dans
+        // les sept langues, francais compris, ce qui est absurde et le signalerait comme tel.
+        const pilotee = declarees[id] && declarees[id].has('fr') && declarees[id].has('en');
+        if (pilotee && !declarees[id].has(L)) repli.push(L);
+        else if (s === ref) repli.push(L);
+    }
+    // Desaccord entre les deux lectures : a dire, jamais a taire.
+    for (const L of repli) {
+        if (!memeRendu.includes(L)) {
+            desaccords++;
+            console.log('  ⚠️   ' + id.padEnd(4) + L + ' : absente du _L (donc en anglais), mais le rendu differe' +
+                ' — la section contient une interpolation traduite qui masque le repli');
+        }
     }
     const attendu = DETTE[id] || [];
     const inattendu = repli.filter(L => !attendu.includes(L));
