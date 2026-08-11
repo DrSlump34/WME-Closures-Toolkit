@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.11.02
+// @version      1.11.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -257,16 +257,26 @@ GM_addStyle(`
 /* Le panneau est ancré à droite en LTR ; en RTL il doit l'être à gauche. */
 #wct-overlay[dir="rtl"] { right: auto; left: 60px; }
 
-/* Interrupteur : la pastille et son déplacement sont géométriques, donc à miroiter. */
-#wct-overlay[dir="rtl"] .wct-toggle-slider:before { left: auto; right: 3px; }
-#wct-overlay[dir="rtl"] .wct-toggle input:checked + .wct-toggle-slider:before { transform: translateX(-16px); }
+/* Interrupteur : la pastille et son déplacement sont géométriques, donc à miroiter.
+   ⚠️ Le seul interrupteur du script vit dans la BARRE LATÉRALE, pas dans l'overlay. La
+   règle ne visait que #wct-overlay : elle n'a jamais pu s'appliquer, et la pastille
+   glissait à contresens en hébreu. Mesuré par tools/check-rtl.js. Les deux racines sont
+   nommées pour qu'un futur interrupteur dans le panneau soit couvert lui aussi. */
+#wct-overlay[dir="rtl"] .wct-toggle-slider:before,
+#wct-sidebar[dir="rtl"] .wct-toggle-slider:before { left: auto; right: 3px; }
+#wct-overlay[dir="rtl"] .wct-toggle input:checked + .wct-toggle-slider:before,
+#wct-sidebar[dir="rtl"] .wct-toggle input:checked + .wct-toggle-slider:before { transform: translateX(-16px); }
 
-/* Popovers ancrés en dur : sans ça ils sortent du panneau. */
+/* Popovers ancrés en dur : sans ça ils sortent du panneau.
+   ⚠️ Leur ancrage de base est ICI et non plus dans l'attribut style du HTML : un style
+   inline gagne contre n'importe quel sélecteur, si bien que le right:auto ci-dessous ne
+   pouvait rien annuler. La palette restait du même côté (right et width posés ensemble :
+   en RTL c'est left qui est ignoré) et le popup des préréglages s'ÉTIRAIT de 268 à
+   592 px, left et right s'appliquant tous les deux sur une largeur automatique. */
+#wct-emoji-picker { right: 0; }
+#wct-preset-popup { bottom: 60px; right: 14px; }
 #wct-overlay[dir="rtl"] #wct-emoji-picker { right: auto; left: 0; }
 #wct-overlay[dir="rtl"] #wct-preset-popup { right: auto; left: 14px; }
-
-/* Barre d'attente indéterminée : elle balaie dans le sens de lecture. */
-#wct-overlay[dir="rtl"] .wct-src-busy::after { left: auto; right: 0; }
 
 /* Infobulle du bouton flottant : elle sort du côté opposé. */
 #wct-fab-wrap[dir="rtl"] .wct-tooltip { right: auto; left: calc(100% + 8px); }
@@ -496,9 +506,14 @@ GM_addStyle(`
    progression : une barre qui irait de 0 à 100 % serait une animation mensongère.
    Celle-ci dit « ça travaille », pas « on en est à 40 % ». */
 .wct-src-busy { background:#e0e0e0; border-radius:50px; height:4px; overflow:hidden; margin:6px 0; position:relative; }
-.wct-src-busy::after { content:''; position:absolute; left:0; top:0; height:100%; width:40%;
+/* Barre d'attente indéterminée. ⚠️ L'animation porte sur inset-inline-start et NON sur
+   left : en hébreu, un élément qui pose left, right et width est sur-contraint et c'est
+   left qui est ignoré — donc la barre restait collée à droite, parfaitement immobile,
+   alors même qu'elle sert à dire « ça travaille ». La propriété logique se retourne
+   d'elle-même et rend inutile toute règle RTL dédiée. Mesuré par tools/check-rtl.js. */
+.wct-src-busy::after { content:''; position:absolute; inset-inline-start:0; top:0; height:100%; width:40%;
     background:var(--wct-blue); border-radius:50px; animation:wct-slide 1.1s ease-in-out infinite; }
-@keyframes wct-slide { 0%{left:-40%} 100%{left:100%} }
+@keyframes wct-slide { 0%{inset-inline-start:-40%} 100%{inset-inline-start:100%} }
 #wct-overlay.wct-compact .wct-src-busy, #wct-overlay.wct-compact .wct-src-busy::after { border-radius:0; }
 .wct-pb-text { font-size: 0.833em; text-align: center; margin-top: 2px; color: var(--wct-text2); }
 
@@ -12651,7 +12666,10 @@ const buildOverlay=()=>{
               <div style="position:relative;display:flex;gap:4px;align-items:center">
                 <input id="wct-reason" class="wct-input" type="text" title="${t('tipReason')}" value="&#x1F6A7;Travaux&#x1F6A7;" style="flex:1;min-width:0">
                 <button id="wct-emoji-btn" type="button" title="${t('emojiPickerTip')}" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--wct-border);border-radius:var(--wct-radius);background:var(--wct-bg);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0">&#x1F4CC;</button>
-                <div id="wct-emoji-picker" style="display:none;position:absolute;top:100%;right:0;z-index:10010;background:var(--wct-surface);border:1px solid var(--wct-border);border-radius:var(--wct-radius);box-shadow:0 4px 16px rgba(0,0,0,.18);padding:6px;width:232px;margin-top:3px"></div>
+                <!-- ⚠️ L'ancrage horizontal (right) est dans la feuille de style, pas ici :
+                     un style inline gagne contre tout sélecteur, y compris celui qui le
+                     retourne en hébreu. Ne pas le remettre. -->
+                <div id="wct-emoji-picker" style="display:none;position:absolute;top:100%;z-index:10010;background:var(--wct-surface);border:1px solid var(--wct-border);border-radius:var(--wct-radius);box-shadow:0 4px 16px rgba(0,0,0,.18);padding:6px;width:232px;margin-top:3px"></div>
               </div></div>
             <div style="margin-bottom:4px"><label class="wct-label">${t('lblDir')}</label>
               <select id="wct-direction" class="wct-select" title="${t('tipDir')}">
@@ -12902,7 +12920,9 @@ const buildOverlay=()=>{
     <div id="wct-toast" role="status" aria-live="polite"></div>
 
     <!-- POPUP SAVE PRESET -->
-    <div id="wct-preset-popup" style="display:none;position:absolute;bottom:60px;right:14px;
+    <!-- ⚠️ bottom et right vivent dans la feuille de style : posés ici, ils battaient la
+         règle qui les retourne en hébreu et le popup s'étirait sur tout le panneau. -->
+    <div id="wct-preset-popup" style="display:none;position:absolute;
         background:#fff;border:2px solid var(--wct-blue);border-radius:8px;padding:12px;
         box-shadow:var(--wct-shadow);z-index:100;min-width:240px">
         <div style="font-size:1em;font-weight:700;margin-bottom:0.667em;color:var(--wct-blue)">${t('presetPopupTitle')}</div>
