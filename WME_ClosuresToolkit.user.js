@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.12.00
+// @version      1.12.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -10870,18 +10870,24 @@ const traceGenerateLots = async (fileId) => {
         for(let k=0;k<lots.length;k++){
             if(_sweepAborted) break;
             const lot = lots[k];
-            sdk.Map.setMapCenter({lonLat:{lon:(lot.bbox.minLon+lot.bbox.maxLon)/2, lat:(lot.bbox.minLat+lot.bbox.maxLat)/2}, zoomLevel:SWEEP_ZOOM});
-            await _sweepSleep(SWEEP_SETTLE_MS);
-            await waitMapLoaded();
+            // ⚠️⚠️ Ici il n'y avait QU'UN SEUL recadrage centré sur le lot. Or un lot fait
+            // jusqu'à SWEEP_LOT_KM (4,5 km) de côté quand une vue à zoom 16 en couvre ~3×2 :
+            // cinq sixièmes de l'emprise n'étaient jamais chargés, et leurs segments étaient
+            // « absents » donc sautés en silence. _chargerEmprise avait justement été écrit
+            // pour ça — mais n'avait été branché que sur _lotSelect. Deux chemins pour la
+            // même opération, un seul corrigé : c'est le chemin NON corrigé que MisterLogik
+            // a emprunté pour générer ses 190 entrées.
+            const acc     = _covNewAcc();
+            const evalPts = _covDensify(lot.pts, COVERAGE_DENSIFY_M);
+            const bbLot   = _covBBox(lot.pts);
+            const capter  = () => {
+                const cand = _covCandidateSegments(bbLot, 0.0008);
+                if(cand.length) _covAccumulate(evalPts, _covBuildIndex(cand), acc);
+            };
+            await _chargerEmprise(lot.bbox, null, capter);
             await _sweepSleep(120);
             if(_sweepAborted) break;
-            // Matcher les segments empruntés dans ce lot
-            const cand = _covCandidateSegments(_covBBox(lot.pts), 0.0008);
-            const acc = _covNewAcc();
-            if(cand.length){
-                const index = _covBuildIndex(cand);
-                _covAccumulate(_covDensify(lot.pts, COVERAGE_DENSIFY_M), index, acc);
-            }
+            capter();
             const lotSegIds = _covFinalizeUsed(acc);
             // ⚠️ Un lot qui ne capte rien était sauté SANS UN MOT, et l'entrée suivante
             // prenait son numéro (l'étiquette portait « added+1 », pas le rang du lot).
@@ -10952,7 +10958,14 @@ const _lotFocus = (lot) => {
 // qu'un écran restait partiellement vide, et les segments absents étaient ensuite
 // sautés en silence (getSegById → null). La taille de la vue est RELEVÉE sur place :
 // elle dépend de la fenêtre de l'éditeur, la figer serait un pari.
-const _chargerEmprise = async (bbox, onProgress) => {
+// ⚠️⚠️ `onVue` est appelé APRÈS CHAQUE VUE CHARGÉE, et c'est le cœur du correctif du
+// 14/08/2026. Parcourir l'emprise ne suffit pas : WME ne garde pas indéfiniment ce qu'il
+// a chargé, si bien qu'un matching fait UNE SEULE FOIS à la fin du parcours ne voit plus
+// que les dernières vues. MisterLogik l'a décrit exactement ainsi — « on voit en orange le
+// tracé théorique, mais il n'a sélectionné que la fin ». On capte donc chaque segment
+// pendant qu'il est encore là, dans un accumulateur partagé — c'est déjà ce que fait
+// traceSweepSelect ; les deux chemins suivent enfin la même règle.
+const _chargerEmprise = async (bbox, onProgress, onVue) => {
     const cLon = (bbox.minLon + bbox.maxLon) / 2, cLat = (bbox.minLat + bbox.maxLat) / 2;
     sdk.Map.setMapCenter({ lonLat: { lon: cLon, lat: cLat }, zoomLevel: SWEEP_ZOOM });
     await _sweepSleep(SWEEP_SETTLE_MS);
@@ -10961,7 +10974,9 @@ const _chargerEmprise = async (bbox, onProgress) => {
     const vueW = Math.max((e[2] - e[0]) * 0.8, 0.002), vueH = Math.max((e[3] - e[1]) * 0.8, 0.002);
     const nx = Math.max(1, Math.ceil((bbox.maxLon - bbox.minLon) / vueW));
     const ny = Math.max(1, Math.ceil((bbox.maxLat - bbox.minLat) / vueH));
-    if(nx === 1 && ny === 1) return 1;                 // déjà tout chargé par le recadrage
+    // ⚠️ Même quand tout tient dans une vue, il faut capter : sans cet appel, le seul cas
+    // qui marchait avant deviendrait le seul à ne rien rendre.
+    if(nx === 1 && ny === 1){ if(onVue) onVue(); return 1; }
     const total = nx * ny;
     let fait = 0;
     for(let j = 0; j < ny; j++){
@@ -10975,6 +10990,7 @@ const _chargerEmprise = async (bbox, onProgress) => {
             await waitMapLoaded();
             await _sweepSleep(80);
             fait++;
+            if(onVue) onVue();                 // capter TANT QUE cette vue est chargée
             if(onProgress) onProgress(fait, total);
         }
     }
@@ -10991,11 +11007,18 @@ const _lotSelect = async (trackId, lotIdx) => {
     _sweepRunning = true; _sweepAborted = false;
     _sweepShowText(escHtml(t('lotSelecting', lotIdx, trk.lots.length)));
     try {
-        await _chargerEmprise(lot.bbox, (f, n) => _sweepShowText(escHtml(t('lotLoading', lotIdx, trk.lots.length, f, n))));
+        // Accumulateur PARTAGÉ + captage à chaque vue : voir _chargerEmprise. Le tracé est
+        // densifié une seule fois (le densifier par vue coûterait 6× pour le même résultat).
+        const acc     = _covNewAcc();
+        const evalPts = _covDensify(lot.pts, COVERAGE_DENSIFY_M);
+        const bbLot   = _covBBox(lot.pts);
+        const capter  = () => {
+            const cand = _covCandidateSegments(bbLot, 0.0008);
+            if(cand.length) _covAccumulate(evalPts, _covBuildIndex(cand), acc);
+        };
+        await _chargerEmprise(lot.bbox, (f, n) => _sweepShowText(escHtml(t('lotLoading', lotIdx, trk.lots.length, f, n))), capter);
         await _sweepSleep(150);
-        const cand = _covCandidateSegments(_covBBox(lot.pts), 0.0008);
-        const acc = _covNewAcc();
-        if(cand.length){ const index = _covBuildIndex(cand); _covAccumulate(_covDensify(lot.pts, COVERAGE_DENSIFY_M), index, acc); }
+        capter();                         // dernière vue, après le délai de stabilisation
         const ids = _covFinalizeUsed(acc);
         _sweepRunning = false;
         if(!ids.length){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return; }
