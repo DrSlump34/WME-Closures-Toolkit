@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.11.04
+// @version      1.12.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1556,9 +1556,9 @@ const D = {
             lblDuration:'Durée',
             jpnPrefix:'J+',
             tipToggle:'Mode Dur\u00E9e\u00A0: saisir une dur\u00E9e (H:MM) \u2014 Mode Heure de fin\u00A0: saisir l\u2019heure exacte de fin. Cliquez pour basculer.',
-            bilanPosees:n=>`${n} pos\u00E9e(s)`,
-            bilanPartielles:n=>`${n} partielle(s)`,
-            bilanEchecs:n=>`${n} en \u00E9chec`,
+            bilanPosees:n=>`${n} fermeture(s) posée(s)`,
+            bilanPartielles:(n,f)=>`${n} lot(s) partiel(s) — ${f} fermeture(s) manquante(s)`,
+            bilanEchecs:(n,f)=>`${n} lot(s) en échec — ${f} fermeture(s) non posée(s)`,
             bilanInterrompu:'interrompu',
             tipBilanToggle:'Afficher ou masquer le d\u00E9tail ligne par ligne de cette application.',
             tipEtatEncours:'En cours d\u2019application\u2026',
@@ -1641,7 +1641,7 @@ const D = {
             // Confirms
             confirmClear:'Vider la file\u00A0?',
             clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
-            confirmApply: (n,m) => `\u00C9crire ${n} fermeture(s) dans WME\u00A0? (${m} lot(s) dans la file)`,
+            confirmApply: (n,m) => `Écrire ${n} fermeture(s) dans WME ? (${m} entrée(s) dans la file)`,
             confirmDel: n => `Supprimer \u00AB\u00A0${n}\u00A0\u00BB\u00A0?`,
             // Colonnes
             colId:'ID', colName:'Nom', colStart:'D\u00E9but', colEnd:'Fin', colState:'\u00C9tat',
@@ -1750,7 +1750,7 @@ const D = {
             // Poubelle ligne
             tipRowDel:'Supprimer cette occurrence',
             // Header badge file
-            queueBadge: n => n===1?'1 lot en file':`${n} lots en file`,
+            queueBadge: n => n===1?'1 entrée en file':`${n} entrées en file`,
             // Tooltip suppression lot
             tipDelBatch:'Supprimer ce lot',
             tipEditLabel:'Modifier le libellé de ce lot',
@@ -1776,6 +1776,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotsWhyMoving:'La carte se déplace pour charger les segments de chaque lot. Ne touchez pas à la carte pendant l’opération.',
             lotsDone: (added,seg) => `✅ ${added} lot(s) ajoutés à la file (${seg} segment(s)). Onglet Configurer pour vérifier et appliquer.`,
             lotsStopped: (added,seg) => `⏹️ Interrompu — ${added} lot(s) déjà dans la file (${seg} segment(s)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} lot(s) sur ${total} n'ont produit aucune entrée dans la file.`,
+            lotsSkipNone: (rangs) => `Aucun segment capté : lot(s) ${rangs}.`,
+            lotsSkipDir: (rangs) => `Tous les segments en conflit de sens : lot(s) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lot(s) ajoutés (${seg} segment(s)) — ${nSkip} lot(s) sans résultat, détail dans l'onglet Tracés.`,
             applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
             applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
             applyLotNext:'▶️ Continuer (lot suivant)',
@@ -2107,9 +2111,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lblDuration:'Duration',
             jpnPrefix:'D+',
             tipToggle:'Duration mode\u00A0: enter a duration (H:MM) \u2014 End time mode\u00A0: enter the exact end time. Click to switch.',
-            bilanPosees:n=>`${n} applied`,
-            bilanPartielles:n=>`${n} partial`,
-            bilanEchecs:n=>`${n} failed`,
+            bilanPosees:n=>`${n} closure(s) applied`,
+            bilanPartielles:(n,f)=>`${n} partial batch(es) — ${f} closure(s) missing`,
+            bilanEchecs:(n,f)=>`${n} failed batch(es) — ${f} closure(s) not applied`,
             bilanInterrompu:'stopped',
             tipBilanToggle:'Show or hide the line-by-line detail of this run.',
             tipEtatEncours:'Applying\u2026',
@@ -2181,7 +2185,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             previewMore: n => `\u2026 and ${n} more`,
             confirmClear:'Clear the queue?',
             clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
-            confirmApply: (n,m) => `Write ${n} closure(s) in WME? (${m} batch(es) queued)`,
+            confirmApply: (n,m) => `Write ${n} closure(s) in WME? (${m} queued entry/ies)`,
             confirmDel: n => `Delete \u201C${n}\u201D?`,
             colId:'ID', colName:'Name', colStart:'Start', colEnd:'End', colState:'State',
             colIdTip:'Segment ID', colNameTip:'Segment name',
@@ -2289,7 +2293,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             // Row delete
             tipRowDel:'Remove this occurrence',
             // Header badge queue
-            queueBadge: n => n===1?'1 batch in queue':`${n} batches in queue`,
+            queueBadge: n => n===1?'1 entry in queue':`${n} entries in queue`,
             // Batch delete tooltip
             tipDelBatch:'Remove this batch',
             tipEditLabel:'Edit this batch label',
@@ -2315,6 +2319,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'The map moves to load each batch’s segments. Don’t touch the map during the operation.',
             lotsDone: (added,seg) => `✅ ${added} batch(es) added to the queue (${seg} segment(s)). See the Configure tab to review and apply.`,
             lotsStopped: (added,seg) => `⏹️ Stopped — ${added} batch(es) already in the queue (${seg} segment(s)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} of ${total} batch(es) produced no queue entry.`,
+            lotsSkipNone: (rangs) => `No segment matched: batch(es) ${rangs}.`,
+            lotsSkipDir: (rangs) => `All segments conflict with the chosen direction: batch(es) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} batch(es) added (${seg} segment(s)) — ${nSkip} batch(es) with no result, details in the Tracks tab.`,
             applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
             applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
             applyLotNext:'▶️ Continue (next batch)',
@@ -2644,9 +2652,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'משך',
             jpnPrefix:'D+',
             tipToggle:'מצב משך : הזן משך זמן (ש:דד) — מצב שעת סיום : הזן את שעת הסיום המדויקת. לחץ כדי להחליף.',
-            bilanPosees:n=>`${n} הוחלו`,
-            bilanPartielles:n=>`${n} חלקיות`,
-            bilanEchecs:n=>`${n} נכשלו`,
+            bilanPosees:n=>`${n} חסימות הוחלו`,
+            bilanPartielles:(n,f)=>`${n} מנות חלקיות — ${f} חסימות חסרות`,
+            bilanEchecs:(n,f)=>`${n} מנות שנכשלו — ${f} חסימות לא הוחלו`,
             bilanInterrompu:'הופסק',
             tipBilanToggle:'הצגה או הסתרה של הפירוט שורה אחר שורה של הפעלה זו.',
             tipEtatEncours:'מחיל…',
@@ -2724,7 +2732,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewMore: n => `… ועוד ${n}`,
             confirmClear:'לנקות את התור?',
             clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
-            confirmApply: (n,m) => `לכתוב ${n} חסימות ב-WME? (${m} מנות בתור)`,
+            confirmApply: (n,m) => `לכתוב ${n} חסימות ב-WME? (${m} רשומות בתור)`,
             confirmDel: n => `למחוק את “${n}”?`,
             colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
             colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
@@ -2832,7 +2840,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             // Row delete
             tipRowDel:'הסר מופע זה',
             // Header badge queue
-            queueBadge: n => n===1?'מנה אחת בתור':`${n} מנות בתור`,
+            queueBadge: n => n===1?'רשומה אחת בתור':`${n} רשומות בתור`,
             // Batch delete tooltip
             tipDelBatch:'הסר מנה זו',
             tipEditLabel:'ערוך את תווית המנה',
@@ -2858,6 +2866,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'המפה זזה כדי לטעון את מקטעי כל מנה. אל תיגע במפה במהלך הפעולה.',
             lotsDone: (added,seg) => `✅ ${added} מנות נוספו לתור (${seg} מקטעים). ראה את לשונית ההגדרה לבדיקה ויישום.`,
             lotsStopped: (added,seg) => `⏹️ נעצר — ${added} מנות כבר בתור (${seg} מקטעים).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} מתוך ${total} מנות לא יצרו רשומה בתור.`,
+            lotsSkipNone: (rangs) => `לא נמצא אף מקטע: מנות ${rangs}.`,
+            lotsSkipDir: (rangs) => `כל המקטעים בסתירה לכיוון שנבחר: מנות ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} מנות נוספו (${seg} מקטעים) — ${nSkip} מנות ללא תוצאה, פירוט בלשונית המסלולים.`,
             applyLotFocus: (k,n) => `📦 מנה ${k}/${n}: ממרכז את המפה כדי לטעון את המקטעים…`,
             applyLotDone: (k,n) => `📦 מנה ${k}/${n} יושמה. בדוק במפה, ואז המשך.`,
             applyLotNext:'▶️ המשך (מנה הבאה)',
@@ -3187,9 +3199,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Durata',
             jpnPrefix:'G+',
             tipToggle:'Modalità durata : inserisci una durata (O:MM) — Modalità ora di fine : inserisci l’ora di fine esatta. Clicca per cambiare.',
-            bilanPosees:n=>`${n} applicate`,
-            bilanPartielles:n=>`${n} parziali`,
-            bilanEchecs:n=>`${n} non riuscite`,
+            bilanPosees:n=>`${n} chiusura/e applicate`,
+            bilanPartielles:(n,f)=>`${n} lotto/i parziale/i — ${f} chiusura/e mancante/i`,
+            bilanEchecs:(n,f)=>`${n} lotto/i non riuscito/i — ${f} chiusura/e non applicate`,
             bilanInterrompu:'interrotto',
             tipBilanToggle:'Mostra o nascondi il dettaglio riga per riga di questa esecuzione.',
             tipEtatEncours:'Applicazione in corso…',
@@ -3261,7 +3273,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewMore: n => `… e altre ${n}`,
             confirmClear:'Svuotare la coda?',
             clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
-            confirmApply: (n,m) => `Scrivere ${n} chiusura/e in WME? (${m} lotto/i in coda)`,
+            confirmApply: (n,m) => `Scrivere ${n} chiusura/e in WME? (${m} voce/i in coda)`,
             confirmDel: n => `Eliminare “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Inizio', colEnd:'Fine', colState:'Stato',
             colIdTip:'ID segmento', colNameTip:'Nome segmento',
@@ -3369,7 +3381,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             // Row delete
             tipRowDel:'Rimuovi questa occorrenza',
             // Header badge queue
-            queueBadge: n => n===1?'1 lotto in coda':`${n} lotti in coda`,
+            queueBadge: n => n===1?'1 voce in coda':`${n} voci in coda`,
             // Batch delete tooltip
             tipDelBatch:'Rimuovi questo lotto',
             tipEditLabel:'Modifica l’etichetta di questo lotto',
@@ -3395,6 +3407,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'La mappa si sposta per caricare i segmenti di ogni lotto. Non toccare la mappa durante l’operazione.',
             lotsDone: (added,seg) => `✅ ${added} lotto/i aggiunti alla coda (${seg} segmento/i). Vedi la scheda Configura per rivedere e applicare.`,
             lotsStopped: (added,seg) => `⏹️ Interrotto — ${added} lotto/i già in coda (${seg} segmento/i).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} lotto/i su ${total} non hanno prodotto alcuna voce in coda.`,
+            lotsSkipNone: (rangs) => `Nessun segmento agganciato: lotto/i ${rangs}.`,
+            lotsSkipDir: (rangs) => `Tutti i segmenti in conflitto con il senso scelto: lotto/i ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lotto/i aggiunti (${seg} segmento/i) — ${nSkip} lotto/i senza risultato, dettagli nella scheda Tracciati.`,
             applyLotFocus: (k,n) => `📦 Lotto ${k}/${n}: centro la mappa per caricare i segmenti…`,
             applyLotDone: (k,n) => `📦 Lotto ${k}/${n} applicato. Controlla sulla mappa, poi continua.`,
             applyLotNext:'▶️ Continua (lotto successivo)',
@@ -3725,9 +3741,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Dauer',
             jpnPrefix:'T+',
             tipToggle:'Dauer-Modus\u00A0: eine Dauer eingeben (H:MM) \u2014 Endzeit-Modus\u00A0: die genaue Endzeit eingeben. Zum Umschalten klicken.',
-            bilanPosees:n=>`${n} gesetzt`,
-            bilanPartielles:n=>`${n} teilweise`,
-            bilanEchecs:n=>`${n} fehlgeschlagen`,
+            bilanPosees:n=>`${n} Sperrung(en) gesetzt`,
+            bilanPartielles:(n,f)=>`${n} Paket(e) teilweise — ${f} Sperrung(en) fehlen`,
+            bilanEchecs:(n,f)=>`${n} Paket(e) fehlgeschlagen — ${f} Sperrung(en) nicht gesetzt`,
             bilanInterrompu:'abgebrochen',
             tipBilanToggle:'Die zeilenweise Aufstellung dieses Durchlaufs ein- oder ausblenden.',
             tipEtatEncours:'Wird gesetzt\u2026',
@@ -3799,7 +3815,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewMore: n => `\u2026 und ${n} weitere`,
             confirmClear:'Warteschlange leeren?',
             clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
-            confirmApply: (n,m) => `${n} Sperrung(en) in WME schreiben? (${m} Paket(e) in der Warteschlange)`,
+            confirmApply: (n,m) => `${n} Sperrung(en) in WME schreiben? (${m} Einträge in der Warteschlange)`,
             confirmDel: n => `\u201E${n}\u201C l\u00F6schen?`,
             colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
             colIdTip:'Segment-ID', colNameTip:'Segmentname',
@@ -3907,7 +3923,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             // Zeile l\u00F6schen
             tipRowDel:'Diesen Termin entfernen',
             // Badge Warteschlange
-            queueBadge: n => n===1?'1 Paket in der Warteschlange':`${n} Pakete in der Warteschlange`,
+            queueBadge: n => n===1?'1 Eintrag in der Warteschlange':`${n} Einträge in der Warteschlange`,
             // Paket l\u00F6schen
             tipDelBatch:'Dieses Paket entfernen',
             tipEditLabel:'Bezeichnung dieses Pakets \u00E4ndern',
@@ -3933,6 +3949,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsWhyMoving:'Die Karte bewegt sich, um die Segmente jedes Pakets zu laden. Bewegen Sie die Karte währenddessen nicht.',
             lotsDone: (added,seg) => `✅ ${added} Paket(e) zur Warteschlange hinzugefügt (${seg} Segment(e)). Reiter Einrichten zum Prüfen und Anwenden.`,
             lotsStopped: (added,seg) => `⏹️ Abgebrochen — ${added} Paket(e) bereits in der Warteschlange (${seg} Segment(e)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} von ${total} Paket(en) haben keinen Eintrag erzeugt.`,
+            lotsSkipNone: (rangs) => `Kein Segment erfasst: Paket(e) ${rangs}.`,
+            lotsSkipDir: (rangs) => `Alle Segmente stehen im Konflikt zur gewählten Richtung: Paket(e) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} Paket(e) hinzugefügt (${seg} Segment(e)) — ${nSkip} Paket(e) ohne Ergebnis, Details im Reiter Tracks.`,
             applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
             applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
             applyLotNext:'▶️ Weiter (nächstes Paket)',
@@ -4262,9 +4282,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lblDuration:'Duración',
             jpnPrefix:'D+',
             tipToggle:'Modo Duración : introduce una duración (H:MM) — Modo Hora de fin : introduce la hora exacta de fin. Haz clic para cambiar.',
-            bilanPosees:n=>`${n} aplicados`,
-            bilanPartielles:n=>`${n} parciales`,
-            bilanEchecs:n=>`${n} fallidos`,
+            bilanPosees:n=>`${n} cierre(s) aplicado(s)`,
+            bilanPartielles:(n,f)=>`${n} lote(s) parcial(es) — ${f} cierre(s) que faltan`,
+            bilanEchecs:(n,f)=>`${n} lote(s) fallido(s) — ${f} cierre(s) no aplicados`,
             bilanInterrompu:'interrumpido',
             tipBilanToggle:'Mostrar u ocultar el detalle línea por línea de esta ejecución.',
             tipEtatEncours:'Aplicando…',
@@ -4336,7 +4356,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewMore: n => `… y ${n} más`,
             confirmClear:'¿Vaciar la cola?',
             clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
-            confirmApply: (n,m) => `\u00BFEscribir ${n} cierre(s) en WME? (${m} lote(s) en la cola)`,
+            confirmApply: (n,m) => `¿Escribir ${n} cierre(s) en WME? (${m} entrada(s) en la cola)`,
             confirmDel: n => `¿Eliminar “${n}”?`,
             colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
             colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
@@ -4444,7 +4464,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             // Eliminar fila
             tipRowDel:'Eliminar esta ocurrencia',
             // Insignia de la cola
-            queueBadge: n => n===1?'1 lote en cola':`${n} lotes en cola`,
+            queueBadge: n => n===1?'1 entrada en cola':`${n} entradas en cola`,
             // Eliminar lote
             tipDelBatch:'Eliminar este lote',
             tipEditLabel:'Editar la etiqueta de este lote',
@@ -4470,6 +4490,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotsWhyMoving:'El mapa se mueve para cargar los segmentos de cada lote. No toques el mapa durante la operación.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) añadidos a la cola (${seg} segmento(s)). Ve a la pestaña Configurar para revisar y aplicar.`,
             lotsStopped: (added,seg) => `⏹️ Interrumpido — ${added} lote(s) ya en la cola (${seg} segmento(s)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) no han producido ninguna entrada en la cola.`,
+            lotsSkipNone: (rangs) => `Ningún segmento captado: lote(s) ${rangs}.`,
+            lotsSkipDir: (rangs) => `Todos los segmentos en conflicto con el sentido elegido: lote(s) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) añadidos (${seg} segmento(s)) — ${nSkip} lote(s) sin resultado, detalle en la pestaña Trazas.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
             applyLotNext:'▶️ Continuar (siguiente lote)',
@@ -4799,9 +4823,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração : informe uma duração (H:MM) — Modo Hora de fim : informe a hora exata do fim. Clique para alternar.',
-            bilanPosees:n=>`${n} aplicados`,
-            bilanPartielles:n=>`${n} parciais`,
-            bilanEchecs:n=>`${n} com falha`,
+            bilanPosees:n=>`${n} bloqueio(s) aplicado(s)`,
+            bilanPartielles:(n,f)=>`${n} lote(s) parcial(is) — ${f} bloqueio(s) em falta`,
+            bilanEchecs:(n,f)=>`${n} lote(s) com falha — ${f} bloqueio(s) não aplicados`,
             bilanInterrompu:'interrompido',
             tipBilanToggle:'Mostrar ou ocultar o detalhe linha a linha desta execução.',
             tipEtatEncours:'Aplicando…',
@@ -4873,7 +4897,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             previewMore: n => `… e mais ${n}`,
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
-            confirmApply: (n,m) => `Gravar ${n} bloqueio(s) no WME? (${m} lote(s) na fila)`,
+            confirmApply: (n,m) => `Gravar ${n} bloqueio(s) no WME? (${m} entrada(s) na fila)`,
             confirmDel: n => `Excluir “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -4981,7 +5005,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             // Exclusão de linha
             tipRowDel:'Remover esta ocorrência',
             // Selo de fila no cabeçalho
-            queueBadge: n => n===1?'1 lote na fila':`${n} lotes na fila`,
+            queueBadge: n => n===1?'1 entrada na fila':`${n} entradas na fila`,
             // Tooltip de exclusão de lote
             tipDelBatch:'Remover este lote',
             tipEditLabel:'Editar o rótulo deste lote',
@@ -5007,6 +5031,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsWhyMoving:'O mapa se move para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja a aba Configurar para revisar e aplicar.`,
             lotsStopped: (added,seg) => `⏹️ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) não geraram nenhuma entrada na fila.`,
+            lotsSkipNone: (rangs) => `Nenhum segmento captado: lote(s) ${rangs}.`,
+            lotsSkipDir: (rangs) => `Todos os segmentos em conflito com o sentido escolhido: lote(s) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) adicionados (${seg} segmento(s)) — ${nSkip} lote(s) sem resultado, detalhes na aba Trajetos.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
             applyLotNext:'▶️ Continuar (próximo lote)',
@@ -5336,9 +5364,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lblDuration:'Duração',
             jpnPrefix:'D+',
             tipToggle:'Modo Duração: introduza uma duração (H:MM) — Modo Hora de fim: introduza a hora exata de fim. Clique para alternar.',
-            bilanPosees:n=>`${n} aplicados`,
-            bilanPartielles:n=>`${n} parciais`,
-            bilanEchecs:n=>`${n} falhados`,
+            bilanPosees:n=>`${n} corte(s) aplicado(s)`,
+            bilanPartielles:(n,f)=>`${n} lote(s) parcial(is) — ${f} corte(s) em falta`,
+            bilanEchecs:(n,f)=>`${n} lote(s) falhados — ${f} corte(s) não aplicados`,
             bilanInterrompu:'interrompido',
             tipBilanToggle:'Mostrar ou ocultar o detalhe linha a linha desta execução.',
             tipEtatEncours:'A aplicar…',
@@ -5410,7 +5438,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             previewMore: n => `… e mais ${n}`,
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
-            confirmApply: (n,m) => `Gravar ${n} corte(s) no WME? (${m} lote(s) na fila)`,
+            confirmApply: (n,m) => `Gravar ${n} corte(s) no WME? (${m} entrada(s) na fila)`,
             confirmDel: n => `Eliminar “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -5518,7 +5546,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             // Row delete
             tipRowDel:'Remover esta ocorrência',
             // Header badge queue
-            queueBadge: n => n===1?'1 lote na fila':`${n} lotes na fila`,
+            queueBadge: n => n===1?'1 entrada na fila':`${n} entradas na fila`,
             // Batch delete tooltip
             tipDelBatch:'Remover este lote',
             tipEditLabel:'Editar a etiqueta deste lote',
@@ -5544,6 +5572,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsWhyMoving:'O mapa desloca-se para carregar os segmentos de cada lote. Não mexa no mapa durante a operação.',
             lotsDone: (added,seg) => `✅ ${added} lote(s) adicionados à fila (${seg} segmento(s)). Veja o separador Configurar para rever e aplicar.`,
             lotsStopped: (added,seg) => `⏹️ Interrompido — ${added} lote(s) já na fila (${seg} segmento(s)).`,
+            lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) não geraram nenhuma entrada na fila.`,
+            lotsSkipNone: (rangs) => `Nenhum segmento captado: lote(s) ${rangs}.`,
+            lotsSkipDir: (rangs) => `Todos os segmentos em conflito com o sentido escolhido: lote(s) ${rangs}.`,
+            lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) adicionados (${seg} segmento(s)) — ${nSkip} lote(s) sem resultado, detalhes no separador Trajetos.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
             applyLotNext:'▶️ Continuar (lote seguinte)',
@@ -7975,6 +8007,48 @@ const refreshMTE=()=>{
     if(current) sel.value=current;
 };
 // ═══════════════════════════════════════════════════════════════════════════
+//  POSITION DES CALQUES WCT DANS LA PILE OPENLAYERS
+// ═══════════════════════════════════════════════════════════════════════════
+// W.map.addLayer empile dans l'ordre d'ajout : tout calque ajouté APRÈS le nôtre
+// passe devant. Nos cinq calques (anneaux, tracés, trous de couverture, zone)
+// n'imposaient jamais leur position — ils dépendaient donc de l'ordre de
+// chargement des autres scripts.
+// ⚠️ Signalé par MisterLogik le 14/08/2026, et REPRODUIT chez lui : le même tracé
+// est délavé avec WME Color Highlights Mod actif et vif sans lui. Ce n'était donc
+// pas un manque de contraste — c'était un calque passé dessous.
+// Le SDK n'expose rien pour placer un calque dans la pile (vérifié dans sa doc et
+// dans WME Geometries, qui laisse le SDK décider). On reste donc en OpenLayers,
+// comme le reste de nos calques.
+// ⚠️ Remonter une seule fois ne suffit pas : un script chargé plus tard repasserait
+// devant. On se réabonne à l'événement « addlayer » de la carte pour refaire le
+// placement à CHAQUE calque ajouté, par qui que ce soit.
+const _wctLayers = new Set();
+const _wctRaiseLayers = () => {
+    try {
+        const top = W.map.layers.length - 1;
+        for(const l of _wctLayers){
+            if(l && l.map) W.map.setLayerIndex(l, top);
+        }
+    } catch(e){}
+};
+let _wctRaiseHooked = false;
+// Ajoute un calque WCT et le maintient au-dessus. Remplace W.map.addLayer :
+// passer par lui est le seul moyen de ne pas réintroduire le défaut au calque suivant.
+const wctAddLayer = (layer) => {
+    W.map.addLayer(layer);
+    _wctLayers.add(layer);
+    if(!_wctRaiseHooked){
+        // setLayerIndex ne déclenche pas « addlayer » : pas de boucle.
+        try { W.map.events.register('addlayer', null, _wctRaiseLayers); _wctRaiseHooked = true; }
+        catch(e){ log('raise hook: '+e.message); }
+    }
+    _wctRaiseLayers();
+    return layer;
+};
+// Un calque détruit doit sortir du jeu, sinon on garderait une référence morte
+// et setLayerIndex lèverait à chaque ajout de calque tiers.
+const wctForgetLayer = (layer) => { if(layer) _wctLayers.delete(layer); };
+// ═══════════════════════════════════════════════════════════════════════════
 //  SEARCH (onglet Recherche)
 // ═══════════════════════════════════════════════════════════════════════════
 // ─── Cercles « ruban de chantier » autour des nœuds des virages trouvés ─────
@@ -7986,7 +8060,7 @@ const SRC_RING_RADIUS_M = 18;
 let _srcRingLayer = null;
 const _srcClearRings = () => {
     try{
-        if(_srcRingLayer){ W.map.removeLayer(_srcRingLayer); _srcRingLayer.destroy(); }
+        if(_srcRingLayer){ wctForgetLayer(_srcRingLayer); W.map.removeLayer(_srcRingLayer); _srcRingLayer.destroy(); }
     }catch(e){}
     _srcRingLayer = null;
 };
@@ -8011,7 +8085,7 @@ const _srcDrawRings = (nodes) => {
         });
         _srcRingLayer=new OpenLayers.Layer.Vector('WCT_SRC_RINGS',{displayInLayerSwitcher:false});
         _srcRingLayer.addFeatures(feats);
-        W.map.addLayer(_srcRingLayer);
+        wctAddLayer(_srcRingLayer);
     }catch(e){ log('src rings: '+e.message); }
 };
 // Nœud commun à deux segments (celui que traverse le virage). null si introuvable.
@@ -9015,9 +9089,11 @@ const COUL_BILAN={ ok:'#43a047', partiel:'#f57c00', echec:'#e53935', info:'#8e24
 const _afficherBilan=(journal,compte)=>{
     const box=$id('wct-apply-log'); if(!box) return;
     const anomalies=journal.filter(l=>l.niveau==='partiel'||l.niveau==='echec').length;
+    // ⚠️ Chaque nombre dit SON unité. « 322 posée(s) · 6 en échec » mettait des fermetures
+    // en face d'entrées, et se lisait donc comme 6 fermetures ratées là où il y en avait 54.
     const parts=[`${APPLY_ETAT.ok} ${t('bilanPosees',compte.done)}`];
-    if(compte.partiels) parts.push(`${APPLY_ETAT.partiel} ${t('bilanPartielles',compte.partiels)}`);
-    if(compte.echecs)   parts.push(`${APPLY_ETAT.echec} ${t('bilanEchecs',compte.echecs)}`);
+    if(compte.partiels) parts.push(`${APPLY_ETAT.partiel} ${t('bilanPartielles',compte.partiels,compte.fermManques||0)}`);
+    if(compte.echecs)   parts.push(`${APPLY_ETAT.echec} ${t('bilanEchecs',compte.echecs,compte.fermErreurs||0)}`);
     if(compte.interrompu) parts.push(t('bilanInterrompu'));
     const ouvert=anomalies>0||!!compte.interrompu;
     box.className='wct-bilan';
@@ -9097,6 +9173,13 @@ const applyQueue=async()=>{
     // `done`/`failed` comptent des occurrences et servent la barre de progression ; ils ne
     // disent pas si UNE entrée est passée, partiellement passée, ou pas passée du tout.
     let entryOk=0, entryManques=0, entryErreurs=0;
+    // ⚠️ Cumuls GLOBAUX, en fermetures. Le bilan affichait « 322 posée(s) · 6 en échec »
+    // en mettant côte à côte deux unités : `done` compte des fermetures, `nbEchecs` des
+    // ENTRÉES. Sur le cas de MisterLogik du 14/08/2026, ces « 6 » valaient 54 fermetures
+    // ratées — le bilan minimisait l'échec d'un facteur 9, sur une écriture qu'on ne
+    // sait pas défaire. On garde le décompte par entrée (c'est la granularité de la
+    // carte) mais on dit aussi ce qu'il pèse.
+    let totManques=0, totErreurs=0;
     const nbPartiels=[], nbEchecs=[];
     const clotureEntree=(idx)=>{
         const etat=_etatEntree(entryOk,entryManques,entryErreurs);
@@ -9173,7 +9256,7 @@ const applyQueue=async()=>{
                 // sémantique (from → to via le nœud), qui, elle, survit.
                 const resolus=_resolveTurnIds(e);
                 if(!resolus.length){
-                    failed+=e.turnIds.length*e.closures.length; upd(done+failed);
+                    failed+=e.turnIds.length*e.closures.length; totErreurs+=e.turnIds.length*e.closures.length; upd(done+failed);
                     logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'echec');
                     entryErreurs+=e.turnIds.length*e.closures.length;
                     clotureEntree(idxEntree);
@@ -9190,7 +9273,7 @@ const applyQueue=async()=>{
                     await new Promise(res=>{
                         addTurnClosure({turnIds:ids,reason:e.config.reason,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
                             ()=>{done+=ids.length;entryOk+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'ok');res();},
-                            (errs)=>{failed+=ids.length;entryErreurs+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
+                            (errs)=>{failed+=ids.length;entryErreurs+=ids.length;totErreurs+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                     });
                 }
                 clotureEntree(idxEntree);
@@ -9218,7 +9301,7 @@ const applyQueue=async()=>{
                             // segments sur 62 s'affichait « ✅ » et en comptait 62.
                             const poses=bilan?bilan.poses:activeSegs.length;
                             const manques=activeSegs.length-poses;
-                            done+=poses; failed+=manques; upd(done+failed);
+                            done+=poses; failed+=manques; totManques+=manques; upd(done+failed);
                             const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
                             // Un succès partiel n'est PAS un succès : il se voit en orange et
                             // il se chiffre, parce que l'éditeur doit savoir qu'il faut repasser.
@@ -9227,7 +9310,7 @@ const applyQueue=async()=>{
                             else logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'ok');
                             res();
                         },
-                        (errs)=>{failed+=activeSegs.length;entryErreurs+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
+                        (errs)=>{failed+=activeSegs.length;entryErreurs+=activeSegs.length;totErreurs+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                 });
             }
             clotureEntree(idxEntree);
@@ -9255,7 +9338,8 @@ const applyQueue=async()=>{
         // ⚠️ Le bilan s'affiche DANS le finally : une exception au milieu de l'application
         // ne doit pas emporter avec elle le compte rendu de ce qui a déjà été écrit sur la
         // carte. C'est justement là qu'on en a le plus besoin.
-        _afficherBilan(journal,{ done, partiels:nbPartiels.length, echecs:nbEchecs.length, interrompu:_applyAborted });
+        _afficherBilan(journal,{ done, partiels:nbPartiels.length, echecs:nbEchecs.length,
+                                 fermManques:totManques, fermErreurs:totErreurs, interrompu:_applyAborted });
         // Les entrées jamais atteintes (interruption) restent SANS état : un ✅ ou un ❌ y
         // serait faux, et un blanc se lit correctement comme « pas traité ».
     }
@@ -9832,7 +9916,7 @@ const _traceBuildOL = (trackId, sampledPts, color) => {
         const feature = new OpenLayers.Feature.Vector(line, null, style);
         const layer   = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
         layer.addFeatures([feature]);
-        W.map.addLayer(layer);
+        wctAddLayer(layer);
         return layer;
     } catch(e) {
         return null;
@@ -9888,7 +9972,7 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => 
         if(olFeatures.length === 0) return null;
         const layer = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
         layer.addFeatures(olFeatures);
-        W.map.addLayer(layer);
+        wctAddLayer(layer);
         return layer;
     } catch(e) {
         return null;
@@ -9999,7 +10083,7 @@ const traceRemoveTrack = (trackId) => {
     const idx = _traceTracks.findIndex(t => t.trackId === trackId);
     if(idx === -1) return;
     const trk = _traceTracks[idx];
-    if(trk.olLayer) { W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
+    if(trk.olLayer) { wctForgetLayer(trk.olLayer); W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
     _traceTracks.splice(idx, 1);
     // Supprimer le fichier parent s'il n'a plus de tracks
     const fileId = trk.fileId;
@@ -10014,7 +10098,7 @@ const traceRemoveTrack = (trackId) => {
 const traceRemoveFile = (fileId) => {
     const toRemove = _traceTracks.filter(t => t.fileId === fileId);
     toRemove.forEach(trk => {
-        if(trk.olLayer) { W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
+        if(trk.olLayer) { wctForgetLayer(trk.olLayer); W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
     });
     _traceTracks = _traceTracks.filter(t => t.fileId !== fileId);
     _traceFiles  = _traceFiles.filter(f => f.fileId !== fileId);
@@ -10204,7 +10288,7 @@ const _covGroupByNode = (segObjs) => {
 // Efface le calque de trous
 const _covClearGaps = () => {
     if(_coverageLayer){
-        try { W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){}
+        try { wctForgetLayer(_coverageLayer); W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){}
         _coverageLayer = null;
     }
     const res = document.getElementById('wct-coverage-result');
@@ -10213,7 +10297,7 @@ const _covClearGaps = () => {
 // Dessine les SEGMENTS empruntés non sélectionnés (suit la géométrie réelle des routes)
 // magenta pointillé + halo blanc — calque dédié WCT_COVERAGE_GAPS
 const _covDrawGaps = (segObjs) => {
-    if(_coverageLayer){ try { W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){} _coverageLayer = null; }
+    if(_coverageLayer){ try { wctForgetLayer(_coverageLayer); W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){} _coverageLayer = null; }
     if(!segObjs || !segObjs.length) return;
     try {
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
@@ -10233,7 +10317,7 @@ const _covDrawGaps = (segObjs) => {
         });
         const layer = new OpenLayers.Layer.Vector('WCT_COVERAGE_GAPS', { displayInLayerSwitcher:false });
         layer.addFeatures(feats);
-        W.map.addLayer(layer);
+        wctAddLayer(layer);
         _coverageLayer = layer;
     } catch(e){ console.error('WCT coverage draw:', e); }
 };
@@ -10781,6 +10865,7 @@ const traceGenerateLots = async (fileId) => {
     _sweepShowLotProgress(0, lots.length, 0, 0);
 
     let added = 0, totalSeg = 0;
+    const skipped = [];   // lots parcourus qui n'ont produit aucune entrée de file
     try {
         for(let k=0;k<lots.length;k++){
             if(_sweepAborted) break;
@@ -10798,18 +10883,26 @@ const traceGenerateLots = async (fileId) => {
                 _covAccumulate(_covDensify(lot.pts, COVERAGE_DENSIFY_M), index, acc);
             }
             const lotSegIds = _covFinalizeUsed(acc);
-            if(lotSegIds.length){
-                const dirConflicts = getSegDirConflicts(lotSegIds, parseInt(cfg.direction));
-                const validIds = lotSegIds.filter(id => !dirConflicts.find(c => c.sid === Number(id)));
-                if(validIds.length){
-                    const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:added+1, lotKind:'trace', label:`📦 ${cfg.reason||t('defaultClosure')} · #${added+1}`};
-                    if(dirConflicts.length) entry.excludedSegs = dirConflicts;
-                    // Les segments viennent d'être chargés (carte centrée) → sains à cet instant
-                    entry.nullSegs = new Set(); entry.recentSegs = new Set();
-                    queue.push(entry);
-                    added++; totalSeg += validIds.length;
-                    renderQueue();
-                }
+            // ⚠️ Un lot qui ne capte rien était sauté SANS UN MOT, et l'entrée suivante
+            // prenait son numéro (l'étiquette portait « added+1 », pas le rang du lot).
+            // Si le lot 1 ratait, l'entrée « #1 » de la file était en fait le lot 2 : c'est
+            // exactement ce que MisterLogik a décrit le 14/08/2026 — « le début du parcours
+            // n'avait pas été importé ». Le lot porte désormais SON rang, et ce qui est
+            // sauté est compté puis annoncé dans le bilan.
+            const dirConflicts = lotSegIds.length ? getSegDirConflicts(lotSegIds, parseInt(cfg.direction)) : [];
+            const validIds = lotSegIds.filter(id => !dirConflicts.find(c => c.sid === Number(id)));
+            if(validIds.length){
+                const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:k+1, lotKind:'trace', label:`📦 ${cfg.reason||t('defaultClosure')} · #${k+1}/${lots.length}`};
+                if(dirConflicts.length) entry.excludedSegs = dirConflicts;
+                // Les segments viennent d'être chargés (carte centrée) → sains à cet instant
+                entry.nullSegs = new Set(); entry.recentSegs = new Set();
+                queue.push(entry);
+                added++; totalSeg += validIds.length;
+                renderQueue();
+            } else {
+                // Deux causes distinctes, deux messages distincts : « aucun segment capté »
+                // n'appelle pas le même geste que « tous en conflit de sens ».
+                skipped.push({ idx:k+1, cause: lotSegIds.length ? 'dir' : 'none' });
             }
             _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
         }
@@ -10819,8 +10912,26 @@ const traceGenerateLots = async (fileId) => {
     const aborted = _sweepAborted;
     _sweepRunning = false;
     const color = aborted ? '#f57c00' : 'var(--wct-green,#2e7d32)';
-    _sweepShowText(`<div style="color:${color};font-weight:600">${escHtml(t(aborted?'lotsStopped':'lotsDone', added, totalSeg))}</div>`);
-    showToast(t(aborted?'lotsStopped':'lotsDone', added, totalSeg), 4000, aborted?'#f57c00':'#43a047');
+    // ⚠️ Le bilan n'annonçait que ce qui avait réussi. Un tracé dont la moitié des lots
+    // ne captent rien affichait donc un vert franc — un verdict qui rassure au lieu de
+    // dire ce qui est vrai. Les lots sautés sont nommés par leur rang : c'est la seule
+    // information qui permet d'aller voir lesquels, et de les reprendre au 🧲.
+    let bilan = `<div style="color:${color};font-weight:600">${escHtml(t(aborted?'lotsStopped':'lotsDone', added, totalSeg))}</div>`;
+    if(skipped.length){
+        const rangs   = n => skipped.filter(s=>s.cause===n).map(s=>s.idx).join(', ');
+        const nAucun  = skipped.filter(s=>s.cause==='none').length;
+        const nSens   = skipped.length - nAucun;
+        bilan += `<div style="color:#f57c00;margin-top:4px">${escHtml(t('lotsSkipped', skipped.length, lots.length))}`;
+        if(nAucun) bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipNone', rangs('none')))}</div>`;
+        if(nSens)  bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipDir',  rangs('dir')))}</div>`;
+        bilan += `</div>`;
+    }
+    _sweepShowText(bilan);
+    // Le toast est le seul message lu à cet instant : il doit porter l'alerte, pas
+    // seulement le succès (le panneau Tracés peut être masqué, cf. _lotSelect).
+    const tst = skipped.length ? t('lotsDoneSkip', added, totalSeg, skipped.length)
+                               : t(aborted?'lotsStopped':'lotsDone', added, totalSeg);
+    showToast(tst, 4000, (aborted||skipped.length)?'#f57c00':'#43a047');
     updateFab(); updateCountryInfo();
 };
 // Lot en cours de traitement : {trackId, lotIdx}. Mémorisé quand on sélectionne un
@@ -11338,7 +11449,7 @@ const ZONE_STYLES = {
 };
 let _zoneLayer = null;
 const _zoneClearLayer = () => {
-    try { if(_zoneLayer){ W.map.removeLayer(_zoneLayer); _zoneLayer.destroy(); } } catch(e){}
+    try { if(_zoneLayer){ wctForgetLayer(_zoneLayer); W.map.removeLayer(_zoneLayer); _zoneLayer.destroy(); } } catch(e){}
     _zoneLayer = null;
 };
 const _zoneDrawLayer = (rings, mode) => {
@@ -11355,7 +11466,7 @@ const _zoneDrawLayer = (rings, mode) => {
         _zoneLayer.addFeatures([ new OpenLayers.Feature.Vector(poly, null, {
             strokeColor: st.trait, strokeWidth: 3, strokeOpacity: 0.95, strokeDashstyle: st.tirets,
             fillColor: st.trait, fillOpacity: 0.12 }) ]);
-        W.map.addLayer(_zoneLayer);
+        wctAddLayer(_zoneLayer);
     } catch(e){ log('zone calque: ' + e.message); }
 };
 // Anneaux tels qu'ils sont en cours d'édition : le contour repris, plus les trous
