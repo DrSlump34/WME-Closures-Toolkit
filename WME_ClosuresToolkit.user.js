@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.12.01
+// @version      1.12.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -8023,13 +8023,35 @@ const refreshMTE=()=>{
 // devant. On se réabonne à l'événement « addlayer » de la carte pour refaire le
 // placement à CHAQUE calque ajouté, par qui que ce soit.
 const _wctLayers = new Set();
+// ⚠️⚠️ CETTE FONCTION N'A RIEN FAIT DU TOUT EN 1.12.00 NI EN 1.12.01, DEUX VERSIONS
+// PUBLIÉES. Elle lisait `W.map.layers.length` : W.map est une FAÇADE de WME, pas
+// l'objet OpenLayers, et elle n'a AUCUNE propriété `layers`. La première ligne levait
+// donc un TypeError à chaque appel, que le `catch` vide avalait — le correctif annoncé
+// sur les trois canaux n'a jamais placé un seul calque, et MisterLogik l'a constaté.
+// Mesuré dans WME le 14/08/2026 : W.map expose addLayer / getLayerIndex / setLayerIndex
+// / getLayersByName / events, et rien d'autre pour la pile. `moveLayerToTop` existe
+// mais NE REMONTE PAS le calque (index inchangé, vérifié), et appelé avec un nom il
+// lève. Le sommet s'obtient en demandant un index hors borne : OpenLayers le ramène à
+// la taille de la pile. Mesuré : setLayerIndex(l, 9999) → index 85 sur 86 calques.
+const WCT_LAYER_TOP = 9999;
+let _wctRaiseFailed = false;
 const _wctRaiseLayers = () => {
-    try {
-        const top = W.map.layers.length - 1;
-        for(const l of _wctLayers){
-            if(l && l.map) W.map.setLayerIndex(l, top);
+    for(const l of _wctLayers){
+        if(!l || !l.map) continue;
+        try {
+            W.map.setLayerIndex(l, WCT_LAYER_TOP);
+            // ⚠️ Ne pas se contenter d'appeler : RELIRE. C'est le contrôle qui manquait —
+            // un placement qui échoue sans un mot est exactement ce qui a fait publier
+            // deux versions avec un correctif inerte. Signalé UNE SEULE fois : l'événement
+            // « addlayer » se déclenche souvent, un log par appel noierait la console.
+            if(W.map.getLayerIndex(l) < W.map.getLayerIndex(W.map.roadLayer) && !_wctRaiseFailed){
+                _wctRaiseFailed = true;
+                log('ordre des calques : '+l.name+' reste sous les routes (index '+W.map.getLayerIndex(l)+')');
+            }
+        } catch(e){
+            if(!_wctRaiseFailed){ _wctRaiseFailed = true; log('ordre des calques impossible : '+e.message); }
         }
-    } catch(e){}
+    }
 };
 let _wctRaiseHooked = false;
 // Ajoute un calque WCT et le maintient au-dessus. Remplace W.map.addLayer :
