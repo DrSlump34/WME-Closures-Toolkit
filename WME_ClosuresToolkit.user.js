@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.12.02
+// @version      1.12.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1779,6 +1779,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotsSkipped: (n,total) => `⚠️ ${n} lot(s) sur ${total} n'ont produit aucune entrée dans la file.`,
             lotsSkipNone: (rangs) => `Aucun segment capté : lot(s) ${rangs}.`,
             lotsSkipDir: (rangs) => `Tous les segments en conflit de sens : lot(s) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Erreur pendant le traitement : lot(s) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lot(s) ajoutés (${seg} segment(s)) — ${nSkip} lot(s) sans résultat, détail dans l'onglet Tracés.`,
             applyLotFocus: (k,n) => `📦 Lot ${k}/${n} : recadrage de la carte pour charger les segments…`,
             applyLotDone: (k,n) => `📦 Lot ${k}/${n} appliqué. Vérifiez sur la carte, puis continuez.`,
@@ -1793,6 +1794,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotLoading: (i,n,f,tot) => `Lot ${i}/${n} : chargement de la zone… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
             lotNone:'Aucun segment capté dans ce lot.',
+            lotError: m => `❌ Échec de la sélection du lot : ${m}`,
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
             polyBtn:'✏️ Tracer une zone',
             tipPolyBtn:'Tracer un polygone sur la carte : tous les segments dont plus de la moitié est à l’intérieur seront sélectionnés',
@@ -2322,6 +2324,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsSkipped: (n,total) => `⚠️ ${n} of ${total} batch(es) produced no queue entry.`,
             lotsSkipNone: (rangs) => `No segment matched: batch(es) ${rangs}.`,
             lotsSkipDir: (rangs) => `All segments conflict with the chosen direction: batch(es) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Error while processing: batch(es) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} batch(es) added (${seg} segment(s)) — ${nSkip} batch(es) with no result, details in the Tracks tab.`,
             applyLotFocus: (k,n) => `📦 Batch ${k}/${n}: centering the map to load the segments…`,
             applyLotDone: (k,n) => `📦 Batch ${k}/${n} applied. Check on the map, then continue.`,
@@ -2336,6 +2339,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Batch ${i}/${n}: loading the area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
             lotNone:'No segment captured in this batch.',
+            lotError: m => `❌ Batch selection failed: ${m}`,
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
             polyBtn:'✏️ Draw an area',
             tipPolyBtn:'Draw a polygon on the map: every segment more than half inside it will be selected',
@@ -2869,6 +2873,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsSkipped: (n,total) => `⚠️ ${n} מתוך ${total} מנות לא יצרו רשומה בתור.`,
             lotsSkipNone: (rangs) => `לא נמצא אף מקטע: מנות ${rangs}.`,
             lotsSkipDir: (rangs) => `כל המקטעים בסתירה לכיוון שנבחר: מנות ${rangs}.`,
+            lotsSkipErr: (rangs) => `שגיאה בעיבוד: מנות ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} מנות נוספו (${seg} מקטעים) — ${nSkip} מנות ללא תוצאה, פירוט בלשונית המסלולים.`,
             applyLotFocus: (k,n) => `📦 מנה ${k}/${n}: ממרכז את המפה כדי לטעון את המקטעים…`,
             applyLotDone: (k,n) => `📦 מנה ${k}/${n} יושמה. בדוק במפה, ואז המשך.`,
@@ -2883,6 +2888,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `מנה ${i}/${n}: טוען את האזור… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
             lotNone:'לא נלכד מקטע במנה זו.',
+            lotError: m => `❌ בחירת המנה נכשלה: ${m}`,
             lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
             polyBtn:'✏️ שרטט אזור',
             tipPolyBtn:'שרטט מצולע על המפה: כל מקטע שיותר ממחציתו בתוכו ייבחר',
@@ -3410,6 +3416,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsSkipped: (n,total) => `⚠️ ${n} lotto/i su ${total} non hanno prodotto alcuna voce in coda.`,
             lotsSkipNone: (rangs) => `Nessun segmento agganciato: lotto/i ${rangs}.`,
             lotsSkipDir: (rangs) => `Tutti i segmenti in conflitto con il senso scelto: lotto/i ${rangs}.`,
+            lotsSkipErr: (rangs) => `Errore durante l’elaborazione: lotto/i ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lotto/i aggiunti (${seg} segmento/i) — ${nSkip} lotto/i senza risultato, dettagli nella scheda Tracciati.`,
             applyLotFocus: (k,n) => `📦 Lotto ${k}/${n}: centro la mappa per caricare i segmenti…`,
             applyLotDone: (k,n) => `📦 Lotto ${k}/${n} applicato. Controlla sulla mappa, poi continua.`,
@@ -3424,6 +3431,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Lotto ${i}/${n}: caricamento dell’area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento/i selezionati. Imposta la chiusura, poi “Convalida”.`,
             lotNone:'Nessun segmento catturato in questo lotto.',
+            lotError: m => `❌ Selezione del lotto non riuscita: ${m}`,
             lotNextHint: (i,n) => `📦 Prossimo lotto da gestire: ${i}/${n}.`,
             polyBtn:'✏️ Disegna un’area',
             tipPolyBtn:'Disegna un poligono sulla mappa: verrà selezionato ogni segmento che vi si trova per più di metà',
@@ -3952,6 +3960,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotsSkipped: (n,total) => `⚠️ ${n} von ${total} Paket(en) haben keinen Eintrag erzeugt.`,
             lotsSkipNone: (rangs) => `Kein Segment erfasst: Paket(e) ${rangs}.`,
             lotsSkipDir: (rangs) => `Alle Segmente stehen im Konflikt zur gewählten Richtung: Paket(e) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Fehler bei der Verarbeitung: Paket(e) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} Paket(e) hinzugefügt (${seg} Segment(e)) — ${nSkip} Paket(e) ohne Ergebnis, Details im Reiter Tracks.`,
             applyLotFocus: (k,n) => `📦 Paket ${k}/${n}: Karte wird zentriert, um die Segmente zu laden…`,
             applyLotDone: (k,n) => `📦 Paket ${k}/${n} angewendet. Auf der Karte prüfen, dann fortfahren.`,
@@ -3966,6 +3975,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Paket ${i}/${n}: Bereich wird geladen… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
             lotNone:'Kein Segment in diesem Paket erfasst.',
+            lotError: m => `❌ Losauswahl fehlgeschlagen: ${m}`,
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
             polyBtn:'✏️ Bereich zeichnen',
             tipPolyBtn:'Zeichne ein Polygon auf der Karte: Jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt',
@@ -4493,6 +4503,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) no han producido ninguna entrada en la cola.`,
             lotsSkipNone: (rangs) => `Ningún segmento captado: lote(s) ${rangs}.`,
             lotsSkipDir: (rangs) => `Todos los segmentos en conflicto con el sentido elegido: lote(s) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Error durante el procesamiento: lote(s) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) añadidos (${seg} segmento(s)) — ${nSkip} lote(s) sin resultado, detalle en la pestaña Trazas.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centrando el mapa para cargar los segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Revisa en el mapa y continúa.`,
@@ -4507,6 +4518,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: cargando la zona… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
             lotNone:'Ningún segmento captado en este lote.',
+            lotError: m => `❌ No se pudo seleccionar el lote: ${m}`,
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
             polyBtn:'✏️ Dibujar una zona',
             tipPolyBtn:'Dibuja un polígono en el mapa: se seleccionará todo segmento que quede dentro en más de la mitad',
@@ -5034,6 +5046,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) não geraram nenhuma entrada na fila.`,
             lotsSkipNone: (rangs) => `Nenhum segmento captado: lote(s) ${rangs}.`,
             lotsSkipDir: (rangs) => `Todos os segmentos em conflito com o sentido escolhido: lote(s) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Erro durante o processamento: lote(s) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) adicionados (${seg} segmento(s)) — ${nSkip} lote(s) sem resultado, detalhes na aba Trajetos.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: centralizando o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Confira no mapa e continue.`,
@@ -5048,6 +5061,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: carregando a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
             tipPolyBtn:'Desenhe um polígono no mapa: todo segmento com mais da metade dentro dele será selecionado',
@@ -5575,6 +5589,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotsSkipped: (n,total) => `⚠️ ${n} de ${total} lote(s) não geraram nenhuma entrada na fila.`,
             lotsSkipNone: (rangs) => `Nenhum segmento captado: lote(s) ${rangs}.`,
             lotsSkipDir: (rangs) => `Todos os segmentos em conflito com o sentido escolhido: lote(s) ${rangs}.`,
+            lotsSkipErr: (rangs) => `Erro durante o processamento: lote(s) ${rangs}.`,
             lotsDoneSkip: (added,seg,nSkip) => `⚠️ ${added} lote(s) adicionados (${seg} segmento(s)) — ${nSkip} lote(s) sem resultado, detalhes no separador Trajetos.`,
             applyLotFocus: (k,n) => `📦 Lote ${k}/${n}: a centrar o mapa para carregar os segmentos…`,
             applyLotDone: (k,n) => `📦 Lote ${k}/${n} aplicado. Verifique no mapa e continue.`,
@@ -5589,6 +5604,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: a carregar a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
             tipPolyBtn:'Desenhe um polígono no mapa: será selecionado todo o segmento que fique no interior em mais de metade',
@@ -10574,10 +10590,18 @@ const _covBuildIndex = (candList) => {
 };
 // Accumulateur vide : compteurs de points et étendue longée, cumulés sur un ou plusieurs
 // appels (le balayage accumule à travers les tronçons ; la couverture fait un seul appel).
-const _covNewAcc = () => ({ cnt:{}, spanMin:{}, spanMax:{}, segLen:{} });
+// `gMin`/`gMax` retiennent le rang GLOBAL du premier et du dernier point rattaché, et
+// `segFirst`/`segLast` leurs segments : c'est ce qui permet d'exempter les EXTRÉMITÉS DU
+// PARCOURS du seuil d'étendue (voir _covFinalizeUsed).
+const _covNewAcc = () => ({ cnt:{}, spanMin:{}, spanMax:{}, segLen:{},
+                            gMin:undefined, gMax:undefined, segFirst:null, segLast:null });
 // Rattache chaque point au segment le plus proche (≤ snap) via la grille, et met à jour
 // l'accumulateur (nombre de points + étendue min/max le long du segment).
-const _covAccumulate = (evalPts, index, acc) => {
+// ⚠️ `idxBase` = rang du premier point de `evalPts` DANS LE PARCOURS ENTIER. Il vaut 0
+// quand on repasse toujours les mêmes points (lots), mais traceSweepSelect envoie une
+// TRANCHE différente à chaque tour : sans décalage, son point 0 passerait pour le début
+// du parcours à chaque tranche, et l'exemption d'extrémité s'appliquerait partout.
+const _covAccumulate = (evalPts, index, acc, idxBase = 0) => {
     const { edges, grid, cellDeg, segPolyLen } = index;
     for(const id in segPolyLen){ if(acc.segLen[id] === undefined) acc.segLen[id] = segPolyLen[id]; }
     for(let i=0;i<evalPts.length;i++){
@@ -10599,16 +10623,54 @@ const _covAccumulate = (evalPts, index, acc) => {
             acc.cnt[id] = (acc.cnt[id]||0) + 1;
             if(acc.spanMin[id] === undefined || d < acc.spanMin[id]) acc.spanMin[id] = d;
             if(acc.spanMax[id] === undefined || d > acc.spanMax[id]) acc.spanMax[id] = d;
+            const g = idxBase + i;   // rang du point dans le PARCOURS, pas dans l'appel
+            if(acc.gMin === undefined || g < acc.gMin){ acc.gMin = g; acc.segFirst = id; }
+            if(acc.gMax === undefined || g > acc.gMax){ acc.gMax = g; acc.segLast  = id; }
         }
     }
 };
 // Segment "emprunté" = ≥ MIN_PTS points ET étendue couverte ≥ SPAN_FRAC de sa longueur.
-const _covFinalizeUsed = (acc) => Object.keys(acc.cnt).filter(id => {
+// ⚠️ `bornes` = {debut, fin} : ce paquet de points est-il le DÉBUT / la FIN du parcours ?
+// Un GPS démarre et s'arrête au milieu d'un segment, jamais sur un nœud : le seuil
+// d'étendue rejette donc PAR CONSTRUCTION le premier et le dernier segment d'un tracé.
+// C'est le défaut signalé par MisterLogik le 14/08/2026 (« il n'a sélectionné que la
+// fin »), resté ouvert faute d'arbitrage ; tranché par l'auteur le 15/08 : exempter les
+// deux extrémités du PARCOURS, et elles seules. Baisser le seuil globalement aurait
+// ramené le faux positif de carrefour que ce seuil existe justement pour écarter.
+// ⚠️ L'exemption ne lève QUE le seuil d'étendue : COVERAGE_MIN_PTS s'applique toujours,
+// sinon un segment simplement frôlé à l'amorce du tracé entrerait dans la sélection.
+const _covFinalizeUsed = (acc, bornes) => Object.keys(acc.cnt).filter(id => {
     if(acc.cnt[id] < COVERAGE_MIN_PTS) return false;
     const len = acc.segLen[id] || 0;
+    if(!(len > 0)) return false;
+    if(bornes){
+        if(bornes.debut && acc.segFirst !== null && Number(id) === Number(acc.segFirst)) return true;
+        if(bornes.fin   && acc.segLast  !== null && Number(id) === Number(acc.segLast))  return true;
+    }
     const span = acc.spanMax[id] - acc.spanMin[id];
-    return len > 0 && (span / len) >= COVERAGE_SPAN_FRAC;
+    return (span / len) >= COVERAGE_SPAN_FRAC;
 }).map(Number);
+// ⚡ PROTÉGER LES SEGMENTS DÉJÀ CAPTÉS CONTRE LE DÉCHARGEMENT.
+// Mesuré dans WME le 15/08/2026 : **WME ne décharge PAS un segment sélectionné** — 56
+// segments intacts après 85 km à zoom constant, et 0 dès la désélection seule, sans
+// toucher à la carte. C'est le seul moyen de capter TÔT (vue par vue, correctif du
+// 14/08) et de sélectionner TARD : sans ça, sdk.Editing.setSelection lève « segment with
+// id: X not found in data model » — il est TOUT OU RIEN — et le lot entier échoue.
+// C'est exactement la régression qui a cassé le 🧲 en 1.12.01.
+// ⚠️ On protège TOUT segment ayant reçu un point (acc.cnt), pas seulement ceux qui
+// passent déjà le seuil : un segment à cheval sur deux vues n'atteint son étendue qu'à
+// la fin, et il serait déchargé avant d'avoir été vu en entier.
+// ⚠️ On filtre sur ce qui est réellement chargé : un seul id absent ferait lever l'appel
+// et on ne protégerait plus RIEN — l'échec serait total au lieu d'être partiel.
+// 📌 traceSweepSelect faisait déjà ce geste (« garde en mémoire les segments déjà captés
+// hors vue »), sur le seul de ses trois chemins. Il est ici mis en commun.
+const _covProteger = (acc) => {
+    const vus = Object.keys(acc.cnt).map(Number).filter(id => !!getSegById(id));
+    if(!vus.length) return 0;
+    try { sdk.Editing.setSelection({selection:{ids:vus, objectType:'segment'}}); }
+    catch(e){ log('protection des segments captés : '+e.message); return 0; }
+    return vus.length;
+};
 // Cœur : segments empruntés par le tracé mais non sélectionnés.
 // Retourne { pct, zones:[{segs}], uncov:[seg], nUncov, outsideFrac } ou { error }.
 const traceCoverage = (fileId) => {
@@ -10781,6 +10843,9 @@ const traceSweepSelect = async (fileId) => {
 
     const acc = _covNewAcc();
     let selIds = [];
+    // Rang du 1er point de la tranche courante DANS LE PARCOURS : les tranches sont
+    // parcourues dans l'ordre, ce cumul suffit à repérer les deux extrémités du tracé.
+    let baseGlobale = 0;
     try {
         for(let k=0;k<slices.length;k++){
             if(_sweepAborted) break;
@@ -10792,16 +10857,36 @@ const traceSweepSelect = async (fileId) => {
             await _sweepSleep(120);
             if(_sweepAborted) break;
             const cand = _covCandidateSegments(_covBBox(slice), 0.0008);
+            const densifie = _covDensify(slice, COVERAGE_DENSIFY_M);
             if(cand.length){
                 const index = _covBuildIndex(cand);
-                _covAccumulate(_covDensify(slice, COVERAGE_DENSIFY_M), index, acc);
-                selIds = _covFinalizeUsed(acc);
+                _covAccumulate(densifie, index, acc, baseGlobale);
+                // ⚠️ `fin:false` TANT QU'ON PARCOURT : en cours de route, acc.segLast est le
+                // dernier segment VU JUSQU'ICI, pas la fin du tracé. L'exempter ici lèverait
+                // le seuil sur un segment du milieu, à chaque tranche. La fin ne se connaît
+                // qu'une fois la boucle terminée — d'où le recalcul juste après.
+                selIds = _covFinalizeUsed(acc, { debut:true, fin:false });
                 // Re-sélectionner le cumul : garde en mémoire les segments déjà captés (hors vue)
+                // 📌 C'est ce geste — le seul des trois chemins à l'avoir — qui a donné le
+                // remède de la régression du 🧲 (cf. _covProteger). ⚠️ Ici il ne protège que
+                // les segments DÉJÀ au seuil : un segment à cheval sur deux tranches peut
+                // encore être déchargé avant d'être complet. Non corrigé, hors périmètre.
                 try { sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection: '+e.message); }
             }
+            baseGlobale += densifie.length;
             _sweepShowProgress(k+1, slices.length, selIds.length);
         }
     } catch(e){ log('sweep error: '+e.message); }
+    // Le parcours est fini : on sait enfin quel segment porte la FIN du tracé, donc on
+    // peut l'exempter à son tour. Interrompu, on ne l'exempte pas — la « fin » ne serait
+    // que l'endroit où l'éditeur a cliqué Stop.
+    if(Object.keys(acc.cnt).length){
+        const recalcule = _covFinalizeUsed(acc, { debut:true, fin: !_sweepAborted });
+        if(recalcule.length !== selIds.length){
+            selIds = recalcule;
+            try { sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection (fin) : '+e.message); }
+        }
+    }
     // Rendre la carte de départ (la sélection persiste indépendamment de la vue)
     try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
     const aborted = _sweepAborted;
@@ -10888,9 +10973,16 @@ const traceGenerateLots = async (fileId) => {
 
     let added = 0, totalSeg = 0;
     const skipped = [];   // lots parcourus qui n'ont produit aucune entrée de file
-    try {
-        for(let k=0;k<lots.length;k++){
-            if(_sweepAborted) break;
+    // ⚠️⚠️ LE `try` ENGLOBAIT TOUTE LA BOUCLE : une exception au lot 3 emportait les lots
+    // 4 à 18 sans un mot, et le bilan annonçait tranquillement son total — un compte juste
+    // sur un travail tronqué. Il est désormais PAR LOT : ce qui tombe ne coûte que son lot,
+    // et le lot perdu est nommé par son rang dans le bilan, comme les autres causes.
+    // 📌 Vérifié au passage : getSegDirConflicts NE lève PAS sur un segment déchargé
+    // (getSegById → `if(!seg) continue`). Ce blindage est une ceinture, pas un correctif
+    // pour une cause identifiée — il n'y a pas d'exception connue à ce jour sur ce chemin.
+    for(let k=0;k<lots.length;k++){
+        if(_sweepAborted) break;
+        try {
             const lot = lots[k];
             // ⚠️⚠️ Ici il n'y avait QU'UN SEUL recadrage centré sur le lot. Or un lot fait
             // jusqu'à SWEEP_LOT_KM (4,5 km) de côté quand une vue à zoom 16 en couvre ~3×2 :
@@ -10910,7 +11002,7 @@ const traceGenerateLots = async (fileId) => {
             await _sweepSleep(120);
             if(_sweepAborted) break;
             capter();
-            const lotSegIds = _covFinalizeUsed(acc);
+            const lotSegIds = _covFinalizeUsed(acc, { debut: k === 0, fin: k === lots.length-1 });
             // ⚠️ Un lot qui ne capte rien était sauté SANS UN MOT, et l'entrée suivante
             // prenait son numéro (l'étiquette portait « added+1 », pas le rang du lot).
             // Si le lot 1 ratait, l'entrée « #1 » de la file était en fait le lot 2 : c'est
@@ -10933,8 +11025,12 @@ const traceGenerateLots = async (fileId) => {
                 skipped.push({ idx:k+1, cause: lotSegIds.length ? 'dir' : 'none' });
             }
             _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
+        } catch(e){
+            log('lots error (lot '+(k+1)+') : '+e.message);
+            skipped.push({ idx:k+1, cause:'err' });
+            _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
         }
-    } catch(e){ log('lots error: '+e.message); }
+    }
     // 4) Rendre la vue de départ + bilan
     try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
     const aborted = _sweepAborted;
@@ -10947,11 +11043,16 @@ const traceGenerateLots = async (fileId) => {
     let bilan = `<div style="color:${color};font-weight:600">${escHtml(t(aborted?'lotsStopped':'lotsDone', added, totalSeg))}</div>`;
     if(skipped.length){
         const rangs   = n => skipped.filter(s=>s.cause===n).map(s=>s.idx).join(', ');
+        // ⚠️ Compter CHAQUE cause explicitement. « nSens = total − nAucun » marchait tant
+        // qu'il n'y avait que deux causes ; l'arrivée de « err » y ferait passer les lots
+        // tombés en erreur pour des conflits de sens — un bilan faux, et faux en silence.
         const nAucun  = skipped.filter(s=>s.cause==='none').length;
-        const nSens   = skipped.length - nAucun;
+        const nSens   = skipped.filter(s=>s.cause==='dir').length;
+        const nErr    = skipped.filter(s=>s.cause==='err').length;
         bilan += `<div style="color:#f57c00;margin-top:4px">${escHtml(t('lotsSkipped', skipped.length, lots.length))}`;
         if(nAucun) bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipNone', rangs('none')))}</div>`;
         if(nSens)  bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipDir',  rangs('dir')))}</div>`;
+        if(nErr)   bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipErr',  rangs('err')))}</div>`;
         bilan += `</div>`;
     }
     _sweepShowText(bilan);
@@ -11037,13 +11138,19 @@ const _lotSelect = async (trackId, lotIdx) => {
         const capter  = () => {
             const cand = _covCandidateSegments(bbLot, 0.0008);
             if(cand.length) _covAccumulate(evalPts, _covBuildIndex(cand), acc);
+            _covProteger(acc);   // sans ça, WME décharge ce qu'on vient de capter
         };
         await _chargerEmprise(lot.bbox, (f, n) => _sweepShowText(escHtml(t('lotLoading', lotIdx, trk.lots.length, f, n))), capter);
         await _sweepSleep(150);
         capter();                         // dernière vue, après le délai de stabilisation
-        const ids = _covFinalizeUsed(acc);
+        const ids = _covFinalizeUsed(acc, { debut: lotIdx === 1, fin: lotIdx === trk.lots.length });
         _sweepRunning = false;
-        if(!ids.length){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return; }
+        if(!ids.length){
+            // La protection a posé une sélection de travail : la retirer, sinon l'éditeur
+            // reste avec une sélection qu'il n'a pas demandée et que rien n'explique.
+            try { W.selectionManager.unselectAll(); } catch(e){}
+            _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return;
+        }
         sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
         _currentLot = { trackId, lotIdx };
         lot.segIds = ids;            // mémoriser : débloque le bouton permalien du lot
@@ -11060,7 +11167,18 @@ const _lotSelect = async (trackId, lotIdx) => {
         showToast(t('lotSelected', ids.length), 3500, '#43a047');
         _sweepShowText(`<div style="color:var(--wct-green,#2e7d32);font-weight:600">${escHtml(t('lotSelected', ids.length))}</div>`);
         updateFab(); updateCountryInfo();
-    } catch(e){ _sweepRunning = false; log('lotSelect error: '+e.message); }
+    } catch(e){
+        // ⚠️⚠️ CE CATCH NE DISAIT RIEN À L'ÉCRAN, et c'est ce qui a rendu la régression
+        // de la 1.12.01 indéchiffrable : le panneau restait figé sur « chargement de la
+        // zone… 5/5 », donc ni terminé, ni en cours, ni en échec. MisterLogik l'a vécu
+        // comme « le 🧲 ne fonctionne plus », et la seule trace était en console.
+        // Un échec doit se dire là où le geste a eu lieu.
+        _sweepRunning = false;
+        log('lotSelect error: '+e.message);
+        try { W.selectionManager.unselectAll(); } catch(e2){}
+        _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotError', e.message))}</span>`);
+        showToast(t('lotError', e.message), 5000, '#c62828');
+    }
 };
 // Permalien WME d'un lot (segments captés + vue cadrée). Copié dans le presse-papiers.
 // Proposé seulement une fois le lot parcouru (lot.segIds présent) : un lot tient dans une
