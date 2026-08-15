@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.12.03
+// @version      1.12.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -10932,137 +10932,6 @@ const _sweepLots = (pts) => {
     return lots;
 };
 
-const _sweepShowLotProgress = (done, total, added, seg) => {
-    const f = _sweepFooter(); if(!f) return;
-    f.style.display = 'block';
-    const pct = total ? Math.round(done*100/total) : 0;
-    f.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-        <b style="flex:1">${escHtml(t('lotsProgress', done, total, added, seg))}</b>
-        <button class="wct-sweep-stop wct-btn wct-btn-danger wct-btn-sm" title="${t('tipSweepStop')}">${t('btnStop')}</button>
-      </div>
-      <div style="font-size:0.833em;color:var(--wct-text2);margin-bottom:4px">${escHtml(t('lotsWhyMoving'))}</div>
-      <div class="wct-pb-wrap" style="display:block"><div class="wct-pb-fill" style="width:${pct}%"></div></div>`;
-    f.querySelector('.wct-sweep-stop')?.addEventListener('click', requestSweepAbort);
-};
-// Découpe le tracé en lots et crée une entrée de file par lot, avec la config
-// courante de l'onglet Configurer. La carte se déplace lot par lot pour charger
-// les segments à capter. N'applique RIEN (les fermetures sont posées en brique 2).
-const traceGenerateLots = async (fileId) => {
-    if(_sweepRunning) return;
-    // 1) La config doit être réglée dans l'onglet Configurer (période/horaires…)
-    const rc = await buildClosureList();
-    if(rc.error || !rc.list.length){
-        _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotsNeedConfig'))}</span>`);
-        // Amener l'utilisateur au bon endroit
-        document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="cfg"]')?.click();
-        return;
-    }
-    const cfg = readConfig();
-    // 2) Points du tracé → lots
-    let pts = [];
-    _traceTracks.filter(tk => tk.fileId === fileId).forEach(tk => { if(tk.sampledPts?.length) pts = pts.concat(tk.sampledPts); });
-    if(pts.length < 2){ _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('covNoPts'))}</span>`); return; }
-    const lots = _sweepLots(pts);
-    if(!confirm(t('lotsConfirm', lots.length))) return;
-    // 3) Balayage lot par lot : un recadrage par lot suffit (le lot tient dans la vue)
-    _sweepRunning = true; _sweepAborted = false;
-    _covClearGaps();
-    const savedCenter = sdk.Map.getMapCenter();
-    const savedZoom   = sdk.Map.getZoomLevel();
-    _sweepShowLotProgress(0, lots.length, 0, 0);
-
-    let added = 0, totalSeg = 0;
-    const skipped = [];   // lots parcourus qui n'ont produit aucune entrée de file
-    // ⚠️⚠️ LE `try` ENGLOBAIT TOUTE LA BOUCLE : une exception au lot 3 emportait les lots
-    // 4 à 18 sans un mot, et le bilan annonçait tranquillement son total — un compte juste
-    // sur un travail tronqué. Il est désormais PAR LOT : ce qui tombe ne coûte que son lot,
-    // et le lot perdu est nommé par son rang dans le bilan, comme les autres causes.
-    // 📌 Vérifié au passage : getSegDirConflicts NE lève PAS sur un segment déchargé
-    // (getSegById → `if(!seg) continue`). Ce blindage est une ceinture, pas un correctif
-    // pour une cause identifiée — il n'y a pas d'exception connue à ce jour sur ce chemin.
-    for(let k=0;k<lots.length;k++){
-        if(_sweepAborted) break;
-        try {
-            const lot = lots[k];
-            // ⚠️⚠️ Ici il n'y avait QU'UN SEUL recadrage centré sur le lot. Or un lot fait
-            // jusqu'à SWEEP_LOT_KM (4,5 km) de côté quand une vue à zoom 16 en couvre ~3×2 :
-            // cinq sixièmes de l'emprise n'étaient jamais chargés, et leurs segments étaient
-            // « absents » donc sautés en silence. _chargerEmprise avait justement été écrit
-            // pour ça — mais n'avait été branché que sur _lotSelect. Deux chemins pour la
-            // même opération, un seul corrigé : c'est le chemin NON corrigé que MisterLogik
-            // a emprunté pour générer ses 190 entrées.
-            const acc     = _covNewAcc();
-            const evalPts = _covDensify(lot.pts, COVERAGE_DENSIFY_M);
-            const bbLot   = _covBBox(lot.pts);
-            const capter  = () => {
-                const cand = _covCandidateSegments(bbLot, 0.0008);
-                if(cand.length) _covAccumulate(evalPts, _covBuildIndex(cand), acc);
-            };
-            await _chargerEmprise(lot.bbox, null, capter);
-            await _sweepSleep(120);
-            if(_sweepAborted) break;
-            capter();
-            const lotSegIds = _covFinalizeUsed(acc, { debut: k === 0, fin: k === lots.length-1 });
-            // ⚠️ Un lot qui ne capte rien était sauté SANS UN MOT, et l'entrée suivante
-            // prenait son numéro (l'étiquette portait « added+1 », pas le rang du lot).
-            // Si le lot 1 ratait, l'entrée « #1 » de la file était en fait le lot 2 : c'est
-            // exactement ce que MisterLogik a décrit le 14/08/2026 — « le début du parcours
-            // n'avait pas été importé ». Le lot porte désormais SON rang, et ce qui est
-            // sauté est compté puis annoncé dans le bilan.
-            const dirConflicts = lotSegIds.length ? getSegDirConflicts(lotSegIds, parseInt(cfg.direction)) : [];
-            const validIds = lotSegIds.filter(id => !dirConflicts.find(c => c.sid === Number(id)));
-            if(validIds.length){
-                const entry = {...makeEntry(validIds, cfg, rc.list), source:'sweep', lotBbox:lot.bbox, lotIndex:k+1, lotKind:'trace', label:`📦 ${cfg.reason||t('defaultClosure')} · #${k+1}/${lots.length}`};
-                if(dirConflicts.length) entry.excludedSegs = dirConflicts;
-                // Les segments viennent d'être chargés (carte centrée) → sains à cet instant
-                entry.nullSegs = new Set(); entry.recentSegs = new Set();
-                queue.push(entry);
-                added++; totalSeg += validIds.length;
-                renderQueue();
-            } else {
-                // Deux causes distinctes, deux messages distincts : « aucun segment capté »
-                // n'appelle pas le même geste que « tous en conflit de sens ».
-                skipped.push({ idx:k+1, cause: lotSegIds.length ? 'dir' : 'none' });
-            }
-            _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
-        } catch(e){
-            log('lots error (lot '+(k+1)+') : '+e.message);
-            skipped.push({ idx:k+1, cause:'err' });
-            _sweepShowLotProgress(k+1, lots.length, added, totalSeg);
-        }
-    }
-    // 4) Rendre la vue de départ + bilan
-    try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
-    const aborted = _sweepAborted;
-    _sweepRunning = false;
-    const color = aborted ? '#f57c00' : 'var(--wct-green,#2e7d32)';
-    // ⚠️ Le bilan n'annonçait que ce qui avait réussi. Un tracé dont la moitié des lots
-    // ne captent rien affichait donc un vert franc — un verdict qui rassure au lieu de
-    // dire ce qui est vrai. Les lots sautés sont nommés par leur rang : c'est la seule
-    // information qui permet d'aller voir lesquels, et de les reprendre au 🧲.
-    let bilan = `<div style="color:${color};font-weight:600">${escHtml(t(aborted?'lotsStopped':'lotsDone', added, totalSeg))}</div>`;
-    if(skipped.length){
-        const rangs   = n => skipped.filter(s=>s.cause===n).map(s=>s.idx).join(', ');
-        // ⚠️ Compter CHAQUE cause explicitement. « nSens = total − nAucun » marchait tant
-        // qu'il n'y avait que deux causes ; l'arrivée de « err » y ferait passer les lots
-        // tombés en erreur pour des conflits de sens — un bilan faux, et faux en silence.
-        const nAucun  = skipped.filter(s=>s.cause==='none').length;
-        const nSens   = skipped.filter(s=>s.cause==='dir').length;
-        const nErr    = skipped.filter(s=>s.cause==='err').length;
-        bilan += `<div style="color:#f57c00;margin-top:4px">${escHtml(t('lotsSkipped', skipped.length, lots.length))}`;
-        if(nAucun) bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipNone', rangs('none')))}</div>`;
-        if(nSens)  bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipDir',  rangs('dir')))}</div>`;
-        if(nErr)   bilan += `<div style="font-size:0.833em">${escHtml(t('lotsSkipErr',  rangs('err')))}</div>`;
-        bilan += `</div>`;
-    }
-    _sweepShowText(bilan);
-    // Le toast est le seul message lu à cet instant : il doit porter l'alerte, pas
-    // seulement le succès (le panneau Tracés peut être masqué, cf. _lotSelect).
-    const tst = skipped.length ? t('lotsDoneSkip', added, totalSeg, skipped.length)
-                               : t(aborted?'lotsStopped':'lotsDone', added, totalSeg);
-    showToast(tst, 4000, (aborted||skipped.length)?'#f57c00':'#43a047');
-    updateFab(); updateCountryInfo();
-};
 // Lot en cours de traitement : {trackId, lotIdx}. Mémorisé quand on sélectionne un
 // lot, lu par le bouton Valider (pont Tracés → Configurer → file).
 let _currentLot = null;

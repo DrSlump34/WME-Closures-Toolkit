@@ -85,14 +85,21 @@ const faire = (bboxKm, vueKm) => {
     dit(captages === 0 && vues > 1, 'sans callback, aucun captage et l emprise est quand meme parcourue',
         vues + ' vues, ' + captages + ' captages');
 
-    console.log('\n— Les deux chemins passent par la meme porte —');
-    const genere = /traceGenerateLots[\s\S]*?await _chargerEmprise\(lot\.bbox, null, capter\)/.test(src);
+    console.log('\n— Les chemins qui restent passent par la meme porte —');
     const select = /_lotSelect[\s\S]*?await _chargerEmprise\(lot\.bbox,[\s\S]*?capter\)/.test(src);
-    dit(genere, 'traceGenerateLots parcourt l emprise (il ne le faisait PAS)');
     dit(select, '_lotSelect capte pendant le parcours');
-    // Un seul recadrage nu dans la boucle des lots serait le retour du defaut.
-    const nu = /const lot = lots\[k\];\s*\n\s*sdk\.Map\.setMapCenter/.test(src);
-    dit(!nu, 'plus aucun recadrage NU dans la boucle des lots');
+    // ⚠️ traceGenerateLots etait surveille ici jusqu au 15/08/2026. `git log -S` a montre
+    // qu elle etait MORTE depuis le 15/07 : le commit 8c01c5e (« lots en sous-lignes ») a
+    // retire le bouton .wct-trace-file-lots et son handler sans retirer la fonction. Elle
+    // a ete supprimee. Le correctif du 14/08 qui la visait n a donc jamais rien change
+    // pour personne — et l annonce qui en faisait le chemin emprunte par l utilisateur
+    // etait fausse. Ce controle garde la trace, et surtout il MORD si on la reintroduit
+    // sans la brancher : une fonction que rien n appelle est un correctif qui ment.
+    dit(!/traceGenerateLots/.test(src),
+        'traceGenerateLots n est pas revenue', '(morte le 15/07, supprimee le 15/08)');
+    const orpheline = /const\s+(\w+)\s*=\s*async\s*\(fileId\)[\s\S]{0,4000}?_sweepLots\(/.exec(src);
+    dit(!orpheline || new RegExp(orpheline[1] + '\\s*\\(').test(src.replace(orpheline[0], '')),
+        'aucune fonction de niveau fichier n est orpheline');
 
     console.log('\n' + (ko ? 'ECHEC : ' : 'TOUT PASSE : ') + ok + ' ok, ' + ko + ' ko');
     process.exit(ko ? 1 : 0);
