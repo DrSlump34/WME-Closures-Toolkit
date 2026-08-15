@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.12.04
+// @version      1.13.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -892,7 +892,17 @@ GM_addStyle(`
 .wct-gpx-swatch-cell { position:relative; }
 .wct-gpx-swatch { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:middle; cursor:pointer; box-shadow:0 0 0 1px rgba(0,0,0,.2); }
 .wct-gpx-swatch:hover { box-shadow:0 0 0 2px rgba(0,0,0,.4); transform:scale(1.15); }
-.wct-gpx-palette { position:absolute; z-index:99999; background:#fff; border:1px solid var(--wct-border); border-radius:6px; padding:5px; display:grid; grid-template-columns:repeat(4,18px); gap:3px; box-shadow:0 3px 10px rgba(0,0,0,.2); }
+/* ⚠️ La popup était elle-même la grille (display:grid sur .wct-gpx-palette) : tout
+   nouveau bloc y serait entré comme une 17e pastille, dans une colonne de 18 px. La
+   grille est descendue d'un cran, dans .wct-gpx-pal-grid, pour que la popup puisse
+   empiler couleurs, couleur libre et épaisseur. */
+.wct-gpx-palette { position:absolute; z-index:99999; background:#fff; border:1px solid var(--wct-border); border-radius:6px; padding:6px; display:block; box-shadow:0 3px 10px rgba(0,0,0,.2); }
+.wct-gpx-pal-grid { display:grid; grid-template-columns:repeat(4,18px); gap:3px; }
+.wct-gpx-pal-sep { border-top:1px solid var(--wct-border); margin:6px 0 4px; }
+.wct-gpx-pal-row { display:flex; align-items:center; gap:6px; font-size:0.833em; white-space:nowrap; }
+.wct-gpx-pal-free { width:100%; height:20px; padding:0; border:1px solid var(--wct-border); border-radius:3px; cursor:pointer; background:none; }
+.wct-gpx-pal-w { width:100%; margin:2px 0 0; cursor:pointer; }
+.wct-gpx-pal-wval { font-weight:600; min-width:34px; text-align:right; }
 .wct-gpx-pal-chip { display:inline-block; width:18px; height:18px; border-radius:3px; cursor:pointer; box-shadow:0 0 0 1px rgba(0,0,0,.15); transition:transform .1s; }
 .wct-gpx-pal-chip:hover { transform:scale(1.2); box-shadow:0 0 0 2px rgba(0,0,0,.35); }
 .wct-gpx-pos { padding:0 5px !important; font-size:1em !important; line-height:1.4 !important; background:none !important; border:none !important; box-shadow:none !important; cursor:pointer; }
@@ -1794,6 +1804,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             lotLoading: (i,n,f,tot) => `Lot ${i}/${n} : chargement de la zone… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) sélectionné(s). Réglez la fermeture, puis « Valider ».`,
             lotNone:'Aucun segment capté dans ce lot.',
+            palFree:'Couleur libre…',
+            palWidth:'Épaisseur',
+            palWidthTip:'Épaisseur du trait. S\u2019applique à ce tracé et devient le réglage par défaut.',
             lotError: m => `❌ Échec de la sélection du lot : ${m}`,
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
             polyBtn:'✏️ Tracer une zone',
@@ -2339,6 +2352,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Batch ${i}/${n}: loading the area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segment(s) selected. Set up the closure, then “Validate”.`,
             lotNone:'No segment captured in this batch.',
+            palFree:'Custom colour…',
+            palWidth:'Thickness',
+            palWidthTip:'Line thickness. Applies to this track and becomes the default.',
             lotError: m => `❌ Batch selection failed: ${m}`,
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
             polyBtn:'✏️ Draw an area',
@@ -2888,6 +2904,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `מנה ${i}/${n}: טוען את האזור… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} מקטעים נבחרו. הגדר את החסימה, ואז "אשר".`,
             lotNone:'לא נלכד מקטע במנה זו.',
+            palFree:'צבע חופשי…',
+            palWidth:'עובי',
+            palWidthTip:'עובי הקו. חל על מסלול זה והופך לברירת המחדל.',
             lotError: m => `❌ בחירת המנה נכשלה: ${m}`,
             lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
             polyBtn:'✏️ שרטט אזור',
@@ -3431,6 +3450,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Lotto ${i}/${n}: caricamento dell’area… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento/i selezionati. Imposta la chiusura, poi “Convalida”.`,
             lotNone:'Nessun segmento catturato in questo lotto.',
+            palFree:'Colore personalizzato…',
+            palWidth:'Spessore',
+            palWidthTip:'Spessore della linea. Vale per questa traccia e diventa il valore predefinito.',
             lotError: m => `❌ Selezione del lotto non riuscita: ${m}`,
             lotNextHint: (i,n) => `📦 Prossimo lotto da gestire: ${i}/${n}.`,
             polyBtn:'✏️ Disegna un’area',
@@ -3975,6 +3997,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             lotLoading: (i,n,f,tot) => `Paket ${i}/${n}: Bereich wird geladen… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} Segment(e) ausgewählt. Sperrung einrichten, dann „Bestätigen“.`,
             lotNone:'Kein Segment in diesem Paket erfasst.',
+            palFree:'Freie Farbe…',
+            palWidth:'Stärke',
+            palWidthTip:'Linienstärke. Gilt für diese Spur und wird zur Voreinstellung.',
             lotError: m => `❌ Losauswahl fehlgeschlagen: ${m}`,
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
             polyBtn:'✏️ Bereich zeichnen',
@@ -4518,6 +4543,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: cargando la zona… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) seleccionado(s). Configura el cierre y pulsa «Validar».`,
             lotNone:'Ningún segmento captado en este lote.',
+            palFree:'Color personalizado…',
+            palWidth:'Grosor',
+            palWidthTip:'Grosor de la línea. Se aplica a este trazado y pasa a ser el valor por defecto.',
             lotError: m => `❌ No se pudo seleccionar el lote: ${m}`,
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
             polyBtn:'✏️ Dibujar una zona',
@@ -5061,6 +5089,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: carregando a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o bloqueio e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            palFree:'Cor personalizada…',
+            palWidth:'Espessura',
+            palWidthTip:'Espessura da linha. Aplica-se a este traçado e passa a ser o padrão.',
             lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
@@ -5604,6 +5635,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             lotLoading: (i,n,f,tot) => `Lote ${i}/${n}: a carregar a área… ${f}/${tot}`,
             lotSelected: seg => `✅ ${seg} segmento(s) selecionado(s). Configure o corte e clique em «Validar».`,
             lotNone:'Nenhum segmento captado neste lote.',
+            palFree:'Cor personalizada…',
+            palWidth:'Espessura',
+            palWidthTip:'Espessura da linha. Aplica-se a este traçado e passa a ser a predefinição.',
             lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
@@ -6147,7 +6181,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Fichier</b></td><td>Ligne parente : représente le fichier chargé. La coche toggle tous ses tracés. 🗑️ supprime tous les calques du fichier.</td></tr>
             <tr><td><b>↳ Tracé</b></td><td>Ligne enfant : un track GPX, un Placemark KML, une Feature GeoJSON ou une géométrie Shapefile. Coche individuelle, couleur et focus par tracé.</td></tr>
             <tr><td><b>Type</b></td><td>Format du fichier source : GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Swatch couleur</b></td><td>Cliquer pour changer la couleur du tracé — palette de 16 couleurs.</td></tr>
+            <tr><td><b>Swatch couleur</b></td><td>Cliquer pour régler l’<b>allure du tracé</b> : 16 teintes vives, un sélecteur de <b>couleur libre</b>, et un curseur d’<b>épaisseur</b> (2 à 14 px). La dernière épaisseur choisie devient le réglage par défaut des imports suivants.</td></tr>
             <tr><td><b>pts</b></td><td>Nombre de points tracés (max 3 000, sous-échantillonné si nécessaire).</td></tr>
             <tr><td><b>err</b></td><td>✅ si aucune erreur — ⚠️ + nombre sinon (survoler pour le détail).</td></tr>
             <tr><td><b>🎯</b></td><td>Centre la carte sur l'étendue du tracé au zoom optimal.</td></tr>
@@ -6162,7 +6196,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 File</b></td><td>Parent row: represents the loaded file. Checkbox toggles all its tracks. 🗑️ removes all file layers.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Child row: a GPX track, a KML Placemark, a GeoJSON Feature, or a Shapefile geometry. Individual checkbox, color and focus per track.</td></tr>
             <tr><td><b>Type</b></td><td>Source file format: GPX, KML, KMZ, GeoJSON or SHP.</td></tr>
-            <tr><td><b>Color swatch</b></td><td>Click to change the track color — 16-color palette.</td></tr>
+            <tr><td><b>Color swatch</b></td><td>Click to set the <b>track appearance</b>: 16 bright shades, a <b>custom colour</b> picker, and a <b>thickness</b> slider (2 to 14 px). The last thickness you pick becomes the default for later imports.</td></tr>
             <tr><td><b>pts</b></td><td>Number of plotted points (max 3,000, subsampled if needed).</td></tr>
             <tr><td><b>err</b></td><td>✅ if no errors — ⚠️ + count otherwise (hover for details).</td></tr>
             <tr><td><b>🎯</b></td><td>Centers the map on the track extent at the optimal zoom.</td></tr>
@@ -6177,7 +6211,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 File</b></td><td>Riga padre: rappresenta il file caricato. La casella attiva o disattiva tutti i suoi tracciati. 🗑️ rimuove tutti i livelli del file.</td></tr>
             <tr><td><b>↳ Tracciato</b></td><td>Riga figlia: un tracciato GPX, un Placemark KML, una Feature GeoJSON o una geometria Shapefile. Casella, colore e messa a fuoco indipendenti per ogni tracciato.</td></tr>
             <tr><td><b>Tipo</b></td><td>Formato del file di origine: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
-            <tr><td><b>Riquadro colore</b></td><td>Clicca per cambiare il colore del tracciato — tavolozza di 16 colori.</td></tr>
+            <tr><td><b>Riquadro colore</b></td><td>Clicca per regolare l’<b>aspetto del tracciato</b>: 16 tinte vivaci, un selettore di <b>colore personalizzato</b> e un cursore di <b>spessore</b> (da 2 a 14 px). L’ultimo spessore scelto diventa il valore predefinito.</td></tr>
             <tr><td><b>pti</b></td><td>Numero di punti tracciati (massimo 3.000, sottocampionati se necessario).</td></tr>
             <tr><td><b>err</b></td><td>✅ se non ci sono errori — ⚠️ + conteggio in caso contrario (passa il mouse per i dettagli).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra la mappa sull’estensione del tracciato allo zoom ottimale.</td></tr>
@@ -6192,7 +6226,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 קובץ</b></td><td>שורת אב: מייצגת את הקובץ שנטען. תיבת הסימון מפעילה או מכבה את כל המסלולים שלו. 🗑️ מסיר את כל שכבות הקובץ.</td></tr>
             <tr><td><b>↳ מסלול</b></td><td>שורת בן: מסלול GPX, Placemark של KML, Feature של GeoJSON או גאומטריה של Shapefile. תיבת סימון, צבע ומיקוד נפרדים לכל מסלול.</td></tr>
             <tr><td><b>סוג</b></td><td>פורמט קובץ המקור: GPX, KML, KMZ, GeoJSON או SHP.</td></tr>
-            <tr><td><b>ריבוע צבע</b></td><td>לחצו כדי לשנות את צבע המסלול — לוח של 16 צבעים.</td></tr>
+            <tr><td><b>ריבוע צבע</b></td><td>לחצו כדי להגדיר את <b>מראה המסלול</b>: 16 גוונים בולטים, בורר <b>צבע חופשי</b> ומחוון <b>עובי</b> (2 עד 14 פיקסלים). העובי האחרון שנבחר הופך לברירת המחדל.</td></tr>
             <tr><td><b>נק׳</b></td><td>מספר הנקודות המשורטטות (עד 3,000, בדגימה מדללת במידת הצורך).</td></tr>
             <tr><td><b>שג׳</b></td><td>✅ אם אין שגיאות — ⚠️ ומספר אחרת (רחפו עם העכבר לפרטים).</td></tr>
             <tr><td><b>🎯</b></td><td>ממרכז את המפה על תחום המסלול ברמת הזום המיטבית.</td></tr>
@@ -6207,7 +6241,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Datei</b></td><td>Übergeordnete Zeile: steht für die geladene Datei. Das Häkchen schaltet alle ihre Tracks um. 🗑️ entfernt alle Ebenen der Datei.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Untergeordnete Zeile: ein GPX-Track, ein KML-Placemark, ein GeoJSON-Feature oder eine Shapefile-Geometrie. Häkchen, Farbe und Zentrierung je Track.</td></tr>
             <tr><td><b>Type</b></td><td>Format der Quelldatei: GPX, KML, KMZ, GeoJSON oder SHP.</td></tr>
-            <tr><td><b>Farbfeld</b></td><td>Anklicken, um die Farbe des Tracks zu ändern — Palette mit 16 Farben.</td></tr>
+            <tr><td><b>Farbfeld</b></td><td>Anklicken, um das <b>Aussehen der Spur</b> einzustellen: 16 kräftige Farbtöne, ein <b>freier Farbwähler</b> und ein Regler für die <b>Stärke</b> (2 bis 14 px). Die zuletzt gewählte Stärke wird zur Voreinstellung.</td></tr>
             <tr><td><b>pts</b></td><td>Anzahl der gezeichneten Punkte (max. 3.000, bei Bedarf unterabgetastet).</td></tr>
             <tr><td><b>err</b></td><td>✅ wenn kein Fehler — sonst ⚠️ + Anzahl (für Details mit der Maus darüberfahren).</td></tr>
             <tr><td><b>🎯</b></td><td>Zentriert die Karte im optimalen Zoom auf die Ausdehnung des Tracks.</td></tr>
@@ -6222,7 +6256,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Archivo</b></td><td>Fila principal: representa el archivo cargado. La casilla activa o desactiva todas sus trazas. 🗑️ elimina todas las capas del archivo.</td></tr>
             <tr><td><b>↳ Traza</b></td><td>Fila secundaria: un track GPX, un Placemark KML, una Feature GeoJSON o una geometría Shapefile. Casilla, color y centrado individuales por traza.</td></tr>
             <tr><td><b>Tipo</b></td><td>Formato del archivo de origen: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
-            <tr><td><b>Muestra de color</b></td><td>Haz clic para cambiar el color de la traza — paleta de 16 colores.</td></tr>
+            <tr><td><b>Muestra de color</b></td><td>Haz clic para ajustar el <b>aspecto del trazado</b>: 16 tonos vivos, un selector de <b>color personalizado</b> y un control de <b>grosor</b> (de 2 a 14 px). El último grosor elegido pasa a ser el valor por defecto.</td></tr>
             <tr><td><b>pts</b></td><td>Número de puntos trazados (máx. 3.000, submuestreados si es necesario).</td></tr>
             <tr><td><b>err</b></td><td>✅ si no hay errores — ⚠️ + número en caso contrario (pasa el ratón por encima para ver el detalle).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra el mapa en la extensión de la traza con el zoom óptimo.</td></tr>
@@ -6237,7 +6271,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Arquivo</b></td><td>Linha pai: representa o arquivo carregado. A caixa de seleção liga/desliga todos os seus trajetos. 🗑️ remove todas as camadas do arquivo.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha filha: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de seleção, cor e foco individuais por trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do arquivo de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar a <b>aparência do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controle de <b>espessura</b> (2 a 14 px). A última espessura escolhida vira o padrão.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3.000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erro — ⚠️ + quantidade caso contrário (passe o mouse para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centraliza o mapa na extensão do trajeto, no zoom ideal.</td></tr>
@@ -6252,7 +6286,7 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Ficheiro</b></td><td>Linha principal: representa o ficheiro carregado. A caixa de verificação ativa/desativa todos os seus trajetos. 🗑️ remove todas as camadas do ficheiro.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha secundária: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de verificação, cor e centragem individuais para cada trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do ficheiro de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Amostra de cor</b></td><td>Clique para mudar a cor do trajeto — paleta de 16 cores.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar o <b>aspeto do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controlo de <b>espessura</b> (2 a 14 px). A última espessura escolhida passa a ser a predefinição.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3 000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erros — caso contrário ⚠️ + número (passe o rato por cima para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra o mapa na extensão do trajeto, no zoom ideal.</td></tr>
@@ -7343,7 +7377,8 @@ var WMEPrefs = (function () {
 let _prefs = null;
 const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMode,
     dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
-    langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null });
+    langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null,
+    traceWidth:_traceWidth });
 const _appliquerPrefs = d => {
     if(!d || typeof d !== 'object') return;
     presets = d.presets || [];
@@ -7354,6 +7389,10 @@ const _appliquerPrefs = d => {
     _cardsCollapsedDefault = d.cardsCollapsedDefault === true;
     if(d.langPref === 'auto' || LANGS.some(x => x.code === d.langPref)) _langPref = d.langPref;
     if(Array.isArray(d.polyTypes)) _polyTypes = new Set(d.polyTypes.map(Number));
+    // Borner en RELISANT la valeur stockee : un reglage hors bornes (fichier de prefs
+    // edite a la main, ou borne changee entre deux versions) donnerait un trait
+    // invisible ou une bande opaque, sans rien dire.
+    if(d.traceWidth !== undefined) _traceWidth = _traceWidthOk(d.traceWidth);
 };
 const save = () => {
     const d = _prefsData();
@@ -9563,13 +9602,57 @@ const updateCountryInfo=()=>{
 //
 // "type" vaut 'GPX' | 'KML' | 'KMZ' | 'GeoJSON'
 
+// ⚠️⚠️ PALETTE REFAITE EN TEINTES SATURÉES le 15/08/2026, sur la demande de MisterLogik
+// (« la couleur n'a pas de peps »). Ce n'était PAS un caprice : mesuré sur le source de
+// WME Color Highlights Mod 2.38.1, ce script repeint les segments de WME en
+// `stroke-width: 10` / `stroke-opacity: 0.75`. Notre trait faisait 4 px : il était borné
+// des deux côtés par une bande deux fois et demie plus large. J'avais d'abord cru à un
+// problème d'ORDRE DE CALQUES et publié ce diagnostic — Color Highlights ne crée aucun
+// calque. La bonne réponse était celle qu'il donnait au départ : épaisseur et couleur.
+// ⚠️ Le blanc et le noir sont conservés : sur fond satellite ils restent les deux seuls
+// choix lisibles sur, respectivement, l'asphalte sombre et la neige.
 const TRACE_PALETTE = [
-    '#e53935','#d81b60','#8e24aa','#3949ab',
-    '#1e88e5','#00897b','#43a047','#c0ca33',
-    '#f57c00','#6d4c41','#546e7a','#000000',
-    '#ffffff','#fdd835','#ff7043','#00acc1'
+    '#ff1744','#ff00ff','#d500f9','#651fff',
+    '#2979ff','#00e5ff','#1de9b6','#00e676',
+    '#76ff03','#c6ff00','#ffea00','#ffc400',
+    '#ff9100','#ff3d00','#ffffff','#000000'
 ];
-const TRACE_COLORS = ['#e53935','#1e88e5','#43a047','#f57c00','#8e24aa','#00897b','#d81b60','#6d4c41'];
+// Roulement automatique d'un tracé à l'autre : 8 teintes choisies pour rester
+// distinguables entre elles, y compris superposées sur la même route.
+const TRACE_COLORS = ['#ff1744','#00e5ff','#76ff03','#ffea00','#ff00ff','#1de9b6','#ff9100','#651fff'];
+// Épaisseur du trait, en pixels. 4 auparavant — porté à 6 pour la raison ci-dessus.
+// Réglable par tracé depuis la pastille de couleur, et mémorisé comme préférence.
+const TRACE_WIDTH_DEFAULT = 6;
+const TRACE_WIDTH_MIN     = 2;
+const TRACE_WIDTH_MAX     = 14;
+// ⭐ SOURCE UNIQUE DU STYLE D'UN TRACÉ. Ce calcul vivait recopié à QUATRE endroits
+// (création GPX, création GeoJSON, changement de couleur d'un track, changement de
+// couleur d'un fichier) avec des épaisseurs qui divergeaient déjà — 4, 3 et 1,5 sans
+// raison énoncée. Ajouter l'épaisseur réglable sans factoriser aurait créé un cinquième
+// endroit à tenir d'accord : c'est exactement ce qui a donné « trois chemins, trois
+// comportements » sur le captage des segments.
+// ⚠️ Un polygone garde un contour plus fin que le trait d'un tracé : à 6 px il mangerait
+// la zone qu'il délimite. La proportion est bornée à 1 px pour rester visible au minimum.
+// Épaisseur retenue par l'éditeur, mémorisée d'une session à l'autre. ⚠️ Déclarée ICI et
+// non près des autres variables d'état : elle s'initialise depuis TRACE_WIDTH_DEFAULT,
+// et un `let` placé avant la constante lèverait à l'évaluation du fichier (zone morte
+// temporelle) — le script ne démarrerait pas, ce que `node --check` ne verrait même pas.
+let _traceWidth = TRACE_WIDTH_DEFAULT;
+// Ramene une epaisseur dans les bornes. ⚠️ Distingue « pas de valeur » (on retombe sur
+// le defaut) de « nombre hors bornes » (on borne). Ecrit d'abord `Number(w) || DEFAUT`,
+// ce helper traitait 0 comme une absence : -5 donnait 2 et 0 donnait 6, deux valeurs
+// aussi invalides l'une que l'autre pour deux resultats differents. Trouve par
+// tools/test-style-trace.js, pas a la relecture.
+const _traceWidthOk = (v) => {
+    const n = (v === null || v === undefined || v === '') ? NaN : Number(v);
+    return Number.isFinite(n) ? Math.max(TRACE_WIDTH_MIN, Math.min(TRACE_WIDTH_MAX, n)) : TRACE_WIDTH_DEFAULT;
+};
+const _traceStyle = (color, width, isPolygon) => {
+    const w = _traceWidthOk(width);
+    return isPolygon
+        ? { strokeColor: color, strokeWidth: Math.max(1, w * 0.4), strokeOpacity: 0.8, fillColor: color, fillOpacity: 0.12 }
+        : { strokeColor: color, strokeWidth: w, strokeOpacity: 0.85, fillOpacity: 0 };
+};
 
 let _traceFiles  = [];
 let _traceTracks = [];
@@ -9939,7 +10022,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
 };
 // ── Gestion OL par track ──────────────────────────────────────────────────────
 
-const _traceBuildOL = (trackId, sampledPts, color) => {
+const _traceBuildOL = (trackId, sampledPts, color, width) => {
     if(!sampledPts || sampledPts.length === 0) return null;
     try {
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
@@ -9950,7 +10033,7 @@ const _traceBuildOL = (trackId, sampledPts, color) => {
             return pt;
         });
         const line    = new OpenLayers.Geometry.LineString(olPts);
-        const style   = { strokeColor: color, strokeWidth: 4, strokeOpacity: 0.85 };
+        const style   = _traceStyle(color, width, false);
         const feature = new OpenLayers.Feature.Vector(line, null, style);
         const layer   = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
         layer.addFeatures([feature]);
@@ -9962,7 +10045,7 @@ const _traceBuildOL = (trackId, sampledPts, color) => {
 };
 // Construit un layer OL depuis des features GeoJSON reprojetées (WGS84 [lon,lat])
 // Style intelligent : LineString → trait plein, Polygon → contour seul sans remplissage
-const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => {
+const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, width) => {
     if(!geoFeatures || geoFeatures.length === 0) return null;
     try {
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
@@ -9985,9 +10068,7 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures) => 
             const type   = feat.type;
             const coords = feat.coordinates;
             const isPolygon = type === 'Polygon' || type === 'MultiPolygon';
-            const styleFeature = isPolygon
-                ? { strokeColor: color, strokeWidth: 1.5, strokeOpacity: 0.8, fillColor: color, fillOpacity: 0.12 }
-                : { strokeColor: color, strokeWidth: 3,   strokeOpacity: 0.85, fillOpacity: 0 };
+            const styleFeature = _traceStyle(color, width, isPolygon);
 
             try {
                 let geom = null;
@@ -10027,15 +10108,16 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
     parsedTracks.forEach(({ name, points, errors, isDataset, featureCount, geoFeatures }) => {
         const trackId  = _traceNewId('trk');
         const color    = _traceNextColor();
+        const width    = _traceWidth;
         // Shapefile : subsampling plus généreux (dataset dense)
         const maxPts   = isDataset ? 8000 : 3000;
         const sampled  = traceSubsample(points, maxPts);
         // Rendu OL : par features (shapefile) ou par points (autres formats)
         let olLayer = null;
         if(geoFeatures && geoFeatures.length > 0) {
-            olLayer = _traceBuildOLFromFeatures(trackId, geoFeatures, color, maxPts);
+            olLayer = _traceBuildOLFromFeatures(trackId, geoFeatures, color, maxPts, width);
         } else if(sampled.length > 0) {
-            olLayer = _traceBuildOL(trackId, sampled, color);
+            olLayer = _traceBuildOL(trackId, sampled, color, width);
         }
         if((sampled.length > 0 || (geoFeatures && geoFeatures.length > 0)) && !olLayer)
             errors.push(_pe('Erreur OpenLayers : layer non créé','OpenLayers error: layer not created','OpenLayers-Fehler: Layer nicht erstellt'));
@@ -10060,7 +10142,7 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
         _traceTracks.push({
             trackId, fileId, name: displayName, type,
             sampledPts: sampled, total: points.length, sampled: sampled.length,
-            color, olLayer, errors, visible: true, lots,
+            color, width, olLayer, errors, visible: true, lots,
             geoFeatures: geoFeatures || null  // conservé pour recolor
         });
     });
@@ -10145,51 +10227,65 @@ const traceRemoveFile = (fileId) => {
     traceUpdateStripCtrl();
 };
 
-const traceSetColor = (trackId, color) => {
+// Re-applique le style d'un track depuis sa couleur ET son epaisseur courantes.
+// Une seule fonction sait parcourir les features et distinguer un polygone : les deux
+// setters de couleur en portaient chacun leur copie.
+const _traceRestyle = (trk) => {
+    if(!trk || !trk.olLayer) return;
+    trk.olLayer.features.forEach(ft => {
+        const isPolygon = ft.geometry && (
+            ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Polygon' ||
+            ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Collection'
+        );
+        ft.style = _traceStyle(trk.color, trk.width, isPolygon);
+    });
+    trk.olLayer.redraw();
+};
+const traceSetColor = (trackId, color, garderPopup) => {
     const trk = _traceTracks.find(t => t.trackId === trackId);
     if(!trk) return;
     trk.color = color;
-    if(trk.olLayer) {
-        trk.olLayer.features.forEach(ft => {
-            const isPolygon = ft.geometry && (
-                ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Polygon' ||
-                ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Collection'
-            );
-            ft.style = isPolygon
-                ? { strokeColor: color, strokeWidth: 1.5, strokeOpacity: 0.8, fillColor: color, fillOpacity: 0.12 }
-                : { strokeColor: color, strokeWidth: trk.geoFeatures ? 3 : 4, strokeOpacity: 0.85, fillOpacity: 0 };
-        });
-        trk.olLayer.redraw();
-    }
+    _traceRestyle(trk);
     // Le swatch fichier repasse en "vide" si les tracks divergent
     const fileId = trk.fileId;
     const file = _traceFiles.find(f => f.fileId === fileId);
     if(file) file.color = null;
     traceRenderTable();
-    document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
+    // ⚠️ Le sélecteur de couleur libre rend la teinte EN DIRECT pendant qu'on la promène :
+    // refermer la popup au premier mouvement la ferait disparaître sous les doigts, et
+    // le réglage d'épaisseur qu'elle porte avec elle.
+    if(!garderPopup) document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
 };
 // Applique une couleur uniforme à tous les tracks d'un fichier
-const traceSetFileColor = (fileId, color) => {
+const traceSetFileColor = (fileId, color, garderPopup) => {
     const file = _traceFiles.find(f => f.fileId === fileId);
     if(!file) return;
     file.color = color;
     _traceTracks.filter(t => t.fileId === fileId).forEach(trk => {
         trk.color = color;
-        if(trk.olLayer) {
-            trk.olLayer.features.forEach(ft => {
-                const isPolygon = ft.geometry && (
-                    ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Polygon' ||
-                    ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Collection'
-                );
-                ft.style = isPolygon
-                    ? { strokeColor: color, strokeWidth: 1.5, strokeOpacity: 0.8, fillColor: color, fillOpacity: 0.12 }
-                    : { strokeColor: color, strokeWidth: trk.geoFeatures ? 3 : 4, strokeOpacity: 0.85, fillOpacity: 0 };
-            });
-            trk.olLayer.redraw();
-        }
+        _traceRestyle(trk);
     });
     traceRenderTable();
-    document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
+    // ⚠️ Le sélecteur de couleur libre rend la teinte EN DIRECT pendant qu'on la promène :
+    // refermer la popup au premier mouvement la ferait disparaître sous les doigts, et
+    // le réglage d'épaisseur qu'elle porte avec elle.
+    if(!garderPopup) document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
+};
+// Change l'epaisseur du trait d'un fichier entier (fileId) ou d'un seul track (trackId).
+// La derniere epaisseur choisie devient le DEFAUT des prochains imports et survit a la
+// session : la regler a chaque fichier serait un geste a refaire indefiniment.
+// La popup reste OUVERTE pendant le reglage — contrairement au choix d'une couleur, une
+// epaisseur se cherche par essais successifs et se juge sur la carte pendant qu'on la
+// regle ; la refermer a chaque cran obligerait a la rouvrir pour comparer.
+const traceSetWidth = (fileId, trackId, w) => {
+    const width = _traceWidthOk(w);
+    const cibles = trackId ? _traceTracks.filter(t => t.trackId === trackId)
+                           : _traceTracks.filter(t => t.fileId  === fileId);
+    if(!cibles.length) return;
+    cibles.forEach(trk => { trk.width = width; _traceRestyle(trk); });
+    _traceWidth = width; save();
+    // ⚠️ Pas de traceRenderTable() ici : le tableau n'affiche pas l'épaisseur, et ce
+    // rendu se déclencherait à CHAQUE cran du curseur pendant qu'on le fait glisser.
 };
 
 
@@ -12584,10 +12680,16 @@ const traceRenderTable = () => {
         btn.addEventListener('click', e => traceFocus(e.currentTarget.dataset.tid));
     });
     // Palette couleur — helper commun
-    const openPalette = (anchor, onPick) => {
+    // `ctx` : { fid, tid, color, width } — la cible du réglage et son état courant.
+    // Couleur ET épaisseur vivent dans la même popup : c'est le même geste (« changer
+    // l'allure de ce tracé »), et le séparer obligerait à chercher l'épaisseur ailleurs
+    // que là où on vient de choisir la couleur.
+    const openPalette = (anchor, onPick, ctx) => {
         document.querySelectorAll('.wct-gpx-palette').forEach(p => p.remove());
         const pal = document.createElement('div');
         pal.className = 'wct-gpx-palette';
+        const grille = document.createElement('div');
+        grille.className = 'wct-gpx-pal-grid';
         TRACE_PALETTE.forEach(c => {
             const chip = document.createElement('span');
             chip.className = 'wct-gpx-pal-chip';
@@ -12595,8 +12697,44 @@ const traceRenderTable = () => {
             if(c === '#ffffff') chip.style.border = '1px solid #ccc';
             chip.title = c;
             chip.addEventListener('click', ev => { ev.stopPropagation(); onPick(c); });
-            pal.appendChild(chip);
+            grille.appendChild(chip);
         });
+        pal.appendChild(grille);
+
+        // ── Couleur libre : les 16 teintes sont des raccourcis, pas une limite ──
+        const libre = document.createElement('input');
+        libre.type = 'color';
+        libre.className = 'wct-gpx-pal-free';
+        libre.value = /^#[0-9a-f]{6}$/i.test(ctx?.color || '') ? ctx.color : TRACE_PALETTE[0];
+        libre.title = t('palFree');
+        libre.style.marginTop = '5px';
+        // ⚠️ `input` et non `change` : le sélecteur natif rend la couleur en direct pendant
+        // qu'on la promène, et c'est sur la CARTE qu'on juge si elle ressort.
+        libre.addEventListener('input', ev => { ev.stopPropagation(); onPick(ev.target.value, true); });
+        libre.addEventListener('click', ev => ev.stopPropagation());
+        pal.appendChild(libre);
+
+        // ── Épaisseur ──
+        if(ctx && (ctx.fid || ctx.tid)){
+            const sep = document.createElement('div'); sep.className = 'wct-gpx-pal-sep'; pal.appendChild(sep);
+            const ligne = document.createElement('div'); ligne.className = 'wct-gpx-pal-row';
+            const lab = document.createElement('span'); lab.textContent = t('palWidth'); ligne.appendChild(lab);
+            const val = document.createElement('span'); val.className = 'wct-gpx-pal-wval';
+            const w0 = Number(ctx.width) || _traceWidth;
+            val.textContent = w0 + ' px'; ligne.appendChild(val);
+            pal.appendChild(ligne);
+            const rng = document.createElement('input');
+            rng.type = 'range'; rng.className = 'wct-gpx-pal-w';
+            rng.min = TRACE_WIDTH_MIN; rng.max = TRACE_WIDTH_MAX; rng.step = 1; rng.value = w0;
+            rng.title = t('palWidthTip');
+            rng.addEventListener('input', ev => {
+                ev.stopPropagation();
+                val.textContent = ev.target.value + ' px';
+                traceSetWidth(ctx.fid, ctx.tid, ev.target.value);
+            });
+            rng.addEventListener('click', ev => ev.stopPropagation());
+            pal.appendChild(rng);
+        }
         const rect   = anchor.getBoundingClientRect();
         const ovRect = document.getElementById('wct-overlay')?.getBoundingClientRect() || {left:0,top:0};
         pal.style.left = (rect.left - ovRect.left) + 'px';
@@ -12605,11 +12743,20 @@ const traceRenderTable = () => {
     };
     // Swatch fichier
     container.querySelectorAll('.wct-trace-file-swatch').forEach(sw => {
-        sw.addEventListener('click', e => { e.stopPropagation(); openPalette(sw, c => traceSetFileColor(sw.dataset.fid, c)); });
+        sw.addEventListener('click', e => { e.stopPropagation();
+            const f = _traceFiles.find(x => x.fileId === sw.dataset.fid);
+            const t0 = _traceTracks.find(x => x.fileId === sw.dataset.fid);
+            openPalette(sw, (c, live) => traceSetFileColor(sw.dataset.fid, c, live),
+                        { fid: sw.dataset.fid, color: f?.color || t0?.color, width: t0?.width });
+        });
     });
     // Swatch track
     container.querySelectorAll('.wct-gpx-swatch[data-tid]').forEach(sw => {
-        sw.addEventListener('click', e => { e.stopPropagation(); openPalette(sw, c => traceSetColor(sw.dataset.tid, c)); });
+        sw.addEventListener('click', e => { e.stopPropagation();
+            const k = _traceTracks.find(x => x.trackId === sw.dataset.tid);
+            openPalette(sw, (c, live) => traceSetColor(sw.dataset.tid, c, live),
+                        { tid: sw.dataset.tid, color: k?.color, width: k?.width });
+        });
     });
 };
 // ── Gestionnaire de fichiers entrants (dropzone) ──────────────────────────────
