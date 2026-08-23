@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.13.01
+// @version      1.13.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -45,6 +45,7 @@
 // @connect      date.nager.at
 // @connect      cdn.jsdelivr.net
 // @connect      storage.googleapis.com
+// @connect      update.greasyfork.org
 // @supportURL   https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542
 // @downloadURL  https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.user.js
 // @updateURL    https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js
@@ -218,9 +219,20 @@ GM_addStyle(`
 .wct-hdr-title {
     font-size: 1.083em; font-weight: 700;
     display: flex; align-items: center; gap: 8px;
+    /* ⚠️ Les quatre lignes qui suivent tiennent la ligne quand la place manque. MESURE
+       (tools/check-entete.js, fenetre de 540 px, allemand, compteur a trois chiffres) :
+       sans elles le titre passe sur DEUX lignes des que l en-tete porte un bouton de plus,
+       et l en-tete double de hauteur. min-width:0 parce qu un item flex refuse par defaut
+       de descendre sous son contenu ; nowrap parce que c est le REPLI qu on interdit ;
+       overflow:hidden pour qu un debordement soit coupe plutot que glisse sous les boutons. */
+    min-width: 0; white-space: nowrap; overflow: hidden;
 }
-.wct-hdr-version { font-size: 0.833em; opacity:.6; }
-.wct-hdr-btns { display: flex; gap: 5px; }
+.wct-hdr-version { font-size: 0.833em; opacity:.6; flex-shrink: 0; }
+/* Le compteur de file est la seule piece sacrifiable de la ligne : le nom du script et le
+   numero de version, eux, ne veulent rien dire tronques. C est donc lui qui absorbe la
+   compression, avec des points de suspension pour que la troncature se VOIE. */
+#wct-hdr-badge { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.wct-hdr-btns { display: flex; gap: 5px; flex-shrink: 0; }
 .wct-hdr-btn {
     background: rgba(255,255,255,.18); border: none; color: #fff;
     width: 24px; height: 24px; border-radius: 50%;
@@ -228,6 +240,16 @@ GM_addStyle(`
     font-size: 1.083em; line-height: 1; transition: background .15s; padding: 0;
 }
 .wct-hdr-btn:hover { background: rgba(255,255,255,.35); }
+/* Pastille de mise a jour : meme geometrie que ses voisines (le clavier, la croix),
+   fond rouge plein pour qu'elle se detache du degrade bleu. Elle n'existe a l'ecran que
+   quand une version plus recente est publiee, donc elle n'a pas de place a tenir le
+   reste du temps : display:none, et non visibility. */
+.wct-hdr-btn.wct-hdr-maj { background: #e53935; }
+.wct-hdr-btn.wct-hdr-maj:hover { background: #ef5350; }
+/* currentColor : l'icone suit la couleur du bouton, blanche ici et blanche en compact.
+   display:block sinon le SVG est traite comme du texte et sa ligne de base le decale
+   d'environ 3 px vers le bas dans un bouton de 24. */
+.wct-hdr-btn.wct-hdr-maj svg { width: 14px; height: 14px; display: block; fill: currentColor; }
 
 /* ⚠️ Focus visible sur TOUT ce qui est atteignable au clavier. Sans cette règle on
    tabule à l'aveugle : le navigateur dessine bien un anneau par défaut, mais le panneau
@@ -1055,6 +1077,12 @@ GM_addStyle(`
 }
 #wct-overlay.wct-compact .wct-hdr-btn { background: #c0c0c0; color: #000; border-radius: 0; border: 2px outset #fff; width: 18px; height: 18px; font-size: 0.833em; }
 #wct-overlay.wct-compact .wct-hdr-btn:hover { background: #d4d0c8; filter: none; }
+/* En compact, la regle generale ci-dessus repeint TOUS les boutons de l'en-tete en gris
+   Win95 : sans ces trois lignes la pastille de mise a jour y perdrait son rouge, donc son
+   sens. Elle garde la bordure outset du theme, c'est la couleur qui porte l'alerte. */
+#wct-overlay.wct-compact .wct-hdr-btn.wct-hdr-maj { background: #c00000; color: #fff; }
+#wct-overlay.wct-compact .wct-hdr-btn.wct-hdr-maj:hover { background: #e00000; }
+#wct-overlay.wct-compact .wct-hdr-btn.wct-hdr-maj svg { width: 11px; height: 11px; }
 #wct-overlay.wct-compact #wct-sel-strip { padding: 1px 6px; background: #c0c0c0; border-bottom: 1px solid #888; }
 #wct-overlay.wct-compact #wct-sel-strip.has-sel { background: #c0c0c0; }
 #wct-overlay.wct-compact #wct-sel-strip .wct-sel-text { color: #000; font-weight: 600; }
@@ -1678,6 +1706,7 @@ const D = {
             fabNoSeg:'S\u00E9lectionnez des segments sur la carte',
             btnCollapse:'R\u00E9duire', btnClose:'Fermer',
             btnKeys:'Raccourcis clavier et gestes de la souris',
+            btnUpdate: v => `Mise à jour disponible : v${v} — cliquez pour l’installer`,
             keysTitle:'Raccourcis et gestes',
             keyAlt:'Alt',
             keysAltNote:'Tous les raccourcis de WCT passent par Alt : l\u2019\u00E9diteur Waze occupe d\u00E9j\u00E0 presque toutes les touches seules.',
@@ -2213,6 +2242,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             fabNoSeg:'Select segments on the map',
             btnCollapse:'Collapse', btnClose:'Close',
             btnKeys:'Keyboard shortcuts and mouse gestures',
+            btnUpdate: v => `Update available: v${v} — click to install`,
             keysTitle:'Shortcuts and gestures',
             keyAlt:'Alt',
             keysAltNote:'Every WCT shortcut uses Alt: the Waze editor already takes almost every single key.',
@@ -2753,6 +2783,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fabNoSeg:'בחר מקטעים במפה',
             btnCollapse:'כווץ', btnClose:'סגור',
             btnKeys:'קיצורי מקלדת ומחוות עכבר',
+            btnUpdate: v => `עדכון זמין: v${v} — לחצו כדי להתקין`,
             keysTitle:'קיצורים ומחוות',
             keyAlt:'Alt',
             keysAltNote:'כל קיצורי WCT משתמשים ב-Alt: עורך המפות של Waze כבר תופס כמעט כל מקש בודד.',
@@ -3287,6 +3318,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fabNoSeg:'Seleziona segmenti sulla mappa',
             btnCollapse:'Comprimi', btnClose:'Chiudi',
             btnKeys:'Scorciatoie da tastiera e gesti del mouse',
+            btnUpdate: v => `Aggiornamento disponibile: v${v} — clicca per installarlo`,
             keysTitle:'Scorciatoie e gesti',
             keyAlt:'Alt',
             keysAltNote:'Tutte le scorciatoie di WCT usano Alt: l\u2019editor Waze occupa gi\u00E0 quasi tutti i tasti singoli.',
@@ -3822,6 +3854,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fabNoSeg:'Segmente auf der Karte ausw\u00E4hlen',
             btnCollapse:'Einklappen', btnClose:'Schlie\u00DFen',
             btnKeys:'Tastenk\u00FCrzel und Mausgesten',
+            btnUpdate: v => `Update verf\u00FCgbar: v${v} \u2014 zum Installieren klicken`,
             keysTitle:'K\u00FCrzel und Gesten',
             keyAlt:'Alt',
             keysAltNote:'Alle WCT-K\u00FCrzel nutzen Alt: der Waze-Editor belegt bereits fast jede einzelne Taste.',
@@ -4356,6 +4389,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fabNoSeg:'Selecciona segmentos en el mapa',
             btnCollapse:'Plegar', btnClose:'Cerrar',
             btnKeys:'Atajos de teclado y gestos del rat\u00F3n',
+            btnUpdate: v => `Actualizaci\u00F3n disponible: v${v} \u2014 haz clic para instalarla`,
             keysTitle:'Atajos y gestos',
             keyAlt:'Alt',
             keysAltNote:'Todos los atajos de WCT usan Alt: el editor de Waze ya ocupa casi todas las teclas sueltas.',
@@ -4890,6 +4924,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             fabNoSeg:'Selecione segmentos no mapa',
             btnCollapse:'Recolher', btnClose:'Fechar',
             btnKeys:'Atalhos de teclado e gestos do mouse',
+            btnUpdate: v => `Atualização disponível: v${v} — clique para instalar`,
             keysTitle:'Atalhos e gestos',
             keyAlt:'Alt',
             keysAltNote:'Todos os atalhos do WCT usam Alt: o editor do Waze j\u00E1 ocupa quase todas as teclas sozinhas.',
@@ -5424,6 +5459,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             fabNoSeg:'Selecione segmentos no mapa',
             btnCollapse:'Recolher', btnClose:'Fechar',
             btnKeys:'Atalhos de teclado e gestos do rato',
+            btnUpdate: v => `Atualização disponível: v${v} — clique para instalar`,
             keysTitle:'Atalhos e gestos',
             keyAlt:'Alt',
             keysAltNote:'Todos os atalhos do WCT usam Alt: o editor do Waze j\u00E1 ocupa quase todas as teclas sozinhas.',
@@ -7044,6 +7080,64 @@ const waitMapLoaded=()=>new Promise(resolve=>{
     // le chargement de la carte restait sans effet visible jusqu'à 10 s.
     let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||(!sdk.State.isMapLoading()&&(W?.app?.attributes?.pendingOperations?.length||0)===0)||n>100){clearInterval(iv);resolve();}},100);
 });
+// ═══════════════════════════════════════════════════════════════════════════
+//  MISE A JOUR DISPONIBLE (GreasyFork)
+// ═══════════════════════════════════════════════════════════════════════════
+// La pastille rouge de l'en-tete ne s'allume que sur une version PUBLIEE strictement
+// superieure a celle qui tourne. Reseau coupe, reponse illisible, version locale
+// inconnue : elle reste eteinte. Une pastille qui s'allume sans savoir enverrait
+// l'editeur reinstaller ce qu'il a deja, et il cesserait de la croire.
+// Le fichier interroge est celui que le gestionnaire de scripts lit lui-meme
+// (@updateURL) : quelques centaines d'octets, un seul appel par chargement de WME.
+const GF_PAGE_URL = 'https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit';
+const GF_META_URL = 'https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js';
+const _VER_RE     = /^\d+(\.\d+)*$/;
+let _majEnLigne = null;   // version publiee, renseignee SEULEMENT si elle est plus recente
+
+// Compare deux versions SEGMENT PAR SEGMENT, en nombres.
+// ⚠️ Une comparaison de chaines dirait que '1.9.00' est plus recent que '1.13.01' :
+// vrai dans l'alphabet, faux en versions. Les segments absents valent 0, pour que
+// '1.14' et '1.14.00' soient la meme version et non deux.
+const _majCmp = (a, b) => {
+    const pa = String(a).split('.'), pb = String(b).split('.');
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const na = Number(pa[i]) || 0, nb = Number(pb[i]) || 0;
+        if (na !== nb) return na < nb ? -1 : 1;
+    }
+    return 0;
+};
+
+// Pose ou retire la pastille. Appelee par le sondage ET a chaque (re)construction de
+// l'overlay : celui-ci est reconstruit a chaque changement de langue, et le bouton
+// repartirait masque alors que la mise a jour, elle, est toujours la.
+const _majRender = () => {
+    const b = $id('wct-btn-maj');
+    if (!b) return;
+    b.style.display = _majEnLigne ? 'flex' : 'none';
+    if (_majEnLigne) b.title = t('btnUpdate', _majEnLigne);
+};
+
+const _majVerifier = () => {
+    // Version locale illisible (GM_info absent : VERSION vaut '?') : rien a comparer.
+    if (!_VER_RE.test(VERSION)) return;
+    if (typeof GM_xmlhttpRequest !== 'function') return;
+    GM_xmlhttpRequest({
+        method: 'GET', url: GF_META_URL, timeout: 10000,
+        onload: r => {
+            // ⚠️ onload est appele AUSSI sur un 404 : sans ce test, la page d'erreur
+            // de GreasyFork serait analysee comme un bloc de metadonnees.
+            if (r.status < 200 || r.status >= 300) return;
+            const m = (r.responseText || '').match(/^\/\/\s*@version\s+(\S+)/m);
+            if (!m || !_VER_RE.test(m[1])) return;
+            if (_majCmp(VERSION, m[1]) >= 0) return;
+            _majEnLigne = m[1];
+            _majRender();
+            log('mise a jour disponible sur GreasyFork : ' + m[1] + ' (installee : ' + VERSION + ')');
+        },
+        onerror:   () => {},   // hors ligne : pas de pastille, et rien a dire a l'editeur
+        ontimeout: () => {},
+    });
+};
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════════════
@@ -12893,6 +12987,7 @@ const buildOverlay=()=>{
             <span id="wct-hdr-badge" style="font-size:0.917em;opacity:.75;margin-left:4px"></span>
         </div>
         <div class="wct-hdr-btns">
+            <button class="wct-hdr-btn wct-hdr-maj" id="wct-btn-maj" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/></svg></button>
             <button class="wct-hdr-btn" id="wct-btn-keys" title="${t('btnKeys')}">&#x2328;&#xFE0F;</button>
             <button class="wct-hdr-btn" id="wct-btn-collapse" title="${t('btnCollapse')}">&#x2014;</button>
             <button class="wct-hdr-btn" id="wct-btn-close" title="${t('btnClose')}">&#x2715;</button>
@@ -13716,6 +13811,12 @@ const connectOverlay=ov=>{
     // \u2500\u2500\u2500 Raccourcis et gestes \u2500\u2500\u2500
     // Trois sorties : la croix, \u00C9chap, et un clic hors du panneau. Une fen\u00EAtre qu'on ne
     // sait pas fermer est une g\u00EAne, et celle-ci recouvre le contenu.
+    // ─── Mise a jour ───
+    // L'overlay est reconstruit a chaque changement de langue : reposer l'etat de la
+    // pastille ici, sinon elle repart masquee alors que la version publiee n'a pas bouge.
+    // noopener : la page ouverte ne doit pas garder la main sur celle de l'editeur.
+    $id('wct-btn-maj')?.addEventListener('click',e=>{ e.stopPropagation(); window.open(GF_PAGE_URL,'_blank','noopener'); });
+    _majRender();
     $id('wct-btn-keys')?.addEventListener('click',e=>{ e.stopPropagation(); _keysPop(); });
     $id('wct-keys-close')?.addEventListener('click',()=>_keysPop(false));
     // \u26A0\uFE0F \u00C9couteur NON capturant, contrairement \u00E0 celui de l'interruption : si une
@@ -15148,6 +15249,9 @@ const init=async()=>{
     renderPolyBanner(); refreshCfgGate();
     // Appliquer le mode d'affichage sauvegardé
     applyDisplayMode(_displayMode);
+    // Un seul sondage par chargement de WME, et APRES l'overlay : la pastille n'a nulle
+    // part ou se poser tant qu'il n'existe pas, et rien ici n'est attendu.
+    _majVerifier();
     // FAB
     injectFab();
     // Double-clic dans la zone pour rouvrir son panneau d'arbitrage.
