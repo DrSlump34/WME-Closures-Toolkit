@@ -46,7 +46,13 @@ Drop any file into the Import tab — the content decides where it goes:
   the site's `localStorage`: clearing your browsing data no longer wipes them. Export, import, or
   load them from a URL to share presets with other editors.
 - **Segment *and* turn closures** — including the geometry helpers needed to target turns reliably.
-- **Route import** — GPX, KML, KMZ, GeoJSON and shapefiles (with reprojection).
+- **Route import** — GPX, KML, KMZ, GeoJSON and shapefiles (with reprojection). Track names are
+  read from the file's own attributes, tracks sharing a name share a colour, and a colour the file
+  declares itself (`stroke`, the simplestyle convention) is honoured. Colour, thickness and opacity
+  are adjustable per track, and the last values chosen become the default for later imports.
+- **A window you can actually place** — drag it by its header, resize it by the bottom-right handle.
+  Size and position are remembered between sessions and pulled back on screen when you switch
+  machines; double-clicking the header restores automatic sizing.
 - **Search** — find existing closures across segments and turns, filter by partner.
 - **CSV export** — separate exports for segment closures and turn closures.
 - **Partner source** — record and display which partner a closure originates from.

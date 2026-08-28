@@ -35,8 +35,11 @@ let bloc = src.slice(d, f + 3);
 if (!bloc.includes('_traceStyle')) { console.error('ECHEC : bloc sans _traceStyle'); process.exit(1); }
 if (!bloc.includes('TRACE_WIDTH_MIN')) { console.error('ECHEC : bornes absentes du bloc'); process.exit(1); }
 
-const F = new Function(bloc + '\nreturn {_traceStyle, TRACE_WIDTH_DEFAULT, TRACE_WIDTH_MIN, TRACE_WIDTH_MAX};')();
-const { _traceStyle, TRACE_WIDTH_DEFAULT, TRACE_WIDTH_MIN, TRACE_WIDTH_MAX } = F;
+if (!bloc.includes('TRACE_OPACITY_MIN')) { console.error('ECHEC : bornes d opacite absentes du bloc'); process.exit(1); }
+
+const F = new Function(bloc + '\nreturn {_traceStyle, TRACE_WIDTH_DEFAULT, TRACE_WIDTH_MIN, TRACE_WIDTH_MAX, TRACE_OPACITY_DEFAULT, TRACE_OPACITY_MIN, TRACE_OPACITY_MAX};')();
+const { _traceStyle, TRACE_WIDTH_DEFAULT, TRACE_WIDTH_MIN, TRACE_WIDTH_MAX,
+        TRACE_OPACITY_DEFAULT, TRACE_OPACITY_MIN, TRACE_OPACITY_MAX } = F;
 
 console.log('\n— Bornes lues dans le fichier reel —');
 console.log('   defaut ' + TRACE_WIDTH_DEFAULT + ' px, min ' + TRACE_WIDTH_MIN + ', max ' + TRACE_WIDTH_MAX);
@@ -69,6 +72,58 @@ dit(poly.strokeWidth < ligne.strokeWidth, 'a epaisseur egale, le contour d un po
 dit(_traceStyle('#fff', TRACE_WIDTH_MIN, true).strokeWidth >= 1, 'au minimum, le contour reste >= 1 px');
 dit(poly.fillOpacity > 0 && ligne.fillOpacity === 0, 'seul le polygone est rempli');
 dit(poly.fillColor === '#00e5ff', 'le remplissage reprend la couleur du trace');
+
+// ── Opacite (demande de MisterLogik, 27/08/2026) ──────────────────────────
+// Meme piege que l epaisseur, en pire : une opacite a 0 rend le trace INVISIBLE, et un
+// trace invisible est indiscernable d un trace absent. La borne basse est donc la seule
+// chose qui distingue « tres discret » de « disparu ».
+console.log('\n— Bornes d opacite lues dans le fichier reel —');
+console.log('   defaut ' + TRACE_OPACITY_DEFAULT + ', min ' + TRACE_OPACITY_MIN + ', max ' + TRACE_OPACITY_MAX);
+
+console.log('\n— Bornage de l opacite —');
+dit(_traceStyle('#fff', 6, false, 0).strokeOpacity === TRACE_OPACITY_MIN,
+    'une opacite NULLE remonte au minimum', '(sinon le trace disparait sans le dire)');
+dit(_traceStyle('#fff', 6, false, -1).strokeOpacity === TRACE_OPACITY_MIN, 'une opacite negative remonte au minimum');
+dit(_traceStyle('#fff', 6, false, 9).strokeOpacity === TRACE_OPACITY_MAX,  'une opacite superieure a 1 redescend au maximum');
+dit(_traceStyle('#fff', 6, false, 'abc').strokeOpacity === TRACE_OPACITY_DEFAULT, 'une valeur non numerique retombe sur le defaut');
+dit(_traceStyle('#fff', 6, false, undefined).strokeOpacity === TRACE_OPACITY_DEFAULT, 'sans opacite fournie, on retombe sur le defaut');
+dit(_traceStyle('#fff', 6, false, null).strokeOpacity === TRACE_OPACITY_DEFAULT, 'null retombe sur le defaut');
+
+console.log('\n— TEMOIN : le bornage de l opacite ne doit pas tout ecraser —');
+const oMil = Math.round((TRACE_OPACITY_MIN + TRACE_OPACITY_MAX) / 2 * 100) / 100;
+dit(_traceStyle('#fff', 6, false, oMil).strokeOpacity === oMil,
+    'une opacite DANS les bornes passe telle quelle', '(' + oMil + ')');
+dit(_traceStyle('#fff', 6, false, TRACE_OPACITY_MIN).strokeOpacity === TRACE_OPACITY_MIN, 'la borne basse elle-meme est acceptee');
+dit(_traceStyle('#fff', 6, false, TRACE_OPACITY_MAX).strokeOpacity === TRACE_OPACITY_MAX, 'la borne haute elle-meme est acceptee');
+dit(TRACE_OPACITY_MIN > 0, 'la borne basse n est PAS zero', '(un trace invisible ressemble a un trace absent)');
+
+console.log('\n— Le remplissage d un polygone reste une fraction du contour —');
+// Regles separement, contour et remplissage divergent : c est ainsi qu on obtient une
+// zone plus opaque que son propre contour. Le rapport doit tenir a TOUTES les opacites.
+let rapportOk = true, pire = '';
+[TRACE_OPACITY_MIN, 0.3, 0.5, TRACE_OPACITY_DEFAULT, TRACE_OPACITY_MAX].forEach(o => {
+    const st = _traceStyle('#00e5ff', 6, true, o);
+    if (!(st.fillOpacity < st.strokeOpacity)) { rapportOk = false; pire = 'a o=' + o; }
+});
+dit(rapportOk, 'le remplissage reste plus transparent que le contour, sur toute la plage', pire);
+dit(_traceStyle('#fff', 6, true, TRACE_OPACITY_MIN).fillOpacity > 0,
+    'meme au minimum, le remplissage n est pas nul');
+dit(_traceStyle('#fff', 6, false, TRACE_OPACITY_MAX).fillOpacity === 0,
+    'une ligne n est jamais remplie, quelle que soit l opacite');
+
+console.log('\n— TEMOIN DE MORSURE : l opacite est bien BRANCHEE sur le style —');
+// Sans ce temoin, un _traceStyle qui ignorerait son 4e parametre passerait tous les
+// tests ci-dessus des lors que le defaut est correct.
+dit(_traceStyle('#fff', 6, false, TRACE_OPACITY_MIN).strokeOpacity
+      !== _traceStyle('#fff', 6, false, TRACE_OPACITY_MAX).strokeOpacity,
+    'deux opacites differentes donnent deux styles differents');
+dit(_traceStyle('#fff', 6, true, TRACE_OPACITY_MIN).fillOpacity
+      !== _traceStyle('#fff', 6, true, TRACE_OPACITY_MAX).fillOpacity,
+    'le remplissage suit lui aussi');
+
+console.log('\n— L epaisseur ne bouge pas quand on change l opacite —');
+dit(_traceStyle('#fff', 9, false, TRACE_OPACITY_MIN).strokeWidth === 9,
+    'regler l opacite ne touche pas a l epaisseur');
 
 console.log('\n— La couleur est transmise telle quelle —');
 dit(_traceStyle('#ff00ff', 6, false).strokeColor === '#ff00ff', 'une couleur libre passe sans etre normalisee');

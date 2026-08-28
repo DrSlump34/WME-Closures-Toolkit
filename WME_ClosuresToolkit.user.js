@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.13.02
+// @version      1.14.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -201,6 +201,30 @@ GM_addStyle(`
     overflow: hidden;
 }
 #wct-overlay.open { display: flex; }
+
+/* ── Poignée de redimensionnement ──────────────────────────────────────────
+   Signalé par MisterLogik le 27/08/2026 : « le réglage de la fenêtre n'est pas / plus
+   possible ? Elle est attaché en bas... et je la trouve trop "grande" sur cet écran ».
+   Le panneau se DÉPLAÇAIT déjà, mais rien n'a jamais permis de le REDIMENSIONNER : sous
+   820 px de hauteur de fenêtre, la media query l'étire jusqu'à 16 px du bas (8 px sous
+   680 px), et le déplacer ne le décolle donc de nulle part. GNico73, sur un écran plus
+   haut, ne voyait rien — c'est ce qui a fait croire un moment à un défaut « passager ».
+   ⚠️ Placée à DROITE dans les deux sens d'écriture, contrairement au reste du panneau :
+   une poignée de redimensionnement ne se lit pas, elle se saisit, et le coin bas-droite
+   est le geste appris partout. Elle n'utilise donc pas de propriété logique — c'est
+   voulu, pas un oubli de RTL. */
+#wct-resize {
+    position: absolute; right: 0; bottom: 0;
+    width: 18px; height: 18px;
+    cursor: nwse-resize; z-index: 30;
+    background:
+        linear-gradient(135deg, transparent 46%, var(--wct-grey) 46%, var(--wct-grey) 54%, transparent 54%),
+        linear-gradient(135deg, transparent 70%, var(--wct-grey) 70%, var(--wct-grey) 78%, transparent 78%);
+    opacity: .45;
+}
+#wct-resize:hover { opacity: .9; }
+/* Replié, il n'y a plus rien à redimensionner : la poignée flotterait sur l'en-tête. */
+#wct-overlay.collapsed #wct-resize { display: none; }
 
 /* Header */
 #wct-hdr {
@@ -1824,6 +1848,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             palFree:'Couleur libre…',
             palWidth:'Épaisseur',
             palWidthTip:'Épaisseur du trait. S\u2019applique à ce tracé et devient le réglage par défaut.',
+            palOpacity:'Opacité',
+            palOpacityTip:'Opacité du trait. S’applique à ce tracé et devient le réglage par défaut.',
+            ovResizeTip:'Redimensionner la fenêtre. Double-clic sur l’en-tête pour revenir au réglage automatique.',
+            ovReset:'Fenêtre revenue au réglage automatique',
+            ovHdrTip:'Glisser pour déplacer la fenêtre · double-clic pour revenir au réglage automatique',
             lotError: m => `❌ Échec de la sélection du lot : ${m}`,
             lotNextHint: (i,n) => `📦 Lot suivant à traiter : ${i}/${n}.`,
             polyBtn:'✏️ Tracer une zone',
@@ -2361,6 +2390,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             palFree:'Custom colour…',
             palWidth:'Thickness',
             palWidthTip:'Line thickness. Applies to this track and becomes the default.',
+            palOpacity:'Opacity',
+            palOpacityTip:'Line opacity. Applies to this track and becomes the default.',
+            ovResizeTip:'Resize the window. Double-click the header to restore automatic sizing.',
+            ovReset:'Window restored to automatic sizing',
+            ovHdrTip:'Drag to move the window · double-click to restore automatic sizing',
             lotError: m => `❌ Batch selection failed: ${m}`,
             lotNextHint: (i,n) => `📦 Next batch to handle: ${i}/${n}.`,
             polyBtn:'✏️ Draw an area',
@@ -2902,6 +2936,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             palFree:'צבע חופשי…',
             palWidth:'עובי',
             palWidthTip:'עובי הקו. חל על מסלול זה והופך לברירת המחדל.',
+            palOpacity:'אטימות',
+            palOpacityTip:'אטימות הקו. חל על מסלול זה והופך לברירת המחדל.',
+            ovResizeTip:'שינוי גודל החלון. לחיצה כפולה על הכותרת מחזירה לגודל האוטומטי.',
+            ovReset:'החלון הוחזר לגודל האוטומטי',
+            ovHdrTip:'גרירה להזזת החלון · לחיצה כפולה לחזרה לגודל האוטומטי',
             lotError: m => `❌ בחירת המנה נכשלה: ${m}`,
             lotNextHint: (i,n) => `📦 המנה הבאה לטיפול: ${i}/${n}.`,
             polyBtn:'✏️ שרטט אזור',
@@ -3437,6 +3476,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             palFree:'Colore personalizzato…',
             palWidth:'Spessore',
             palWidthTip:'Spessore della linea. Vale per questa traccia e diventa il valore predefinito.',
+            palOpacity:'Opacità',
+            palOpacityTip:'Opacità della linea. Vale per questa traccia e diventa il valore predefinito.',
+            ovResizeTip:'Ridimensiona la finestra. Doppio clic sull’intestazione per tornare al dimensionamento automatico.',
+            ovReset:'Finestra tornata al dimensionamento automatico',
+            ovHdrTip:'Trascina per spostare la finestra · doppio clic per tornare al dimensionamento automatico',
             lotError: m => `❌ Selezione del lotto non riuscita: ${m}`,
             lotNextHint: (i,n) => `📦 Prossimo lotto da gestire: ${i}/${n}.`,
             polyBtn:'✏️ Disegna un’area',
@@ -3973,6 +4017,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             palFree:'Freie Farbe…',
             palWidth:'Stärke',
             palWidthTip:'Linienstärke. Gilt für diese Spur und wird zur Voreinstellung.',
+            palOpacity:'Deckkraft',
+            palOpacityTip:'Deckkraft der Linie. Gilt für diese Spur und wird zur Voreinstellung.',
+            ovResizeTip:'Fenstergröße ändern. Doppelklick auf die Kopfzeile stellt die automatische Größe wieder her.',
+            ovReset:'Fenster auf automatische Größe zurückgesetzt',
+            ovHdrTip:'Ziehen zum Verschieben des Fensters · Doppelklick für die automatische Größe',
             lotError: m => `❌ Losauswahl fehlgeschlagen: ${m}`,
             lotNextHint: (i,n) => `📦 Nächstes Paket: ${i}/${n}.`,
             polyBtn:'✏️ Bereich zeichnen',
@@ -4508,6 +4557,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             palFree:'Color personalizado…',
             palWidth:'Grosor',
             palWidthTip:'Grosor de la línea. Se aplica a este trazado y pasa a ser el valor por defecto.',
+            palOpacity:'Opacidad',
+            palOpacityTip:'Opacidad de la línea. Se aplica a este trazado y pasa a ser el valor por defecto.',
+            ovResizeTip:'Redimensionar la ventana. Doble clic en la cabecera para volver al tamaño automático.',
+            ovReset:'Ventana devuelta al tamaño automático',
+            ovHdrTip:'Arrastra para mover la ventana · doble clic para volver al tamaño automático',
             lotError: m => `❌ No se pudo seleccionar el lote: ${m}`,
             lotNextHint: (i,n) => `📦 Siguiente lote: ${i}/${n}.`,
             polyBtn:'✏️ Dibujar una zona',
@@ -5043,6 +5097,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             palFree:'Cor personalizada…',
             palWidth:'Espessura',
             palWidthTip:'Espessura da linha. Aplica-se a este traçado e passa a ser o padrão.',
+            palOpacity:'Opacidade',
+            palOpacityTip:'Opacidade da linha. Aplica-se a este traçado e passa a ser o padrão.',
+            ovResizeTip:'Redimensionar a janela. Clique duplo no cabeçalho para voltar ao tamanho automático.',
+            ovReset:'Janela devolvida ao tamanho automático',
+            ovHdrTip:'Arraste para mover a janela · clique duplo para voltar ao tamanho automático',
             lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
@@ -5578,6 +5637,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             palFree:'Cor personalizada…',
             palWidth:'Espessura',
             palWidthTip:'Espessura da linha. Aplica-se a este traçado e passa a ser a predefinição.',
+            palOpacity:'Opacidade',
+            palOpacityTip:'Opacidade da linha. Aplica-se a este traçado e passa a ser a predefinição.',
+            ovResizeTip:'Redimensionar a janela. Duplo clique no cabeçalho para voltar ao tamanho automático.',
+            ovReset:'Janela reposta no tamanho automático',
+            ovHdrTip:'Arraste para mover a janela · duplo clique para voltar ao tamanho automático',
             lotError: m => `❌ Falha ao selecionar o lote: ${m}`,
             lotNextHint: (i,n) => `📦 Próximo lote: ${i}/${n}.`,
             polyBtn:'✏️ Desenhar uma área',
@@ -6071,48 +6135,56 @@ const buildHelpHTML = () => {
             <tr><td><b>Affichage</b></td><td>Choisissez entre <b>Normal</b> (interface standard) et <b>Windows 95</b> (ultra-compact, coins carrés, palette grise classique). Préférence sauvegardée.</td></tr>
             <tr><td><b>Format des dates</b></td><td>Contrôle l’affichage dans la file et les logs.<br><b>JJ/MM/AAAA</b> — Europe (défaut)<br><b>MM/JJ/AAAA</b> — USA<br><b>AAAA-MM-JJ</b> — ISO<br>Détecté via <code>navigator.language</code>, forçable manuellement. Préférence sauvegardée.<br>⚠️ Les <b>champs de saisie</b> (dates et heures) ne suivent pas ce réglage : c’est le navigateur qui les dessine, dans sa propre langue d’affichage. Pour les changer — <b>Firefox</b> : dans <code>about:config</code>, passer <code>intl.regional_prefs.use_os_locales</code> à <code>true</code> (Firefox ignore les préférences régionales du système tant que sa langue d’interface en diffère). <b>Chrome</b> : dans <code>chrome://settings/languages</code>, remonter sa langue en tête et cocher l’affichage de Chrome dans cette langue.</td></tr>
             <tr><td><b>Réinitialiser la position</b></td><td>Remet le bouton 🚧 à sa position par défaut sur la carte.</td></tr>
+            <tr><td><b>La fenêtre du script</b></td><td>Elle se <b>déplace</b> par son en-tête et se <b>redimensionne</b> par la poignée du coin bas-droite. Taille et position sont <b>mémorisées</b> d’une session à l’autre, et ramenées dans l’écran si vous changez de machine. <b>Double-clic sur l’en-tête</b> : retour au réglage automatique, qui adapte la fenêtre à la hauteur disponible.</td></tr>
             </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Enable tool</b></td><td>Enables or disables WCT. When disabled, the 🚧 button remains visible but the overlay does not open.</td></tr>
             <tr><td><b>Display mode</b></td><td>Choose between <b>Normal</b> (standard) and <b>Windows 95</b> (ultra-compact, square corners, classic grey). Preference saved.</td></tr>
             <tr><td><b>Date format</b></td><td>Controls display in the queue and logs.<br><b>DD/MM/YYYY</b> — Europe (default)<br><b>MM/DD/YYYY</b> — USA<br><b>YYYY-MM-DD</b> — ISO<br>Auto-detected via <code>navigator.language</code>, overridable manually. Preference saved.<br>⚠️ The <b>input fields</b> (dates and times) do not follow this setting: the browser draws them itself, in its own display language. To change them — <b>Firefox</b>: in <code>about:config</code>, set <code>intl.regional_prefs.use_os_locales</code> to <code>true</code> (Firefox ignores your OS regional settings as long as its interface language differs from the system one). <b>Chrome</b>: in <code>chrome://settings/languages</code>, move your language to the top and tick the option to display Chrome in that language.</td></tr>
             <tr><td><b>Reset button position</b></td><td>Moves the 🚧 button back to its default position on the map.</td></tr>
+            <tr><td><b>The script window</b></td><td><b>Move</b> it by its header, <b>resize</b> it by the handle in the bottom-right corner. Size and position are <b>remembered</b> between sessions, and pulled back on screen if you switch machines. <b>Double-click the header</b>: back to automatic sizing, which fits the window to the available height.</td></tr>
             </table>`, it:`
             <table class="wct-help-table">
             <tr><td><b>Attiva strumento</b></td><td>Attiva o disattiva WCT. Se disattivato, il pulsante 🚧 resta visibile ma il pannello non si apre.</td></tr>
             <tr><td><b>Modalità di visualizzazione</b></td><td>Scegli tra <b>Normale</b> (standard) e <b>Windows 95</b> (ultra compatta, angoli squadrati, grigio classico). Preferenza salvata.</td></tr>
             <tr><td><b>Formato data</b></td><td>Regola la visualizzazione nella coda e nei registri.<br><b>GG/MM/AAAA</b> — Europa (predefinito)<br><b>MM/GG/AAAA</b> — USA<br><b>AAAA-MM-GG</b> — ISO<br>Rilevato automaticamente tramite <code>navigator.language</code>, modificabile a mano. Preferenza salvata.<br>⚠️ I <b>campi di immissione</b> (date e orari) non seguono questa impostazione: è il browser a disegnarli, nella propria lingua di visualizzazione. Per cambiarli — <b>Firefox</b>: in <code>about:config</code>, imposta <code>intl.regional_prefs.use_os_locales</code> su <code>true</code> (Firefox ignora le impostazioni regionali del sistema finché la lingua della sua interfaccia è diversa da quella di sistema). <b>Chrome</b>: in <code>chrome://settings/languages</code>, sposta la tua lingua in cima e spunta l’opzione per visualizzare Chrome in quella lingua.</td></tr>
             <tr><td><b>Reimposta posizione pulsante</b></td><td>Riporta il pulsante 🚧 nella sua posizione predefinita sulla mappa.</td></tr>
+            <tr><td><b>La finestra dello script</b></td><td>Si <b>sposta</b> dall’intestazione e si <b>ridimensiona</b> dalla maniglia nell’angolo in basso a destra. Dimensione e posizione vengono <b>memorizzate</b> tra una sessione e l’altra e riportate nello schermo se cambi macchina. <b>Doppio clic sull’intestazione</b>: ritorno al dimensionamento automatico, che adatta la finestra all’altezza disponibile.</td></tr>
             </table>`, he:`
             <table class="wct-help-table">
             <tr><td><b>הפעלת הכלי</b></td><td>מפעיל או מכבה את WCT. כשהוא כבוי, כפתור 🚧 נשאר גלוי אבל החלונית לא נפתחת.</td></tr>
             <tr><td><b>מצב תצוגה</b></td><td>בחרו בין <b>רגיל</b> (סטנדרטי) ל<b>Windows 95</b> (דחוס במיוחד, פינות ישרות, אפור קלאסי). ההעדפה נשמרת.</td></tr>
             <tr><td><b>תבנית תאריך</b></td><td>קובעת את התצוגה בתור וביומנים.<br><b>DD/MM/YYYY</b> — אירופה (ברירת מחדל)<br><b>MM/DD/YYYY</b> — ארה״ב<br><b>YYYY-MM-DD</b> — ISO<br>מזוהה אוטומטית דרך <code>navigator.language</code>, וניתן לשנות ידנית. ההעדפה נשמרת.<br>⚠️ <b>שדות הקלט</b> (תאריכים ושעות) אינם מושפעים מההגדרה הזו: הדפדפן מצייר אותם בעצמו, בשפת התצוגה שלו. כדי לשנות אותם — <b>Firefox</b>: ב־<code>about:config</code>, הגדירו את <code>intl.regional_prefs.use_os_locales</code> ל־<code>true</code> (פיירפוקס מתעלם מהגדרות האזור של מערכת ההפעלה כל עוד שפת הממשק שלו שונה משפת המערכת). <b>Chrome</b>: ב־<code>chrome://settings/languages</code>, העבירו את השפה שלכם לראש הרשימה וסמנו את האפשרות להציג את כרום בשפה הזו.</td></tr>
             <tr><td><b>איפוס מיקום הכפתור</b></td><td>מחזיר את כפתור 🚧 למיקום ברירת המחדל שלו על המפה.</td></tr>
+            <tr><td><b>חלון הסקריפט</b></td><td>ניתן <b>להזיז</b> אותו באמצעות הכותרת ו<b>לשנות את גודלו</b> באמצעות הידית שבפינה הימנית התחתונה. הגודל והמיקום <b>נשמרים</b> בין הפעלות, ומוחזרים אל תוך המסך אם מחליפים מחשב. <b>לחיצה כפולה על הכותרת</b>: חזרה לגודל האוטומטי, שמתאים את החלון לגובה הזמין.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>Werkzeug aktivieren</b></td><td>Aktiviert oder deaktiviert WCT. Ist es deaktiviert, bleibt die Schaltfläche 🚧 sichtbar, das Overlay öffnet sich jedoch nicht.</td></tr>
             <tr><td><b>Darstellung</b></td><td>Wähle zwischen <b>Normal</b> (Standardoberfläche) und <b>Windows 95</b> (sehr kompakt, eckige Ecken, klassische graue Palette). Die Einstellung wird gespeichert.</td></tr>
             <tr><td><b>Datumsformat</b></td><td>Steuert die Anzeige in der Warteschlange und in den Protokollen.<br><b>TT/MM/JJJJ</b> — Europa (Standard)<br><b>MM/TT/JJJJ</b> — USA<br><b>JJJJ-MM-TT</b> — ISO<br>Über <code>navigator.language</code> erkannt, manuell überschreibbar. Die Einstellung wird gespeichert.<br>⚠️ Die <b>Eingabefelder</b> (Datum und Uhrzeit) folgen dieser Einstellung nicht: Der Browser zeichnet sie selbst, in seiner eigenen Anzeigesprache. Zum Ändern — <b>Firefox</b>: in <code>about:config</code> <code>intl.regional_prefs.use_os_locales</code> auf <code>true</code> setzen (Firefox ignoriert die Regionseinstellungen des Systems, solange seine Oberflächensprache davon abweicht). <b>Chrome</b>: unter <code>chrome://settings/languages</code> die eigene Sprache nach oben schieben und die Anzeige von Chrome in dieser Sprache aktivieren.</td></tr>
             <tr><td><b>Position zurücksetzen</b></td><td>Setzt die Schaltfläche 🚧 auf ihre Standardposition auf der Karte zurück.</td></tr>
+            <tr><td><b>Das Skriptfenster</b></td><td>Es lässt sich an der Kopfzeile <b>verschieben</b> und am Griff in der rechten unteren Ecke <b>in der Größe ändern</b>. Größe und Position werden über Sitzungen hinweg <b>gespeichert</b> und beim Wechsel des Rechners wieder in den Bildschirm geholt. <b>Doppelklick auf die Kopfzeile</b>: zurück zur automatischen Größe, die das Fenster an die verfügbare Höhe anpasst.</td></tr>
             </table>`, es:`
             <table class="wct-help-table">
             <tr><td><b>Activar la herramienta</b></td><td>Activa o desactiva WCT. Si está desactivada, el botón 🚧 sigue visible pero el panel no se abre.</td></tr>
             <tr><td><b>Visualización</b></td><td>Elige entre <b>Normal</b> (interfaz estándar) y <b>Windows 95</b> (ultracompacta, esquinas rectas, paleta gris clásica). La preferencia se guarda.</td></tr>
             <tr><td><b>Formato de las fechas</b></td><td>Controla la visualización en la cola y en los registros.<br><b>DD/MM/AAAA</b> — Europa (por defecto)<br><b>MM/DD/AAAA</b> — EE. UU.<br><b>AAAA-MM-DD</b> — ISO<br>Se detecta mediante <code>navigator.language</code> y se puede forzar manualmente. La preferencia se guarda.<br>⚠️ Los <b>campos de entrada</b> (fechas y horas) no siguen este ajuste: los dibuja el propio navegador, en su idioma de visualización. Para cambiarlos — <b>Firefox</b>: en <code>about:config</code>, poner <code>intl.regional_prefs.use_os_locales</code> en <code>true</code> (Firefox ignora la configuración regional del sistema mientras su idioma de interfaz sea distinto). <b>Chrome</b>: en <code>chrome://settings/languages</code>, subir su idioma al principio y marcar la opción de mostrar Chrome en ese idioma.</td></tr>
             <tr><td><b>Restablecer la posición del botón</b></td><td>Devuelve el botón 🚧 a su posición por defecto en el mapa.</td></tr>
+            <tr><td><b>La ventana del script</b></td><td>Se <b>mueve</b> por su cabecera y se <b>redimensiona</b> con el tirador de la esquina inferior derecha. Tamaño y posición se <b>recuerdan</b> entre sesiones, y vuelven a la pantalla si cambias de equipo. <b>Doble clic en la cabecera</b>: regreso al tamaño automático, que ajusta la ventana a la altura disponible.</td></tr>
             </table>`, 'pt-BR':`
             <table class="wct-help-table">
             <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Desativado, o botão 🚧 continua visível, mas o painel não abre.</td></tr>
             <tr><td><b>Modo de exibição</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinza clássico). A preferência é salva.</td></tr>
             <tr><td><b>Formato de data</b></td><td>Controla a exibição na fila e nos logs.<br><b>DD/MM/AAAA</b> — Europa, Brasil (padrão)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detectado automaticamente via <code>navigator.language</code>, com possibilidade de forçar manualmente. A preferência é salva.<br>⚠️ Os <b>campos de entrada</b> (datas e horas) não seguem esta configuração: quem os desenha é o navegador, no idioma de exibição dele. Para alterá-los — <b>Firefox</b>: em <code>about:config</code>, defina <code>intl.regional_prefs.use_os_locales</code> como <code>true</code> (o Firefox ignora as configurações regionais do sistema enquanto o idioma da interface dele for diferente). <b>Chrome</b>: em <code>chrome://settings/languages</code>, mova seu idioma para o topo e marque a opção de exibir o Chrome nesse idioma.</td></tr>
             <tr><td><b>Redefinir a posição do botão</b></td><td>Devolve o botão 🚧 à sua posição padrão no mapa.</td></tr>
+            <tr><td><b>A janela do script</b></td><td>Ela se <b>move</b> pelo cabeçalho e é <b>redimensionada</b> pela alça do canto inferior direito. Tamanho e posição são <b>memorizados</b> entre sessões e trazidos de volta à tela se você trocar de máquina. <b>Clique duplo no cabeçalho</b>: volta ao tamanho automático, que ajusta a janela à altura disponível.</td></tr>
             </table>`, 'pt-PT':`
             <table class="wct-help-table">
             <tr><td><b>Ativar a ferramenta</b></td><td>Ativa ou desativa o WCT. Quando está desativado, o botão 🚧 permanece visível no mapa, mas o painel não abre.</td></tr>
             <tr><td><b>Modo de apresentação</b></td><td>Escolha entre <b>Normal</b> (interface padrão) e <b>Windows 95</b> (ultracompacto, cantos retos, cinzento clássico). A preferência é guardada.</td></tr>
             <tr><td><b>Formato da data</b></td><td>Controla a apresentação na fila e nos registos.<br><b>DD/MM/AAAA</b> — Europa (predefinição)<br><b>MM/DD/AAAA</b> — EUA<br><b>AAAA-MM-DD</b> — ISO<br>Detetado automaticamente através de <code>navigator.language</code>, podendo ser forçado manualmente. A preferência é guardada.<br>⚠️ Os <b>campos de entrada</b> (datas e horas) não seguem esta definição: quem os desenha é o navegador, no seu próprio idioma de apresentação. Para os alterar — <b>Firefox</b>: em <code>about:config</code>, definir <code>intl.regional_prefs.use_os_locales</code> como <code>true</code> (o Firefox ignora as definições regionais do sistema enquanto o idioma da interface dele for diferente). <b>Chrome</b>: em <code>chrome://settings/languages</code>, subir o seu idioma para o topo e assinalar a opção de mostrar o Chrome nesse idioma.</td></tr>
             <tr><td><b>Repor a posição do botão</b></td><td>Repõe o botão 🚧 na sua posição predefinida no mapa.</td></tr>
+            <tr><td><b>A janela do script</b></td><td>Move-se pelo cabeçalho e <b>redimensiona-se</b> pela pega do canto inferior direito. Tamanho e posição são <b>memorizados</b> entre sessões e trazidos de volta ao ecrã se mudar de máquina. <b>Duplo clique no cabeçalho</b>: regresso ao tamanho automático, que ajusta a janela à altura disponível.</td></tr>
             </table>` }) },
         { id:'h8', title:t('helpH8'), body: _L({ fr:`
             <p>Superpose un ou plusieurs tracés (GPX, KML, KMZ, GeoJSON, Shapefile ZIP) sur la carte WME pour faciliter l'identification des segments à fermer.</p>
@@ -6121,12 +6193,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Fichier</b></td><td>Ligne parente : représente le fichier chargé. La coche toggle tous ses tracés. 🗑️ supprime tous les calques du fichier.</td></tr>
             <tr><td><b>↳ Tracé</b></td><td>Ligne enfant : un track GPX, un Placemark KML, une Feature GeoJSON ou une géométrie Shapefile. Coche individuelle, couleur et focus par tracé.</td></tr>
             <tr><td><b>Type</b></td><td>Format du fichier source : GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Swatch couleur</b></td><td>Cliquer pour régler l’<b>allure du tracé</b> : 16 teintes vives, un sélecteur de <b>couleur libre</b>, et un curseur d’<b>épaisseur</b> (2 à 14 px). La dernière épaisseur choisie devient le réglage par défaut des imports suivants.</td></tr>
+            <tr><td><b>Swatch couleur</b></td><td>Cliquer pour régler l’<b>allure du tracé</b> : 16 teintes vives, un sélecteur de <b>couleur libre</b>, et un curseur d’<b>épaisseur</b> (2 à 14 px). La dernière épaisseur choisie devient le réglage par défaut des imports suivants. Un curseur d’<b>opacité</b> (15 à 100 %) complète le réglage : un tracé posé sur une route déjà colorée par un autre script peut ainsi la laisser voir.</td></tr>
             <tr><td><b>pts</b></td><td>Nombre de points tracés (max 3 000, sous-échantillonné si nécessaire).</td></tr>
             <tr><td><b>err</b></td><td>✅ si aucune erreur — ⚠️ + nombre sinon (survoler pour le détail).</td></tr>
             <tr><td><b>🎯</b></td><td>Centre la carte sur l'étendue du tracé au zoom optimal.</td></tr>
             <tr><td><b>🗑️</b></td><td>Supprime ce tracé (ou tous les tracés du fichier pour la ligne parent).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — noms et couleurs :</b> le nom de chaque tracé est cherché dans les attributs du fichier (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, et à défaut le premier champ texte). Les tracés portant le <b>même nom</b> reçoivent une <b>même couleur</b> : un parcours découpé en tronçons ressort d’un seul tenant. Une couleur déclarée par le fichier lui-même (<code>stroke</code>, convention <i>simplestyle</i>) est respectée telle quelle. Et si aucun attribut ne distingue les tracés, chacun garde sa propre couleur — les peindre tous pareil serait moins lisible, pas plus.</p>
             <p style="margin-top:6px"><b>Shapefile :</b> fournir un ZIP contenant au minimum <code>.shp</code>, <code>.dbf</code> et <code>.shx</code>. Un fichier <code>.prj</code> est recommandé pour la reprojection automatique (Lambert 93, UTM…). Sans <code>.prj</code>, WGS84 est supposé.</p>
             <p><b>Calque Tracés</b> (barre de sélection) : visible dès qu'un fichier est chargé — coche globale pour afficher/masquer tous les calques.</p>
             <p><b>Limitation :</b> calque visuel uniquement. Aucune sélection automatique de segments — la sélection reste manuelle dans WME.</p>`, en:`
@@ -6136,12 +6209,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 File</b></td><td>Parent row: represents the loaded file. Checkbox toggles all its tracks. 🗑️ removes all file layers.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Child row: a GPX track, a KML Placemark, a GeoJSON Feature, or a Shapefile geometry. Individual checkbox, color and focus per track.</td></tr>
             <tr><td><b>Type</b></td><td>Source file format: GPX, KML, KMZ, GeoJSON or SHP.</td></tr>
-            <tr><td><b>Color swatch</b></td><td>Click to set the <b>track appearance</b>: 16 bright shades, a <b>custom colour</b> picker, and a <b>thickness</b> slider (2 to 14 px). The last thickness you pick becomes the default for later imports.</td></tr>
+            <tr><td><b>Color swatch</b></td><td>Click to set the <b>track appearance</b>: 16 bright shades, a <b>custom colour</b> picker, and a <b>thickness</b> slider (2 to 14 px). The last thickness you pick becomes the default for later imports. An <b>opacity</b> slider (15 to 100%) completes the setting: a track laid over a road already coloured by another script can let it show through.</td></tr>
             <tr><td><b>pts</b></td><td>Number of plotted points (max 3,000, subsampled if needed).</td></tr>
             <tr><td><b>err</b></td><td>✅ if no errors — ⚠️ + count otherwise (hover for details).</td></tr>
             <tr><td><b>🎯</b></td><td>Centers the map on the track extent at the optimal zoom.</td></tr>
             <tr><td><b>🗑️</b></td><td>Removes this track (or all file tracks for the parent row).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — names and colours:</b> each track’s name is looked up in the file’s attributes (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, falling back to the first text field). Tracks sharing the <b>same name</b> get the <b>same colour</b>: a route split into sections reads as one. A colour declared by the file itself (<code>stroke</code>, the <i>simplestyle</i> convention) is used as is. And when no attribute tells the tracks apart, each keeps its own colour — painting them all alike would read worse, not better.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> provide a ZIP containing at least <code>.shp</code>, <code>.dbf</code> and <code>.shx</code>. A <code>.prj</code> file is recommended for automatic reprojection (Lambert 93, UTM…). Without <code>.prj</code>, WGS84 is assumed.</p>
             <p><b>Tracks layer</b> (selection bar): visible once a file is loaded — global checkbox to show/hide all layers at once.</p>
             <p><b>Limitation:</b> visual layer only. No automatic segment selection — selection remains manual in WME.</p>`, it:`
@@ -6151,12 +6225,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 File</b></td><td>Riga padre: rappresenta il file caricato. La casella attiva o disattiva tutti i suoi tracciati. 🗑️ rimuove tutti i livelli del file.</td></tr>
             <tr><td><b>↳ Tracciato</b></td><td>Riga figlia: un tracciato GPX, un Placemark KML, una Feature GeoJSON o una geometria Shapefile. Casella, colore e messa a fuoco indipendenti per ogni tracciato.</td></tr>
             <tr><td><b>Tipo</b></td><td>Formato del file di origine: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
-            <tr><td><b>Riquadro colore</b></td><td>Clicca per regolare l’<b>aspetto del tracciato</b>: 16 tinte vivaci, un selettore di <b>colore personalizzato</b> e un cursore di <b>spessore</b> (da 2 a 14 px). L’ultimo spessore scelto diventa il valore predefinito.</td></tr>
+            <tr><td><b>Riquadro colore</b></td><td>Clicca per regolare l’<b>aspetto del tracciato</b>: 16 tinte vivaci, un selettore di <b>colore personalizzato</b> e un cursore di <b>spessore</b> (da 2 a 14 px). L’ultimo spessore scelto diventa il valore predefinito. Un cursore di <b>opacità</b> (da 15 a 100%) completa l’impostazione: un tracciato posato su una strada già colorata da un altro script può lasciarla intravedere.</td></tr>
             <tr><td><b>pti</b></td><td>Numero di punti tracciati (massimo 3.000, sottocampionati se necessario).</td></tr>
             <tr><td><b>err</b></td><td>✅ se non ci sono errori — ⚠️ + conteggio in caso contrario (passa il mouse per i dettagli).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra la mappa sull’estensione del tracciato allo zoom ottimale.</td></tr>
             <tr><td><b>🗑️</b></td><td>Rimuove questo tracciato (o tutti i tracciati del file, sulla riga padre).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — nomi e colori:</b> il nome di ogni tracciato viene cercato negli attributi del file (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, in mancanza il primo campo di testo). I tracciati con lo <b>stesso nome</b> ricevono lo <b>stesso colore</b>: un percorso diviso in tratti si legge come uno solo. Un colore dichiarato dal file stesso (<code>stroke</code>, convenzione <i>simplestyle</i>) viene rispettato. E se nessun attributo distingue i tracciati, ognuno conserva il proprio colore — dipingerli tutti uguali sarebbe meno leggibile, non di più.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> fornisci uno ZIP contenente almeno <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Un file <code>.prj</code> è consigliato per la riproiezione automatica (Lambert 93, UTM…). Senza <code>.prj</code> si assume WGS84.</p>
             <p><b>Livello Tracciati</b> (barra di selezione): compare appena un file è caricato — casella globale per mostrare o nascondere tutti i livelli in una volta.</p>
             <p><b>Limite:</b> è solo un livello visivo. Nessuna selezione automatica dei segmenti — la selezione resta manuale in WME.</p>`, he:`
@@ -6166,12 +6241,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 קובץ</b></td><td>שורת אב: מייצגת את הקובץ שנטען. תיבת הסימון מפעילה או מכבה את כל המסלולים שלו. 🗑️ מסיר את כל שכבות הקובץ.</td></tr>
             <tr><td><b>↳ מסלול</b></td><td>שורת בן: מסלול GPX, Placemark של KML, Feature של GeoJSON או גאומטריה של Shapefile. תיבת סימון, צבע ומיקוד נפרדים לכל מסלול.</td></tr>
             <tr><td><b>סוג</b></td><td>פורמט קובץ המקור: GPX, KML, KMZ, GeoJSON או SHP.</td></tr>
-            <tr><td><b>ריבוע צבע</b></td><td>לחצו כדי להגדיר את <b>מראה המסלול</b>: 16 גוונים בולטים, בורר <b>צבע חופשי</b> ומחוון <b>עובי</b> (2 עד 14 פיקסלים). העובי האחרון שנבחר הופך לברירת המחדל.</td></tr>
+            <tr><td><b>ריבוע צבע</b></td><td>לחצו כדי להגדיר את <b>מראה המסלול</b>: 16 גוונים בולטים, בורר <b>צבע חופשי</b> ומחוון <b>עובי</b> (2 עד 14 פיקסלים). העובי האחרון שנבחר הופך לברירת המחדל. מחוון <b>אטימות</b> (15 עד 100%) משלים את ההגדרה: מסלול שמונח על כביש שכבר נצבע בידי סקריפט אחר יכול להשאיר אותו גלוי.</td></tr>
             <tr><td><b>נק׳</b></td><td>מספר הנקודות המשורטטות (עד 3,000, בדגימה מדללת במידת הצורך).</td></tr>
             <tr><td><b>שג׳</b></td><td>✅ אם אין שגיאות — ⚠️ ומספר אחרת (רחפו עם העכבר לפרטים).</td></tr>
             <tr><td><b>🎯</b></td><td>ממרכז את המפה על תחום המסלול ברמת הזום המיטבית.</td></tr>
             <tr><td><b>🗑️</b></td><td>מסיר את המסלול הזה (או את כל מסלולי הקובץ, בשורת האב).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — שמות וצבעים:</b> שם כל מסלול נלקח ממאפייני הקובץ (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, ובהיעדרם שדה הטקסט הראשון). מסלולים בעלי <b>אותו שם</b> מקבלים <b>אותו צבע</b>: מסלול המחולק לקטעים נקרא כיחידה אחת. צבע שהקובץ עצמו מצהיר עליו (<code>stroke</code>, מוסכמת <i>simplestyle</i>) נשמר כפי שהוא. וכאשר שום מאפיין אינו מבחין בין המסלולים, כל אחד שומר על צבע משלו — לצבוע את כולם באותו גוון היה פוגע בקריאות, לא משפר אותה.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> ספקו קובץ ZIP שמכיל לפחות <code>.shp</code>, <code>.dbf</code> ו־<code>.shx</code>. קובץ <code>.prj</code> מומלץ להטלה מחדש אוטומטית (Lambert 93, UTM…). בלי <code>.prj</code> מונחת מערכת WGS84.</p>
             <p><b>שכבת המסלולים</b> (סרגל הבחירה): מופיעה ברגע שנטען קובץ — תיבת סימון כללית להצגה או להסתרה של כל השכבות בבת אחת.</p>
             <p><b>מגבלה:</b> זו שכבה חזותית בלבד. אין בחירה אוטומטית של מקטעים — הבחירה נשארת ידנית ב־WME.</p>`, de:`
@@ -6181,12 +6257,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Datei</b></td><td>Übergeordnete Zeile: steht für die geladene Datei. Das Häkchen schaltet alle ihre Tracks um. 🗑️ entfernt alle Ebenen der Datei.</td></tr>
             <tr><td><b>↳ Track</b></td><td>Untergeordnete Zeile: ein GPX-Track, ein KML-Placemark, ein GeoJSON-Feature oder eine Shapefile-Geometrie. Häkchen, Farbe und Zentrierung je Track.</td></tr>
             <tr><td><b>Type</b></td><td>Format der Quelldatei: GPX, KML, KMZ, GeoJSON oder SHP.</td></tr>
-            <tr><td><b>Farbfeld</b></td><td>Anklicken, um das <b>Aussehen der Spur</b> einzustellen: 16 kräftige Farbtöne, ein <b>freier Farbwähler</b> und ein Regler für die <b>Stärke</b> (2 bis 14 px). Die zuletzt gewählte Stärke wird zur Voreinstellung.</td></tr>
+            <tr><td><b>Farbfeld</b></td><td>Anklicken, um das <b>Aussehen der Spur</b> einzustellen: 16 kräftige Farbtöne, ein <b>freier Farbwähler</b> und ein Regler für die <b>Stärke</b> (2 bis 14 px). Die zuletzt gewählte Stärke wird zur Voreinstellung. Ein Regler für die <b>Deckkraft</b> (15 bis 100 %) ergänzt die Einstellung: Eine Spur über einer bereits von einem anderen Skript eingefärbten Straße kann diese durchscheinen lassen.</td></tr>
             <tr><td><b>pts</b></td><td>Anzahl der gezeichneten Punkte (max. 3.000, bei Bedarf unterabgetastet).</td></tr>
             <tr><td><b>err</b></td><td>✅ wenn kein Fehler — sonst ⚠️ + Anzahl (für Details mit der Maus darüberfahren).</td></tr>
             <tr><td><b>🎯</b></td><td>Zentriert die Karte im optimalen Zoom auf die Ausdehnung des Tracks.</td></tr>
             <tr><td><b>🗑️</b></td><td>Entfernt diesen Track (bzw. alle Tracks der Datei in der übergeordneten Zeile).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — Namen und Farben:</b> Der Name jeder Spur wird in den Attributen der Datei gesucht (<code>name</code>, <code>libelle</code>, <code>epreuve</code>… und ersatzweise das erste Textfeld). Spuren mit <b>demselben Namen</b> erhalten <b>dieselbe Farbe</b>: eine in Abschnitte zerlegte Strecke wirkt wieder als Ganzes. Eine von der Datei selbst angegebene Farbe (<code>stroke</code>, Konvention <i>simplestyle</i>) wird unverändert übernommen. Und wenn kein Attribut die Spuren unterscheidet, behält jede ihre eigene Farbe — alle gleich einzufärben wäre schlechter lesbar, nicht besser.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> ein ZIP bereitstellen, das mindestens <code>.shp</code>, <code>.dbf</code> und <code>.shx</code> enthält. Eine <code>.prj</code>-Datei wird für die automatische Umprojektion empfohlen (Lambert 93, UTM…). Ohne <code>.prj</code> wird WGS84 angenommen.</p>
             <p><b>Track-Ebene</b> (Auswahlleiste): sichtbar, sobald eine Datei geladen ist — globales Häkchen zum Ein-/Ausblenden aller Ebenen.</p>
             <p><b>Einschränkung:</b> reine Anzeigeebene. Keine automatische Segmentauswahl — die Auswahl erfolgt weiterhin manuell in WME.</p>`, es:`
@@ -6196,12 +6273,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Archivo</b></td><td>Fila principal: representa el archivo cargado. La casilla activa o desactiva todas sus trazas. 🗑️ elimina todas las capas del archivo.</td></tr>
             <tr><td><b>↳ Traza</b></td><td>Fila secundaria: un track GPX, un Placemark KML, una Feature GeoJSON o una geometría Shapefile. Casilla, color y centrado individuales por traza.</td></tr>
             <tr><td><b>Tipo</b></td><td>Formato del archivo de origen: GPX, KML, KMZ, GeoJSON o SHP.</td></tr>
-            <tr><td><b>Muestra de color</b></td><td>Haz clic para ajustar el <b>aspecto del trazado</b>: 16 tonos vivos, un selector de <b>color personalizado</b> y un control de <b>grosor</b> (de 2 a 14 px). El último grosor elegido pasa a ser el valor por defecto.</td></tr>
+            <tr><td><b>Muestra de color</b></td><td>Haz clic para ajustar el <b>aspecto del trazado</b>: 16 tonos vivos, un selector de <b>color personalizado</b> y un control de <b>grosor</b> (de 2 a 14 px). El último grosor elegido pasa a ser el valor por defecto. Un control de <b>opacidad</b> (del 15 al 100 %) completa el ajuste: un trazado sobre una carretera ya coloreada por otro script puede dejarla ver.</td></tr>
             <tr><td><b>pts</b></td><td>Número de puntos trazados (máx. 3.000, submuestreados si es necesario).</td></tr>
             <tr><td><b>err</b></td><td>✅ si no hay errores — ⚠️ + número en caso contrario (pasa el ratón por encima para ver el detalle).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra el mapa en la extensión de la traza con el zoom óptimo.</td></tr>
             <tr><td><b>🗑️</b></td><td>Elimina esta traza (o todas las trazas del archivo en la fila principal).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — nombres y colores:</b> el nombre de cada trazado se busca en los atributos del archivo (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, y en su defecto el primer campo de texto). Los trazados con el <b>mismo nombre</b> reciben el <b>mismo color</b>: un recorrido dividido en tramos se lee como uno solo. Un color declarado por el propio archivo (<code>stroke</code>, convención <i>simplestyle</i>) se respeta tal cual. Y si ningún atributo distingue los trazados, cada uno conserva su color — pintarlos todos igual se leería peor, no mejor.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> proporciona un ZIP que contenga como mínimo <code>.shp</code>, <code>.dbf</code> y <code>.shx</code>. Se recomienda incluir un archivo <code>.prj</code> para la reproyección automática (Lambert 93, UTM…). Sin <code>.prj</code>, se asume WGS84.</p>
             <p><b>Capa Trazas</b> (barra de selección): visible en cuanto se carga un archivo — casilla global para mostrar u ocultar todas las capas.</p>
             <p><b>Limitación:</b> es solo una capa visual. No hay selección automática de segmentos — la selección sigue siendo manual en WME.</p>`, 'pt-BR':`
@@ -6211,12 +6289,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Arquivo</b></td><td>Linha pai: representa o arquivo carregado. A caixa de seleção liga/desliga todos os seus trajetos. 🗑️ remove todas as camadas do arquivo.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha filha: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de seleção, cor e foco individuais por trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do arquivo de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar a <b>aparência do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controle de <b>espessura</b> (2 a 14 px). A última espessura escolhida vira o padrão.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar a <b>aparência do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controle de <b>espessura</b> (2 a 14 px). A última espessura escolhida vira o padrão. Um controle de <b>opacidade</b> (15 a 100%) completa o ajuste: um trajeto sobre uma via já colorida por outro script pode deixá-la aparecer.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3.000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erro — ⚠️ + quantidade caso contrário (passe o mouse para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centraliza o mapa na extensão do trajeto, no zoom ideal.</td></tr>
             <tr><td><b>🗑️</b></td><td>Remove este trajeto (ou todos os trajetos do arquivo, na linha pai).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — nomes e cores:</b> o nome de cada trajeto é procurado nos atributos do arquivo (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, e na falta deles o primeiro campo de texto). Trajetos com o <b>mesmo nome</b> recebem a <b>mesma cor</b>: um percurso dividido em trechos se lê como um só. Uma cor declarada pelo próprio arquivo (<code>stroke</code>, convenção <i>simplestyle</i>) é respeitada. E se nenhum atributo distingue os trajetos, cada um mantém sua própria cor — pintar todos igual se leria pior, não melhor.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP contendo no mínimo <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Um arquivo <code>.prj</code> é recomendado para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, presume-se WGS84.</p>
             <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um arquivo é carregado — caixa de seleção global para exibir/ocultar todas as camadas de uma vez.</p>
             <p><b>Limitação:</b> camada apenas visual. Nenhuma seleção automática de segmentos — a seleção continua manual no WME.</p>`, 'pt-PT':`
@@ -6226,12 +6305,13 @@ const buildHelpHTML = () => {
             <tr><td><b>📄 Ficheiro</b></td><td>Linha principal: representa o ficheiro carregado. A caixa de verificação ativa/desativa todos os seus trajetos. 🗑️ remove todas as camadas do ficheiro.</td></tr>
             <tr><td><b>↳ Trajeto</b></td><td>Linha secundária: um track GPX, um Placemark KML, uma Feature GeoJSON ou uma geometria Shapefile. Caixa de verificação, cor e centragem individuais para cada trajeto.</td></tr>
             <tr><td><b>Type</b></td><td>Formato do ficheiro de origem: GPX, KML, KMZ, GeoJSON ou SHP.</td></tr>
-            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar o <b>aspeto do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controlo de <b>espessura</b> (2 a 14 px). A última espessura escolhida passa a ser a predefinição.</td></tr>
+            <tr><td><b>Amostra de cor</b></td><td>Clique para ajustar o <b>aspeto do trajeto</b>: 16 tons vivos, um seletor de <b>cor personalizada</b> e um controlo de <b>espessura</b> (2 a 14 px). A última espessura escolhida passa a ser a predefinição. Um controlo de <b>opacidade</b> (15 a 100%) completa o ajuste: um trajeto sobre uma via já colorida por outro script pode deixá-la aparecer.</td></tr>
             <tr><td><b>pts</b></td><td>Número de pontos traçados (máx. 3 000, subamostrados se necessário).</td></tr>
             <tr><td><b>err</b></td><td>✅ se não houver erros — caso contrário ⚠️ + número (passe o rato por cima para ver os detalhes).</td></tr>
             <tr><td><b>🎯</b></td><td>Centra o mapa na extensão do trajeto, no zoom ideal.</td></tr>
             <tr><td><b>🗑️</b></td><td>Remove este trajeto (ou todos os trajetos do ficheiro, na linha principal).</td></tr>
             </table>
+            <p style="margin-top:6px"><b>GeoJSON — nomes e cores:</b> o nome de cada trajeto é procurado nos atributos do ficheiro (<code>name</code>, <code>libelle</code>, <code>epreuve</code>…, e na falta deles o primeiro campo de texto). Trajetos com o <b>mesmo nome</b> recebem a <b>mesma cor</b>: um percurso dividido em troços lê-se como um só. Uma cor declarada pelo próprio ficheiro (<code>stroke</code>, convenção <i>simplestyle</i>) é respeitada. E se nenhum atributo distinguir os trajetos, cada um mantém a sua própria cor — pintá-los todos igual leria-se pior, não melhor.</p>
             <p style="margin-top:6px"><b>Shapefile:</b> forneça um ZIP que contenha, no mínimo, <code>.shp</code>, <code>.dbf</code> e <code>.shx</code>. Recomenda-se um ficheiro <code>.prj</code> para a reprojeção automática (Lambert 93, UTM…). Sem <code>.prj</code>, assume-se WGS84.</p>
             <p><b>Camada Trajetos</b> (barra de seleção): visível assim que um ficheiro é carregado — caixa de verificação global para mostrar/ocultar todas as camadas de uma só vez.</p>
             <p><b>Limitação:</b> apenas camada visual. Sem seleção automática de segmentos — a seleção continua a ser manual no WME.</p>` }) },
@@ -7376,7 +7456,7 @@ let _prefs = null;
 const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMode,
     dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
     langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null,
-    traceWidth:_traceWidth });
+    traceWidth:_traceWidth, traceOpacity:_traceOpacity, ovGeom:_ovGeom });
 const _appliquerPrefs = d => {
     if(!d || typeof d !== 'object') return;
     presets = d.presets || [];
@@ -7391,6 +7471,12 @@ const _appliquerPrefs = d => {
     // edite a la main, ou borne changee entre deux versions) donnerait un trait
     // invisible ou une bande opaque, sans rien dire.
     if(d.traceWidth !== undefined) _traceWidth = _traceWidthOk(d.traceWidth);
+    if(d.traceOpacity !== undefined) _traceOpacity = _traceOpacityOk(d.traceOpacity);
+    // Geometrie de la fenetre. ⚠️ Bornee ICI, a la relecture, et pas seulement au moment
+    // ou l'editeur la regle : c'est le changement d'ECRAN entre deux sessions qui la rend
+    // dangereuse, et le bornage d'hier ne sait rien de l'ecran d'aujourd'hui.
+    _ovGeom = (d.ovGeom && typeof d.ovGeom === 'object')
+        ? _ovClamp(d.ovGeom, window.innerWidth, window.innerHeight) : null;
 };
 const save = () => {
     const d = _prefsData();
@@ -9534,8 +9620,58 @@ const exportLotsCSV=(fileId)=>{
 // ═══════════════════════════════════════════════════════════════════════════
 const reloadPresets=()=>{const sel=$id('wct-presets-list');if(!sel)return;sel.innerHTML=presets.map((p,i)=>`<option value="${i}">${escHtml(p.name)}</option>`).join('');};
 // ═══════════════════════════════════════════════════════════════════════════
-//  DRAGGABLE (borné à l'écran)
+//  GÉOMÉTRIE DU PANNEAU — déplacement, redimensionnement, mémorisation
 // ═══════════════════════════════════════════════════════════════════════════
+// Bornes de la fenêtre. La hauteur minimale n'est pas décorative : sous ~200 px il ne
+// reste plus rien entre l'en-tête et la barre d'action, et le corps — qui est le seul
+// élément compressible (`#wct-body { flex:1; overflow-y:auto }`) — tombe à zéro. On
+// laisserait alors une fenêtre où « Valider » et « Appliquer » se touchent, sans rien
+// entre les deux à valider.
+const OV_W_MIN = 380;
+const OV_H_MIN = 200;
+const OV_MARGE = 8;
+// ⭐ RÈGLE DE BORNAGE, PURE ET UNIQUE. Elle sert à trois moments qui, écrits séparément,
+// finiraient par diverger : pendant le déplacement, pendant le redimensionnement, et à la
+// RELECTURE d'une géométrie mémorisée.
+// 🔴 C'est ce troisième cas qui compte le plus, et c'est celui qu'on n'aurait pas vu :
+// une fenêtre réglée sur un écran de bureau, relue sur un portable, sortirait de l'écran
+// — et comme le panneau est en `position:fixed`, plus rien ne permettrait d'aller la
+// rechercher. Mémoriser une géométrie sans la borner à la relecture, c'est fabriquer un
+// panneau inatteignable pour l'éditeur qui change d'écran.
+const _ovClamp = (g, vw, vh) => {
+    const w = Math.max(OV_W_MIN, Math.min(Number(g.w) || OV_W_MIN, vw - 2 * OV_MARGE));
+    const h = Math.max(OV_H_MIN, Math.min(Number(g.h) || OV_H_MIN, vh - 2 * OV_MARGE));
+    const x = Math.max(0, Math.min(Number(g.x) || 0, vw - w));
+    const y = Math.max(0, Math.min(Number(g.y) || 0, vh - h));
+    return { x, y, w, h };
+};
+// Géométrie choisie par l'éditeur, ou null tant qu'il n'a rien touché : tant que c'est
+// null, le CSS et ses media queries gardent la main — le réglage par défaut reste celui
+// qui s'adapte tout seul.
+let _ovGeom = null;
+const _ovApply = (el) => {
+    if(!el || !_ovGeom) return;
+    const g = _ovClamp(_ovGeom, window.innerWidth, window.innerHeight);
+    el.style.left = g.x + 'px'; el.style.top = g.y + 'px'; el.style.right = 'auto';
+    el.style.width = g.w + 'px';
+    // `height` ET `maxHeight` : la première fixe la taille, la seconde neutralise le
+    // plafond des media queries, qui sinon rogne toute fenêtre plus haute que
+    // `calc(100vh - 68px)` sans que rien ne l'annonce.
+    el.style.height = g.h + 'px'; el.style.maxHeight = g.h + 'px';
+};
+const _ovGeomSet = (el, g) => {
+    _ovGeom = _ovClamp(g, window.innerWidth, window.innerHeight);
+    _ovApply(el); save();
+};
+// Retour au réglage automatique. ⚠️ Il ne suffit pas de vider `_ovGeom` : les styles
+// inline posés sur l'élément survivraient et continueraient de battre le CSS.
+const ovGeomReset = () => {
+    const el = $id('wct-overlay');
+    _ovGeom = null; save();
+    if(!el) return;
+    ['left','top','right','width','height','maxHeight'].forEach(p => el.style[p] = '');
+    showToast(t('ovReset'), 2200, '#43a047');
+};
 const makeDraggable=(el,handle)=>{
     handle.addEventListener('mousedown',e=>{
         if(e.target.closest('.wct-hdr-btn'))return;
@@ -9555,7 +9691,42 @@ const makeDraggable=(el,handle)=>{
             // sous le bandeau, sans brider le déplacement lui-même.
             el.style.maxHeight=Math.max(120,window.innerHeight-y-8)+'px';
         };
-        const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+        // ⚠️ La position n'est enregistrée qu'au RELÂCHEMENT, pas à chaque `mousemove` :
+        // `save()` écrit dans le gestionnaire de scripts, et un déplacement en produit
+        // plusieurs centaines.
+        const up=()=>{
+            document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);
+            const rr=el.getBoundingClientRect();
+            _ovGeomSet(el,{x:rr.left,y:rr.top,w:rr.width,h:rr.height});
+        };
+        document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+    });
+    // Double-clic sur l'en-tête : retour au réglage automatique. Le geste ne s'invente
+    // pas, il est écrit dans l'infobulle de l'en-tête et dans l'aide. ⚠️ Un BOUTON de
+    // plus était exclu : `check-entete.js` a mesuré que la pastille de mise à jour, en
+    // 1.13.02, faisait déjà passer le titre allemand sur deux lignes à 540 px.
+    handle.addEventListener('dblclick',e=>{ if(!e.target.closest('.wct-hdr-btn')) ovGeomReset(); });
+};
+// Redimensionnement par la poignée du coin bas-droite.
+// ⚠️ Le coin haut-gauche est FIGÉ au premier geste (`left`/`top` posés, `right:auto`) :
+// tant que le panneau est ancré par sa droite, l'élargir le fait grandir vers la gauche
+// pendant qu'on tire vers la droite — la fenêtre fuit sous le curseur.
+const makeResizable=(el,handle)=>{
+    handle.addEventListener('mousedown',e=>{
+        e.preventDefault(); e.stopPropagation();
+        const r=el.getBoundingClientRect();
+        el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.right='auto';
+        const x0=e.clientX, y0=e.clientY, w0=r.width, h0=r.height;
+        const mv=ev=>{
+            const g=_ovClamp({x:r.left,y:r.top,w:w0+(ev.clientX-x0),h:h0+(ev.clientY-y0)},
+                             window.innerWidth,window.innerHeight);
+            el.style.width=g.w+'px'; el.style.height=g.h+'px'; el.style.maxHeight=g.h+'px';
+        };
+        const up=()=>{
+            document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);
+            const rr=el.getBoundingClientRect();
+            _ovGeomSet(el,{x:rr.left,y:rr.top,w:rr.width,h:rr.height});
+        };
         document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
 };
@@ -9645,11 +9816,32 @@ const _traceWidthOk = (v) => {
     const n = (v === null || v === undefined || v === '') ? NaN : Number(v);
     return Number.isFinite(n) ? Math.max(TRACE_WIDTH_MIN, Math.min(TRACE_WIDTH_MAX, n)) : TRACE_WIDTH_DEFAULT;
 };
-const _traceStyle = (color, width, isPolygon) => {
+// Opacité du trait, demandée par MisterLogik le 27/08/2026 : un tracé posé sur une route
+// déjà chargée en couleurs la masque, et le seul recours était de le cacher entièrement.
+// Elle vit à côté de l'épaisseur et suit exactement le même circuit — bornage à la
+// relecture, réglage par tracé, mémorisation comme défaut des imports suivants.
+// ⚠️ La borne basse n'est pas 0 : un tracé invisible est indiscernable d'un tracé absent,
+// et l'interrupteur de visibilité existe déjà pour ça. À 0,15 il reste devinable.
+const TRACE_OPACITY_DEFAULT = 0.85;
+const TRACE_OPACITY_MIN     = 0.15;
+const TRACE_OPACITY_MAX     = 1;
+let _traceOpacity = TRACE_OPACITY_DEFAULT;
+const _traceOpacityOk = (v) => {
+    const n = (v === null || v === undefined || v === '') ? NaN : Number(v);
+    return Number.isFinite(n) ? Math.max(TRACE_OPACITY_MIN, Math.min(TRACE_OPACITY_MAX, n)) : TRACE_OPACITY_DEFAULT;
+};
+// ⚠️ Le remplissage d'un polygone reste une FRACTION du trait, et non une valeur à part :
+// réglés séparément, ils divergent et une zone finit plus opaque que son contour. Le
+// rapport 0,15 reprend celui d'origine (0,12 de remplissage pour 0,80 de contour).
+// Le contour d'un polygone suit désormais l'opacité du trait — il valait 0,80 quand le
+// trait valait 0,85 : cinq centièmes, jamais énoncés nulle part, qu'une règle unique
+// remplace.
+const _traceStyle = (color, width, isPolygon, opacity) => {
     const w = _traceWidthOk(width);
+    const o = _traceOpacityOk(opacity);
     return isPolygon
-        ? { strokeColor: color, strokeWidth: Math.max(1, w * 0.4), strokeOpacity: 0.8, fillColor: color, fillOpacity: 0.12 }
-        : { strokeColor: color, strokeWidth: w, strokeOpacity: 0.85, fillOpacity: 0 };
+        ? { strokeColor: color, strokeWidth: Math.max(1, w * 0.4), strokeOpacity: o, fillColor: color, fillOpacity: o * 0.15 }
+        : { strokeColor: color, strokeWidth: w, strokeOpacity: o, fillOpacity: 0 };
 };
 
 let _traceFiles  = [];
@@ -9665,6 +9857,72 @@ const traceSubsample = (pts, maxPts) => {
     const out = [];
     for(let i = 0; i < maxPts; i++) out.push(pts[Math.round(i * step)]);
     return out;
+};
+// ⭐ CHAMP PORTANT LE NOM D'UN TRACÉ, SOURCE UNIQUE POUR TOUS LES FORMATS À ATTRIBUTS.
+// Le Shapefile savait déjà chercher son champ de nom, le GeoJSON non : il n'essayait que
+// `name | Name | nom | title | label` et rendait `fichier (1/28)` … `(28/28)` sur tout
+// fichier nommant ses tracés autrement. Signalé par MisterLogik le 27/08/2026 sur le
+// GeoJSON du Triathlon de Dinard, dont les 28 tracés portent `epreuve` / `categorie` /
+// `segment` — aucune des cinq clés cherchées.
+// ⚠️ Écrit ici et non recopié dans chaque parser : deux listes de champs qui divergent,
+// c'est le même défaut que les quatre calculs de style d'avant _traceStyle.
+// ⚠️ Le repli sur le PREMIER champ texte est ce qui sauve les fichiers imprévus. Il peut
+// tomber à côté (un champ `source` avant un champ `epreuve`) — mais un nom approximatif
+// se corrige à l'œil, alors qu'une numérotation « (7/28) » ne dit jamais rien à personne.
+const TRACE_NAME_FIELDS = ['name','Name','NAME','nom','NOM','libelle','LIBELLE','TWG_LIBELL',
+                           'label','LABEL','title','TITLE','epreuve','parcours','intitule','designation'];
+const _traceNameField = (propsList) => {
+    const listes = (propsList || []).filter(p => p && typeof p === 'object');
+    if(!listes.length) return null;
+    // Un champ ne vaut que s'il est RENSEIGNÉ quelque part : un `name` présent partout et
+    // vide partout ferait retomber tous les tracés sur le nom de fichier, en ayant écarté
+    // le champ qui, lui, portait l'information.
+    const rempli = (champ) => listes.some(p => typeof p[champ] === 'string' && p[champ].trim() !== '');
+    const connu = TRACE_NAME_FIELDS.find(rempli);
+    if(connu) return connu;
+    for(const champ of Object.keys(listes[0])) if(rempli(champ)) return champ;
+    return null;
+};
+// ⭐ RÈGLE D'ATTRIBUTION DES COULEURS, ISOLÉE ET PURE. Elle rend une couleur par tracé,
+// dans l'ordre reçu, et `tirer` est le seul lien avec le monde extérieur (le roulement de
+// la palette). Écrite dans la boucle d'import, elle n'aurait été vérifiable qu'à l'œil,
+// sur la carte, un fichier à la fois.
+//
+// Trois cas, dans cet ordre :
+//   1. le fichier déclare sa couleur (simplestyle) — c'est un choix, on le respecte ;
+//   2. les tracés se regroupent — une couleur par groupe, ce qui donne « Swimrun Long en
+//      rouge, Trail en vert » sans que personne ait rien à régler ;
+//   3. sinon, le roulement d'avant, un tracé une couleur.
+//
+// 🔴 LA GARDE EST LE CŒUR DE LA RÈGLE : un regroupement qui ne fait qu'UN paquet peint
+// tout le fichier d'une seule couleur. Mesuré sur `Exemples/parcours para marathon`, dont
+// les 21 lignes portent la même valeur sur tous leurs champs (`evenement` = « JO 2024 »
+// vingt et une fois) : le roulement en donnait huit et laissait suivre les tronçons à
+// l'œil, le regroupement les effaçait les uns dans les autres. On ne regroupe donc que si
+// le regroupement SÉPARE.
+const _traceAssignColors = (parsed, tirer) => {
+    const groupes = new Set((parsed || []).map(p => p && p.group).filter(Boolean));
+    const regrouper = groupes.size > 1;
+    const duGroupe = new Map();
+    return (parsed || []).map(p => {
+        if(p && p.color) return p.color;
+        if(regrouper && p && p.group) {
+            if(!duGroupe.has(p.group)) duGroupe.set(p.group, tirer());
+            return duGroupe.get(p.group);
+        }
+        return tirer();
+    });
+};
+// Couleur déclarée par le fichier lui-même (simplestyle-spec : `stroke`, ou `marker-color`
+// pour les exports qui ne connaissent que celui-là). Rendue telle quelle, ou null.
+// ⚠️ Validée AVANT d'être posée : OpenLayers accepte silencieusement une couleur illisible
+// et rend alors un trait noir, ce qui ressemble à un choix.
+const _traceColorProp = (props) => {
+    for(const k of ['stroke','color','couleur','marker-color']) {
+        const v = props && props[k];
+        if(typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v.trim())) return v.trim();
+    }
+    return null;
 };
 // ── Parsers ──────────────────────────────────────────────────────────────────
 // Helper multilingue pour les messages d'erreur des parsers.
@@ -9790,11 +10048,22 @@ const parseGeoJSON = (filename, jsonText) => {
         );
         if(lineFeatures.length === 0) return [{ name: filename, points: [], errors: [_pe('Aucune géométrie linéaire (LineString/MultiLineString) trouvée','No linear geometry (LineString/MultiLineString) found','Keine Liniengeometrie (LineString/MultiLineString) gefunden')] }];
         const total = lineFeatures.length;
+        // Champ portant le nom du tracé, cherché UNE FOIS sur l'ensemble : le choisir
+        // feature par feature ferait changer de champ en cours de fichier, et deux tracés
+        // voisins porteraient des noms qui ne se comparent pas.
+        const champNom = _traceNameField(lineFeatures.map(f => f.properties));
         lineFeatures.forEach((feat, idx) => {
             const errors = [];
             const props = feat.properties || {};
-            let name = props.name || props.Name || props.nom || props.title || props.label || '';
+            let name = (champNom && typeof props[champNom] === 'string') ? props[champNom].trim() : '';
             if(!name) name = filename.replace(/\.geojson$/i, '');
+            // Le nom NU sert de groupe : une couleur par nom distinct. C'est ce qui rend
+            // « Swimrun Long en rouge, Trail en vert » sans rien demander à l'éditeur.
+            const group = name;
+            // simplestyle-spec : la convention que produisent geojson.io, uMap et la
+            // plupart des exports. Quand le fichier dit sa couleur, on la respecte —
+            // l'ignorer et repeindre par-dessus était la vraie surprise.
+            const color = _traceColorProp(props);
             if(total > 1) name = `${name} (${idx+1}/${total})`;
             const points = [];
             const coords = feat.geometry.coordinates;
@@ -9817,7 +10086,7 @@ const parseGeoJSON = (filename, jsonText) => {
                 });
             }
             if(points.length === 0 && errors.length === 0) errors.push(_pe('Coordonnées invalides ou géométrie vide','Invalid coordinates or empty geometry','Ungültige Koordinaten oder leere Geometrie'));
-            tracks.push({ name, points, errors });
+            tracks.push({ name, group, color, points, errors });
         });
     } catch(e) {
         tracks.push({ name: filename, points: [], errors: [_pe('Erreur parsing GeoJSON : ','GeoJSON parse error: ','GeoJSON-Parsing-Fehler: ') + e.message] });
@@ -10006,10 +10275,11 @@ const parseShapefile = async (filename, arrayBuffer) => {
         if(allPoints.length === 0) {
             return [{ name: baseName, points: [], errors: [_pe('Aucun point valide après reprojection.','No valid points after reprojection.','Keine gültigen Punkte nach der Umprojektion.')], isDataset: true }];
         }
-        // 7. Nom : champ texte le plus probable dans les attributs
-        const nameFields = ['name','Name','NOM','nom','LIBELLE','libelle','TWG_LIBELL','label','LABEL','title','TITLE'];
-        const fields = Object.keys((allFeats[0].properties) || {});
-        const nameField = nameFields.find(f => fields.includes(f)) || fields.find(f => typeof allFeats[0].properties[f] === 'string');
+        // 7. Nom : champ texte le plus probable dans les attributs.
+        // ⚠️ Passe désormais par _traceNameField, partagé avec le GeoJSON. La liste locale
+        // qui vivait ici ne regardait que la PREMIÈRE feature : un champ vide sur celle-là
+        // et renseigné sur les 2 462 suivantes était écarté sans que rien ne le dise.
+        const nameField = _traceNameField(allFeats.map(f => f.properties));
         const trackName = nameField ? `${baseName} (${nameField})` : baseName;
 
         return [{ name: trackName, points: allPoints, errors, isDataset: true, featureCount: allFeats.length, geoFeatures: reprojFeats }];
@@ -10020,7 +10290,7 @@ const parseShapefile = async (filename, arrayBuffer) => {
 };
 // ── Gestion OL par track ──────────────────────────────────────────────────────
 
-const _traceBuildOL = (trackId, sampledPts, color, width) => {
+const _traceBuildOL = (trackId, sampledPts, color, width, opacity) => {
     if(!sampledPts || sampledPts.length === 0) return null;
     try {
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
@@ -10031,7 +10301,7 @@ const _traceBuildOL = (trackId, sampledPts, color, width) => {
             return pt;
         });
         const line    = new OpenLayers.Geometry.LineString(olPts);
-        const style   = _traceStyle(color, width, false);
+        const style   = _traceStyle(color, width, false, opacity);
         const feature = new OpenLayers.Feature.Vector(line, null, style);
         const layer   = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
         layer.addFeatures([feature]);
@@ -10043,7 +10313,7 @@ const _traceBuildOL = (trackId, sampledPts, color, width) => {
 };
 // Construit un layer OL depuis des features GeoJSON reprojetées (WGS84 [lon,lat])
 // Style intelligent : LineString → trait plein, Polygon → contour seul sans remplissage
-const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, width) => {
+const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, width, opacity) => {
     if(!geoFeatures || geoFeatures.length === 0) return null;
     try {
         const proj4326 = new OpenLayers.Projection('EPSG:4326');
@@ -10066,7 +10336,7 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, wid
             const type   = feat.type;
             const coords = feat.coordinates;
             const isPolygon = type === 'Polygon' || type === 'MultiPolygon';
-            const styleFeature = _traceStyle(color, width, isPolygon);
+            const styleFeature = _traceStyle(color, width, isPolygon, opacity);
 
             try {
                 let geom = null;
@@ -10103,19 +10373,23 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
     _traceFiles.push({ fileId, filename, type, datetime, color: null, collapsed: false });
 
     let _hasNetworkShp = false;
-    parsedTracks.forEach(({ name, points, errors, isDataset, featureCount, geoFeatures }) => {
+    // Couleurs décidées d'un bloc AVANT la boucle : la règle a besoin de voir tous les
+    // tracés pour savoir si le regroupement sépare quoi que ce soit. Voir _traceAssignColors.
+    const couleurs = _traceAssignColors(parsedTracks, _traceNextColor);
+    parsedTracks.forEach(({ name, points, errors, isDataset, featureCount, geoFeatures }, iTrk) => {
         const trackId  = _traceNewId('trk');
-        const color    = _traceNextColor();
+        const color    = couleurs[iTrk];
         const width    = _traceWidth;
+        const opacity  = _traceOpacity;
         // Shapefile : subsampling plus généreux (dataset dense)
         const maxPts   = isDataset ? 8000 : 3000;
         const sampled  = traceSubsample(points, maxPts);
         // Rendu OL : par features (shapefile) ou par points (autres formats)
         let olLayer = null;
         if(geoFeatures && geoFeatures.length > 0) {
-            olLayer = _traceBuildOLFromFeatures(trackId, geoFeatures, color, maxPts, width);
+            olLayer = _traceBuildOLFromFeatures(trackId, geoFeatures, color, maxPts, width, opacity);
         } else if(sampled.length > 0) {
-            olLayer = _traceBuildOL(trackId, sampled, color, width);
+            olLayer = _traceBuildOL(trackId, sampled, color, width, opacity);
         }
         if((sampled.length > 0 || (geoFeatures && geoFeatures.length > 0)) && !olLayer)
             errors.push(_pe('Erreur OpenLayers : layer non créé','OpenLayers error: layer not created','OpenLayers-Fehler: Layer nicht erstellt'));
@@ -10140,7 +10414,7 @@ const _traceRegisterFile = (filename, type, parsedTracks) => {
         _traceTracks.push({
             trackId, fileId, name: displayName, type,
             sampledPts: sampled, total: points.length, sampled: sampled.length,
-            color, width, olLayer, errors, visible: true, lots,
+            color, width, opacity, olLayer, errors, visible: true, lots,
             geoFeatures: geoFeatures || null  // conservé pour recolor
         });
     });
@@ -10235,7 +10509,7 @@ const _traceRestyle = (trk) => {
             ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Polygon' ||
             ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Collection'
         );
-        ft.style = _traceStyle(trk.color, trk.width, isPolygon);
+        ft.style = _traceStyle(trk.color, trk.width, isPolygon, trk.opacity);
     });
     trk.olLayer.redraw();
 };
@@ -10284,6 +10558,18 @@ const traceSetWidth = (fileId, trackId, w) => {
     _traceWidth = width; save();
     // ⚠️ Pas de traceRenderTable() ici : le tableau n'affiche pas l'épaisseur, et ce
     // rendu se déclencherait à CHAQUE cran du curseur pendant qu'on le fait glisser.
+};
+// Même chose pour l'opacité. Volontairement une fonction distincte plutôt qu'un
+// `traceSetStyle(fileId, trackId, {width, opacity})` : les deux curseurs se manipulent
+// séparément, et un appel commun obligerait chacun à retransmettre la valeur de l'autre —
+// c'est par là que l'ancien style recopié à quatre endroits avait divergé.
+const traceSetOpacity = (fileId, trackId, o) => {
+    const opacity = _traceOpacityOk(o);
+    const cibles = trackId ? _traceTracks.filter(t => t.trackId === trackId)
+                           : _traceTracks.filter(t => t.fileId  === fileId);
+    if(!cibles.length) return;
+    cibles.forEach(trk => { trk.opacity = opacity; _traceRestyle(trk); });
+    _traceOpacity = opacity; save();
 };
 
 
@@ -12732,6 +13018,29 @@ const traceRenderTable = () => {
             });
             rng.addEventListener('click', ev => ev.stopPropagation());
             pal.appendChild(rng);
+
+            // ── Opacité ──
+            // Même popup que l'épaisseur, et pour la même raison : les deux se cherchent
+            // en regardant la CARTE, pas le panneau. Affichée en pourcentage — « 0,55 »
+            // ne veut rien dire pour qui règle un tracé.
+            const ligneO = document.createElement('div'); ligneO.className = 'wct-gpx-pal-row';
+            const labO = document.createElement('span'); labO.textContent = t('palOpacity'); ligneO.appendChild(labO);
+            const valO = document.createElement('span'); valO.className = 'wct-gpx-pal-wval';
+            const o0 = _traceOpacityOk(ctx.opacity === undefined ? _traceOpacity : ctx.opacity);
+            valO.textContent = Math.round(o0 * 100) + ' %'; ligneO.appendChild(valO);
+            pal.appendChild(ligneO);
+            const rngO = document.createElement('input');
+            rngO.type = 'range'; rngO.className = 'wct-gpx-pal-w';
+            rngO.min = Math.round(TRACE_OPACITY_MIN * 100); rngO.max = Math.round(TRACE_OPACITY_MAX * 100);
+            rngO.step = 5; rngO.value = Math.round(o0 * 100);
+            rngO.title = t('palOpacityTip');
+            rngO.addEventListener('input', ev => {
+                ev.stopPropagation();
+                valO.textContent = ev.target.value + ' %';
+                traceSetOpacity(ctx.fid, ctx.tid, Number(ev.target.value) / 100);
+            });
+            rngO.addEventListener('click', ev => ev.stopPropagation());
+            pal.appendChild(rngO);
         }
         const rect   = anchor.getBoundingClientRect();
         const ovRect = document.getElementById('wct-overlay')?.getBoundingClientRect() || {left:0,top:0};
@@ -12745,7 +13054,7 @@ const traceRenderTable = () => {
             const f = _traceFiles.find(x => x.fileId === sw.dataset.fid);
             const t0 = _traceTracks.find(x => x.fileId === sw.dataset.fid);
             openPalette(sw, (c, live) => traceSetFileColor(sw.dataset.fid, c, live),
-                        { fid: sw.dataset.fid, color: f?.color || t0?.color, width: t0?.width });
+                        { fid: sw.dataset.fid, color: f?.color || t0?.color, width: t0?.width, opacity: t0?.opacity });
         });
     });
     // Swatch track
@@ -12753,7 +13062,7 @@ const traceRenderTable = () => {
         sw.addEventListener('click', e => { e.stopPropagation();
             const k = _traceTracks.find(x => x.trackId === sw.dataset.tid);
             openPalette(sw, (c, live) => traceSetColor(sw.dataset.tid, c, live),
-                        { tid: sw.dataset.tid, color: k?.color, width: k?.width });
+                        { tid: sw.dataset.tid, color: k?.color, width: k?.width, opacity: k?.opacity });
         });
     });
 };
@@ -12983,7 +13292,7 @@ const buildOverlay=()=>{
     ov.dir = isRTL() ? 'rtl' : 'ltr';
     ov.innerHTML=`
     <div id="wct-hdr">
-        <div class="wct-hdr-title">&#x1F6A7; WME Closures Toolkit <span class="wct-hdr-version">v${VERSION}</span>
+        <div class="wct-hdr-title" title="${t('ovHdrTip')}">&#x1F6A7; WME Closures Toolkit <span class="wct-hdr-version">v${VERSION}</span>
             <span id="wct-hdr-badge" style="font-size:0.917em;opacity:.75;margin-left:4px"></span>
         </div>
         <div class="wct-hdr-btns">
@@ -13371,6 +13680,12 @@ const buildOverlay=()=>{
         <button class="wct-btn wct-btn-neutral wct-btn-dis" id="wct-btn-export-turn" title="${t('btnCsvTurnTip')}">${t('btnCsvTurn')}</button>
         <button class="wct-btn wct-btn-danger wct-btn-dis" id="wct-btn-clear" title="${t('tipBtnClear')}">${t('btnClear')}</button>
     </div>
+
+    <!-- POIGNÉE DE REDIMENSIONNEMENT -->
+    <!-- aria-hidden : c'est un geste à la souris, sans équivalent clavier à annoncer. Le
+         retour au réglage automatique, lui, est accessible (double-clic sur l'en-tête,
+         écrit dans son infobulle et dans l'aide). -->
+    <div id="wct-resize" title="${t('ovResizeTip')}" aria-hidden="true"></div>
 
     <!-- TOAST -->
     <!-- role=status + aria-live : le toast est le SEUL canal de retour d'erreur du
@@ -13798,6 +14113,17 @@ const connectOverlay=ov=>{
     // à chaque changement de langue : les écouteurs doivent repartir avec lui.
     _clavierPourCliquables(ov);
     makeDraggable(ov,$id('wct-hdr'));
+    makeResizable(ov,$id('wct-resize'));
+    // Géométrie mémorisée : posée APRÈS la construction, et re-bornée à l'écran courant.
+    // L'overlay est reconstruit à chaque changement de langue, d'où sa place ici plutôt
+    // qu'au démarrage — sinon la fenêtre reprenait sa taille par défaut au premier
+    // basculement de langue, sans que rien ne le dise.
+    _ovApply(ov);
+    // Un écran qui rétrécit (fenêtre redimensionnée, écran externe débranché) laisserait
+    // une fenêtre mémorisée hors champ, définitivement hors d'atteinte puisqu'elle est en
+    // `position:fixed`. On la ramène — sans rien enregistrer : c'est l'écran qui a changé,
+    // pas le choix de l'éditeur.
+    window.addEventListener('resize',()=>_ovApply($id('wct-overlay')),{signal:sig});
     $id('wct-poly-btn')?.addEventListener('click',()=>{ polyDrawAndSelect(); });
     $id('wct-poly-types-btn')?.addEventListener('click',()=>{ renderPolyTypesPanel(); });
     $id('wct-poly-kml')?.addEventListener('click',()=>{ polyExportKML(); });
