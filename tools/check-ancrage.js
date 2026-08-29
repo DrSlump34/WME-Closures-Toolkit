@@ -228,6 +228,116 @@ if (haut.length && court.length) {
         pireCourt + ' px contre ' + pireHaut + ' px — c est le « attache en bas » signale');
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+//  PARTIE C — LE PANNEAU REPLIE SE VOIT-IL ENCORE ?
+// ════════════════════════════════════════════════════════════════════════════
+// POURQUOI CETTE PARTIE EXISTE (2026-08-29, v1.14.01)
+// Glenan56, fil Discord du script : « je selectionne un segment mais rien n apparait dans
+// l onglet configurer », capture a l appui. Le panneau n etait pas casse : il etait REPLIE.
+// La regle `.collapsed` masque le corps ET le bandeau de selection — les deux seules pieces
+// absentes de sa capture, et aucune autre regle du fichier ne masque ce bandeau.
+//
+// CE QUI A CHANGE EN 1.14.00, ET C EST TOUT LE DEFAUT : le repli ne se VOIT plus. Tant que
+// la hauteur restait `auto`, replier retrecissait la fenetre — le geste s annoncait de
+// lui-meme. Depuis que `_ovApply` pose `height` en STYLE INLINE des que l editeur a deplace
+// ou redimensionne la fenetre une fois, elle garde sa taille memorisee : le corps disparait
+// et il reste un grand rectangle vide, qui se lit comme une panne et non comme un repli.
+//
+// CE QU ON MESURE, et c est un RAPPORT, pas une borne : la hauteur du panneau replie AVEC
+// une geometrie memorisee doit etre celle qu il prend SANS — celle de son contenu. Un seuil
+// en pixels se serait perime a la premiere ligne ajoutee dans l en-tete.
+console.log('\n— PARTIE C : le panneau replie garde-t-il la hauteur memorisee ? —');
+
+// La regle du correctif, cherchee dans le CSS reel. Le temoin de morsure consiste a la
+// retirer : sans lui, un contrôle qui « passe » ne distinguerait pas le correctif de rien.
+const RE_REPLI = /#wct-overlay\.collapsed\s*\{[^}]*height:\s*auto[^}]*\}/;
+dit(RE_REPLI.test(css), 'la regle qui libere la hauteur en replie est bien dans le fichier');
+
+// Panneau complet : le pied « Valider » n apparait que si un #wct-pane-cfg.on existe
+// (regle :has), et c est justement lui qu on voit sur la capture de Glenan.
+const pageRepli = (feuille) => `<!doctype html><html><head><meta charset="utf-8"><style>
+html,body { margin:0; height:100%; }
+${feuille}
+</style></head><body>
+<div id="wct-overlay" class="open">
+  <div id="wct-hdr">WCT</div>
+  <div id="wct-sel-strip"><span class="wct-sel-text">3 segments</span></div>
+  <div id="wct-main-tabs"><button class="wct-main-tab on" data-tab="cfg">Configurer</button></div>
+  <div id="wct-body"><div id="wct-pane-cfg" class="wct-main-pane on"><div style="height:4000px">corps</div></div></div>
+  <div class="wct-validate-footer"><button class="wct-btn">Valider</button></div>
+  <div id="wct-action-bar-wrap"><button class="wct-btn">Appliquer</button></div>
+  <div id="wct-resize"></div>
+</div>
+<pre id="sortie"></pre>
+<script>
+const ov = document.getElementById('wct-overlay');
+const bar = document.getElementById('wct-action-bar-wrap');
+// Exactement ce que pose _ovApply une fois la fenetre reglee par l editeur.
+const GEO = { left:'120px', top:'80px', width:'620px', height:'700px', maxHeight:'700px' };
+const poseGeo = on => { for (const k in GEO) ov.style[k] = on ? GEO[k] : ''; };
+const mesure = () => {
+    const r = ov.getBoundingClientRect(), b = bar.getBoundingClientRect();
+    return [Math.round(r.height), Math.round(r.bottom - b.bottom)];  // hauteur, vide sous la barre
+};
+poseGeo(true);  ov.classList.remove('collapsed'); const deplie     = mesure();
+                ov.classList.add('collapsed');    const replieGeo  = mesure();
+poseGeo(false);                                   const replieAuto = mesure();
+document.getElementById('sortie').textContent = 'RESULTAT>>' +
+    [].concat(deplie, replieGeo, replieAuto).join('|') + '<<';
+</script></body></html>`;
+
+const mesurerRepli = (feuille, quoi) => {
+    const f = path.join(os.tmpdir(), 'wct-check-repli.html');
+    fs.writeFileSync(f, pageRepli(feuille), 'utf8');
+    let dom;
+    try {
+        dom = execFileSync(chrome, ['--headless=new', '--disable-gpu', '--no-sandbox',
+            '--virtual-time-budget=3000', '--window-size=1920,1080',
+            '--dump-dom', 'file:///' + f.replace(/\\/g, '/')],
+            { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    } catch (e) {
+        console.error('MESURE NON FAITE (' + quoi + ') : Chrome a echoue — ' + e.message);
+        process.exit(2);
+    }
+    const m = dom.match(/RESULTAT&gt;&gt;(.*?)&lt;&lt;|RESULTAT>>(.*?)<</s);
+    if (!m) { console.error('MESURE NON FAITE (' + quoi + ') : la page ne s est pas executee.'); process.exit(2); }
+    const [hD, vD, hRG, vRG, hRA, vRA] = (m[1] || m[2]).split('|').map(Number);
+    return { deplie: { h: hD, vide: vD }, replieGeo: { h: hRG, vide: vRG }, replieAuto: { h: hRA, vide: vRA } };
+};
+
+const C = mesurerRepli(css, 'code reel');
+console.log('  deplie avec geometrie   : ' + C.deplie.h + ' px de haut, ' + C.deplie.vide + ' px sous la barre d action');
+console.log('  REPLIE avec geometrie   : ' + C.replieGeo.h + ' px de haut, ' + C.replieGeo.vide + ' px sous la barre d action');
+console.log('  replie sans geometrie   : ' + C.replieAuto.h + ' px de haut, ' + C.replieAuto.vide + ' px sous la barre d action');
+
+// ⚠️ Ce premier controle protege la 1.14.00 elle-meme : liberer la hauteur en replie ne
+// doit pas liberer celle du panneau OUVERT, sinon la fenetre ne se souviendrait plus.
+// ⚠️ 702 px pour une geometrie de 700 : #wct-overlay porte `border: 1px`, que
+// getBoundingClientRect compte des deux cotes alors que `height` se pose sur la boite de
+// contenu. Meme tolerance qu en partie B, et pour exactement la meme raison — exiger 700
+// pile faisait echouer un correctif qui marche.
+dit(Math.abs(C.deplie.h - 700) <= 2, 'ouvert, le panneau garde bien la hauteur memorisee',
+    C.deplie.h + ' px pour 700 demandes — les 2 px sont la bordure');
+dit(Math.abs(C.replieGeo.h - C.replieAuto.h) <= 1,
+    'replie, il retombe sur la hauteur de son CONTENU',
+    C.replieGeo.h + ' px avec geometrie, ' + C.replieAuto.h + ' px sans');
+dit(C.replieGeo.vide <= C.replieAuto.vide + 1,
+    'plus de rectangle vide sous la barre d action',
+    C.replieGeo.vide + ' px de vide (reference : ' + C.replieAuto.vide + ' px)');
+
+console.log('\n— TEMOIN DE MORSURE : sans la regle, le defaut de Glenan revient —');
+const cssSansRegle = css.replace(RE_REPLI, '');
+dit(cssSansRegle.length < css.length, 'la regle a VRAIMENT ete retiree de la feuille d essai',
+    (css.length - cssSansRegle.length) + ' caracteres en moins');
+const T = mesurerRepli(cssSansRegle, 'temoin');
+console.log('  REPLIE avec geometrie   : ' + T.replieGeo.h + ' px de haut, ' + T.replieGeo.vide + ' px sous la barre d action');
+dit(Math.abs(T.replieGeo.h - 700) <= 2 && T.replieGeo.h > C.replieGeo.h,
+    'sans elle, le panneau replie garde sa hauteur memorisee',
+    T.replieGeo.h + ' px contre ' + C.replieGeo.h + ' px avec la regle');
+dit(T.replieGeo.vide > C.replieGeo.vide,
+    'sans elle, le vide sous la barre d action reapparait',
+    T.replieGeo.vide + ' px contre ' + C.replieGeo.vide + ' px — c est le rectangle de la capture');
+
 console.log('\n— Verdict —');
 console.log(ko ? '  ' + ko + ' KO sur ' + (ok + ko) + '\n\nECHEC\n' : '  ' + ok + ' ok, 0 ko\n\nTOUT PASSE\n');
 process.exit(ko ? 1 : 0);

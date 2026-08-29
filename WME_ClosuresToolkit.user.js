@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.14.00
+// @version      1.14.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -90,6 +90,13 @@ let closeNodes = NODE_CL.none;
 let queue      = [];
 let lastConfig = null;
 let collapsed  = false;
+// `collapsed` dit que le panneau est replié ; `_collapseVoulu` dit QUI l'a demandé, et la
+// distinction n'est pas cosmétique. Un repli TECHNIQUE — tracé d'une zone, édition d'un
+// contour — est temporaire par construction : c'est le geste qui l'a posé qui doit le
+// défaire. S'il ne le défait pas (une promesse du SDK qui ne rend jamais la main, un tracé
+// abandonné en cours de route), plus rien ne le défera, et l'éditeur se retrouve devant un
+// panneau replié qu'il n'a pas demandé. Le repli VOULU, lui, ne se défait jamais tout seul.
+let _collapseVoulu = false;
 let csvList    = null;
 let _displayMode = 'normal'; // 'compact' | 'normal'
 let _cardsCollapsedDefault = false; // true = nouvelles cartes de file pliées par défaut
@@ -387,6 +394,19 @@ GM_addStyle(`
 /* Collapse */
 #wct-overlay.collapsed #wct-sel-strip,
 #wct-overlay.collapsed #wct-body { display: none; }
+/* 🔴 La hauteur doit REDEVENIR libre quand le panneau se replie, et le !important est
+   assumé : depuis la 1.14.00, _ovApply pose height ET max-height en STYLE INLINE dès que
+   l'éditeur a déplacé ou redimensionné la fenêtre une fois — seule une déclaration
+   !important de la feuille les bat. Sans elle, replier ne rétrécit plus rien : le corps
+   disparaît, la fenêtre garde sa hauteur mémorisée, et il reste un grand rectangle vide qui
+   se lit comme une panne, pas comme un panneau replié. Signalé par Glenan56 le 29/08/2026
+   (« je sélectionne un segment mais rien n'apparaît dans l'onglet configurer ») ; en 1.13.02
+   le déplacement ne posait qu'un max-height, la hauteur restait auto et le repli se voyait.
+   ⚠️ Le pied « Valider » et la barre d'action restent visibles en replié : c'est voulu depuis
+   toujours — le repli sert à libérer la carte pendant un tracé, pas à ranger les commandes.
+   ⚠️⚠️ Aucun accent grave inversé dans ce bloc : il est écrit dans un template literal, et
+   le premier qu'on y pose ferme la feuille de style au milieu. */
+#wct-overlay.collapsed { height: auto !important; max-height: none !important; }
 
 /* Body */
 #wct-body { overflow-y: auto; flex: 1; padding: 0.5em 0.833em 0.333em; }
@@ -11675,12 +11695,28 @@ const _polyShowProgress = (txt, pct) => {
     f.querySelector('.wct-poly-stop')?.addEventListener('click', requestSweepAbort);
 };
 // Replie/déplie l'overlay : pendant le tracé il masquerait la carte (620 px de large).
-const _polySetCollapsed = (v) => {
+// ⚠️ SEUL chemin de repli du script — le bouton de l'en-tête passe par ici lui aussi. Il
+// en existait un second, écrit à la main dans son écouteur, qui faisait la même chose sans
+// le drapeau `_collapseVoulu` : deux chemins pour un état, c'est celui qu'on oublie qui
+// ment. `voulu` distingue le geste de l'éditeur du repli technique (cf. `_collapseVoulu`).
+const _polySetCollapsed = (v, voulu = false) => {
     const ov = $id('wct-overlay'); if(!ov) return;
     collapsed = v;
+    _collapseVoulu = v && voulu;
     ov.classList.toggle('collapsed', v);
     const b = $id('wct-btn-collapse'); if(b) b.textContent = v ? '□' : '—';
+    if(v) _keysPop(false);   // replier le panneau referme les raccourcis
 };
+// ⭐ RÈGLE DU FILET, PURE ET UNIQUE — « ce repli-là doit-il cesser ? ». Elle vit hors du DOM
+// et hors de WME pour être jouable en Node : la décision qui rouvre le panneau de l'éditeur
+// ne doit pas être un `if` noyé au milieu d'une fonction de 80 lignes qu'aucun test ne peut
+// atteindre. Son appelant unique est `updateFab`, qui lui passe l'état courant.
+// ⚠️ Le déclencheur est le CHANGEMENT de sélection, pas sa présence : pendant un tracé, les
+// clics posent des sommets et ne sélectionnent rien, donc la sélection ne bouge pas. Déplier
+// sur la simple présence d'une sélection recouvrirait la carte que le repli venait de
+// libérer. Couvert par `tools/test-repli.js`, témoin de morsure compris.
+const _repliSubiDoitCesser = (e) => !!(e.replie && !e.voulu && e.selection && e.selAChange
+                                       && !e.zoneEdit && !e.balayage);
 
 // Charge les segments retenus encore absents du modèle, en recadrant vue par vue, et
 // cumule la sélection. Produit AUSSI le découpage en lots : c'est lui qui permettra à
@@ -12109,7 +12145,7 @@ const _zoneEnterEdit = () => {
     // se replie ; puis la zone est cadrée sur ce qui reste réellement visible.
     // ⚠️ Dans cet ordre : replier change la surface visible, donc le cadrage doit être
     // calculé APRÈS. (Demandé par l'auteur le 31/07/2026.)
-    const etaitReplieAvantEdition = collapsed;
+    const etaitReplieAvantEdition = collapsed, etaitVouluAvantEdition = _collapseVoulu;
     try {
         const rc = _rectCarte();
         const aire = (z) => Math.max(0, z.droite - z.gauche) * Math.max(0, z.bas - z.haut);
@@ -12142,7 +12178,7 @@ const _zoneEnterEdit = () => {
     };
     document.addEventListener('keydown', echap, true);
     _zoneEdit = {
-        zone, echap, etaitReplie: etaitReplieAvantEdition,
+        zone, echap, etaitReplie: etaitReplieAvantEdition, etaitVoulu: etaitVouluAvantEdition,
         points: rings[0].slice(0, -1).map(p => [p[0], p[1]]),          // anneau ouvert
         trous:  rings.slice(1).map(r => r.map(p => [p[0], p[1]])),     // intacts
         avant:  rings.map(r => r.map(p => [p[0], p[1]]))
@@ -12155,7 +12191,8 @@ const _zoneExitEdit = (garder) => {
     const rings = garder ? _zoneEditRings() : _zoneEdit.avant;
     // Le panneau retrouve l'état où on l'avait pris : c'est déjà ce que fait le tracé,
     // et un panneau qui reste replié sans qu'on l'ait demandé se remarque.
-    if(!_zoneEdit.etaitReplie && collapsed) _polySetCollapsed(false);
+    if(_zoneEdit.etaitReplie) _polySetCollapsed(true, _zoneEdit.etaitVoulu);
+    else if(collapsed) _polySetCollapsed(false);
     document.removeEventListener('keydown', _zoneEdit.echap, true);
     _zoneEdit.zone.remove();
     _zoneEdit = null;
@@ -12366,7 +12403,9 @@ const _polyProcessRings = async (rings) => {
 const polyDrawAndSelect = async () => {
     if(_sweepRunning) return;
     if(sdk.Map.getZoomLevel() < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
-    const etaitReplie = collapsed;
+    // ⚠️ L'état d'AVANT se rend en entier, drapeau compris : un panneau que l'éditeur avait
+    // replié lui-même doit le rester après le tracé, et ne pas se rouvrir au premier segment.
+    const etaitReplie = collapsed, etaitVoulu = _collapseVoulu;
     let rings = [];
     _polySetCollapsed(true);                       // libérer la carte pour tracer
     showToast(t('polyDrawHint'), 5000, '#1565c0');
@@ -12375,7 +12414,7 @@ const polyDrawAndSelect = async () => {
         rings = _polyRingsOf(await sdk.Map.drawPolygon());
     } catch(e){
         _zoneTracage = false;
-        _polySetCollapsed(etaitReplie);
+        _polySetCollapsed(etaitReplie, etaitVoulu);
         log('drawPolygon: ' + (e && e.message));
         showToast(t('polyCancelled'), 2500, '#f57c00');
         return;
@@ -12383,7 +12422,7 @@ const polyDrawAndSelect = async () => {
     // Relâché au tour de boucle suivant : le double-clic de fermeture se propage encore
     // au moment où la promesse résout.
     setTimeout(() => { _zoneTracage = false; }, 0);
-    _polySetCollapsed(etaitReplie);
+    _polySetCollapsed(etaitReplie, etaitVoulu);
     // On ne part plus tout de suite à l'inventaire : la zone s'affiche d'abord, et
     // l'éditeur décide (voir _zoneProposer).
     _zoneProposer(rings, 'trace');
@@ -14129,11 +14168,9 @@ const connectOverlay=ov=>{
     $id('wct-poly-kml')?.addEventListener('click',()=>{ polyExportKML(); });
     $id('wct-poly-wkt')?.addEventListener('click',()=>{ polyExportWKT(); });
     $id('wct-poly-import-btn')?.addEventListener('click',()=>{ renderPolyImportPanel(); });
-    $id('wct-btn-collapse')?.addEventListener('click',()=>{
-        collapsed=!collapsed;ov.classList.toggle('collapsed',collapsed);
-        $id('wct-btn-collapse').textContent=collapsed?'\u25A1':'\u2014';
-        if(collapsed) _keysPop(false);   // replier le panneau referme les raccourcis
-    });
+    // Le SEUL repli que l'editeur demande lui-meme : d'ou le `true`. Tous les autres sont
+    // techniques et se defont d'eux-memes (cf. `_collapseVoulu` et le filet d'`updateFab`).
+    $id('wct-btn-collapse')?.addEventListener('click',()=>{ _polySetCollapsed(!collapsed, true); });
     // \u2500\u2500\u2500 Raccourcis et gestes \u2500\u2500\u2500
     // Trois sorties : la croix, \u00C9chap, et un clic hors du panneau. Une fen\u00EAtre qu'on ne
     // sait pas fermer est une g\u00EAne, et celle-ci recouvre le contenu.
@@ -15373,6 +15410,22 @@ const updateFab=()=>{
     // Si sélection change (nouveaux segments) → proposer de vider la file
     const newIds=JSON.stringify([...sel.ids].sort());
     const oldIds=JSON.stringify([..._lastSelIds].sort());
+    // 🔴 FILET — un repli que l'éditeur n'a PAS demandé ne survit pas à un geste sur la
+    // carte. Signalé par Glenan56 le 29/08/2026 : « je sélectionne un segment mais rien
+    // n'apparaît dans l'onglet configurer », panneau replié à son insu. Le repli technique
+    // du tracé de zone se défait au retour de `sdk.Map.drawPolygon()` — sauf si cette
+    // promesse ne rend jamais la main (tracé abandonné sans fermer le polygone), et alors
+    // plus RIEN ne le défait. On ne peut pas réparer la promesse d'un SDK qu'on ne tient
+    // pas ; on peut garantir qu'un repli subi cesse dès que l'éditeur redonne signe de vie.
+    // ⚠️ Le déclencheur est le CHANGEMENT de sélection, pas sa simple présence : pendant un
+    // tracé réel, les clics posent des sommets et ne sélectionnent rien, donc la sélection
+    // ne bouge pas — une sélection qui change pendant qu'on est censé tracer dit justement
+    // que le tracé n'est plus actif. Et `_sweepRunning` couvre le seul moment où le script
+    // change la sélection lui-même, à la fin d'un tracé abouti.
+    if(_repliSubiDoitCesser({ replie: collapsed, voulu: _collapseVoulu, selection: hasSeg,
+                              selAChange: newIds!==oldIds, zoneEdit: !!_zoneEdit, balayage: _sweepRunning })){
+        _polySetCollapsed(false);
+    }
     if(hasSeg && newIds!==oldIds && _lastSelIds.length>0 && queue.length>0){
         // Nouvelle sélection différente avec file non vide
         const ov=$id('wct-overlay');
@@ -15437,7 +15490,7 @@ const setLang=pref=>{
 
     const old=$id('wct-overlay');
     const wasOpen=old?.classList.contains('open');
-    const wasCollapsed=collapsed;
+    const wasCollapsed=collapsed, wasVoulu=_collapseVoulu;
     const cfg=old?readConfig():null;
     const tab=old?.querySelector('.wct-main-tab.on')?.dataset.tab||'cfg';
     const pos=old?{left:old.style.left,top:old.style.top,right:old.style.right,bottom:old.style.bottom}:null;
@@ -15452,7 +15505,9 @@ const setLang=pref=>{
     applyDisplayMode(_displayMode);
     if(cfg)applyConfig(cfg);
     if(tab!=='cfg')ov.querySelector(`.wct-main-tab[data-tab="${tab}"]`)?.click();
-    if(wasCollapsed){collapsed=true;ov.classList.add('collapsed');const b=$id('wct-btn-collapse');if(b)b.textContent='□';}
+    // Le repli repasse par son seul chemin : reposé à la main, il perdait `_collapseVoulu`,
+    // et un repli voulu se serait défait tout seul au premier segment sélectionné.
+    if(wasCollapsed)_polySetCollapsed(true,wasVoulu);
     if(wasOpen)ov.classList.add('open');
     // Ré-alimenter tout ce qui n'est rendu qu'à la demande
     reloadPresets(); renderPresetsTable(); renderQueue();
