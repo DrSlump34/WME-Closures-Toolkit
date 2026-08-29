@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.14.01
+// @version      1.14.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -99,6 +99,13 @@ let collapsed  = false;
 let _collapseVoulu = false;
 let csvList    = null;
 let _displayMode = 'normal'; // 'compact' | 'normal'
+// Bascule Durée / Heure de fin. ⚠️ Elle vivait dans `localStorage.WCT_timeMode`, seul
+// réglage du script à ne pas passer par WMEPrefs : il échappait donc à l'export, au partage
+// et au socle robuste que le panneau annonce sous « Réglages conservés dans : … », lequel
+// mentait à son sujet. Une variable de module, comme `_displayMode` : elle est lisible par
+// `applyConfig` (chargement d'un préréglage) ET par la closure de `connectOverlay`, ce que
+// le passage par localStorage servait justement à contourner.
+let _timeMode = 'end';       // 'dur' | 'end'
 let _cardsCollapsedDefault = false; // true = nouvelles cartes de file pliées par défaut
 let _applyAborted = false;  // true si l'utilisateur interrompt l'application en cours
 let _applyRunning = false;  // true pendant applyQueue() — autorise l'interruption par Échap
@@ -390,6 +397,31 @@ GM_addStyle(`
 #wct-sel-strip.has-sel .wct-sel-text { color: #2e7d32; font-weight: 600; }
 .wct-gpx-layer-ctrl { margin-inline-start:auto; display:flex; align-items:center; gap:4px; cursor:pointer; font-size:0.833em; color:var(--wct-text2); white-space:nowrap; user-select:none; }
 .wct-gpx-layer-ctrl input[type=checkbox] { margin:0; cursor:pointer; accent-color:#00897b; }
+
+.wct-recap {
+    border: 1px solid var(--wct-border); border-radius: var(--wct-radius);
+    background: var(--wct-bg); padding: 6px 8px; margin-bottom: 8px;
+    font-size: 0.833em; line-height: 1.6;
+}
+.wct-recap-hdr {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-weight: 700; color: var(--wct-blue); margin-bottom: 2px;
+}
+
+/* Bandeau de reprise de file, et note de file non conservee. Meme famille visuelle que
+   #wct-layer-ko juste au-dessus de la file : une information qui porte sur la file entiere
+   se pose avant elle, pas dans une carte. */
+.wct-queue-restored {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    background: #e8f0fe; border: 1px solid #1565c0; color: #0d47a1;
+    border-radius: var(--wct-radius); padding: 5px 7px; margin: 6px 0;
+    font-size: 0.833em; line-height: 1.4;
+}
+.wct-queue-toobig {
+    background: #fff4e5; border: 1px solid var(--wct-orange); color: #8a4b00;
+    border-radius: var(--wct-radius); padding: 5px 7px; margin: 6px 0;
+    font-size: 0.833em; line-height: 1.4;
+}
 
 /* Collapse */
 #wct-overlay.collapsed #wct-sel-strip,
@@ -1687,6 +1719,10 @@ const D = {
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
+            queueKept: n => `↩️ ${n} entrée(s) reprise(s) de votre session précédente. Vérifiez les dates avant d’appliquer.`,
+            queueKeptKeep:'Garder', queueKeptDrop:'🗑️ Jeter',
+            queueTooBig:'File trop volumineuse pour être conservée d’une session à l’autre : exportez-la en CSV avant de quitter.',
+            queueLeaveWarn:'Des fermetures sont en file et ne sont pas encore appliquées.',
             btnValidate:'\u2714\uFE0F Valider et ajouter \u00E0 la file',
             btnStop:'\u23F9\uFE0F Stop', btnStopping:'\u23F3 Arr\u00EAt\u2026', btnApply:'\u25B6\uFE0F Appliquer', btnClear:'\uD83D\uDDD1\uFE0F Vider',
             // CSV
@@ -1785,6 +1821,11 @@ const D = {
             btnPrefsExport:'\u2B07\uFE0F Préréglages', tipPrefsExport:'Télécharger vos préréglages dans un fichier JSON (eux seuls : ni langue, ni préférences d’affichage)',
             btnPrefsImport:'\u2B06\uFE0F Préréglages', tipPrefsImport:'Charger des préréglages depuis un fichier : ils complètent les vôtres, rien n’est effacé',
             btnPrefsURL:'\u2B06\uFE0F Préréglages \u00B7 URL', tipPrefsURL:'Charger des préréglages publiés à une adresse web (partage entre éditeurs)',
+            prefsRecapTitle:'Ce que WCT retient',
+            prefsRecapAuto:'<b>Tout seul</b> : préréglages, affichage, fenêtre — et la file d’attente, reprise au prochain chargement.',
+            prefsRecapGeste:'<b>💾 Préréglage</b> : les paramètres d’une fermeture (dates, horaires, jours, sens…), <b>sans les segments</b>.',
+            prefsRecapJamais:'<b>Jamais</b> : sélection, tracés importés, zone tracée, résultats de recherche.',
+            prefsRecapMore:'📖 Détail',
             prefsURLPrompt:'Adresse du fichier de préréglages :',
             prefsExported: n => `✅ ${n} préréglage(s) exporté(s).`,
             prefsImported: n => `✅ Préréglages importés — vous en avez ${n} au total.`,
@@ -1811,6 +1852,7 @@ const D = {
             tipCenter:'Centrer sur ce segment',
             centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
             tipPresetSaveBtn:'Sauvegarder en pr\u00E9r\u00E9glage',
+            btnPresetSave:'💾 Préréglage',
             errDateStart:'Date de d\u00E9but invalide',
             errDateEnd:'Date de fin avant date de d\u00E9but',
             warnDatePast:'La date de d\u00e9but est dans le pass\u00e9.',
@@ -1957,6 +1999,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             polyBannerFiltered: (n,m) => `✏️ Zone tracée : ${n} segment(s) — ${m} écarté(s)`,
             tipPolyBannerFiltered:'Ces segments sont dans la zone mais leur type est décoché. Bouton 🛣️ Types pour les reprendre.',
             helpH14:'✏️ Zone (polygone)',
+            helpH15:'💾 Ce que WCT retient',
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -2234,6 +2277,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
+            queueKept: n => `↩️ ${n} entry(-ies) restored from your previous session. Check the dates before applying.`,
+            queueKeptKeep:'Keep', queueKeptDrop:'🗑️ Discard',
+            queueTooBig:'Queue too large to be kept between sessions: export it to CSV before leaving.',
+            queueLeaveWarn:'Closures are queued and not applied yet.',
             btnValidate:'\u2714\uFE0F Validate and add to queue',
             btnStop:'\u23F9\uFE0F Stop', btnStopping:'\u23F3 Stopping\u2026', btnApply:'\u25B6\uFE0F Apply', btnClear:'\uD83D\uDDD1\uFE0F Clear',
             dropText:'\uD83D\uDCE5 Click or drag a file here',
@@ -2325,6 +2372,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             btnPrefsExport:'\u2B07\uFE0F Presets', tipPrefsExport:'Download your presets as a JSON file (presets only: no language, no display preferences)',
             btnPrefsImport:'\u2B06\uFE0F Presets', tipPrefsImport:'Load presets from a file: they add to yours, nothing is erased',
             btnPrefsURL:'\u2B06\uFE0F Presets \u00B7 URL', tipPrefsURL:'Load presets published at a web address (sharing between editors)',
+            prefsRecapTitle:'What WCT remembers',
+            prefsRecapAuto:'<b>On its own</b>: presets, display, window — and the queue, restored on the next load.',
+            prefsRecapGeste:'<b>💾 Preset</b>: the settings of a closure (dates, times, days, direction…), <b>without the segments</b>.',
+            prefsRecapJamais:'<b>Never</b>: selection, imported tracks, drawn area, search results.',
+            prefsRecapMore:'📖 Details',
             prefsURLPrompt:'Address of the presets file:',
             prefsExported: n => `✅ ${n} preset(s) exported.`,
             prefsImported: n => `✅ Presets imported — you now have ${n}.`,
@@ -2362,6 +2414,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipCenter:'Center on this segment',
             centerUnavailable: sid => `Cannot centre on segment ${sid}: it is not loaded and no coordinate is available.`,
             tipPresetSaveBtn:'Save as preset',
+            btnPresetSave:'💾 Preset',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} segment(s) excluded \u2014 incompatible direction. They will not be processed. Click to download details.`,
             dirConflictTip:'Incompatible direction \u2014 segment skipped',
@@ -2499,6 +2552,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyBannerFiltered: (n,m) => `✏️ Area drawn: ${n} segment(s) — ${m} left out`,
             tipPolyBannerFiltered:'These segments are inside the area but their type is unticked. Use 🛣️ Types to bring them back.',
             helpH14:'✏️ Area (polygon)',
+            helpH15:'💾 What WCT remembers',
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2774,6 +2828,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
+            queueKept: n => `↩️ ${n} רשומות שוחזרו מהפעלה קודמת. בדוק את התאריכים לפני ההחלה.`,
+            queueKeptKeep:'שמור', queueKeptDrop:'🗑️ מחק',
+            queueTooBig:'התור גדול מכדי להישמר בין הפעלות: ייצא אותו ל-CSV לפני היציאה.',
+            queueLeaveWarn:'יש חסימות בתור שטרם הוחלו.',
             btnValidate:'✔️ אשר והוסף לתור',
             btnStop:'⏹️ עצור', btnStopping:'⏳ עוצר…', btnApply:'▶️ החל', btnClear:'🗑️ נקה',
             dropText:'📥 לחץ או גרור קובץ לכאן',
@@ -2871,6 +2929,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnPrefsExport:'\u2B07\uFE0F תבניות', tipPrefsExport:'הורד את התבניות שלך לקובץ JSON (תבניות בלבד: ללא שפה וללא העדפות תצוגה)',
             btnPrefsImport:'\u2B06\uFE0F תבניות', tipPrefsImport:'טען תבניות מקובץ: הן מתווספות לשלך, דבר אינו נמחק',
             btnPrefsURL:'\u2B06\uFE0F תבניות \u00B7 URL', tipPrefsURL:'טען תבניות שפורסמו בכתובת אינטרנט (שיתוף בין עורכים)',
+            prefsRecapTitle:'מה WCT זוכר',
+            prefsRecapAuto:'<b>לבד</b>: תבניות, תצוגה, חלון — וגם התור, שמשוחזר בטעינה הבאה.',
+            prefsRecapGeste:'<b>💾 תבנית</b>: ההגדרות של חסימה (תאריכים, שעות, ימים, כיוון…), <b>בלי המקטעים</b>.',
+            prefsRecapJamais:'<b>אף פעם</b>: בחירה, מסלולים מיובאים, אזור משורטט, תוצאות חיפוש.',
+            prefsRecapMore:'📖 פירוט',
             prefsURLPrompt:'כתובת קובץ התבניות:',
             prefsExported: n => `✅ ${n} תבניות יוצאו.`,
             prefsImported: n => `✅ התבניות יובאו — יש לך כעת ${n}.`,
@@ -2908,6 +2971,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipCenter:'מרכז על מקטע זה',
             centerUnavailable: sid => `לא ניתן למרכז על מקטע ${sid}: הוא לא טעון ואין קואורדינטה זמינה.`,
             tipPresetSaveBtn:'שמור כתבנית',
+            btnPresetSave:'💾 תבנית',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} מקטעים הוחרגו — כיוון לא תואם. הם לא יעובדו. לחץ להורדת פרטים.`,
             dirConflictTip:'כיוון לא תואם — המקטע דולג',
@@ -3045,6 +3109,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyBannerFiltered: (n,m) => `✏️ אזור משורטט: ${n} מקטעים — ${m} הושמטו`,
             tipPolyBannerFiltered:'מקטעים אלה נמצאים באזור אך הסוג שלהם אינו מסומן. לחץ 🛣️ סוגים כדי להחזירם.',
             helpH14:'✏️ אזור (מצולע)',
+            helpH15:'💾 מה WCT זוכר',
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -3320,6 +3385,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
+            queueKept: n => `↩️ ${n} voce/voci recuperate dalla sessione precedente. Controlla le date prima di applicare.`,
+            queueKeptKeep:'Mantieni', queueKeptDrop:'🗑️ Scarta',
+            queueTooBig:'Coda troppo grande per essere conservata tra le sessioni: esportala in CSV prima di uscire.',
+            queueLeaveWarn:'Ci sono chiusure in coda non ancora applicate.',
             btnValidate:'✔️ Convalida e aggiungi alla coda',
             btnStop:'⏹️ Ferma', btnStopping:'⏳ Arresto…', btnApply:'▶️ Applica', btnClear:'🗑️ Cancella',
             dropText:'📥 Clicca o trascina qui un file',
@@ -3411,6 +3480,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnPrefsExport:'\u2B07\uFE0F Preset', tipPrefsExport:'Scarica i tuoi preset in un file JSON (solo i preset: né lingua né preferenze di visualizzazione)',
             btnPrefsImport:'\u2B06\uFE0F Preset', tipPrefsImport:'Carica preset da un file: si aggiungono ai tuoi, nulla viene cancellato',
             btnPrefsURL:'\u2B06\uFE0F Preset \u00B7 URL', tipPrefsURL:'Carica preset pubblicati a un indirizzo web (condivisione fra editor)',
+            prefsRecapTitle:'Cosa ricorda WCT',
+            prefsRecapAuto:'<b>Da solo</b>: preset, visualizzazione, finestra — e la coda, ripresa al caricamento successivo.',
+            prefsRecapGeste:'<b>💾 Preset</b>: i parametri di una chiusura (date, orari, giorni, senso…), <b>senza i segmenti</b>.',
+            prefsRecapJamais:'<b>Mai</b>: selezione, tracciati importati, zona disegnata, risultati della ricerca.',
+            prefsRecapMore:'📖 Dettagli',
             prefsURLPrompt:'Indirizzo del file dei preset:',
             prefsExported: n => `✅ ${n} preset esportati.`,
             prefsImported: n => `✅ Preset importati — ora ne hai ${n}.`,
@@ -3448,6 +3522,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipCenter:'Centra su questo segmento',
             centerUnavailable: sid => `Impossibile centrare sul segmento ${sid}: non è caricato e non è disponibile alcuna coordinata.`,
             tipPresetSaveBtn:'Salva come preset',
+            btnPresetSave:'💾 Preset',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} segmento/i esclusi — direzione incompatibile. Non verranno elaborati. Clicca per scaricare i dettagli.`,
             dirConflictTip:'Direzione incompatibile — segmento saltato',
@@ -3585,6 +3660,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyBannerFiltered: (n,m) => `✏️ Area disegnata: ${n} segmento/i — ${m} esclusi`,
             tipPolyBannerFiltered:'Questi segmenti sono nell’area ma il loro tipo non è spuntato. Usa 🛣️ Tipi per riprenderli.',
             helpH14:'✏️ Area (poligono)',
+            helpH15:'💾 Cosa ricorda WCT',
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -3861,6 +3937,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
+            queueKept: n => `↩️ ${n} Eintrag/Einträge aus der vorherigen Sitzung wiederhergestellt. Prüfe die Daten vor dem Anwenden.`,
+            queueKeptKeep:'Behalten', queueKeptDrop:'🗑️ Verwerfen',
+            queueTooBig:'Warteschlange zu groß, um zwischen Sitzungen erhalten zu bleiben: exportiere sie vor dem Verlassen als CSV.',
+            queueLeaveWarn:'Es sind Sperrungen in der Warteschlange, die noch nicht angewendet wurden.',
             btnValidate:'\u2714\uFE0F Best\u00E4tigen und zur Warteschlange',
             btnStop:'\u23F9\uFE0F Stopp', btnStopping:'\u23F3 Wird gestoppt\u2026', btnApply:'\u25B6\uFE0F Anwenden', btnClear:'\uD83D\uDDD1\uFE0F Leeren',
             dropText:'\uD83D\uDCE5 Datei hier klicken oder ablegen',
@@ -3952,6 +4032,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnPrefsExport:'\u2B07\uFE0F Vorlagen', tipPrefsExport:'Deine Vorlagen als JSON-Datei herunterladen (nur Vorlagen: weder Sprache noch Anzeigeeinstellungen)',
             btnPrefsImport:'\u2B06\uFE0F Vorlagen', tipPrefsImport:'Vorlagen aus einer Datei laden: sie ergänzen deine, nichts wird gelöscht',
             btnPrefsURL:'\u2B06\uFE0F Vorlagen \u00B7 URL', tipPrefsURL:'Vorlagen laden, die unter einer Webadresse veröffentlicht sind (Austausch zwischen Editoren)',
+            prefsRecapTitle:'Was WCT sich merkt',
+            prefsRecapAuto:'<b>Von allein</b>: Vorlagen, Anzeige, Fenster — und die Warteschlange, beim nächsten Laden wiederhergestellt.',
+            prefsRecapGeste:'<b>💾 Vorlage</b>: die Einstellungen einer Sperrung (Daten, Zeiten, Tage, Richtung…), <b>ohne die Segmente</b>.',
+            prefsRecapJamais:'<b>Nie</b>: Auswahl, importierte Tracks, gezeichneter Bereich, Suchergebnisse.',
+            prefsRecapMore:'📖 Details',
             prefsURLPrompt:'Adresse der Vorlagen-Datei:',
             prefsExported: n => `✅ ${n} Vorlage(n) exportiert.`,
             prefsImported: n => `✅ Vorlagen importiert — du hast jetzt ${n}.`,
@@ -3989,6 +4074,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipCenter:'Auf dieses Segment zentrieren',
             centerUnavailable: sid => `Zentrieren auf Segment ${sid} nicht möglich: es ist nicht geladen und es liegt keine Koordinate vor.`,
             tipPresetSaveBtn:'Als Vorlage speichern',
+            btnPresetSave:'💾 Vorlage',
             // Ausgeschlossene Segmente (Richtungskonflikt)
             exclWarnTitle: n => `${n} Segment(e) ausgeschlossen \u2014 unpassende Fahrtrichtung. Sie werden nicht verarbeitet. F\u00FCr Details klicken.`,
             dirConflictTip:'Unpassende Fahrtrichtung \u2014 Segment \u00FCbersprungen',
@@ -4126,6 +4212,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             polyBannerFiltered: (n,m) => `✏️ Bereich gezeichnet: ${n} Segment(e) — ${m} ausgelassen`,
             tipPolyBannerFiltered:'Diese Segmente liegen im Bereich, ihr Typ ist aber abgewählt. Über 🛣️ Typen zurückholen.',
             helpH14:'✏️ Bereich (Polygon)',
+            helpH15:'💾 Was WCT sich merkt',
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -4401,6 +4488,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
+            queueKept: n => `↩️ ${n} entrada(s) recuperada(s) de tu sesión anterior. Revisa las fechas antes de aplicar.`,
+            queueKeptKeep:'Conservar', queueKeptDrop:'🗑️ Descartar',
+            queueTooBig:'Cola demasiado grande para conservarse entre sesiones: expórtala a CSV antes de salir.',
+            queueLeaveWarn:'Hay cierres en la cola que aún no se han aplicado.',
             btnValidate:'✔️ Validar y añadir a la cola',
             btnStop:'⏹️ Detener', btnStopping:'⏳ Deteniendo…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Vaciar',
             dropText:'📥 Haz clic o arrastra aquí un archivo',
@@ -4492,6 +4583,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             btnPrefsExport:'\u2B07\uFE0F Preajustes', tipPrefsExport:'Descarga tus preajustes en un archivo JSON (solo los preajustes: ni idioma ni preferencias de pantalla)',
             btnPrefsImport:'\u2B06\uFE0F Preajustes', tipPrefsImport:'Carga preajustes desde un archivo: se suman a los tuyos, no se borra nada',
             btnPrefsURL:'\u2B06\uFE0F Preajustes \u00B7 URL', tipPrefsURL:'Carga preajustes publicados en una dirección web (uso compartido entre editores)',
+            prefsRecapTitle:'Qué recuerda WCT',
+            prefsRecapAuto:'<b>Solo</b>: preajustes, visualización, ventana — y la cola, recuperada en la siguiente carga.',
+            prefsRecapGeste:'<b>💾 Preajuste</b>: los parámetros de un cierre (fechas, horarios, días, sentido…), <b>sin los segmentos</b>.',
+            prefsRecapJamais:'<b>Nunca</b>: selección, trazas importadas, zona dibujada, resultados de búsqueda.',
+            prefsRecapMore:'📖 Detalles',
             prefsURLPrompt:'Dirección del archivo de preajustes:',
             prefsExported: n => `✅ ${n} preajuste(s) exportado(s).`,
             prefsImported: n => `✅ Preajustes importados — ahora tienes ${n}.`,
@@ -4529,6 +4625,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipCenter:'Centrar en este segmento',
             centerUnavailable: sid => `Imposible centrar en el segmento ${sid}: no está cargado y no hay ninguna coordenada disponible.`,
             tipPresetSaveBtn:'Guardar como preajuste',
+            btnPresetSave:'💾 Preajuste',
             // Segmentos excluidos (conflicto de sentido)
             exclWarnTitle: n => `${n} segmento(s) excluido(s) — sentido incompatible. No se procesarán. Haz clic para descargar el detalle.`,
             dirConflictTip:'Sentido incompatible — segmento no procesado',
@@ -4666,6 +4763,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             polyBannerFiltered: (n,m) => `✏️ Zona dibujada: ${n} segmento(s) — ${m} descartado(s)`,
             tipPolyBannerFiltered:'Estos segmentos están en la zona pero su tipo está desmarcado. Usa 🛣️ Tipos para recuperarlos.',
             helpH14:'✏️ Zona (polígono)',
+            helpH15:'💾 Qué recuerda WCT',
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -4941,6 +5039,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
+            queueKept: n => `↩️ ${n} entrada(s) recuperada(s) da sessão anterior. Verifique as datas antes de aplicar.`,
+            queueKeptKeep:'Manter', queueKeptDrop:'🗑️ Descartar',
+            queueTooBig:'Fila grande demais para ser mantida entre sessões: exporte-a em CSV antes de sair.',
+            queueLeaveWarn:'Há bloqueios na fila que ainda não foram aplicados.',
             btnValidate:'✔️ Validar e adicionar à fila',
             btnStop:'⏹️ Parar', btnStopping:'⏳ Parando…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Limpar',
             dropText:'📥 Clique ou arraste um arquivo aqui',
@@ -5032,6 +5134,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             btnPrefsExport:'\u2B07\uFE0F Predefinições', tipPrefsExport:'Baixe suas predefinições em um arquivo JSON (só as predefinições: nem idioma nem preferências de exibição)',
             btnPrefsImport:'\u2B06\uFE0F Predefinições', tipPrefsImport:'Carregue predefinições de um arquivo: elas se somam às suas, nada é apagado',
             btnPrefsURL:'\u2B06\uFE0F Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas em um endereço web (compartilhamento entre editores)',
+            prefsRecapTitle:'O que o WCT guarda',
+            prefsRecapAuto:'<b>Sozinho</b>: predefinições, exibição, janela — e a fila, recuperada no próximo carregamento.',
+            prefsRecapGeste:'<b>💾 Predefinição</b>: os parâmetros de um bloqueio (datas, horários, dias, sentido…), <b>sem os segmentos</b>.',
+            prefsRecapJamais:'<b>Nunca</b>: seleção, trajetos importados, área desenhada, resultados da busca.',
+            prefsRecapMore:'📖 Detalhes',
             prefsURLPrompt:'Endereço do arquivo de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — agora você tem ${n}.`,
@@ -5069,6 +5176,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipCenter:'Centralizar neste segmento',
             centerUnavailable: sid => `Impossível centralizar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Salvar como predefinição',
+            btnPresetSave:'💾 Predefinição',
             // Segmentos excluídos (conflito de sentido)
             exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para baixar os detalhes.`,
             dirConflictTip:'Sentido incompatível — segmento ignorado',
@@ -5206,6 +5314,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyBannerFiltered: (n,m) => `✏️ Área desenhada: ${n} segmento(s) — ${m} descartado(s)`,
             tipPolyBannerFiltered:'Esses segmentos estão na área, mas o tipo deles está desmarcado. Use 🛣️ Tipos para retomá-los.',
             helpH14:'✏️ Área (polígono)',
+            helpH15:'💾 O que o WCT guarda',
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -5481,6 +5590,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
+            queueKept: n => `↩️ ${n} entrada(s) recuperada(s) da sessão anterior. Verifique as datas antes de aplicar.`,
+            queueKeptKeep:'Manter', queueKeptDrop:'🗑️ Descartar',
+            queueTooBig:'Fila demasiado grande para ser mantida entre sessões: exporte-a em CSV antes de sair.',
+            queueLeaveWarn:'Há cortes de via na fila que ainda não foram aplicados.',
             btnValidate:'✔️ Validar e adicionar à fila',
             btnStop:'⏹️ Parar', btnStopping:'⏳ A parar…', btnApply:'▶️ Aplicar', btnClear:'🗑️ Limpar',
             dropText:'📥 Clique ou arraste um ficheiro para aqui',
@@ -5572,6 +5685,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             btnPrefsExport:'\u2B07\uFE0F Predefinições', tipPrefsExport:'Transfira as suas predefinições num ficheiro JSON (só as predefinições: nem idioma nem preferências de ecrã)',
             btnPrefsImport:'\u2B06\uFE0F Predefinições', tipPrefsImport:'Carregue predefinições de um ficheiro: juntam-se às suas, nada é apagado',
             btnPrefsURL:'\u2B06\uFE0F Predefinições \u00B7 URL', tipPrefsURL:'Carregue predefinições publicadas num endereço web (partilha entre editores)',
+            prefsRecapTitle:'O que o WCT guarda',
+            prefsRecapAuto:'<b>Sozinho</b>: predefinições, exibição, janela — e a fila, recuperada no carregamento seguinte.',
+            prefsRecapGeste:'<b>💾 Predefinição</b>: os parâmetros de um corte de via (datas, horários, dias, sentido…), <b>sem os segmentos</b>.',
+            prefsRecapJamais:'<b>Nunca</b>: seleção, trajetos importados, área desenhada, resultados da pesquisa.',
+            prefsRecapMore:'📖 Detalhes',
             prefsURLPrompt:'Endereço do ficheiro de predefinições:',
             prefsExported: n => `✅ ${n} predefinição(ões) exportada(s).`,
             prefsImported: n => `✅ Predefinições importadas — tem agora ${n}.`,
@@ -5609,6 +5727,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipCenter:'Centrar neste segmento',
             centerUnavailable: sid => `Impossível centrar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Guardar como predefinição',
+            btnPresetSave:'💾 Predefinição',
             // Excluded segments (direction conflict)
             exclWarnTitle: n => `${n} segmento(s) excluído(s) — sentido incompatível. Não serão processados. Clique para transferir os detalhes.`,
             dirConflictTip:'Sentido incompatível — segmento ignorado',
@@ -5746,6 +5865,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             polyBannerFiltered: (n,m) => `✏️ Área desenhada: ${n} segmento(s) — ${m} descartado(s)`,
             tipPolyBannerFiltered:'Estes segmentos estão na área, mas o seu tipo está desmarcado. Use 🛣️ Tipos para os retomar.',
             helpH14:'✏️ Área (polígono)',
+            helpH15:'💾 O que o WCT guarda',
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -6805,6 +6925,71 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px">⚠️ <b>O corte abrange o segmento INTEIRO</b>, não o troço dentro da área: o Waze não sabe cortar um pedaço de segmento. Um segmento apanhado a 60 % será cortado em todo o comprimento, incluindo fora da área. Desenhe justo e verifique a seleção antes de validar.</p>
             <p style="margin-top:6px"><b>Áreas grandes.</b> A análise <b>não depende do zoom</b>: o mapa é consultado por mosaicos, pelo que nada se perde mesmo muito afastado. Mas o WME só guarda em memória o que mostra: o mapa desloca-se vista a vista para carregar os segmentos (progresso, botão <b>Parar</b> ou tecla <b>Esc</b>). Depois a área entra na fila <b>em lotes</b>, e o mapa recentra-se em cada um ao aplicar.</p>
             <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os cortes de viragem passam pelo separador 🔀 Viragens. Se a análise estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>` }) },
+        { id:'h15', title:t('helpH15'), body: _L({ fr:`
+            <p><b>Trois niveaux</b>, et mieux vaut savoir lequel s'applique avant de fermer l'onglet.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Tout seul</b></td><td>Préréglages, langue, thème, format de date, épaisseur et opacité des tracés, types de routes de la zone, taille et position de la fenêtre — et <b>la file d'attente</b>, reprise au chargement suivant avec un bandeau qui vous laisse la jeter.</td></tr>
+            <tr><td><b>Sur un geste</b></td><td><b>💾 Préréglage</b> enregistre les <b>paramètres</b> d'une fermeture (période, horaires, jours, motif, sens, MTE, récurrence) — <b>sans les segments</b>. C'est ce qui permet de rejouer les mêmes horaires sur une autre sélection, ou dans l'autre sens.</td></tr>
+            <tr><td><b>Jamais</b></td><td>La sélection de segments, les tracés importés, la zone tracée, les virages envoyés vers Configurer et les résultats de recherche. Exportez-les si vous en aurez besoin demain.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Une file <b>très volumineuse</b> n'est pas conservée : le panneau le dit alors au-dessus de la file, et vous prévient avant de quitter la page. Exportez-la en CSV — l'onglet 📥 Import la relit.</p>
+            <p style="margin-top:6px">Tout ce qui est retenu vit dans <b>votre navigateur</b>, par le stockage du gestionnaire de scripts. Rien ne part sur un serveur. ⬇️ Préréglages en fait un fichier JSON, à partager si vous le voulez.</p>`, en:`
+            <p><b>Three levels</b>, and it is worth knowing which one applies before closing the tab.</p>
+            <table class="wct-help-table">
+            <tr><td><b>On its own</b></td><td>Presets, language, theme, date format, track width and opacity, area road types, window size and position — and <b>the queue</b>, restored on the next load with a banner letting you discard it.</td></tr>
+            <tr><td><b>On a gesture</b></td><td><b>💾 Preset</b> saves the <b>settings</b> of a closure (period, times, days, reason, direction, MTE, recurrence) — <b>without the segments</b>. That is what lets you replay the same schedule on another selection, or the other way round.</td></tr>
+            <tr><td><b>Never</b></td><td>The segment selection, imported tracks, the drawn area, turns sent to Configure, and search results. Export them if you will need them tomorrow.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ A <b>very large</b> queue is not kept: the panel says so above the queue, and warns you before you leave the page. Export it to CSV — the 📥 Import tab reads it back.</p>
+            <p style="margin-top:6px">Everything kept lives in <b>your browser</b>, in the script manager storage. Nothing goes to a server. ⬇️ Presets turns it into a JSON file you can share.</p>`, he:`
+            <p><b>שלוש רמות</b>, וכדאי לדעת איזו חלה לפני סגירת הלשונית.</p>
+            <table class="wct-help-table">
+            <tr><td><b>לבד</b></td><td>תבניות, שפה, ערכת נושא, תבנית תאריך, עובי ואטימות המסלולים, סוגי הדרכים של האזור, גודל ומיקום החלון — וגם <b>התור</b>, שמשוחזר בטעינה הבאה עם באנר שמאפשר להשליך אותו.</td></tr>
+            <tr><td><b>בלחיצה</b></td><td><b>💾 תבנית</b> שומרת את <b>ההגדרות</b> של חסימה (טווח, שעות, ימים, סיבה, כיוון, MTE, מחזוריות) — <b>בלי המקטעים</b>. זה מה שמאפשר לחזור על אותן שעות בבחירה אחרת, או בכיוון ההפוך.</td></tr>
+            <tr><td><b>אף פעם</b></td><td>בחירת המקטעים, מסלולים מיובאים, האזור המשורטט, פניות שנשלחו להגדרה ותוצאות החיפוש. ייצא אותם אם תזדקק להם מחר.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ תור <b>גדול מאוד</b> אינו נשמר: הפאנל אומר זאת מעל התור ומזהיר לפני עזיבת הדף. ייצא אותו ל-CSV — לשונית 📥 ייבוא קוראת אותו בחזרה.</p>
+            <p style="margin-top:6px">כל מה שנשמר נמצא <b>בדפדפן שלך</b>, באחסון של מנהל הסקריפטים. שום דבר לא נשלח לשרת. ⬇️ תבניות יוצר קובץ JSON לשיתוף.</p>`, it:`
+            <p><b>Tre livelli</b>, ed è meglio sapere quale vale prima di chiudere la scheda.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Da solo</b></td><td>Preset, lingua, tema, formato data, spessore e opacità dei tracciati, tipi di strada della zona, dimensione e posizione della finestra — e <b>la coda</b>, ripresa al caricamento successivo con un banner che permette di scartarla.</td></tr>
+            <tr><td><b>Con un gesto</b></td><td><b>💾 Preset</b> salva i <b>parametri</b> di una chiusura (periodo, orari, giorni, motivo, senso, MTE, ricorrenza) — <b>senza i segmenti</b>. È questo che permette di riusare gli stessi orari su un'altra selezione, o nel senso opposto.</td></tr>
+            <tr><td><b>Mai</b></td><td>La selezione dei segmenti, i tracciati importati, la zona disegnata, le svolte inviate a Configura e i risultati della ricerca. Esportali se ti serviranno domani.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Una coda <b>molto grande</b> non viene conservata: il pannello lo dice sopra la coda e avvisa prima di lasciare la pagina. Esportala in CSV — la scheda 📥 Importa la rilegge.</p>
+            <p style="margin-top:6px">Tutto ciò che viene conservato vive nel <b>tuo browser</b>, nell'archivio del gestore di script. Niente va su un server. ⬇️ Preset ne fa un file JSON da condividere.</p>`, de:`
+            <p><b>Drei Stufen</b>, und es lohnt sich zu wissen, welche gilt, bevor der Tab geschlossen wird.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Von allein</b></td><td>Vorlagen, Sprache, Thema, Datumsformat, Breite und Deckkraft der Tracks, Straßentypen des Bereichs, Größe und Position des Fensters — und <b>die Warteschlange</b>, beim nächsten Laden wiederhergestellt, mit einem Banner zum Verwerfen.</td></tr>
+            <tr><td><b>Auf eine Geste</b></td><td><b>💾 Vorlage</b> speichert die <b>Einstellungen</b> einer Sperrung (Zeitraum, Uhrzeiten, Tage, Grund, Richtung, MTE, Wiederholung) — <b>ohne die Segmente</b>. Genau das erlaubt es, dieselben Zeiten auf eine andere Auswahl oder in die andere Richtung anzuwenden.</td></tr>
+            <tr><td><b>Nie</b></td><td>Die Segmentauswahl, importierte Tracks, der gezeichnete Bereich, an Konfigurieren gesendete Abbieger und Suchergebnisse. Exportiere sie, wenn du sie morgen brauchst.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Eine <b>sehr große</b> Warteschlange wird nicht behalten: das Panel sagt es über der Warteschlange und warnt vor dem Verlassen der Seite. Exportiere sie als CSV — der Tab 📥 Import liest sie zurück.</p>
+            <p style="margin-top:6px">Alles Behaltene liegt in <b>deinem Browser</b>, im Speicher des Skriptmanagers. Nichts geht an einen Server. ⬇️ Vorlagen macht daraus eine JSON-Datei zum Teilen.</p>`, es:`
+            <p><b>Tres niveles</b>, y conviene saber cuál se aplica antes de cerrar la pestaña.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Solo</b></td><td>Preajustes, idioma, tema, formato de fecha, grosor y opacidad de las trazas, tipos de vía de la zona, tamaño y posición de la ventana — y <b>la cola</b>, recuperada en la siguiente carga con un aviso que permite descartarla.</td></tr>
+            <tr><td><b>Con un gesto</b></td><td><b>💾 Preajuste</b> guarda los <b>parámetros</b> de un cierre (periodo, horarios, días, motivo, sentido, MTE, recurrencia) — <b>sin los segmentos</b>. Es lo que permite repetir los mismos horarios en otra selección, o en el otro sentido.</td></tr>
+            <tr><td><b>Nunca</b></td><td>La selección de segmentos, las trazas importadas, la zona dibujada, los giros enviados a Configurar y los resultados de búsqueda. Expórtalos si los vas a necesitar mañana.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Una cola <b>muy grande</b> no se conserva: el panel lo indica encima de la cola y avisa antes de salir de la página. Expórtala a CSV — la pestaña 📥 Importar la vuelve a leer.</p>
+            <p style="margin-top:6px">Todo lo conservado vive en <b>tu navegador</b>, en el almacenamiento del gestor de scripts. Nada sale a un servidor. ⬇️ Preajustes crea un archivo JSON para compartir.</p>`, 'pt-BR':`
+            <p><b>Três níveis</b>, e vale saber qual se aplica antes de fechar a aba.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Sozinho</b></td><td>Predefinições, idioma, tema, formato de data, espessura e opacidade dos trajetos, tipos de via da área, tamanho e posição da janela — e <b>a fila</b>, recuperada no próximo carregamento com um aviso que permite descartá-la.</td></tr>
+            <tr><td><b>Com um gesto</b></td><td><b>💾 Predefinição</b> guarda os <b>parâmetros</b> de um bloqueio (período, horários, dias, motivo, sentido, MTE, recorrência) — <b>sem os segmentos</b>. É isso que permite repetir os mesmos horários em outra seleção, ou no sentido contrário.</td></tr>
+            <tr><td><b>Nunca</b></td><td>A seleção de segmentos, os trajetos importados, a área desenhada, as conversões enviadas para Configurar e os resultados da busca. Exporte-os se precisar deles amanhã.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Uma fila <b>muito grande</b> não é mantida: o painel avisa acima da fila e alerta antes de você sair da página. Exporte-a em CSV — a aba 📥 Importar volta a lê-la.</p>
+            <p style="margin-top:6px">Tudo o que é guardado fica no <b>seu navegador</b>, no armazenamento do gerenciador de scripts. Nada vai para um servidor. ⬇️ Predefinições gera um arquivo JSON para compartilhar.</p>`, 'pt-PT':`
+            <p><b>Três níveis</b>, e vale a pena saber qual se aplica antes de fechar o separador.</p>
+            <table class="wct-help-table">
+            <tr><td><b>Sozinho</b></td><td>Predefinições, idioma, tema, formato de data, espessura e opacidade dos trajetos, tipos de via da área, tamanho e posição da janela — e <b>a fila</b>, recuperada no carregamento seguinte com um aviso que permite descartá-la.</td></tr>
+            <tr><td><b>Com um gesto</b></td><td><b>💾 Predefinição</b> guarda os <b>parâmetros</b> de um corte de via (período, horários, dias, motivo, sentido, MTE, recorrência) — <b>sem os segmentos</b>. É isso que permite repetir os mesmos horários noutra seleção, ou no sentido contrário.</td></tr>
+            <tr><td><b>Nunca</b></td><td>A seleção de segmentos, os trajetos importados, a área desenhada, as viragens enviadas para Configurar e os resultados da pesquisa. Exporte-os se precisar deles amanhã.</td></tr>
+            </table>
+            <p style="margin-top:6px">⚠️ Uma fila <b>muito grande</b> não é mantida: o painel avisa acima da fila e alerta antes de sair da página. Exporte-a em CSV — o separador 📥 Importar volta a lê-la.</p>
+            <p style="margin-top:6px">Tudo o que é guardado fica no <b>seu navegador</b>, no armazenamento do gestor de scripts. Nada vai para um servidor. ⬇️ Predefinições gera um ficheiro JSON para partilhar.</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -7476,7 +7661,8 @@ let _prefs = null;
 const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMode,
     dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
     langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null,
-    traceWidth:_traceWidth, traceOpacity:_traceOpacity, ovGeom:_ovGeom });
+    traceWidth:_traceWidth, traceOpacity:_traceOpacity, ovGeom:_ovGeom,
+    timeMode:_timeMode, queue:_queuePourPrefs() });
 const _appliquerPrefs = d => {
     if(!d || typeof d !== 'object') return;
     presets = d.presets || [];
@@ -7487,6 +7673,15 @@ const _appliquerPrefs = d => {
     _cardsCollapsedDefault = d.cardsCollapsedDefault === true;
     if(d.langPref === 'auto' || LANGS.some(x => x.code === d.langPref)) _langPref = d.langPref;
     if(Array.isArray(d.polyTypes)) _polyTypes = new Set(d.polyTypes.map(Number));
+    // ⚠️ Reprise de l'ancien emplacement : jusqu'à la 1.14.01, la bascule Durée / Heure de
+    // fin vivait dans localStorage. Sans cette ligne, tout éditeur qui avait choisi
+    // « durée » se serait retrouvé en « heure de fin » à la mise à jour, sans explication.
+    // On lit le legs UNE fois, quand les prefs n'en portent pas encore.
+    // La file lue est mise DE COTE, pas posee : _queueReprendre la rejouera une fois le
+    // panneau construit, parce qu'elle s'accompagne d'un bandeau qui a besoin du DOM.
+    _queueReprise = Array.isArray(d.queue) ? d.queue : null;
+    if(d.timeMode === 'dur' || d.timeMode === 'end') _timeMode = d.timeMode;
+    else { try { if(localStorage.WCT_timeMode === 'dur') _timeMode = 'dur'; } catch(e){} }
     // Borner en RELISANT la valeur stockee : un reglage hors bornes (fichier de prefs
     // edite a la main, ou borne changee entre deux versions) donnerait un trait
     // invisible ou une bande opaque, sans rien dire.
@@ -7738,7 +7933,9 @@ const applyConfig=cfg=>{
     set('wct-starttime',cfg.starttime);set('wct-dur-time',cfg.durtime);set('wct-dur-day',cfg.durday);
     if(cfg.endtime)set('wct-endtime',cfg.endtime);
     if(cfg.timemode){
-        localStorage.WCT_timeMode=cfg.timemode;
+        // Charger un préréglage impose SA bascule, et cela devient la préférence courante —
+        // c'était déjà le cas quand elle vivait dans localStorage.
+        _timeMode=cfg.timemode==='dur'?'dur':'end'; save();
         const isEnd=cfg.timemode==='end';
         const modeEl=$id('wct-mode-end'),durEl=$id('wct-mode-dur'),btn=$id('wct-time-toggle');
         if(modeEl)modeEl.style.display=isEnd?'':'none';
@@ -7949,6 +8146,121 @@ const makeEntry=(segIds,cfg,closures)=>{
         detail:t('entryDetail',segIds.length,closures.length,dirStr(parseInt(cfg.direction)),cfg.starttime)};
 
 };
+// ═══════════════════════════════════════════════════════════════════════════
+//  LA FILE SURVIT AU RECHARGEMENT (1.14.02)
+// ═══════════════════════════════════════════════════════════════════════════
+// POURQUOI : jusqu'ici la file ne vivait qu'en mémoire, et rien ne le disait. Le 29/08/2026
+// j'ai répondu « Refresh la page » à Glenan56 pendant que son panneau affichait « 1 entrée
+// en file » — le conseil était juste pour son symptôme, et lui faisait perdre son travail
+// sans qu'aucun des deux le sache. Un chemin de reprise existait (exporter en CSV,
+// réimporter dans l'onglet Import), mais il fallait y penser AVANT de recharger, et rien
+// ne le proposait au moment où il comptait.
+//
+// ⚠️ SÉRIALISATION PAR TYPE, et ce n'est pas de la coquetterie : une entrée de file porte
+// des Set (segments absents, segments modifiés récemment, lignes supprimées) et des Date.
+// JSON.stringify écrase les deux EN SILENCE — un Set devient {} et se relit comme un objet
+// vide, donc comme « aucune ligne supprimée », donc comme des fermetures que l'éditeur
+// croyait avoir retirées et qui repartiraient sur la carte. Une liste blanche de champs se
+// serait périmée au premier champ ajouté à une entrée ; la conversion par TYPE suit le code
+// toute seule.
+const _jsonAller = (v) => {
+    if(v instanceof Set) return { __set: [...v].map(_jsonAller) };
+    if(v instanceof Date) return { __date: isNaN(v.getTime()) ? null : v.toISOString() };
+    if(Array.isArray(v)) return v.map(_jsonAller);
+    if(v && typeof v === 'object'){ const o = {}; for(const k in v) o[k] = _jsonAller(v[k]); return o; }
+    return v;
+};
+const _jsonRetour = (v) => {
+    if(Array.isArray(v)) return v.map(_jsonRetour);
+    if(v && typeof v === 'object'){
+        if(Array.isArray(v.__set)) return new Set(v.__set.map(_jsonRetour));
+        if('__date' in v) return v.__date ? new Date(v.__date) : null;
+        const o = {}; for(const k in v) o[k] = _jsonRetour(v[k]); return o;
+    }
+    return v;
+};
+// Plafond de conservation. La borne est TECHNIQUE — ce qu'un stockage de navigateur avale
+// sans broncher — et non un jugement sur la taille d'un chantier. Au-delà, on ne conserve
+// pas ET ON LE DIT : une file qui disparaîtrait en silence serait pire que pas de reprise
+// du tout, puisque l'éditeur compterait dessus.
+const QUEUE_MAX_CAR = 2000000;
+let _queueTropGrosse = false;
+let _queueReprise = null;    // ce que les préférences portaient au démarrage
+// ⚠️ VERROU D'ÉCRASEMENT. Sans lui, le premier `save()` venu — un simple déplacement de la
+// fenêtre — écrirait la file VIDE du démarrage par-dessus celle de la session précédente,
+// avant même qu'on ait eu le temps de la reprendre. Tant que la reprise n'a pas eu lieu, on
+// rend ce qu'on a lu, jamais l'état courant.
+let _queuePrete = false;
+const _queuePourPrefs = () => {
+    if(!_queuePrete) return _queueReprise || [];
+    _queueTropGrosse = false;
+    if(!queue.length) return [];
+    try {
+        const brut = _jsonAller(queue);
+        if(JSON.stringify(brut).length > QUEUE_MAX_CAR){ _queueTropGrosse = true; return []; }
+        return brut;
+    } catch(e){ log('file non conservée : ' + e.message); _queueTropGrosse = true; return []; }
+};
+// Anti-rebond : `renderQueue` est rejouée à chaque changement d'état pendant l'application,
+// et `save()` écrit dans le gestionnaire de scripts. Le délai n'est pas une règle métier,
+// c'est le temps qu'on laisse à une rafale de rendus de se terminer.
+let _queueSaveT = null;
+const _queueSaveDiffere = () => {
+    if(!_queuePrete) return;
+    clearTimeout(_queueSaveT);
+    _queueSaveT = setTimeout(() => { save(); _queueMajNoteVolume(); }, 800);
+};
+// Une file trop volumineuse n'est PAS conservee : le dire a l'endroit ou l'editeur regarde
+// sa file, et non dans un toast qui aura disparu quand il fermera l'onglet.
+const _queueMajNoteVolume = () => {
+    const hote = $id('wct-queue-body'); if(!hote) return;
+    let el = $id('wct-queue-toobig');
+    if(!_queueTropGrosse || !queue.length){ el?.remove(); return; }
+    if(!el){
+        el = make('div'); el.id = 'wct-queue-toobig'; el.className = 'wct-queue-toobig';
+        hote.insertBefore(el, $id('wct-queue-ul'));
+    }
+    el.textContent = t('queueTooBig');
+};
+const _queueBandeauReprise = (n) => {
+    const hote = $id('wct-queue-body'); if(!hote) return;
+    $id('wct-queue-restored')?.remove();
+    const el = make('div');
+    el.id = 'wct-queue-restored';
+    el.className = 'wct-queue-restored';
+    el.innerHTML = `<span style="flex:1">${escHtml(t('queueKept', n))}</span>
+        <button type="button" class="wct-btn wct-btn-sm" data-a="keep">${escHtml(t('queueKeptKeep'))}</button>
+        <button type="button" class="wct-btn wct-btn-sm wct-btn-danger" data-a="drop">${escHtml(t('queueKeptDrop'))}</button>`;
+    el.querySelector('[data-a="keep"]').addEventListener('click', () => el.remove());
+    // Jeter reste une perte : même confirmation que la poubelle rouge, qui détruit la même
+    // chose. Deux gestes voisins qui effacent une file ne peuvent pas avoir deux exigences.
+    el.querySelector('[data-a="drop"]').addEventListener('click', () => {
+        if(!confirm(t('confirmClear'))) return;
+        queue = []; el.remove(); renderQueue();
+    });
+    hote.insertBefore(el, $id('wct-queue-ul'));
+};
+// Rejoue la file lue dans les préférences. ⚠️ Appelée UNE fois, après connectOverlay : le
+// bandeau a besoin du DOM, et le verrou d'écrasement ne se lève qu'ici.
+const _queueReprendre = () => {
+    const lu = _queueReprise;
+    _queueReprise = null;
+    try {
+        if(Array.isArray(lu) && lu.length){
+            queue = _jsonRetour(lu).map(e => Object.assign({}, e, {
+                // Les diagnostics posés à l'ajout décrivent le modèle d'ALORS : « segment
+                // absent » ou « modifié récemment » ne veut plus rien dire trois jours
+                // après, et on ne peut plus le vérifier. Les rendre vides plutôt que
+                // ressortir un avertissement qu'on ne saurait ni confirmer ni infirmer.
+                nullSegs: new Set(), recentSegs: new Set(),
+            }));
+        }
+    } catch(e){ log('reprise de file : ' + e.message); queue = []; }
+    _queuePrete = true;
+    if(!queue.length) return;
+    renderQueue();
+    _queueBandeauReprise(queue.length);
+};
 const renderQueue=()=>{
     const ul=$id('wct-queue-ul'),empty=$id('wct-queue-empty');if(!ul)return;
     ul.innerHTML='';
@@ -7959,10 +8271,11 @@ const renderQueue=()=>{
     // Badge toujours mis à jour, y compris quand la file se vide
     const badge=$id('wct-hdr-badge');
     if(badge) badge.textContent=queue.length>0?t('queueBadge',queue.length):'';
-    if(!queue.length){if(empty)empty.style.display='block';updateActionBtns();return;}
+    if(!queue.length){if(empty)empty.style.display='block';updateActionBtns();_queueSaveDiffere();return;}
     if(empty)empty.style.display='none';
     queue.forEach((entry,i)=>{ ul.appendChild(buildQueueCard(entry,i)); });
     updateActionBtns();
+    _queueSaveDiffere();
 };
 // ═══════════════════════════════════════════════════════════════════════════
 //  ÉTAT D'APPLICATION, POSÉ SUR LA CARTE DE FILE (1.11.00)
@@ -13554,6 +13867,17 @@ const buildOverlay=()=>{
           <input type="file" id="wct-prefs-file" accept=".json,application/json" style="display:none">
           <span id="wct-prefs-info" style="flex:1;min-width:130px;font-size:0.833em;color:var(--wct-text2)"></span>
         </div>
+        <!-- Recapitulatif « ce qui est retenu ». Il est ICI parce que c est ici que
+             l editeur se pose la question : il vient d ouvrir l onglet des sauvegardes.
+             Trois lignes seulement — le detail est dans l aide, section h15. -->
+        <div class="wct-recap">
+          <div class="wct-recap-hdr">${t('prefsRecapTitle')}
+            <button type="button" id="wct-recap-help" class="wct-btn wct-btn-sm" style="margin-inline-start:auto">${t('prefsRecapMore')}</button>
+          </div>
+          <div>${t('prefsRecapAuto')}</div>
+          <div>${t('prefsRecapGeste')}</div>
+          <div>${t('prefsRecapJamais')}</div>
+        </div>
         <div id="wct-presets-empty" class="wct-queue-empty" style="display:none">${t('queueEmpty')}</div>
         <table id="wct-presets-table" style="width:100%;border-collapse:collapse;font-size:1em">
           <thead><tr>
@@ -13710,7 +14034,7 @@ const buildOverlay=()=>{
     <!-- Pied fixe : Valider (hors défilement, visible seulement sur l'onglet Configurer via :has) -->
     <div class="wct-validate-footer" style="display:flex;gap:8px;align-items:center">
       <button class="wct-btn wct-btn-success" style="flex:1" id="wct-btn-validate" title="${t('tipBtnValidate')}">${t('btnValidate')}</button>
-      <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">&#x1F4BE;</button>
+      <button class="wct-btn wct-btn-neutral wct-btn-sm" id="wct-preset-save-btn" title="${t('tipPresetSaveBtn')}">${t('btnPresetSave')}</button>
     </div>
     <!-- Boutons fixes hors scroll -->
     <div id="wct-action-bar-wrap">
@@ -14249,22 +14573,19 @@ const connectOverlay=ov=>{
     $id('wct-sc-we')?.addEventListener('click',()=>setDays(0,6));
     $id('wct-sc-none')?.addEventListener('click',()=>setDays());
     // Toggle durée / heure de fin
-    let timeMode=localStorage.WCT_timeMode||'end'; // 'dur' ou 'end' — 'end' par défaut
+    // ⚠️ La variable de closure a DISPARU en 1.14.02, et c'est le fond du correctif : elle
+    // doublait `_timeMode` et les deux devaient se resynchroniser à la main à chaque
+    // rafraîchissement — « deux sources de vérité pour une même information : l'une finit
+    // toujours par mentir ». Le défaut qu'elle produisait est documenté ici pour mémoire :
+    // charger un préréglage en mode « durée » puis rafraîchir l'affichage renvoyait sur
+    // « heure de fin », et il fallait cliquer DEUX fois sur la bascule pour la faire bouger.
+    // Il ne peut plus revenir : il n'y a plus qu'une variable, et `applyConfig` l'écrit.
     const applyTimeMode=()=>{
-        // ⚠️ Relire la préférence STOCKÉE avant de s'en servir. `timeMode` et
-        // localStorage.WCT_timeMode disent la même chose, et applyConfig (chargement d'un
-        // préréglage) n'écrit que le second — il n'a pas accès à cette closure. Deux
-        // sources de vérité pour une même information : l'une finit toujours par mentir.
-        // Sans cette ligne, charger un préréglage en mode « durée » puis rafraîchir
-        // l'affichage le renvoyait sur « heure de fin », et il fallait cliquer DEUX fois
-        // sur la bascule pour la faire bouger — défaut déjà présent avant le mode continu,
-        // que le point de synchronisation rendait simplement visible.
-        timeMode=localStorage.WCT_timeMode||timeMode;
         // ⏩ En continu, l'affichage passe d'office sur « heure de fin » : une fermeture
         // continue s'arrête à une DATE et une heure, pas au bout d'une durée. On force
-        // l'affichage sans toucher à `timeMode` ni au localStorage — la préférence de
-        // l'éditeur lui revient donc intacte dès qu'il quitte l'onglet.
-        const isEnd=_contActif()||timeMode==='end';
+        // l'affichage sans toucher à `_timeMode` — la préférence de l'éditeur lui revient
+        // donc intacte dès qu'il quitte l'onglet.
+        const isEnd=_contActif()||_timeMode==='end';
         $id('wct-mode-dur').style.display=isEnd?'none':'flex';
         $id('wct-mode-end').style.display=isEnd?'flex':'none';
         const lblEnd=$id('wct-lbl-end'); if(lblEnd) lblEnd.style.display=isEnd?'flex':'none';
@@ -14289,14 +14610,13 @@ const connectOverlay=ov=>{
         renderContPane();
     };
     // ⚠️ Point de synchronisation exposé au reste du script : applyContMode vit dans la
-    // closure de connectOverlay (il lui faut `timeMode`), mais applyConfig — qui restaure
+    // closure de connectOverlay, mais applyConfig — qui restaure
     // l'onglet actif d'un préréglage — est ailleurs. Sans ce relais, charger un préréglage
     // « en continu » rétablissait l'onglet sans griser ce qui n'a plus de sens dedans.
     _contSync=applyContMode;
     $id('wct-time-toggle')?.addEventListener('click',()=>{
         setTimeout(checkJpN,0); // recalc badge après switch mode
-        timeMode=timeMode==='dur'?'end':'dur';
-        localStorage.WCT_timeMode=timeMode;
+        _timeMode=_timeMode==='dur'?'end':'dur'; save();
         applyTimeMode();
     });
     // Le récapitulatif du volet continu se relit sur les mêmes champs que la génération :
@@ -14747,6 +15067,11 @@ const connectOverlay=ov=>{
         showToast(t('prefsExported', presets.length), 3500, '#43a047');
     });
     $id('wct-prefs-import')?.addEventListener('click', () => $id('wct-prefs-file')?.click());
+    // Le detail vit dans l aide, pas en double ici : deux textes qui disent la meme chose
+    // finissent par ne plus la dire pareil.
+    $id('wct-recap-help')?.addEventListener('click', () => {
+        document.querySelector('#wct-main-tabs .wct-main-tab[data-tab="help"]')?.click();
+    });
     $id('wct-prefs-file')?.addEventListener('change', async e => {
         const f = e.target.files && e.target.files[0];
         e.target.value = '';                       // re-choisir le même fichier reste possible
@@ -15628,6 +15953,20 @@ const init=async()=>{
     // Le verrou de Configurer et le bandeau de zone vivent en VARIABLES : le DOM
     // vient d’être reconstruit, il faut les y reposer.
     renderPolyBanner(); refreshCfgGate();
+    // La file de la session précédente : rejouée ICI et pas avant, le bandeau a besoin du
+    // DOM. C'est aussi ce qui lève le verrou d'écrasement (cf. _queuePrete).
+    _queueReprendre();
+    // ⚠️ L'avertissement de sortie ne se déclenche QUE quand il y a vraiment quelque chose
+    // à perdre : une application en cours, ou une file trop volumineuse pour être conservée.
+    // Une file ordinaire revient d'elle-même au chargement suivant — avertir à chaque
+    // rechargement pour une reprise qui marche, ce serait fabriquer l'avertissement qu'on
+    // cesse de lire, exactement ce que test-plage.js interdit ailleurs.
+    window.addEventListener('beforeunload', e => {
+        if(!_applyRunning && !(queue.length && _queueTropGrosse)) return;
+        e.preventDefault();
+        e.returnValue = t('queueLeaveWarn');
+        return e.returnValue;
+    });
     // Appliquer le mode d'affichage sauvegardé
     applyDisplayMode(_displayMode);
     // Un seul sondage par chargement de WME, et APRES l'overlay : la pastille n'a nulle
