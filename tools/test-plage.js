@@ -1,4 +1,10 @@
-// Bornes de la plage de dates — EXTRAITES DU FICHIER REEL.
+// Bornes de la plage de dates — sur le moteur de lib/WMECreneaux.js.
+//
+// ⚠️ CE TEST N EXTRAIT PLUS LE MOTEUR DU USERSCRIPT. Il le faisait par bornes
+// textuelles, avec un faux DOM, tant que buildClosureList lisait le panneau. Le
+// moteur vit desormais dans la bibliotheque et prend une configuration : le test
+// l appelle directement, et perd du meme coup sa fragilite — plus rien a ajuster
+// quand une ligne bouge autour. Seul validateRepeat est encore extrait, plus bas.
 //
 // Pourquoi ce test existe (2026-08-05) : buildClosureList decide de ce qui sera ECRIT dans
 // WME, et aucun test ne la regardait. La borne de fin de plage portait sur la FIN de
@@ -18,13 +24,19 @@
 //      un avertissement qu on cesse de lire — c est le temoin qui garde cette garantie.
 //   4. La borne se joue au strict : une occurrence qui commence a MINUIT PILE le lendemain
 //      de la date de fin est refusee, celle qui commence a 23:59 la veille passe.
+// La source par defaut, ou la COPIE embarquee dans le userscript quand
+// check-lib-creneaux.js rejoue ce test sur elle (WCT_LIB_COPIE=1).
+const { charger } = require('./lib-creneaux-source.js');
+const { lib: LIB, origine: ORIGINE } = charger();
+
+// Le MOTEUR vient de la bibliotheque. Mais ce fichier verifie aussi que
+// l AVERTISSEMENT affiche par le panneau dit la meme chose que ce que le moteur
+// produit — et cet avertissement, lui, vit toujours dans le userscript. D ou
+// l extraction, qui ne sert plus qu a ce seul bloc.
 const fs = require('fs');
 const path = require('path');
-
 const SRC = path.join(__dirname, '..', 'WME_ClosuresToolkit.user.js');
 const txt = fs.readFileSync(SRC, 'utf8');
-
-// ── Extraction : trois blocs du fichier reel, aucune copie ──
 const bloc = (debut, fin, nom) => {
     const i = txt.indexOf(debut), j = txt.indexOf(fin);
     if (i < 0 || j < 0 || j < i) {
@@ -34,10 +46,36 @@ const bloc = (debut, fin, nom) => {
     }
     return txt.slice(i, j);
 };
-const codeJDate = bloc('class JDate extends Date {', '// ─── Constants & State', 'JDate');
-const codeUtils = bloc("const pad=n=>String(n).padStart(2,'0');", 'const download=', 'utilitaires de date');
-const codeBuild = bloc('const buildClosureList=async()=>{', 'const readConfig=', 'buildClosureList');
 
+// ── Du vocabulaire des cas a celui du moteur ────────────────────────────────
+// Les cas de ce fichier sont ecrits avec des noms francais et courts (debut, fin,
+// heureDebut...). Le moteur, lui, prend la configuration telle que readConfig() la
+// produit dans WCT. Cette table est la seule chose qui les separe.
+const versConfig = (cfg) => ({
+    rangestart: cfg.debut,
+    rangeend:   cfg.fin,
+    starttime:  cfg.heureDebut || '21:00',
+    endtime:    cfg.heureFin   || '05:00',
+    durtime:    cfg.duree      || '08:00',
+    durday:     cfg.joursEnPlus === undefined ? 0 : cfg.joursEnPlus,
+    // Le mode horaire se lisait sur le STYLE d un element ; il est desormais dit.
+    timemode:   cfg.mode === 'duree' ? 'dur' : 'end',
+    activeTab:  cfg.onglet || 'wct-tab-each',
+    days:       cfg.jours  || [true, true, true, true, true, true, true],
+    holidayMode: cfg.feries || 'none',
+    repntimes:  String(cfg.repN     || 5),
+    repevery:   String(cfg.repTous  || 1),
+    repunit:    cfg.repUnite || 'day',
+});
+
+// Le moteur rend des CODES et des Date. Ces cas, ecrits avant l extraction,
+// attendent la forme de l ancien buildClosureList : un message deja traduit et un
+// debordement deja formate. On la reconstitue ici plutot que de reecrire 350 lignes.
+const pad = (n) => String(n).padStart(2, '0');
+const formatFR = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear()
+    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+// Faux DOM — il ne sert PLUS au moteur, qui prend desormais une configuration.
+// Il ne reste que pour alimenter validateRepeat, extrait du userscript.
 // ── DOM minimal : juste ce que buildClosureList touche ──
 const faireDom = (cfg) => {
     const champs = {
@@ -77,16 +115,21 @@ const faireDom = (cfg) => {
 };
 
 const tTest = (cle, ...args) => (args.length ? cle + '(' + args.join('|') + ')' : cle);
-const source = "let _dateFormat='dmy';\n" + codeJDate + codeUtils + codeBuild + '\nreturn buildClosureList;';
-const fabriquer = new Function('$id', 'document', 't', 'getSelection', 'checkSelectionCountry', 'getHolidaysForRange', source);
 
 const lancer = async (cfg) => {
-    const { $id, document } = faireDom(cfg);
-    // Par defaut aucun pays n est resolu : le filtre des jours feries ne s execute pas.
-    // cfg.pays + cfg.joursFeries (tableau 'AAAA-MM-JJ') l allument pour les cas qui le visent.
-    const pays = cfg.pays ? { ok: true, country: cfg.pays } : { ok: false, country: null, countries: [] };
-    const feries = async () => (cfg.joursFeries === undefined ? null : cfg.joursFeries);
-    return fabriquer($id, document, tTest, () => ({ ids: [] }), () => pays, feries)();
+    const r = await LIB.generer(versConfig(cfg), {
+        max: 500,
+        pays: cfg.pays || null,
+        feries: async () => (cfg.joursFeries === undefined ? null : cfg.joursFeries),
+    });
+    return {
+        list: r.list,
+        error: r.erreur ? tTest(r.erreur.code, ...r.erreur.args) : '',
+        pastRangeStart: r.debordement ? formatFR(r.debordement.debut) : undefined,
+        pastRangeEnd:   r.debordement ? formatFR(r.debordement.fin)   : undefined,
+        // Les avertissements ne sont plus ecrits dans le DOM : le moteur les REND.
+        avis: r.avis,
+    };
 };
 const LUN_VEN = [false, true, true, true, true, true, false];
 
@@ -98,6 +141,10 @@ const verifier = (titre, condition, detail) => {
 };
 
 (async () => {
+    // Dire CE QU ON A CHARGE : ce test tourne sur la source ou sur la copie
+    // embarquee selon l environnement, et un rapport qui ne le precise pas laisse
+    // croire que la copie est verifiee quand c est la source qui a ete lue.
+    console.log('Moteur charge depuis : ' + ORIGINE);
     console.log('\n— Le cas signale : nuit 21:00 -> 05:00 sur une plage d un seul jour —');
     {
         // Mercredi 05/08/2026, jour coche. La fermeture COMMENCE dans la plage : elle doit

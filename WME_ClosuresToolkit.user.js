@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.14.02
+// @version      1.14.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -7715,199 +7715,375 @@ const load = async () => {
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLOSURE LIST BUILDER
 // ═══════════════════════════════════════════════════════════════════════════
-const buildClosureList=async()=>{
-    const v=id=>($id(id)?$id(id).value.trim():'');
-    const rs=new JDate(v('wct-rangestart')),re=new JDate(v('wct-rangeend'));
-    if(!isValidDate(rs))return{list:[],error:t('errDateStart')};
-    if(!isValidDate(re))return{list:[],error:'Date de fin invalide'};
-    if(re<rs)return{list:[],error:t('errDateEnd')};
-    const[stH,stM]=(v('wct-starttime')||'00:00').split(':').map(Number);
-    const stMin=(stH||0)*60+(stM||0);
-    let dur;
-    const modeEnd=$id('wct-mode-end')&&$id('wct-mode-end').style.display!=='none';
-    const extraDays=parseInt(v('wct-dur-day'))||0;
-    if(modeEnd){
-        const[etH,etM]=(v('wct-endtime')||'00:00').split(':').map(Number);
-        const etMin=(etH||0)*60+(etM||0);
-        const baseDur=etMin>stMin?etMin-stMin:(1440-stMin+etMin);
-        dur=baseDur+extraDays*1440;
-        if(dur<=0)return{list:[],error:t('errNone')};
-    }else{
-        const[dH,dM]=(v('wct-dur-time')||'00:00').split(':').map(Number);
-        dur=extraDays*1440+(dH||0)*60+(dM||0);
-        if(dur<=0)return{list:[],error:t('errNone')};
+// ═══════════════════════════════════════════════════════════════════════════
+//  WMECreneaux — le moteur de creneaux (copie de la bibliotheque autonome)
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ Copie CONFORME de lib/WMECreneaux.js. NE PAS LA MODIFIER ICI : corriger la
+// source, puis `node tools/sync-lib-creneaux.js --ecrire` — sinon les deux
+// divergent en silence, et c'est ce moteur qui decide de ce qui sera ECRIT sur la
+// carte. `tools/check-lib-creneaux.js` le verifie, et rejoue test-plage.js SUR LA
+// COPIE : un code identique qui ne tourne pas dans son contexte ne prouve rien.
+// Le moteur est partage avec un second outil, qui prepare des fermetures hors de
+// WME et en produit le CSV : une seule regle, deux porteurs.
+
+var WMECreneaux = (function () {
+    'use strict';
+
+    /* ── Dates ────────────────────────────────────────────────────────────── */
+
+    class JDate extends Date {
+        clone()       { return new JDate(this); }
+        addMinutes(v) { return new JDate(this.getTime() + v * 60000); }
+        addDays(v)    { this.setDate(this.getDate() + v); return this; }
     }
-    // ⚠️ Fin de la plage = minuit LOCAL au lendemain du dernier jour. Construite comme les
-    // occurrences elles-mêmes, sinon on compare des pommes et des poires : `re` sort de
-    // new JDate('AAAA-MM-JJ'), que JS parse en UTC minuit, tandis que les fermetures sont
-    // bâties en heure locale par makeDSTSafeDate. À l'est d'UTC la borne tombait donc APRÈS
-    // minuit — 02:00 du matin en France l'été — et acceptait des débuts qui n'appartenaient
-    // plus à la plage. Le piège est déjà documenté sur makeDSTSafeDate : il vaut ici aussi.
-    const reDT=makeDSTSafeDate(v('wct-rangeend'),1,0,0);
-    const pane=document.querySelector('#wct-body .wct-pane.on');
-    const tabId=pane?pane.id:'wct-tab-each';
-    const list=[];
-    // ⚠️⚠️ LA BORNE PORTE SUR LE DÉBUT DE L'OCCURRENCE, PAS SUR SA FIN (1.09.00).
-    // Jusque-là elle regardait la fin : toute fermeture passant minuit perdait donc le
-    // DERNIER jour de la plage, en silence. « Du 1er au 31 août, 21h → 5h » ne posait que
-    // 30 nuits ; l'éditeur croyait avoir couvert le mois et rien ne le détrompait. Le reste
-    // de la fonction raisonnait DÉJÀ sur le début — le filtre des jours de la semaine, celui
-    // des jours fériés, et la boucle qui parcourt les jours calendaires de la plage. Seule
-    // cette borne regardait ailleurs, et c'est cette incohérence qui mangeait un jour.
-    // Le débordement n'est pas supprimé pour autant : il est ANNONCÉ dans l'aperçu
-    // (pastRangeEnd, plus bas) plutôt que réglé en douce dans le dos de l'éditeur.
-    // Calculé sur la liste FINALE, après le filtre des jours fériés : c'est lui qui peut
-    // retirer la dernière occurrence, et annoncer un débordement qui n'existe plus serait
-    // aussi faux que de taire celui qui existe.
-    const sortie=l=>{
-        const der=l.length?l[l.length-1]:null;
-        const deborde=!!der&&der.end>reDT;
-        return{
-            list:l, error:'',
-            pastRangeStart:deborde?formatDateDisplay(der.start):undefined,
-            pastRangeEnd:deborde?formatDateDisplay(der.end):undefined,
-        };
-    };
-    if(tabId==='wct-tab-cont'){
-        // ── EN CONTINU (1.10.00) ────────────────────────────────────────────
-        // Une seule fermeture, de la date+heure de début à la date+heure de fin. C'est le
-        // cas le plus simple, et c'était le seul qu'on ne savait pas exprimer : il fallait
-        // passer par « Chaque jour » avec une plage d'un seul jour et compter soi-même les
-        // jours à mettre dans « + jours ». Le moteur savait déjà le faire, l'interface non.
-        // Aucun filtre ne s'applique ici : ni jours de la semaine, ni jours fériés, ni
-        // répétition. Une fermeture continue qui sauterait le 15 août ne serait plus continue.
-        const[enH,enM]=(v('wct-endtime')||'00:00').split(':').map(Number);
-        const s=makeDSTSafeDate(v('wct-rangestart'),0,stH,stM);
-        // Les deux bornes passent par makeDSTSafeDate : construites en heure locale, elles
-        // encadrent correctement un changement d'heure qui tomberait au milieu.
-        const e=makeDSTSafeDate(v('wct-rangeend'),0,enH||0,enM||0);
-        if(e<=s)return{list:[],error:t('errContEnd')};
-        list.push({start:new Date(s),end:new Date(e)});
-        // Sortie directe : le filtre des jours fériés plus bas n'a pas d'objet, et la borne
-        // de débordement non plus — la fin EST la date de fin, elle ne peut pas la dépasser.
-        return{list, error:''};
-    }
-    if(tabId==='wct-tab-repeat'){
-        const n=parseInt(v('wct-rep-ntimes'));
-        if(isNaN(n)||n<1)return{list:[],error:t('errRepeat')};
-        const every=parseInt(v('wct-rep-every'))||1;
-        const unit=v('wct-rep-unit')||'day';
-        const evMin=unit==='day'?every*1440:unit==='hour'?every*60:every;
-        if(evMin<=0)return{list:[],error:'Intervalle invalide'};
-        if(evMin<dur){
-            const warnEl=$id('wct-rep-warn');
-            if(warnEl){warnEl.style.display='block';warnEl.textContent='\u26A0\uFE0F L\u2019intervalle ('+evMin+'min) est inférieur à la durée ('+dur+'min) — les fermetures se chevaucheront.';}
+
+    const pad = n => String(n).padStart(2, '0');
+
+    const isValidDate = d =>
+        Object.prototype.toString.call(d) === '[object Date]' && !isNaN(d.getTime());
+
+    /* Construit « baseDate + dayOffset jours, à localHour:localMin heure locale ».
+       Passe par new Date(y,m,d,h,min) — le seul constructeur JS qui opère en heure
+       locale — ce qui corrige le changement d'heure sans aucune table de règles.
+       ⚠️ new Date('AAAA-MM-JJ') parse en UTC minuit : à l'est d'UTC, getDate()
+          rendrait la veille. D'où l'analyse manuelle de la chaîne. */
+    const makeDSTSafeDate = (baseDate, dayOffset, localHour, localMin) => {
+        let y, m, day;
+        if (typeof baseDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(baseDate)) {
+            y   = parseInt(baseDate.slice(0, 4));
+            m   = parseInt(baseDate.slice(5, 7)) - 1;
+            day = parseInt(baseDate.slice(8, 10));
         } else {
-            const warnEl=$id('wct-rep-warn');if(warnEl)warnEl.style.display='none';
+            const b = new Date(baseDate);
+            y = b.getFullYear(); m = b.getMonth(); day = b.getDate();
         }
-        const first=makeDSTSafeDate(v('wct-rangestart'),0,stH,stM);
-        for(let i=0;i<n;i++){
-            if(list.length>=MAX_CLOSURES)return{list:[],error:t('errMaxItems',MAX_CLOSURES)};
-            const s=first.clone().addMinutes(evMin*i);if(s>reDT)break;const e=s.clone().addMinutes(dur);list.push({start:new Date(s),end:new Date(e)});
+        return new JDate(new Date(y, m, day + dayOffset, localHour, localMin, 0, 0));
+    };
+
+    /* Clé de jour calendaire LOCAL, au format des jours fériés et des <input type="date">.
+       ⚠️⚠️ EN LOCAL, JAMAIS EN UTC. Lue en UTC, une fermeture partant le 4 juillet à
+          21:00 à New York s'écrit « 2026-07-05 » : elle échappe à « sauf jours fériés »
+          pendant que celle du 3 juillet se fait exclure à sa place. */
+    const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    /* ── Les trois modes ──────────────────────────────────────────────────── */
+    /* Les valeurs sont les identifiants des volets de WCT : la configuration qu'il
+       produit les porte telles quelles, et les renommer obligerait à convertir de
+       part et d'autre. */
+    const MODES = {
+        CHAQUE_JOUR: 'wct-tab-each',
+        REPETER:     'wct-tab-repeat',
+        CONTINU:     'wct-tab-cont',
+    };
+
+    /* Zones d'avertissement : où l'appelant doit poser l'avis qu'il reçoit.
+     *
+     * ⚠️⚠️ TROIS ÉTATS, PAS DEUX, et c'est ce qui rend l'affichage fidèle :
+     *   · un avis avec un `code`  → il y a quelque chose à dire, affiche-le ;
+     *   · un avis à `code: null`  → rien à signaler, MASQUE la zone ;
+     *   · aucun avis pour la zone → N'Y TOUCHE PAS.
+     * Le troisième cas n'est pas une subtilité gratuite : quand le pays n'a pas pu
+     * être résolu, l'écran doit garder ce qu'il affichait, ni l'effacer ni le
+     * remplacer. Confondre « rien à dire » et « rien à faire » efface au premier
+     * caractère saisi un message que l'utilisateur était en train de lire. */
+    const ZONES = { FERIES: 'feries', REPETITION: 'repetition' };
+    const RAS = (zone) => ({ zone, code: null, args: [], niveau: 'info' });
+
+    /* ⚠️ UNE ERREUR N'EFFACE PAS LES AVIS DÉJÀ ÉMIS, et ce n'est pas une élégance :
+       le chevauchement d'intervalle est signalé AVANT que la boucle ne bute sur le
+       plafond. Rendre une liste d'avis vide effacerait à l'écran un avertissement
+       que l'utilisateur venait de voir apparaître. */
+    const erreur = (code, args, avis) => ({
+        list: [], erreur: { code, args: args || [] }, avis: avis || [], debordement: null,
+    });
+
+    /**
+     * Génère la liste des fermetures décrites par une configuration.
+     *
+     * @param {object} cfg  La configuration, telle que `readConfig()` la produit :
+     *   rangestart, rangeend  (AAAA-MM-JJ)
+     *   starttime             (HH:MM)
+     *   timemode              'end' (heure de fin) | 'dur' (durée)
+     *   endtime, durtime      (HH:MM) — selon timemode
+     *   durday                jours à ajouter à la durée
+     *   activeTab             une valeur de MODES
+     *   days                  7 booléens, index 0 = DIMANCHE (comme Date.getDay)
+     *   holidayMode           'none' | 'skip' | 'only' | 'add'
+     *   repntimes, repevery, repunit   (mode REPETER ; repunit : day|hour|min)
+     *
+     * @param {object} [opts]
+     *   max      plafond de fermetures générées (défaut 500)
+     *   pays     code pays ISO, `null` si inconnu, ou une FONCTION `() => code|null`.
+     *            ⚠️ La forme fonction est celle que WCT emploie, et ce n'est pas
+     *            un détail : elle n'est appelée que si un filtre de fériés est
+     *            réellement actif. Résoudre le pays demande d'interroger la
+     *            sélection dans WME, et ce moteur tourne à CHAQUE FRAPPE pour
+     *            l'aperçu — un appel au SDK par caractère saisi.
+     *   feries   async (pays, debut, fin) => string[] de 'AAAA-MM-JJ', ou null si
+     *            la liste n'a pas pu être obtenue. Absente ⇒ aucun filtre.
+     *
+     * @returns {Promise<{list:Array<{start:Date,end:Date}>, erreur:?{code:string,args:Array},
+     *                    avis:Array<{zone:string,code:string,args:Array,niveau:string}>,
+     *                    debordement:?{debut:Date,fin:Date}}>}
+     */
+    async function generer(cfg, opts) {
+        opts = opts || {};
+        const MAX = opts.max || 500;
+        const avis = [];
+
+        const rs = new JDate(cfg.rangestart);
+        const re = new JDate(cfg.rangeend);
+        if (!isValidDate(rs)) return erreur('errDateStart');
+        if (!isValidDate(re)) return erreur('errDateEndInvalid');
+        if (re < rs)          return erreur('errDateEnd');
+
+        const [stH, stM] = (cfg.starttime || '00:00').split(':').map(Number);
+        const stMin = (stH || 0) * 60 + (stM || 0);
+
+        const joursEnPlus = parseInt(cfg.durday) || 0;
+        let dur;
+        if (cfg.timemode === 'end') {
+            const [etH, etM] = (cfg.endtime || '00:00').split(':').map(Number);
+            const etMin = (etH || 0) * 60 + (etM || 0);
+            /* Une heure de fin antérieure à l'heure de début décrit une nuit :
+               on passe minuit, la durée court jusqu'au lendemain. */
+            const base = etMin > stMin ? etMin - stMin : (1440 - stMin + etMin);
+            dur = base + joursEnPlus * 1440;
+        } else {
+            const [dH, dM] = (cfg.durtime || '00:00').split(':').map(Number);
+            dur = joursEnPlus * 1440 + (dH || 0) * 60 + (dM || 0);
         }
-    }else{
-        const dow=[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c&&c.classList.contains('on');});
-        const days=Math.ceil((re-rs+1)/86400000);
-        // ── Correctif DST (v0.43) ──────────────────────────────────────────
-        // Chaque occurrence est construite à partir de la date calendaire locale
-        // du jour j + l'heure de début locale, sans arithmétique brute de minutes.
-        // Évite le décalage d'1h sur les occurrences post-changement d'heure.
-        for(let d=0;d<days;d++){
-            if(list.length>=MAX_CLOSURES)return{list:[],error:t('errMaxItems',MAX_CLOSURES)};
-            // ⚠️⚠️ ON PART DE LA CHAÎNE DU CHAMP, PAS DE `rs` (1.09.01). `rs` sort de
-            // new JDate('AAAA-MM-JJ'), que JS parse en MINUIT UTC ; makeDSTSafeDate relit
-            // ensuite ses composantes en LOCAL. À l'ouest d'UTC les deux lectures ne
-            // désignent pas le même jour et la plage ENTIÈRE glissait vers le passé :
-            // « du 1er au 6 juillet » posait des fermetures du 30 juin au 5 juillet à New
-            // York, Los Angeles et Honolulu — le dernier jour demandé étant en prime amputé
-            // par la borne de fin. L'onglet Répéter, lui, passait déjà la chaîne (plus bas) :
-            // c'est cette branche-ci qui était seule à convertir pour rien.
-            const s=makeDSTSafeDate(v('wct-rangestart'),d,stH,stM);
-            // ⚠️⚠️ LE JOUR DE LA SEMAINE SE LIT EN LOCAL (1.09.01). Il se lisait en UTC, sous
-            // un commentaire qui affirmait « cohérent avec timestamp décalé » : le décalage
-            // (valueOf() - tzOffset) n'est appliqué que bien plus tard, dans addClosure. Ici
-            // makeDSTSafeDate rend une date LOCALE, et la lire en UTC décale d'un jour entier
-            // dès que l'heure de début tombe de l'autre côté de minuit UTC :
-            //   — à l'EST, il faut une heure de début petite (01:00 à Paris l'été → jeudi
-            //     alors que l'éditeur a coché mercredi) ;
-            //   — à l'OUEST, TOUTE fermeture de soirée suffit (21:00 à New York : « lundi »
-            //     coché ferme le DIMANCHE soir).
-            // Ce n'était pas un décalage d'affichage : ça change les jours réellement fermés
-            // sur la carte. Le reste de la fonction raisonne en local, cette ligne était seule
-            // à ne pas le faire. `tools/test-plage.js` la tient désormais sur quatre fuseaux.
-            const localDow=s.getDay();
-            if(!dow[localDow])continue;
-            if(s>reDT)break;
-            const e=s.clone().addMinutes(dur);
-            list.push({start:new Date(s),end:new Date(e)});
+        if (dur <= 0) return erreur('errNone');
+
+        /* Fin de la plage = minuit LOCAL au lendemain du dernier jour, construite
+           comme les occurrences elles-mêmes. `re` sort de new JDate('AAAA-MM-JJ'),
+           que JS parse en UTC minuit, tandis que les occurrences sont bâties en
+           local : comparer les deux fait tomber la borne après minuit à l'est
+           d'UTC, et accepte des débuts qui n'appartiennent plus à la plage. */
+        const reDT = makeDSTSafeDate(cfg.rangeend, 1, 0, 0);
+
+        const mode = cfg.activeTab || MODES.CHAQUE_JOUR;
+        const list = [];
+
+        /* ⚠️⚠️ LA BORNE PORTE SUR LE DÉBUT DE L'OCCURRENCE, PAS SUR SA FIN.
+           Sur la fin, toute fermeture passant minuit perdait le DERNIER jour de la
+           plage, en silence : « du 1er au 31 août, 21h → 5h » ne posait que 30
+           nuits. Le reste de la fonction raisonnait déjà sur le début.
+           Le débordement n'est pas supprimé pour autant : il est ANNONCÉ, calculé
+           sur la liste FINALE — le filtre des fériés peut retirer la dernière
+           occurrence, et annoncer un débordement qui n'existe plus serait aussi
+           faux que taire celui qui existe. */
+        const sortie = l => {
+            const der = l.length ? l[l.length - 1] : null;
+            const deborde = !!der && der.end > reDT;
+            return {
+                list: l,
+                erreur: null,
+                avis,
+                debordement: deborde ? { debut: der.start, fin: der.end } : null,
+            };
+        };
+
+        /* ── EN CONTINU : une seule fermeture, du début à la fin ──────────────
+           Aucun filtre ne s'applique ici : ni jours de la semaine, ni jours
+           fériés, ni répétition. Une fermeture continue qui sauterait le 15 août
+           ne serait plus continue. */
+        if (mode === MODES.CONTINU) {
+            const [enH, enM] = (cfg.endtime || '00:00').split(':').map(Number);
+            const s = makeDSTSafeDate(cfg.rangestart, 0, stH, stM);
+            const e = makeDSTSafeDate(cfg.rangeend, 0, enH || 0, enM || 0);
+            if (e <= s) return erreur('errContEnd');
+            list.push({ start: new Date(s), end: new Date(e) });
+            /* Sortie directe : la borne de débordement n'a pas d'objet — la fin EST
+               la date de fin, elle ne peut pas la dépasser. */
+            return { list, erreur: null, avis, debordement: null };
         }
-    }
-    // Filtre jours fériés : 'skip' = sauf JF, 'only' = uniquement JF
-    const holidayMode=$id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none';
-    if(holidayMode==='none'){
-        const warnEl2=$id('wct-holidays-warn');
-        if(warnEl2&&!$id('wct-hol-skip')?.disabled) warnEl2.style.display='none';
-    }
-    if(holidayMode!=='none'&&(list.length>0||holidayMode==='add')){
-        const sel=getSelection();
-        const cc=checkSelectionCountry(sel.ids);
-        if(cc.ok&&cc.country){
-            const hols=await getHolidaysForRange(cc.country,list[0].start,list[list.length-1].end);
-            // ⚠️ TROISIÈME ÉTAT : la liste n'a pas pu être obtenue. On ne filtre RIEN et on
-            // le dit en orange — plutôt que d'affirmer « aucun jour férié », ce que faisait
-            // l'ancien code et qui était faux. L'éditeur peut alors décider : réessayer,
-            // ou retirer les dates à la main.
-            if(hols===null){
-                const warnKo=$id('wct-holidays-warn');
-                if(warnKo){ warnKo.style.display='block'; warnKo.style.color='#f57c00'; warnKo.textContent=t('holidaysUnavailable'); }
-                return sortie(list);
+
+        /* ── RÉPÉTER : N fois, tous les X ─────────────────────────────────── */
+        if (mode === MODES.REPETER) {
+            const n = parseInt(cfg.repntimes);
+            if (isNaN(n) || n < 1) return erreur('errRepeat');
+            const every = parseInt(cfg.repevery) || 1;
+            const unit  = cfg.repunit || 'day';
+            const evMin = unit === 'day' ? every * 1440 : unit === 'hour' ? every * 60 : every;
+            if (evMin <= 0) return erreur('errRepEvery');
+
+            /* Un intervalle plus court que la durée fait se chevaucher les
+               fermetures. Ce n'est pas refusé — cela peut être voulu — mais cela
+               se dit. L'absence d'avis vaut « rien à signaler » : c'est ainsi que
+               l'appelant sait qu'il doit masquer sa zone. */
+            avis.push(evMin < dur
+                ? { zone: ZONES.REPETITION, code: 'repOverlap', args: [evMin, dur], niveau: 'alerte' }
+                : RAS(ZONES.REPETITION));
+
+            const first = makeDSTSafeDate(cfg.rangestart, 0, stH, stM);
+            for (let i = 0; i < n; i++) {
+                if (list.length >= MAX) return erreur('errMaxItems', [MAX], avis);
+                const s = first.clone().addMinutes(evMin * i);
+                if (s > reDT) break;
+                list.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
             }
-            const filtered=list.filter(cl=>{
-                // Le jour férié est celui où la fermeture COMMENCE — même règle que la borne
-                // de plage et que le filtre des jours de la semaine. Lu en local (cf. dayKey).
-                const dateStr=dayKey(cl.start);
-                return holidayMode==='only' ? hols.includes(dateStr) : !hols.includes(dateStr);
-            });
-            const delta=list.length-filtered.length;
-            const warnEl=$id('wct-holidays-warn');
-            if(warnEl){
-                warnEl.style.display='block';
-                warnEl.style.color='';   // effacer l'orange d'un échec précédent
-                if(holidayMode==='skip'){
-                    warnEl.textContent=delta>0?t('holidaysExcl',delta):t('holidaysNone');
-                }else{
-                    warnEl.textContent=filtered.length>0?t('holidaysOnly',filtered.length):t('holidaysOnlyNone');
-                }
+        } else {
+            /* ── CHAQUE JOUR : une occurrence par jour coché ───────────────── */
+            const dow  = cfg.days || [true, true, true, true, true, true, true];
+            const jours = Math.ceil((re - rs + 1) / 86400000);
+
+            for (let d = 0; d < jours; d++) {
+                if (list.length >= MAX) return erreur('errMaxItems', [MAX], avis);
+
+                /* ⚠️⚠️ ON PART DE LA CHAÎNE, PAS DE `rs`. `rs` sort de
+                   new JDate('AAAA-MM-JJ'), que JS parse en MINUIT UTC, et
+                   makeDSTSafeDate relit ensuite ses composantes en LOCAL. À l'ouest
+                   d'UTC les deux lectures ne désignent pas le même jour, et la plage
+                   ENTIÈRE glissait vers le passé : « du 1er au 6 juillet » posait
+                   des fermetures du 30 juin au 5 juillet à New York. */
+                const s = makeDSTSafeDate(cfg.rangestart, d, stH, stM);
+
+                /* ⚠️⚠️ LE JOUR DE LA SEMAINE SE LIT EN LOCAL. Lu en UTC, il décale
+                   d'un jour entier dès que l'heure de début tombe de l'autre côté de
+                   minuit UTC : à l'ouest, TOUTE fermeture de soirée suffit — 21:00 à
+                   New York, « lundi » coché ferme le DIMANCHE soir. Ce n'est pas un
+                   décalage d'affichage : cela change les jours réellement fermés. */
+                if (!dow[s.getDay()]) continue;
+                if (s > reDT) break;
+
+                list.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
             }
-            if(holidayMode==='add'){
-                // Bornes du filtre : la valeur BRUTE des champs date, déjà au format
-                // AAAA-MM-JJ des jours fériés. Aucune conversion, donc aucun fuseau —
-                // relire `rs`/`re` (minuit UTC) donnait la veille à l'ouest d'UTC.
-                const rsStr=v('wct-rangestart');
-                const reStr=v('wct-rangeend');
-                const existingDateStrs=new Set(list.map(cl=>dayKey(cl.start)));
-                const extra=[];
-                for(const h of hols){
-                    if(h<rsStr||h>reStr) continue;
-                    if(existingDateStrs.has(h)) continue;
-                    const s=makeDSTSafeDate(h,0,stH,stM);
-                    if(s>reDT) continue;   // même borne que la boucle : sur le DÉBUT
-                    const e=s.clone().addMinutes(dur);
-                    extra.push({start:new Date(s),end:new Date(e)});
-                }
-                const merged=[...list,...extra].sort((a,b)=>a.start-b.start);
-                const warnElAdd=$id('wct-holidays-warn');
-                if(warnElAdd){warnElAdd.style.display='block';warnElAdd.style.color='';warnElAdd.textContent=extra.length>0?t('holidaysAdded',extra.length):t('holidaysNone');}
-                return sortie(merged);
-            }
-            return sortie(filtered);
         }
+
+        /* ── Jours fériés ─────────────────────────────────────────────────── */
+        const modeFeries = cfg.holidayMode || 'none';
+        /* Aucun filtre demandé : il n'y a rien à dire, et la zone doit donc se
+           masquer — c'est le seul cas où l'absence de filtre s'affiche. */
+        if (modeFeries === 'none') { avis.push(RAS(ZONES.FERIES)); return sortie(list); }
+        /* Filtre demandé mais rien à filtrer, ou pas de quoi le faire : on ne touche
+           pas à la zone. Voir le commentaire de ZONES. */
+        if (list.length === 0 && modeFeries !== 'add') return sortie(list);
+        if (typeof opts.feries !== 'function') return sortie(list);
+
+        /* Le pays n'est résolu qu'ICI, et seulement si un filtre est actif : voir
+           l'avertissement sur `opts.pays`. */
+        const pays = typeof opts.pays === 'function' ? opts.pays() : opts.pays;
+        if (!pays) return sortie(list);
+
+        const hols = await opts.feries(pays, list[0].start, list[list.length - 1].end);
+
+        /* ⚠️ TROISIÈME ÉTAT : la liste n'a pas pu être obtenue. On ne filtre RIEN et
+           on le dit — plutôt que d'affirmer « aucun jour férié », ce qui serait faux. */
+        if (hols === null || hols === undefined) {
+            avis.push({ zone: ZONES.FERIES, code: 'holidaysUnavailable', args: [], niveau: 'alerte' });
+            return sortie(list);
+        }
+
+        /* Le jour férié est celui où la fermeture COMMENCE — même règle que la borne
+           de plage et que le filtre des jours de la semaine. */
+        const retenues = list.filter(cl => {
+            const k = dayKey(cl.start);
+            return modeFeries === 'only' ? hols.includes(k) : !hols.includes(k);
+        });
+
+        if (modeFeries === 'skip') {
+            const retirees = list.length - retenues.length;
+            avis.push(retirees > 0
+                ? { zone: ZONES.FERIES, code: 'holidaysExcl', args: [retirees], niveau: 'info' }
+                : { zone: ZONES.FERIES, code: 'holidaysNone', args: [], niveau: 'info' });
+            return sortie(retenues);
+        }
+
+        if (modeFeries === 'only') {
+            avis.push(retenues.length > 0
+                ? { zone: ZONES.FERIES, code: 'holidaysOnly', args: [retenues.length], niveau: 'info' }
+                : { zone: ZONES.FERIES, code: 'holidaysOnlyNone', args: [], niveau: 'info' });
+            return sortie(retenues);
+        }
+
+        /* 'add' — les fériés de la plage viennent EN PLUS de ce qui est déjà là.
+           ⚠️ Les bornes sont les chaînes BRUTES des champs date, déjà au format des
+              jours fériés : aucune conversion, donc aucun fuseau. Relire `rs`/`re`
+              (minuit UTC) donnait la veille à l'ouest d'UTC. */
+        const dejaLa = new Set(list.map(cl => dayKey(cl.start)));
+        const enPlus = [];
+        for (const h of hols) {
+            if (h < cfg.rangestart || h > cfg.rangeend) continue;
+            if (dejaLa.has(h)) continue;
+            const s = makeDSTSafeDate(h, 0, stH, stM);
+            if (s > reDT) continue;   // même borne que la boucle : sur le DÉBUT
+            enPlus.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
+        }
+        avis.push(enPlus.length > 0
+            ? { zone: ZONES.FERIES, code: 'holidaysAdded', args: [enPlus.length], niveau: 'info' }
+            : { zone: ZONES.FERIES, code: 'holidaysNone', args: [], niveau: 'info' });
+
+        return sortie([...list, ...enPlus].sort((a, b) => a.start - b.start));
     }
-    return sortie(list);
+
+    return {
+        VERSION: '1.0.0',
+        MODES,
+        ZONES,
+        generer,
+        /* Exposés pour les tests et pour les appelants qui construisent des dates
+           dans les mêmes règles — l'extranet en a besoin pour son aperçu. */
+        _internes: { JDate, makeDSTSafeDate, dayKey, isValidDate, pad },
+    };
+})();
+
+// ─── L'adaptateur : du panneau au moteur, et retour ────────────────────────
+// Le moteur ne connait ni le DOM ni le dictionnaire. Il recoit la configuration
+// que readConfig() produit deja, et rend des CODES. Tout ce qui suit traduit ces
+// codes et les pose aux bons endroits.
+
+// ⚠️ CES TROIS MESSAGES N'ONT JAMAIS ETE TRADUITS : ils etaient ecrits en francais
+// dans le moteur, dans un script qui parle huit langues. L'extraction les deplace
+// SANS les corriger — un refactoring qui corrige au passage n'est plus un
+// refactoring. Leur passage au dictionnaire est un lot a part.
+const CRENEAUX_FR={
+    errDateEndInvalid:()=>'Date de fin invalide',
+    errRepEvery:()=>'Intervalle invalide',
+    repOverlap:(ev,dur)=>'\u26A0\uFE0F L\u2019intervalle ('+ev+'min) est inf\u00E9rieur \u00E0 la dur\u00E9e ('+dur+'min) \u2014 les fermetures se chevaucheront.',
 };
-// ═══════════════════════════════════════════════════════════════════════════
-//  CONFIG READ / APPLY
-// ═══════════════════════════════════════════════════════════════════════════
+const _creneauxTexte=(code,args)=>CRENEAUX_FR[code]?CRENEAUX_FR[code](...args):t(code,...(args||[]));
+
+// Pose un avis dans sa zone. Trois etats, cf. WMECreneaux.ZONES : un code =>
+// afficher ; code null => masquer ; aucun avis pour la zone => ne rien toucher.
+// ⚠️ `couleur` n'est vrai que pour les jours feries : c'est la seule zone qui
+//    alterne entre deux teintes (orange quand la liste est indisponible). La zone
+//    de repetition tient sa couleur de son style, et y toucher la changerait.
+const _creneauxAvis=(avis,zone,id,couleur)=>{
+    const a=avis.find(x=>x.zone===zone); if(!a) return;
+    const el=$id(id); if(!el) return;
+    if(a.code===null){
+        // Une case desactivee garde son message : c'est lui qui dit pourquoi.
+        if(!couleur||!$id('wct-hol-skip')?.disabled) el.style.display='none';
+        return;
+    }
+    el.style.display='block';
+    if(couleur) el.style.color=a.niveau==='alerte'?'#f57c00':'';
+    el.textContent=_creneauxTexte(a.code,a.args);
+};
+
+const buildClosureList=async()=>{
+    const r=await WMECreneaux.generer(readConfig(),{
+        max:MAX_CLOSURES,
+        // ⚠️ PARESSEUX, ET CE N'EST PAS UNE OPTIMISATION GRATUITE : resoudre le pays
+        //    interroge la selection dans WME, et cette fonction tourne a CHAQUE
+        //    FRAPPE pour l'apercu. Le moteur ne l'appelle que si un filtre de jours
+        //    feries joue reellement.
+        pays:()=>{const cc=checkSelectionCountry(getSelection().ids);return cc.ok?cc.country:null;},
+        feries:getHolidaysForRange,
+    });
+    // Les avis AVANT l'erreur : le chevauchement d'intervalle est annonce meme
+    // quand la boucle bute ensuite sur le plafond.
+    _creneauxAvis(r.avis,WMECreneaux.ZONES.REPETITION,'wct-rep-warn',false);
+    _creneauxAvis(r.avis,WMECreneaux.ZONES.FERIES,'wct-holidays-warn',true);
+    if(r.erreur) return {list:[],error:_creneauxTexte(r.erreur.code,r.erreur.args)};
+    return {
+        list:r.list, error:'',
+        pastRangeStart:r.debordement?formatDateDisplay(r.debordement.debut):undefined,
+        pastRangeEnd:r.debordement?formatDateDisplay(r.debordement.fin):undefined,
+    };
+};
+
 const readConfig=()=>({
     rangestart:$id('wct-rangestart')?.value||'',rangeend:$id('wct-rangeend')?.value||'',
     starttime:$id('wct-starttime')?.value||'21:00',durtime:$id('wct-dur-time')?.value||'08:00',
