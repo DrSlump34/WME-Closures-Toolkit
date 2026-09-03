@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.14.03
+// @version      1.14.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1848,6 +1848,7 @@ const D = {
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} pos\u00E9e(s) sur ${m} demand\u00E9e(s)`,
+            applyCause: (c) => `Cause\u00A0: ${c}`,
             applyNothingWritten:'Aucune fermeture n\u2019a \u00E9t\u00E9 enregistr\u00E9e : rien n\u2019a \u00E9t\u00E9 cr\u00E9\u00E9 dans l\u2019\u00E9diteur.',
             tipCenter:'Centrer sur ce segment',
             centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
@@ -2401,6 +2402,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} of ${m} applied`,
+            applyCause: (c) => `Cause: ${c}`,
             applyNothingWritten:'No closure was saved: nothing was created in the editor.',
             errDateStart:'Invalid start date',
             errDateEnd:'End date before start date',
@@ -2958,6 +2960,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} \u05DE\u05EA\u05D5\u05DA ${m} \u05D4\u05D5\u05D7\u05DC\u05D5`,
+            applyCause: (c) => `\u05E1\u05D9\u05D1\u05D4: ${c}`,
             applyNothingWritten:'\u05DC\u05D0 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D0\u05E3 \u05D7\u05E1\u05D9\u05DE\u05D4: \u05DC\u05D0 \u05E0\u05D5\u05E6\u05E8 \u05D3\u05D1\u05E8 \u05D1\u05E2\u05D5\u05E8\u05DA.',
             errDateStart:'תאריך התחלה לא תקין',
             errDateEnd:'תאריך הסיום לפני תאריך ההתחלה',
@@ -3509,6 +3512,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} su ${m} applicate`,
+            applyCause: (c) => `Causa: ${c}`,
             applyNothingWritten:'Nessuna chiusura \u00E8 stata salvata: nulla \u00E8 stato creato nell\u2019editor.',
             errDateStart:'Data di inizio non valida',
             errDateEnd:'Data di fine precedente alla data di inizio',
@@ -4061,6 +4065,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyOk: (r,s) => `\u2705 ${r} ${s}`,
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} von ${m} gesetzt`,
+            applyCause: (c) => `Ursache: ${c}`,
             applyNothingWritten:'Es wurde keine Sperrung gespeichert: im Editor wurde nichts erstellt.',
             errDateStart:'Ung\u00FCltiges Startdatum',
             errDateEnd:'Enddatum liegt vor dem Startdatum',
@@ -4612,6 +4617,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyCause: (c) => `Causa: ${c}`,
             applyNothingWritten:'No se guard\u00F3 ning\u00FAn cierre: no se cre\u00F3 nada en el editor.',
             errDateStart:'Fecha de inicio no válida',
             errDateEnd:'La fecha de fin es anterior a la de inicio',
@@ -5163,6 +5169,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyCause: (c) => `Causa: ${c}`,
             applyNothingWritten:'Nenhum bloqueio foi salvo: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
@@ -5714,6 +5721,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyOk: (r,s) => `✅ ${r} ${s}`,
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
+            applyCause: (c) => `Causa: ${c}`,
             applyNothingWritten:'Nenhum corte foi guardado: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
@@ -9690,18 +9698,45 @@ const addTurnClosure=(options,okCb,koCb)=>{
     const args={description:reason,endDate:ed.valueOf()-edoff,isPermanent:!!permanent,
         startDate:sd.valueOf()-sdoff,turnId:''};
     if(eventId) args.majorTrafficEventId=eventId;   // ne JAMAIS poser la cle a null
+    // TurnClosures.addClosure REND la fermeture qu'il vient de creer : c'est ce retour
+    // qui compte les poses. Le cliche des identifiants ne sert qu'a le corroborer, et
+    // deux mesures independantes ne tombent pas ensemble.
+    let idsAvant=null;
+    try{ idsAvant=new Set(sdk.DataModel.TurnClosures.getAll().map(c=>String(c.id))); }
+    catch(e){ log('addTurnClosure/getAll avant: '+e.message); }
     const loopErrors=[];
+    let poses=0;
     for(const tid of turnIds){
         args.turnId=String(tid);
-        try{ sdk.DataModel.TurnClosures.addClosure(args); }
+        // Ne crediter QUE ce que le SDK rend. Un virage refuse — virage interdit, ou rang
+        // insuffisant au regard de allowRoadClosureRank du pays — leve ici : le compter
+        // comme pose afficherait « applique » sur une fermeture absente de la carte.
+        try{ if(sdk.DataModel.TurnClosures.addClosure(args)) poses++; }
         catch(e){ loopErrors.push(`turn ${tid}: ${e.message}`); }
     }
+    let objets=null;
+    if(idsAvant){
+        try{ objets=sdk.DataModel.TurnClosures.getAll().filter(c=>!idsAvant.has(String(c.id))).length; }
+        catch(e){ log('addTurnClosure/getAll apres: '+e.message); }
+    }
+    // FILET DE VERSION : si addClosure cesse un jour de rendre la fermeture creee, `poses`
+    // tomberait a zero sans qu'aucun appel n'ait leve, et ce garde-fou contre les faux
+    // succes fabriquerait de faux echecs. Quand la boucle n'a signale AUCUNE erreur, c'est
+    // le diff du modele qui fait foi.
+    if(poses===0 && loopErrors.length===0 && turnIds.length>0 && objets>0) poses=Math.min(objets,turnIds.length);
     if(loopErrors.length>0){log('addTurnClosure errors: '+loopErrors.join(' | '));}
+    // Le motif du refus, debarrasse du prefixe technique : sans lui l'editeur lit un
+    // compte partiel sans savoir ce qu'il doit corriger.
+    const cause=loopErrors.length?String(loopErrors[0]).replace(/^turn \d+: /,''):'';
+    const bilan={ demandes:turnIds.length, poses, erreurs:loopErrors.length, objets, cause };
+    // Rien n'a ete pose : save() n'aurait rien a sauver et remonterait « Save is disabled »,
+    // qui masque la vraie cause. On tranche avant, avec le motif.
+    if(poses===0){ koCb&&koCb([cause||t('applyNothingWritten')], bilan); return; }
     sdk.Editing.save().then(v=>{
         const er=document.querySelector('.error-list');
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg]);}
-        else{okCb&&okCb(v);}
-    },r=>koCb&&koCb([r]));
+        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg], bilan);}
+        else{okCb&&okCb(v, bilan);}
+    },r=>koCb&&koCb([r], bilan));
 };
 // Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
 // Le retour visuel est immédiat : sans lui, le clic n'avait aucun effet perceptible
@@ -9942,7 +9977,23 @@ const applyQueue=async()=>{
                     if(_applyAborted) break;
                     await new Promise(res=>{
                         addTurnClosure({turnIds:ids,reason:e.config.reason,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null},
-                            ()=>{done+=ids.length;entryOk+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'ok');res();},
+                            (v,bilan)=>{
+                                // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé :
+                                // un virage refusé par le SDK est sauté dans la boucle, et le
+                                // compter ferait afficher « ✅ appliqué » sur un carrefour resté
+                                // ouvert à la circulation.
+                                const poses=bilan?bilan.poses:ids.length;
+                                const manques=ids.length-poses;
+                                done+=poses; failed+=manques; totManques+=manques; upd(done+failed);
+                                entryOk+=poses; entryManques+=manques;
+                                const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
+                                if(manques>0){
+                                    logApply(TARGET_ICON.turn+' '+t('applyPartial',e.config.reason,ls,poses,ids.length),'partiel');
+                                    if(bilan&&bilan.cause) logApply(TARGET_ICON.turn+' '+t('applyCause',bilan.cause),'partiel');
+                                }
+                                else logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'ok');
+                                res();
+                            },
                             (errs)=>{failed+=ids.length;entryErreurs+=ids.length;totErreurs+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                     });
                 }
