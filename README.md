@@ -9,7 +9,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_1.14.02_normal.png)
+![WME Closures Toolkit](capture_1.14.04_normal.png)
 
 Draw an area and it stays on the map. Pick it back up whenever you like: drag a corner,
 right-click one to delete it, click a hollow dot to insert one.
