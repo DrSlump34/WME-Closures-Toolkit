@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.14.04
+// @version      1.15.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1715,6 +1715,14 @@ const D = {
             tipHolSkip:'Aucune fermeture ne sera propos\u00e9e les jours f\u00e9ri\u00e9s \u2014 ces occurrences sont retir\u00e9es de la liste.',
             tipHolOnly:'Les fermetures ne seront propos\u00e9es QUE les jours f\u00e9ri\u00e9s \u2014 toutes les autres occurrences sont ignor\u00e9es.',
             tipHolAdd:'Ajoute les jours f\u00e9ri\u00e9s de la plage en suppl\u00e9ment des jours s\u00e9lectionn\u00e9s (union).',
+            holRegionLabel:'Jours fériés : région',
+            tipHolRegion:'Ce pays a des jours fériés propres à certaines régions. Choisissez la vôtre : ceux des autres régions cessent d’être comptés.',
+            holRegionAll: n => `Tout le pays (${n} jours)`,
+            holRegionOne: (c, n) => `${c} (${n} jours)`,
+            holRegionAllNote: n => `(tout le pays, ${n} r\u00E9gions confondues)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F R\u00E9gion ${r} inconnue en ${cc}\u00A0: tout le pays a \u00E9t\u00E9 retenu.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u2019est pas reconnu\u00A0: filtre des jours f\u00E9ri\u00E9s NON appliqu\u00E9.`,
+            holRegionInState: e => ` \u2014 segment en ${e}`,
             holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             // File
@@ -2275,6 +2283,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipHolSkip:'No closure will be proposed on public holidays \u2014 those occurrences are removed from the list.',
             tipHolOnly:'Closures will be proposed ONLY on public holidays \u2014 all other occurrences are ignored.',
             tipHolAdd:'Adds public holidays in the range on top of the selected weekdays (union).',
+            holRegionLabel:'Public holidays: region',
+            tipHolRegion:'This country has holidays specific to some regions. Pick yours: holidays from other regions stop being counted.',
+            holRegionAll: n => `Whole country (${n} days)`,
+            holRegionOne: (c, n) => `${c} (${n} days)`,
+            holRegionAllNote: n => `(whole country, ${n} regions combined)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} is unknown in ${cc}: the whole country was used.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} is not recognised: public holiday filter NOT applied.`,
+            holRegionInState: e => ` \u2014 segment in ${e}`,
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
@@ -2827,6 +2843,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolSkip:'לא תוצע חסימה בחגים — מופעים אלה מוסרים מהרשימה.',
             tipHolOnly:'חסימות יוצעו רק בחגים — כל שאר המופעים מתעלמים מהם.',
             tipHolAdd:'מוסיף את החגים שבטווח על גבי ימי השבוע הנבחרים (איחוד).',
+            holRegionLabel:'חגים: אזור',
+            tipHolRegion:'במדינה זו יש חגים ייחודיים לאזורים מסוימים. בחרו את שלכם: חגי האזורים האחרים לא ייספרו עוד.',
+            holRegionAll: n => `כל המדינה (${n} ימים)`,
+            holRegionOne: (c, n) => `${c} (${n} ימים)`,
+            holRegionAllNote: n => `(כל המדינה, ${n} אזורים יחד)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F האזור ${r} אינו מוכר ב-${cc}: נבחרה כל המדינה.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} אינו מזוהה: סינון החגים לא הוחל.`,
+            holRegionInState: e => ` \u2014 מקטע ב-${e}`,
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
@@ -3385,6 +3409,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolSkip:'Nessuna chiusura verrà proposta nei giorni festivi — quelle occorrenze vengono rimosse dalla lista.',
             tipHolOnly:'Le chiusure saranno proposte SOLO nei giorni festivi — tutte le altre occorrenze vengono ignorate.',
             tipHolAdd:'Aggiunge i giorni festivi dell’intervallo sopra i giorni della settimana selezionati (unione).',
+            holRegionLabel:'Giorni festivi: regione',
+            tipHolRegion:'Questo paese ha giorni festivi propri di alcune regioni. Scegli la tua: quelli delle altre regioni non vengono più conteggiati.',
+            holRegionAll: n => `Tutto il paese (${n} giorni)`,
+            holRegionOne: (c, n) => `${c} (${n} giorni)`,
+            holRegionAllNote: n => `(tutto il paese, ${n} regioni insieme)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regione ${r} sconosciuta in ${cc}: \u00E8 stato usato tutto il paese.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} non \u00E8 riconosciuto: filtro dei giorni festivi NON applicato.`,
+            holRegionInState: e => ` \u2014 segmento in ${e}`,
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
@@ -3938,6 +3970,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolSkip:'An Feiertagen wird keine Sperrung vorgeschlagen \u2014 diese Termine werden aus der Liste entfernt.',
             tipHolOnly:'Sperrungen werden AUSSCHLIESSLICH an Feiertagen vorgeschlagen \u2014 alle anderen Termine entfallen.',
             tipHolAdd:'F\u00FCgt die Feiertage im Zeitraum zus\u00E4tzlich zu den gew\u00E4hlten Wochentagen hinzu (Vereinigung).',
+            holRegionLabel:'Feiertage: Region',
+            tipHolRegion:'Dieses Land hat Feiertage, die nur in bestimmten Regionen gelten. Wählen Sie Ihre: Feiertage anderer Regionen zählen dann nicht mehr.',
+            holRegionAll: n => `Ganzes Land (${n} Tage)`,
+            holRegionOne: (c, n) => `${c} (${n} Tage)`,
+            holRegionAllNote: n => `(ganzes Land, ${n} Regionen zusammen)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} in ${cc} unbekannt: es wurde das ganze Land verwendet.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} wird nicht erkannt: Feiertagsfilter NICHT angewendet.`,
+            holRegionInState: e => ` \u2014 Segment in ${e}`,
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
@@ -4490,6 +4530,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolSkip:'No se propondrá ningún cierre en los días festivos — esas ocurrencias se eliminan de la lista.',
             tipHolOnly:'Los cierres se propondrán SOLO en los días festivos — el resto de ocurrencias se ignoran.',
             tipHolAdd:'Añade los festivos del periodo además de los días seleccionados (unión).',
+            holRegionLabel:'Festivos: región',
+            tipHolRegion:'Este país tiene festivos propios de algunas regiones. Elige la tuya: los de las demás regiones dejan de contarse.',
+            holRegionAll: n => `Todo el pa\u00EDs (${n} d\u00EDas)`,
+            holRegionOne: (c, n) => `${c} (${n} d\u00EDas)`,
+            holRegionAllNote: n => `(todo el pa\u00EDs, ${n} regiones juntas)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00F3n ${r} desconocida en ${cc}: se ha usado todo el pa\u00EDs.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} no se reconoce: filtro de festivos NO aplicado.`,
+            holRegionInState: e => ` \u2014 segmento en ${e}`,
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
@@ -5042,6 +5090,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipHolSkip:'Nenhum bloqueio será proposto em feriados — essas ocorrências são removidas da lista.',
             tipHolOnly:'Os bloqueios serão propostos SOMENTE em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Adiciona os feriados do período aos dias da semana selecionados (união).',
+            holRegionLabel:'Feriados: região',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua: os das outras regiões deixam de ser contados.',
+            holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
+            holRegionOne: (c, n) => `${c} (${n} dias)`,
+            holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es juntas)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi usado o pa\u00EDs inteiro.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
+            holRegionInState: e => ` \u2014 segmento em ${e}`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -5594,6 +5650,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipHolSkip:'Não será proposto nenhum corte em feriados — essas ocorrências são removidas da lista.',
             tipHolOnly:'Os cortes serão propostos APENAS em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Acrescenta os feriados do período aos dias da semana selecionados (união).',
+            holRegionLabel:'Feriados: região',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua: os das outras regiões deixam de ser contabilizados.',
+            holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
+            holRegionOne: (c, n) => `${c} (${n} dias)`,
+            holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es em conjunto)`,
+            holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi utilizado o pa\u00EDs inteiro.`,
+            holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
+            holRegionInState: e => ` \u2014 segmento em ${e}`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -7293,7 +7357,119 @@ const getSegmentCountry=id=>{
         return addr?.country?.abbr||null;
     }catch(e){return null;}
 };
-// Cache JF : { 'FR-2026': ['2026-01-01', ...] }
+// Le NOM du pays, en regard de son code. ⚠️ Mesuré le 05/09/2026 dans WME : ce nom est
+// rendu EN ANGLAIS (« Australia ») même quand l'interface est en français. C'est ce qui
+// rend possible la correspondance de resolveCountryIso sans table écrite à la main.
+const getSegmentCountryName=id=>{
+    try{
+        const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});
+        return addr?.country?.name||null;
+    }catch(e){return null;}
+};
+// Le nom de l'État / de la province, tel que WME le rend — « Ontario », « New South
+// Wales ». ⚠️ C'est un NOM LIBRE : WME n'expose nulle part le code ISO 3166-2 qui lui
+// correspondrait. Mesuré le 05/09/2026 sur les trois niveaux (SDK `States.getAll()`,
+// modèle client `W.model.states`, et la réponse serveur brute de `Features` avant tout
+// filtrage) : partout `{countryID, id, name, isDefault, geometry}`, jamais un code.
+// ⇒ Aucune présélection automatique n'est possible sans une table écrite à la main, et
+//    deviner par initiales serait faux : le Canada a CINQ provinces en N (NL, NT, NS,
+//    NB, NU). Ce nom sert donc à GUIDER l'œil, jamais à décider.
+const getSegmentStateName=id=>{
+    try{
+        const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});
+        return addr?.state?.name||null;
+    }catch(e){return null;}
+};
+
+// ─── LE CODE PAYS DE WME N'EST PAS UN CODE ISO ─────────────────────────────
+// ⚠️⚠️ MESURE DU 05/09/2026, EN DIRECT DANS WME, SUR 18 PAYS. `country.abbr` rend des
+//    codes FIPS 10-4, pas ISO 3166-1, alors que date.nager.at attend de l'ISO :
+//      · 9 pays coïncident (FR, US, CA, IT, BR, IL, MX, PL, BE) — d'où l'invisibilité
+//        totale du défaut depuis la France ;
+//      · 6 sont inconnus de l'API (AS Australie, SP Espagne, UK Royaume-Uni, PO Portugal,
+//        JA Japon, SW Suède) : elle répond 204, corps vide, JSON.parse lève, on rend null.
+//        Le filtre ne s'applique pas et l'interface le dit — c'est honnête, mais inutile.
+//        C'EST LE CAS DE L'AUSTRALIE, donc du signalement de maporaptor : chez lui le
+//        filtre n'a jamais fonctionné, il ne perdait pas des dates, il n'en perdait aucune.
+//      · 3 rendent LE CALENDRIER D'UN AUTRE PAYS, en silence, avec un message qui affirme
+//        le contraire — et c'est le sens d'erreur interdit :
+//            Suisse    SZ → Eswatini   · 23 fériés réels, 7 retrouvés  ⇒ 16 laissés ouverts
+//            Allemagne GM → Gambie     · 19 fériés réels, 7 retrouvés  ⇒ 12 laissés ouverts
+//            Autriche  AU → AUSTRALIE  · 20 fériés réels, 5 retrouvés  ⇒ 15 laissés ouverts
+//        « Sauf jours fériés » laissait donc une route FERMÉE le jour de la Fête-Dieu en
+//        Autriche, et la fermait le jour de l'Australia Day.
+//
+// ⚠️ AUCUNE TABLE FIPS→ISO N'EST ÉCRITE ICI, ET C'EST DÉLIBÉRÉ : elle vieillirait en
+//    silence le jour où Waze ajoute ou renomme un pays, et personne ne le verrait —
+//    exactement le défaut qu'on vient de corriger. La correspondance se fait sur le NOM,
+//    et la liste des noms vient de l'API elle-même.
+// ⚠️ DEUX RÈGLES D'ÉCRITURE, PAS DEUX CAS PARTICULIERS. Mesuré sur les 259 pays que
+//    WME publie : sans elles, quatre pays dont le code Waze tombait JUSTE se seraient mis
+//    à ne plus filtrer du tout — une régression introduite par la correction elle-même.
+//      · WME écrit « St. Vincent and the Grenadines », l'API « Saint Vincent… »
+//      · WME écrit « Hong Kong (China) », l'API « Hong Kong »
+//    Elles sont volontairement TIMIDES : elles ne rapprochent pas « Macedonia » de
+//    « North Macedonia », ni « Swaziland » d'« Eswatini ». Une règle de sous-chaîne les
+//    aurait rattrapés — et aurait aussi confondu « Congo » avec « DR Congo », deux pays
+//    voisins aux calendriers différents. Ne pas résoudre coûte un filtre non appliqué ;
+//    mal résoudre ferme des routes le mauvais jour.
+const _normNom=s=>String(s||'')
+    .replace(/\([^)]*\)/g,' ')          // « Hong Kong (China) » → « Hong Kong »
+    .replace(/\bst\.?\s/gi,'saint ')    // « St. Vincent » → « Saint Vincent »
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+
+let _countryIndex=null;   // { nom normalisé -> code ISO }, null tant qu'on ne l'a pas
+
+const fetchCountryIndex=()=>new Promise(resolve=>{
+    if(_countryIndex){resolve(_countryIndex);return;}
+    GM_xmlhttpRequest({
+        method:'GET',
+        url:'https://date.nager.at/api/v3/AvailableCountries',
+        timeout:10000,
+        onload:resp=>{
+            try{
+                const data=JSON.parse(resp.responseText);
+                if(!Array.isArray(data)||!data.length){resolve(null);return;}
+                const idx={};
+                // 1. Le nom que l'API donne elle-même à chacun de ses pays.
+                data.forEach(p=>{ if(p&&p.name&&p.countryCode) idx[_normNom(p.name)]=p.countryCode; });
+                // 2. Le nom que le NAVIGATEUR donne au même code. Rattrape les pays que
+                //    l'API et WME n'orthographient pas pareil, et toujours sans table
+                //    écrite : c'est Intl qui la fournit, et elle suit les mises à jour
+                //    d'ICU. N'écrase jamais le nom officiel de l'API.
+                try{
+                    const dn=new Intl.DisplayNames(['en'],{type:'region'});
+                    data.forEach(p=>{
+                        try{ const n=_normNom(dn.of(p.countryCode)); if(n&&!idx[n]) idx[n]=p.countryCode; }
+                        catch(e){}
+                    });
+                }catch(e){}
+                _countryIndex=idx; resolve(idx);
+            }catch(e){resolve(null);}   // réponse invalide : pas de cache, réessai possible
+        },
+        onerror:()=>resolve(null),
+        ontimeout:()=>resolve(null)
+    });
+});
+
+// Rend le code ISO du pays, ou NULL. ⚠️⚠️ JAMAIS L'ABBR DE WME EN REPLI : c'est
+// précisément lui qui fait recevoir à l'Autriche le calendrier australien. Ne rien rendre
+// fait afficher « filtre non appliqué » — un aveu ; rendre l'abbr fait fermer des routes
+// les mauvais jours — un mensonge. Entre les deux, le choix n'est pas discutable.
+const resolveCountryIso=async nomPays=>{
+    if(!nomPays) return null;
+    const idx=await fetchCountryIndex();
+    if(!idx) return null;
+    return idx[_normNom(nomPays)]||null;
+};
+
+// Cache JF : { 'FR-2026': [{date:'2026-01-01', global:true, counties:null}, ...] }
+// ⚠️ LA DATE SEULE NE SUFFIT PAS, et c'est tout l'objet de la forme d'objet retenue ici.
+//    L'API rend les fériés du PAYS, nationaux et régionaux mélangés. Mesuré le 05/09/2026 :
+//    la France a 0 férié régional sur 11 — mais l'Australie en a 21 sur 27, la Suisse 29
+//    sur 33. Garder la seule date revenait à traiter le « Canberra Day » (AU-ACT) comme
+//    férié partout en Australie. Voir getHolidaysForRange.
 const holidayCache={};
 
 const fetchHolidays=(countryCode,year)=>new Promise(resolve=>{
@@ -7306,15 +7482,33 @@ const fetchHolidays=(countryCode,year)=>new Promise(resolve=>{
         onload:resp=>{
             try{
                 const data=JSON.parse(resp.responseText);
-                const dates=data.map(h=>h.date);
-                holidayCache[key]=dates; // succès : mis en cache
-                resolve(dates);
+                // `global` absent ou non booléen ⇒ traité comme NATIONAL, donc retenu.
+                // Le sens de l'erreur est choisi : un férié de trop retire une nuit du
+                // chantier ; un férié oublié la fait fermer le jour où il ne fallait pas.
+                const jours=data.map(h=>({
+                    date:h.date,
+                    global:h.global!==false,
+                    counties:Array.isArray(h.counties)?h.counties:null,
+                }));
+                holidayCache[key]=jours; // succès : mis en cache
+                resolve(jours);
             }catch(e){resolve(null);} // réponse invalide : pas de cache, réessai possible plus tard
         },
         onerror:()=>{resolve(null);},   // échec réseau : pas de cache, réessai possible
         ontimeout:()=>{resolve(null);}  // timeout : pas de cache, réessai possible
     });
 });
+
+// Les années couvertes par une plage. Une seule règle, deux appelants : le filtre et
+// le sélecteur de région doivent lire EXACTEMENT les mêmes années, sinon l'un annonce
+// des régions que l'autre n'a pas vues.
+const holidayYearsOf=(startDate,endDate)=>{
+    const ys=new Date(startDate).getFullYear();
+    const ye=new Date(endDate).getFullYear();
+    const out=[];
+    for(let y=ys;y<=ye;y++) out.push(y);
+    return out;
+};
 
 // Rend la liste des jours fériés, ou NULL si elle n'a pas pu être obtenue.
 // ⚠️ La distinction est tout l'objet de cette fonction : avant le 01/08/2026, un échec
@@ -7323,14 +7517,80 @@ const fetchHolidays=(countryCode,year)=>new Promise(resolve=>{
 // AFFIRMATION FAUSSE. Sur un chantier de décembre coché « sauf jours fériés », cela
 // ferme le 25 décembre et le 1er janvier, les deux nuits où il ne fallait pas.
 // Il suffit d'UNE année manquante pour que le filtre soit faux : on rend null.
-const getHolidaysForRange=async(countryCode,startDate,endDate)=>{
-    const ys=new Date(startDate).getFullYear();
-    const ye=new Date(endDate).getFullYear();
-    const promises=[];
-    for(let y=ys;y<=ye;y++) promises.push(fetchHolidays(countryCode,y));
-    const results=await Promise.all(promises);
+//
+// `region` — un code ISO 3166-2 (`AU-NSW`) ou rien. RIEN VEUT DIRE TOUT LE PAYS, et
+// c'est le défaut : ne rien passer rend exactement ce que cette fonction rendait avant
+// l'arrivée des régions. Personne n'est surpris, et le sens de l'erreur reste le même.
+const holidayKeepsRegion=(h,region)=>h.global||(region&&Array.isArray(h.counties)&&h.counties.includes(region));
+
+const getHolidaysForRange=async(countryCode,startDate,endDate,region)=>{
+    const results=await Promise.all(holidayYearsOf(startDate,endDate).map(y=>fetchHolidays(countryCode,y)));
     if(results.some(r=>r===null)) return null;
-    return results.flat();
+    const jours=results.flat();
+    // ⚠️⚠️ VERROU : une région que les données NE CONNAISSENT PAS est ignorée, et tout
+    //    le pays est retenu. Sans lui, un préréglage partagé par un éditeur australien
+    //    (`AU-NSW`) chargé en France ne retiendrait plus que les fériés nationaux : le
+    //    filtre laisserait passer de VRAIS jours fériés, et « sauf jours fériés » fermerait
+    //    le 25 décembre. C'est le sens d'erreur qu'il ne faut jamais prendre — mieux vaut
+    //    retirer une nuit de trop que d'en fermer une qu'il fallait laisser.
+    const connue=region&&jours.some(h=>Array.isArray(h.counties)&&h.counties.includes(region));
+    const retenus=connue?jours.filter(h=>holidayKeepsRegion(h,region)):jours;
+    // ⚠️ DÉDOUBLONNAGE — pas un embellissement. L'API rend UNE ENTRÉE PAR FÉRIÉ, pas
+    //    par date : le 09/03/2026 arrive quatre fois en Australie (Canberra Day,
+    //    Adelaide Cup Day, Eight Hours Day, Labour Day). Le mode « + jours fériés » boucle
+    //    sur cette liste et POSAIT QUATRE FERMETURES IDENTIQUES sur la carte, au même
+    //    horaire. Mesuré : 10 fermetures au lieu de 7 sur mars 2026. Le filtre travaille
+    //    sur des DATES, il ne doit en voir aucune deux fois.
+    return [...new Set(retenus.map(h=>h.date))];
+};
+
+// Les subdivisions rencontrées sur la période, LUES DANS LE CACHE et non demandées au
+// réseau. C'est délibéré et c'est le point de sûreté de cette fonction : le sélecteur ne
+// peut afficher que des régions issues des années qui ont RÉELLEMENT servi à filtrer.
+// Un second appel réseau, déclenché à un autre moment, aurait pu porter sur d'autres
+// années dès que l'éditeur change sa plage — le sélecteur aurait alors annoncé des
+// régions étrangères au résultat affiché sous lui.
+//
+// Rend `null` si une année manque du cache (rien à afficher, on ne devine pas), sinon
+// { toutes: <dates distinctes, tout le pays>, regions: [{code, nb}] } trié par code.
+//
+// ⚠️ LA CLÉ JOUR EST CELLE DU FUSEAU LOCAL, comme dans le moteur (`dayKey`) : `toISOString`
+//    donnerait la veille à l'ouest d'UTC, et c'est exactement le défaut corrigé le
+//    01/08/2026 sur les bornes de plage. La règle est recopiée plutôt qu'empruntée à
+//    WMECreneaux pour que ce bloc reste rejouable seul par tools/test-feries-regions.js.
+const holidayDayKey=d=>{
+    if(typeof d==='string') return d.slice(0,10);
+    if(!(d instanceof Date)||isNaN(d.getTime())) return null;
+    const p=n=>String(n).padStart(2,'0');
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+};
+
+const getHolidayRegions=(countryCode,startDate,endDate)=>{
+    const annees=holidayYearsOf(startDate,endDate).map(y=>holidayCache[countryCode+'-'+y]);
+    if(annees.some(a=>!a)) return null;
+    const tousJours=annees.flat();
+    // ⚠️ DEUX PORTÉES, ET IL NE FAUT PAS LES CONFONDRE.
+    //  · La LISTE des régions se lit sur l'année entière. Si elle était bornée à la
+    //    période, une région sans férié propre en mars disparaîtrait du sélecteur ALORS
+    //    QU'ELLE FILTRE ENCORE — un choix devenu invisible qui écrème les résultats.
+    //  · Les COMPTES, eux, sont bornés à la période. Le cache est annuel : sans cela, une
+    //    plage de mars à décembre 2026 annonçait « 38 jours » (2026 ET 2027 entières)
+    //    au-dessus d'un message qui disait « 17 jours fériés exclus ». Deux nombres côte
+    //    à côte qui ne comptaient pas la même chose, et c'était le sélecteur qui mentait.
+    const d1=holidayDayKey(startDate), d2=holidayDayKey(endDate);
+    const jours=tousJours.filter(h=>(!d1||h.date>=d1)&&(!d2||h.date<=d2));
+    const codes=new Set();
+    tousJours.forEach(h=>{ if(Array.isArray(h.counties)) h.counties.forEach(c=>codes.add(c)); });
+    return {
+        // Le compte est celui des DATES DISTINCTES que le choix retiendra — c'est ce que
+        // le filtre retire, et donc le seul nombre qui ne mente pas. Compter les entrées
+        // annoncerait 27 fériés australiens là où le filtre en retire 20.
+        toutes:new Set(jours.map(h=>h.date)).size,
+        regions:[...codes].sort().map(code=>({
+            code,
+            nb:new Set(jours.filter(h=>holidayKeepsRegion(h,code)).map(h=>h.date)).size,
+        })),
+    };
 };
 // ─── Tile build timestamp (flux RSS Waze) ──────────────────────────────────
 // Retourne le timestamp UTC du dernier assemblage de tiles publié (ms).
@@ -8070,20 +8330,137 @@ const _creneauxAvis=(avis,zone,id,couleur)=>{
     el.textContent=_creneauxTexte(a.code,a.args);
 };
 
+// ─── Subdivision des jours fériés ──────────────────────────────────────────
+// Trace du DERNIER appel de fériés RÉELLEMENT fait par le moteur : le pays et les
+// bornes qui ont servi. Le sélecteur de région se peuple de cela et de rien d'autre.
+let _lastHolidayCall=null;
+// ⚠️ LA RÉGION VOULUE VIT ICI, PAS DANS LE <select>. Un préréglage partagé arrive
+//    avant que le sélecteur ait ses options — et `select.value='AU-NSW'` sur un
+//    sélecteur qui n'a pas cette option retombe à '' SANS RIEN DIRE. La valeur serait
+//    perdue à chaque chargement de préréglage, en silence.
+let _holRegionVoulue='';
+// Région déjà signalée comme étrangère au pays courant : le toast se dit UNE fois,
+// pas à chaque frappe — l'aperçu se régénère à chaque caractère saisi.
+let _holRegionEcartee='';
+// Le nom du pays et celui de l'État de la sélection, relevés au moment où le moteur
+// résout le pays. Le nom d'État ne SERT PAS à choisir la région — WME n'expose aucun
+// code ISO 3166-2, seulement un nom libre (mesuré le 05/09/2026 aux trois niveaux :
+// SDK, modèle client, réponse serveur brute). Il est là pour être MONTRÉ à côté du
+// sélecteur : on ne choisit pas à la place de l'éditeur, mais on ne le laisse pas
+// chercher « CA-ON » dans une liste de treize sans lui dire qu'il est en Ontario.
+let _paysNom=null, _paysEtat=null;
+// Nom du pays dont le code ISO n'a pas pu être trouvé, ou null. Sert au message.
+let _holPaysNonResolu=null;
+
+// Peuple le sélecteur DEPUIS LE CACHE que le filtre vient d'utiliser. Voir
+// getHolidayRegions : c'est la garantie que l'écran ne montre pas des régions issues
+// d'années que le filtre n'a pas lues.
+const refreshHolidayRegions=avis=>{
+    const row=$id('wct-hol-region-row'),sel=$id('wct-hol-region'),lbl=$id('wct-hol-region-lbl');
+    if(!row||!sel) return;
+    const appel=_lastHolidayCall;
+    // Pays non reconnu : le moteur affiche déjà « filtre non appliqué », mais ce message
+    // ne dit pas POURQUOI. On le complète en nommant le pays — sans quoi un éditeur
+    // australien n'aurait aucun moyen de comprendre qu'il ne s'agit pas d'une panne.
+    if(_holPaysNonResolu){
+        const w=$id('wct-holidays-warn');
+        const av=(avis||[]).find(x=>x.zone===WMECreneaux.ZONES.FERIES);
+        if(w&&av&&av.code==='holidaysUnavailable') w.textContent=t('holCountryUnknown',_holPaysNonResolu);
+    }
+    // Pas de filtre demandé, pays non résolu, ou liste indisponible : rien à choisir.
+    if(!appel){row.style.display='none';return;}
+    const info=getHolidayRegions(appel.pays,appel.debut,appel.fin);
+    // Aucune subdivision dans ce pays : le sélecteur ne s'affiche pas. En France il ne
+    // s'affichera jamais — 0 férié régional sur 11.
+    if(!info||!info.regions.length){row.style.display='none';return;}
+    // Une région que ce pays ne connaît pas — un préréglage venu d'un éditeur étranger.
+    // Le filtre l'a DÉJÀ ignorée (verrou de getHolidaysForRange) : le résultat affiché
+    // est donc juste, et rien n'est à régénérer. Ce qu'il reste à faire est de le DIRE,
+    // plutôt que de la faire disparaître du formulaire sans un mot.
+    if(_holRegionVoulue&&!info.regions.some(r=>r.code===_holRegionVoulue)){
+        if(_holRegionEcartee!==_holRegionVoulue){
+            _holRegionEcartee=_holRegionVoulue;
+            showToast(t('holRegionMismatch',_holRegionVoulue,appel.pays),4500,'#f57c00');
+        }
+        _holRegionVoulue='';
+    }
+    // Signature : ne recréer les options que si elles changent vraiment. Les recréer à
+    // chaque frappe arracherait le focus à qui est en train de choisir sa région.
+    const sig=appel.pays+'#'+info.toutes+'#'+info.regions.map(r=>r.code+':'+r.nb).join(',');
+    if(sel.dataset.sig!==sig){
+        sel.dataset.sig=sig;
+        sel.innerHTML=`<option value="">${escHtml(t('holRegionAll',info.toutes))}</option>`
+            +info.regions.map(r=>`<option value="${escHtml(r.code)}">${escHtml(t('holRegionOne',r.code,r.nb))}</option>`).join('');
+    }
+    sel.value=_holRegionVoulue;
+    // L'État de la sélection, affiché À CÔTÉ du libellé et jamais appliqué. WME ne rend
+    // qu'un nom libre (« Ontario ») : rien ne permet d'en déduire « CA-ON » sans une
+    // table écrite à la main. On montre donc l'indice, et l'éditeur choisit.
+    if(lbl) lbl.textContent=_paysEtat?t('holRegionInState',_paysEtat):'';
+    row.style.display='';
+    // Sur « tout le pays » dans un pays à fériés régionaux, le compte annoncé mélange
+    // des régions où l'éditeur ne travaille pas. On le dit dans le message existant, en
+    // info et non en alerte : c'est le défaut assumé, pas une anomalie.
+    // ⚠️ Ce complément SUPPOSE que _creneauxAvis vient d'écrire le message : cette
+    //    fonction n'est appelée que depuis buildClosureList, juste après lui.
+    const warn=$id('wct-holidays-warn');
+    const a=(avis||[]).find(x=>x.zone===WMECreneaux.ZONES.FERIES);
+    if(warn&&!_holRegionVoulue&&a&&a.code&&a.code!=='holidaysUnavailable')
+        warn.textContent+=' '+t('holRegionAllNote',info.regions.length);
+};
+
 const buildClosureList=async()=>{
-    const r=await WMECreneaux.generer(readConfig(),{
+    // Remis à zéro AVANT chaque génération : sans cela, décocher le filtre laisserait le
+    // sélecteur peuplé par l'appel précédent — un choix affiché qui ne pilote plus rien.
+    _lastHolidayCall=null;
+    const cfg=readConfig();
+    const r=await WMECreneaux.generer(cfg,{
         max:MAX_CLOSURES,
         // ⚠️ PARESSEUX, ET CE N'EST PAS UNE OPTIMISATION GRATUITE : resoudre le pays
         //    interroge la selection dans WME, et cette fonction tourne a CHAQUE
         //    FRAPPE pour l'apercu. Le moteur ne l'appelle que si un filtre de jours
         //    feries joue reellement.
-        pays:()=>{const cc=checkSelectionCountry(getSelection().ids);return cc.ok?cc.country:null;},
-        feries:getHolidaysForRange,
+        pays:()=>{
+            const ids=getSelection().ids;
+            const cc=checkSelectionCountry(ids);
+            // Le NOM est relevé au même instant que le code, et pour la même sélection :
+            // c'est lui qui donnera le code ISO. Les relever séparément les exposerait à
+            // décrire deux sélections différentes.
+            _paysNom=cc.ok?getSegmentCountryName(ids[0]):null;
+            _paysEtat=cc.ok?getSegmentStateName(ids[0]):null;
+            return cc.ok?cc.country:null;
+        },
+        // Le moteur ignore et les pays FIPS et les subdivisions, et c'est voulu : sa
+        // signature reste `feries(pays, debut, fin)`. Tout se résout ICI, côté WCT, avant
+        // qu'il ne voie quoi que ce soit. La bibliothèque partagée n'est pas touchée.
+        feries:async(pays,debut,fin)=>{
+            // ⚠️ `pays` est l'abbr FIPS de WME, PAS un code ISO. Voir resolveCountryIso :
+            //    l'envoyer tel quel fait recevoir à l'Autriche le calendrier australien.
+            const iso=await resolveCountryIso(_paysNom);
+            _holPaysNonResolu=iso?null:(_paysNom||pays||'?');
+            // Pays non résolu ⇒ on ne devine pas, on rend null. Le moteur affiche alors
+            // « filtre non appliqué », et le complément de refreshHolidayRegions dit
+            // lequel n'a pas été reconnu.
+            if(!iso) return null;
+            // ⚠️ DEUX PAIRES DE BORNES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
+            //  · `debut`/`fin` viennent du moteur : la première fermeture et la DERNIÈRE
+            //    FIN. Elles servent à savoir quelles ANNÉES charger — il en faut parfois
+            //    une de plus que la plage, une fermeture de nuit du 31/12 finissant en
+            //    janvier suivant.
+            //  · `rangestart`/`rangeend` sont les bornes que le moteur applique aux
+            //    DÉBUTS, et le filtre porte sur le début. C'est donc sur elles que le
+            //    sélecteur doit compter : sinon il annonçait « 19 jours » sous un message
+            //    disant « 18 exclus », parce qu'il comptait un 1er janvier où aucune
+            //    fermeture ne commençait. Mesuré à Sydney le 05/09/2026.
+            _lastHolidayCall={pays:iso,debut:cfg.rangestart,fin:cfg.rangeend};
+            return getHolidaysForRange(iso,debut,fin,_holRegionVoulue);
+        },
     });
     // Les avis AVANT l'erreur : le chevauchement d'intervalle est annonce meme
     // quand la boucle bute ensuite sur le plafond.
     _creneauxAvis(r.avis,WMECreneaux.ZONES.REPETITION,'wct-rep-warn',false);
     _creneauxAvis(r.avis,WMECreneaux.ZONES.FERIES,'wct-holidays-warn',true);
+    refreshHolidayRegions(r.avis);
     if(r.erreur) return {list:[],error:_creneauxTexte(r.erreur.code,r.erreur.args)};
     return {
         list:r.list, error:'',
@@ -8104,6 +8481,9 @@ const readConfig=()=>({
     // pourrait repartir alors que le sélecteur est grisé.
     partnerId:(_srcCap.ok && _partners.length>0 && !_currentTurns) ? ($id('wct-sourcesel')?.value||'') : '',
     holidayMode:($id('wct-hol-add')?.checked?'add':$id('wct-hol-only')?.checked?'only':$id('wct-hol-skip')?.checked?'skip':'none'),
+    // Lue dans la variable et non dans le <select> : voir _holRegionVoulue. Le sélecteur
+    // n'existe que dans les pays à fériés régionaux, la valeur doit survivre à son absence.
+    holidayRegion:_holRegionVoulue,
     days:[0,1,2,3,4,5,6].map(i=>{const c=document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`);return c?.classList.contains('on')||false;}),
     activeTab:document.querySelector('#wct-body .wct-pane.on')?.id||'wct-tab-each',
     repntimes:$id('wct-rep-ntimes')?.value||'1',
@@ -8147,6 +8527,11 @@ const applyConfig=cfg=>{
     if($id('wct-hol-skip'))$id('wct-hol-skip').checked=(hm==='skip');
     if($id('wct-hol-only'))$id('wct-hol-only').checked=(hm==='only');
     if($id('wct-hol-add'))$id('wct-hol-add').checked=(hm==='add');
+    // Clé absente ⇒ tout le pays : aucun préréglage existant n'en porte, et c'est le
+    // défaut. On repart d'une ardoise propre côté signalement — un préréglage chassant
+    // l'autre, la région écartée du précédent n'a plus à être tue.
+    _holRegionVoulue=cfg.holidayRegion||'';
+    _holRegionEcartee='';
     if(cfg.days)[0,1,2,3,4,5,6].forEach(i=>_chipSet(document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`),cfg.days[i]));
     if(cfg.activeTab){
         document.querySelectorAll('#wct-body .wct-tab').forEach(t=>t.classList.remove('on'));
@@ -10315,6 +10700,11 @@ const updateCountryInfo=()=>{
     if(!cc.ok&&cc.countries.length>1){
         if(holidaysWarn){holidaysWarn.style.display='block';holidaysWarn.innerHTML=t('multiCountry',cc.countries.join(', '));}
         if(holSkip)holSkip.disabled=true;if(holOnly)holOnly.disabled=true;const holAddEl=$id('wct-hol-add');if(holAddEl)holAddEl.disabled=true;
+        // Multi-pays : les trois cases sont désactivées, la subdivision n'a plus de pays
+        // auquel se rattacher. On la masque ET on la vide — un « AU-NSW » resté affiché
+        // au-dessus d'un message « segments dans plusieurs pays » ne veut plus rien dire.
+        const regRow=$id('wct-hol-region-row');if(regRow)regRow.style.display='none';
+        const regSel=$id('wct-hol-region');if(regSel)regSel.dataset.sig='';
     } else {
         if(holSkip)holSkip.disabled=false;if(holOnly)holOnly.disabled=false;const holAddEl=$id('wct-hol-add');if(holAddEl)holAddEl.disabled=false;
         if(holidaysWarn&&(holidaysWarn.innerHTML.includes('multi-pays')||holidaysWarn.innerHTML.includes('Multi-country')))holidaysWarn.style.display='none';
@@ -13973,6 +14363,14 @@ const buildOverlay=()=>{
               <label class="wct-check" style="margin-top:6px" title="${t('tipHolSkip')}"><input type="checkbox" id="wct-hol-skip"> ${t('holidayModeSkip')}</label>
               <label class="wct-check" title="${t('tipHolOnly')}"><input type="checkbox" id="wct-hol-only"> ${t('holidayModeOnly')}</label>
               <label class="wct-check" title="${t('tipHolAdd')}"><input type="checkbox" id="wct-hol-add"> ${t('holidayModeAdd')}</label>
+              <!-- Subdivision des jours fériés. MASQUÉE PAR DÉFAUT et peuplée par
+                   refreshHolidayRegions : elle n'apparaît que dans les pays dont l'API
+                   rend des fériés régionaux, et seulement quand un filtre est actif.
+                   En France elle ne s'affichera jamais — 0 férié régional sur 11. -->
+              <div id="wct-hol-region-row" style="display:none;margin-top:0.333em">
+                <label class="wct-label" for="wct-hol-region" title="${t('tipHolRegion')}">${t('holRegionLabel')}<span id="wct-hol-region-lbl" style="font-weight:400;text-transform:none;color:var(--wct-text2)"></span></label>
+                <select id="wct-hol-region" class="wct-select" title="${t('tipHolRegion')}"></select>
+              </div>
               <div id="wct-holidays-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.333em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
             </div>
             <div id="wct-tab-repeat" class="wct-pane">
@@ -15145,6 +15543,13 @@ const connectOverlay=ov=>{
         holOnly.addEventListener('change',()=>{if(holOnly.checked){holSkip.checked=false;if(holAdd)holAdd.checked=false;}refreshSmallPreview();});
         if(holAdd)holAdd.addEventListener('change',()=>{if(holAdd.checked){holSkip.checked=false;holOnly.checked=false;}refreshSmallPreview();});
     }
+    // Subdivision : la valeur vit dans _holRegionVoulue, le <select> n'en est que le
+    // reflet — il est reconstruit à chaque génération et perdrait le choix autrement.
+    $id('wct-hol-region')?.addEventListener('change',e=>{
+        _holRegionVoulue=e.target.value||'';
+        _holRegionEcartee='';   // un choix explicite efface le souvenir d'un rejet
+        refreshSmallPreview();
+    });
     // Valider
     $id('wct-btn-validate')?.addEventListener('click',async()=>{
         // \u2500\u2500\u2500 Cible = virages (envoyee depuis l'onglet Virages) \u2500\u2500\u2500
