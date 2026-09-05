@@ -1722,7 +1722,7 @@ const D = {
             holRegionAllNote: n => `(tout le pays, ${n} r\u00E9gions confondues)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F R\u00E9gion ${r} inconnue en ${cc}\u00A0: tout le pays a \u00E9t\u00E9 retenu.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u2019est pas reconnu\u00A0: filtre des jours f\u00E9ri\u00E9s NON appliqu\u00E9.`,
-            holRegionInState: e => ` \u2014 segment en ${e}`,
+            holRegionInState: e => `segment en ${e}`,
             holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             // File
@@ -2290,7 +2290,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             holRegionAllNote: n => `(whole country, ${n} regions combined)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} is unknown in ${cc}: the whole country was used.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} is not recognised: public holiday filter NOT applied.`,
-            holRegionInState: e => ` \u2014 segment in ${e}`,
+            holRegionInState: e => `segment in ${e}`,
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
@@ -2850,7 +2850,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionAllNote: n => `(כל המדינה, ${n} אזורים יחד)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F האזור ${r} אינו מוכר ב-${cc}: נבחרה כל המדינה.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} אינו מזוהה: סינון החגים לא הוחל.`,
-            holRegionInState: e => ` \u2014 מקטע ב-${e}`,
+            holRegionInState: e => `מקטע ב-${e}`,
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
@@ -3416,7 +3416,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionAllNote: n => `(tutto il paese, ${n} regioni insieme)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regione ${r} sconosciuta in ${cc}: \u00E8 stato usato tutto il paese.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} non \u00E8 riconosciuto: filtro dei giorni festivi NON applicato.`,
-            holRegionInState: e => ` \u2014 segmento in ${e}`,
+            holRegionInState: e => `segmento in ${e}`,
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
@@ -3977,7 +3977,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionAllNote: n => `(ganzes Land, ${n} Regionen zusammen)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} in ${cc} unbekannt: es wurde das ganze Land verwendet.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} wird nicht erkannt: Feiertagsfilter NICHT angewendet.`,
-            holRegionInState: e => ` \u2014 Segment in ${e}`,
+            holRegionInState: e => `Segment in ${e}`,
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
@@ -4537,7 +4537,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionAllNote: n => `(todo el pa\u00EDs, ${n} regiones juntas)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00F3n ${r} desconocida en ${cc}: se ha usado todo el pa\u00EDs.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} no se reconoce: filtro de festivos NO aplicado.`,
-            holRegionInState: e => ` \u2014 segmento en ${e}`,
+            holRegionInState: e => `segmento en ${e}`,
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
@@ -5097,7 +5097,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es juntas)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi usado o pa\u00EDs inteiro.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
-            holRegionInState: e => ` \u2014 segmento em ${e}`,
+            holRegionInState: e => `segmento em ${e}`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -5657,7 +5657,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es em conjunto)`,
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi utilizado o pa\u00EDs inteiro.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
-            holRegionInState: e => ` \u2014 segmento em ${e}`,
+            holRegionInState: e => `segmento em ${e}`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -14368,7 +14368,12 @@ const buildOverlay=()=>{
                    rend des fériés régionaux, et seulement quand un filtre est actif.
                    En France elle ne s'affichera jamais — 0 férié régional sur 11. -->
               <div id="wct-hol-region-row" style="display:none;margin-top:0.333em">
-                <label class="wct-label" for="wct-hol-region" title="${t('tipHolRegion')}">${t('holRegionLabel')}<span id="wct-hol-region-lbl" style="font-weight:400;text-transform:none;color:var(--wct-text2)"></span></label>
+                <label class="wct-label" for="wct-hol-region" title="${t('tipHolRegion')}">${t('holRegionLabel')}</label>
+                <!-- L'indice d'État sur SA PROPRE LIGNE, et non collé au libellé : mesuré
+                     sur la capture, « segment in New South Wales » débordait et coupait le
+                     nom propre en « New South / Wales ». Un nom de région n'est pas un
+                     texte qu'on césure. -->
+                <div id="wct-hol-region-lbl" style="font-size:0.833em;color:var(--wct-text2);font-style:italic;margin:-1px 0 2px"></div>
                 <select id="wct-hol-region" class="wct-select" title="${t('tipHolRegion')}"></select>
               </div>
               <div id="wct-holidays-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.333em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
