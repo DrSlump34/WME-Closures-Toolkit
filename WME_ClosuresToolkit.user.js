@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.15.00
+// @version      1.16.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -46,6 +46,7 @@
 // @connect      cdn.jsdelivr.net
 // @connect      storage.googleapis.com
 // @connect      update.greasyfork.org
+// @connect      nominatim.openstreetmap.org
 // @supportURL   https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542
 // @downloadURL  https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.user.js
 // @updateURL    https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js
@@ -1723,6 +1724,8 @@ const D = {
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F R\u00E9gion ${r} inconnue en ${cc}\u00A0: tout le pays a \u00E9t\u00E9 retenu.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u2019est pas reconnu\u00A0: filtre des jours f\u00E9ri\u00E9s NON appliqu\u00E9.`,
             holRegionInState: e => `segment en ${e}`,
+            holRegionDetected: e => `d\u00E9tect\u00E9\u00A0: segment en ${e}`,
+            holRegionMultiState: n => `${n} \u00E9tats dans la s\u00E9lection \u2014 choisissez`,
             holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
             // File
@@ -2291,6 +2294,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} is unknown in ${cc}: the whole country was used.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} is not recognised: public holiday filter NOT applied.`,
             holRegionInState: e => `segment in ${e}`,
+            holRegionDetected: e => `detected: segment in ${e}`,
+            holRegionMultiState: n => `${n} states in the selection \u2014 pick one`,
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
@@ -2851,6 +2856,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F האזור ${r} אינו מוכר ב-${cc}: נבחרה כל המדינה.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} אינו מזוהה: סינון החגים לא הוחל.`,
             holRegionInState: e => `מקטע ב-${e}`,
+            holRegionDetected: e => `זוהה: מקטע ב-${e}`,
+            holRegionMultiState: n => `${n} מחוזות בבחירה — בחרו`,
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
@@ -3417,6 +3424,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regione ${r} sconosciuta in ${cc}: \u00E8 stato usato tutto il paese.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} non \u00E8 riconosciuto: filtro dei giorni festivi NON applicato.`,
             holRegionInState: e => `segmento in ${e}`,
+            holRegionDetected: e => `rilevato: segmento in ${e}`,
+            holRegionMultiState: n => `${n} regioni nella selezione \u2014 scegli`,
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
@@ -3978,6 +3987,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Region ${r} in ${cc} unbekannt: es wurde das ganze Land verwendet.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} wird nicht erkannt: Feiertagsfilter NICHT angewendet.`,
             holRegionInState: e => `Segment in ${e}`,
+            holRegionDetected: e => `erkannt: Segment in ${e}`,
+            holRegionMultiState: n => `${n} Regionen in der Auswahl \u2014 bitte w\u00E4hlen`,
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
@@ -4538,6 +4549,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00F3n ${r} desconocida en ${cc}: se ha usado todo el pa\u00EDs.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} no se reconoce: filtro de festivos NO aplicado.`,
             holRegionInState: e => `segmento en ${e}`,
+            holRegionDetected: e => `detectado: segmento en ${e}`,
+            holRegionMultiState: n => `${n} regiones en la selecci\u00F3n \u2014 elige`,
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
@@ -5098,6 +5111,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi usado o pa\u00EDs inteiro.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
             holRegionInState: e => `segmento em ${e}`,
+            holRegionDetected: e => `detectado: segmento em ${e}`,
+            holRegionMultiState: n => `${n} regi\u00F5es na sele\u00E7\u00E3o \u2014 escolha`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -5658,6 +5673,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             holRegionMismatch: (r, cc) => `\u26A0\uFE0F Regi\u00E3o ${r} desconhecida em ${cc}: foi utilizado o pa\u00EDs inteiro.`,
             holCountryUnknown: cc => `\u26A0\uFE0F ${cc} n\u00E3o \u00E9 reconhecido: filtro de feriados N\u00C3O aplicado.`,
             holRegionInState: e => `segmento em ${e}`,
+            holRegionDetected: e => `detetado: segmento em ${e}`,
+            holRegionMultiState: n => `${n} regi\u00F5es na sele\u00E7\u00E3o \u2014 escolha`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
@@ -7381,6 +7398,96 @@ const getSegmentStateName=id=>{
     }catch(e){return null;}
 };
 
+// L'État est-il le MÊME pour toute la sélection ? Même règle que checkSelectionCountry :
+// un chantier à cheval sur deux États n'a pas UNE région, et déduire la sienne du premier
+// segment reviendrait à décrire la sélection par son premier élément.
+const checkSelectionState=segIds=>{
+    const noms=[...new Set(segIds.map(getSegmentStateName).filter(Boolean))];
+    if(noms.length!==1) return {ok:false, state:null, states:noms};
+    return {ok:true, state:noms[0], states:noms};
+};
+
+// Le point representatif d'un segment : le milieu de sa polyligne, comme pour le
+// permalien. Un point suffit — on cherche dans quelle subdivision il tombe.
+const getSegPoint=sid=>{
+    try{
+        const seg=getSegById(sid);
+        const c=seg?.geometry?.coordinates;
+        if(!Array.isArray(c)||!c.length) return null;
+        const mid=c[Math.floor(c.length/2)];
+        return (Array.isArray(mid)&&mid.length>=2&&isFinite(mid[0])&&isFinite(mid[1]))
+            ? {lon:mid[0], lat:mid[1]} : null;
+    }catch(e){return null;}
+};
+
+// ─── LA RÉGION, DÉDUITE DE LA POSITION ─────────────────────────────────────
+// ⚠️ POURQUOI PASSER PAR UN SERVICE EXTERNE. Mesuré le 05/09/2026 aux quatre niveaux
+//    que WME expose — SDK, modèle client, réponse brute de `Features`, et le service
+//    `LocationSearch/States` — l'État n'a qu'un NOM libre (« New South Wales »,
+//    « Wien ») et un identifiant interne Waze. Le code ISO 3166-2 n'y est nulle part,
+//    et rien ne permet de le dériver du nom : sur les 12 pays à fériés régionaux, trois
+//    ont des codes NUMÉRIQUES (AT-9 pour Vienne, IT-32, PT-20) où les initiales ne
+//    peuvent rien, et même ailleurs `DE-ST` est Sachsen-Anhalt et `DE-BY` est Bayern.
+//    Une règle qui marche en Australie et se trompe en silence en Allemagne serait pire
+//    que pas de règle. Le géocodage inverse, lui, rend le code lui-même.
+//
+// ⚠️ CE SERVICE EST BÉNÉVOLE, et sa politique interdit le géocodage en masse. Elle
+//    l'autorise « if your app has very few users and applies caching » — d'où le cache
+//    PERSISTANT ci-dessous : une requête par État rencontré, une seule fois dans la vie
+//    du script chez un éditeur donné. Un éditeur travaille dans une région ou deux.
+//
+// ⚠️ S'IL NE RÉPOND PAS, ON REVIENT EXACTEMENT À LA 1.15.00 : sélecteur manuel, « tout
+//    le pays » par défaut. Aucune dégradation, juste un geste de plus.
+const NOMINATIM_URL='https://nominatim.openstreetmap.org/reverse';
+
+// { 'AU|New South Wales': 'AU-NSW' } — persisté avec les préférences.
+let _regionParEtat={};
+// L'État en cours d'interrogation : un seul appel à la fois, et jamais deux fois le
+// même. Sans ce verrou, l'aperçu qui se régénère relancerait la requête en boucle.
+let _regionEnCours=null;
+// États pour lesquels le service n'a rien rendu : on ne réessaie pas à chaque frappe.
+const _regionEchecs=new Set();
+
+const cleEtat=(pays,etat)=>pays+'|'+etat;
+
+// Rend TOUS les codes ISO 3166-2 que le service attribue à ce point, ou null.
+// Plusieurs niveaux coexistent — Barcelone rend `lvl6=ES-B` ET `lvl4=ES-CT` — et le bon
+// niveau dépend du pays. On ne choisit pas ici : on rend tout, l'appelant croise.
+const fetchRegionCodes=(lon,lat)=>new Promise(resolve=>{
+    GM_xmlhttpRequest({
+        method:'GET',
+        // `zoom=8` cadre sur la subdivision ; `addressdetails=1` donne les clés ISO.
+        url:NOMINATIM_URL+'?format=json&addressdetails=1&zoom=8'
+            +'&lat='+encodeURIComponent(lat.toFixed(6))+'&lon='+encodeURIComponent(lon.toFixed(6)),
+        // La politique demande un identifiant : « stock User-Agents will not do ».
+        headers:{'User-Agent':SCRIPT_NAME+'/'+VERSION+' (WME userscript)'},
+        timeout:10000,
+        onload:resp=>{
+            try{
+                const a=JSON.parse(resp.responseText)?.address;
+                if(!a) {resolve(null);return;}
+                const codes=Object.keys(a).filter(k=>/^ISO3166-2/.test(k)).map(k=>a[k]).filter(Boolean);
+                resolve(codes.length?codes:null);
+            }catch(e){resolve(null);}
+        },
+        onerror:()=>resolve(null),
+        ontimeout:()=>resolve(null)
+    });
+});
+
+// LE CROISEMENT, isolé ici pour être mesurable. Le service rend plusieurs niveaux à la
+// fois — Barcelone donne `ES-B` (province) ET `ES-CT` (communauté autonome) — et le
+// niveau pertinent change d'un pays à l'autre : l'API des fériés emploie `ES-CT` pour
+// l'Espagne, `GB-SCT` pour le Royaume-Uni, `AT-9` pour l'Autriche.
+// ⚠️ ON NE CHOISIT PAS LE NIVEAU : on retient celui que l'API des fériés CONNAÎT déjà,
+//    c'est-à-dire la liste que le sélecteur affiche. Rien n'est codé en dur, et un code
+//    sans correspondance ne rend RIEN plutôt qu'un à-peu-près — sur ce filtre, une
+//    région approchée retirerait les mauvaises nuits.
+const choisirNiveauRegion=(codesRendus,codesConnus)=>{
+    if(!Array.isArray(codesRendus)||!Array.isArray(codesConnus)) return null;
+    return codesRendus.find(c=>codesConnus.includes(c))||null;
+};
+
 // ─── LE CODE PAYS DE WME N'EST PAS UN CODE ISO ─────────────────────────────
 // ⚠️⚠️ MESURE DU 05/09/2026, EN DIRECT DANS WME, SUR 18 PAYS. `country.abbr` rend des
 //    codes FIPS 10-4, pas ISO 3166-1, alors que date.nager.at attend de l'ISO :
@@ -7930,7 +8037,7 @@ const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMo
     dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
     langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null,
     traceWidth:_traceWidth, traceOpacity:_traceOpacity, ovGeom:_ovGeom,
-    timeMode:_timeMode, queue:_queuePourPrefs() });
+    timeMode:_timeMode, queue:_queuePourPrefs(), regionParEtat:_regionParEtat });
 const _appliquerPrefs = d => {
     if(!d || typeof d !== 'object') return;
     presets = d.presets || [];
@@ -7948,6 +8055,15 @@ const _appliquerPrefs = d => {
     // La file lue est mise DE COTE, pas posee : _queueReprendre la rejouera une fois le
     // panneau construit, parce qu'elle s'accompagne d'un bandeau qui a besoin du DOM.
     _queueReprise = Array.isArray(d.queue) ? d.queue : null;
+    // Les correspondances État → code ISO déjà résolues. C'est ce cache qui évite de
+    // réinterroger un service bénévole : sans lui, chaque ouverture de WME relancerait
+    // une requête par région. Les valeurs sont revérifiées à l'usage contre ce que
+    // l'API des fériés rend pour le pays — une mémoire ne fait pas foi.
+    if(d.regionParEtat && typeof d.regionParEtat === 'object' && !Array.isArray(d.regionParEtat)){
+        _regionParEtat = {};
+        for(const [k,v] of Object.entries(d.regionParEtat))
+            if(typeof k === 'string' && typeof v === 'string' && /^[A-Z]{2}-/.test(v)) _regionParEtat[k] = v;
+    }
     if(d.timeMode === 'dur' || d.timeMode === 'end') _timeMode = d.timeMode;
     else { try { if(localStorage.WCT_timeMode === 'dur') _timeMode = 'dur'; } catch(e){} }
     // Borner en RELISANT la valeur stockee : un reglage hors bornes (fichier de prefs
@@ -8339,9 +8455,16 @@ let _lastHolidayCall=null;
 //    sélecteur qui n'a pas cette option retombe à '' SANS RIEN DIRE. La valeur serait
 //    perdue à chaque chargement de préréglage, en silence.
 let _holRegionVoulue='';
+// D'OÙ VIENT LA VALEUR, et c'est ce qui décide si on a le droit de la remplacer.
+//   'auto'   : personne n'a choisi — la position peut la renseigner
+//   'manuel' : l'éditeur a touché le sélecteur, ou un préréglage l'a posée. On n'y
+//              touche plus, même pour « tout le pays » : c'est un choix, pas un vide.
+let _holRegionSource='auto';
 // Région déjà signalée comme étrangère au pays courant : le toast se dit UNE fois,
 // pas à chaque frappe — l'aperçu se régénère à chaque caractère saisi.
 let _holRegionEcartee='';
+// Vrai quand la valeur affichée a été déduite de la position : l'écran doit le dire.
+let _holRegionDeduite=false;
 // Le nom du pays et celui de l'État de la sélection, relevés au moment où le moteur
 // résout le pays. Le nom d'État ne SERT PAS à choisir la région — WME n'expose aucun
 // code ISO 3166-2, seulement un nom libre (mesuré le 05/09/2026 aux trois niveaux :
@@ -8351,6 +8474,66 @@ let _holRegionEcartee='';
 let _paysNom=null, _paysEtat=null;
 // Nom du pays dont le code ISO n'a pas pu être trouvé, ou null. Sert au message.
 let _holPaysNonResolu=null;
+
+// Renseigne la région depuis la POSITION du chantier, si personne ne l'a choisie.
+//
+// ⚠️ LE CROISEMENT EST CE QUI REND CECI SÛR. Le service rend plusieurs niveaux à la
+//    fois — Barcelone donne `ES-B` (province) ET `ES-CT` (communauté) — et le niveau
+//    pertinent change d'un pays à l'autre. On ne tranche pas : on garde celui qui figure
+//    dans les régions QUE L'API DES FÉRIÉS CONNAÎT pour ce pays, c'est-à-dire la liste
+//    que le sélecteur affiche déjà. Aucun niveau codé en dur, et si rien ne correspond
+//    on ne renseigne rien.
+//
+// ⚠️ TROIS VERROUS, chacun contre une façon de partir en boucle : une seule requête à
+//    la fois (`_regionEnCours`), jamais deux fois le même État (`_regionParEtat`),
+//    jamais de réessai après un échec (`_regionEchecs`). Cette fonction est appelée à
+//    CHAQUE régénération de l'aperçu, donc à chaque frappe.
+const resoudreRegionAuto=(paysIso, codesConnus)=>{
+    if(_holRegionSource!=='auto') return;        // l'éditeur a choisi : on n'y touche pas
+    if(_regionEnCours) return;                   // une requête suffit
+    const sel=getSelection();
+    if(!sel||!sel.ids.length) return;
+    // Un chantier à cheval sur deux États n'a pas UNE région : on laisse le choix.
+    const st=checkSelectionState(sel.ids);
+    if(!st.ok) return;
+    const cle=cleEtat(paysIso, st.state);
+    const dejaVu=_regionParEtat[cle];
+    if(dejaVu){
+        // Connu : aucune requête. On ne l'applique que si ce pays la connaît encore —
+        // les subdivisions d'un pays peuvent changer, la mémoire ne fait pas foi.
+        if(codesConnus.includes(dejaVu)&&_holRegionVoulue!==dejaVu){
+            _holRegionVoulue=dejaVu; _holRegionDeduite=true;
+            // ⚠️⚠️ DIFFÉRÉ, ET CE N'EST PAS UN DÉTAIL DE STYLE. Cette fonction est
+            //    appelée DEPUIS buildClosureList, qui n'a pas fini d'écrire son résultat.
+            //    Relancer l'aperçu ici met deux générations en vol : celle du dessus
+            //    écrit ensuite SON compte, et écrase celui de la nouvelle. Mesuré à
+            //    Sydney : le sélecteur affichait AU-NSW pendant que le message annonçait
+            //    18 jours exclus — le compte de « tout le pays ». Un écran qui montre une
+            //    région qu'il n'applique pas. `setTimeout` fait de la relance une
+            //    macrotâche : elle part une fois la génération courante entièrement finie.
+            setTimeout(refreshSmallPreview,0);
+        }
+        return;
+    }
+    if(_regionEchecs.has(cle)) return;
+    const pt=getSegPoint(sel.ids[0]);
+    if(!pt) return;
+    _regionEnCours=cle;
+    fetchRegionCodes(pt.lon, pt.lat).then(codes=>{
+        _regionEnCours=null;
+        // Le croisement : parmi tous les niveaux rendus, celui que l'API des fériés
+        // emploie réellement pour ce pays.
+        const trouve=choisirNiveauRegion(codes,codesConnus);
+        if(!trouve){ _regionEchecs.add(cle); return; }
+        _regionParEtat[cle]=trouve; save();
+        // Entre-temps l'éditeur a pu choisir lui-même : son geste prime sur la réponse.
+        if(_holRegionSource!=='auto') return;
+        _holRegionVoulue=trouve; _holRegionDeduite=true;
+        // Même précaution que sur le chemin du cache : la réponse peut arriver pendant
+        // une génération, et deux générations en vol se marchent dessus.
+        setTimeout(refreshSmallPreview,0);
+    });
+};
 
 // Peuple le sélecteur DEPUIS LE CACHE que le filtre vient d'utiliser. Voir
 // getHolidayRegions : c'est la garantie que l'écran ne montre pas des régions issues
@@ -8373,6 +8556,10 @@ const refreshHolidayRegions=avis=>{
     // Aucune subdivision dans ce pays : le sélecteur ne s'affiche pas. En France il ne
     // s'affichera jamais — 0 férié régional sur 11.
     if(!info||!info.regions.length){row.style.display='none';return;}
+    // Personne n'a choisi : la position du chantier peut le faire. Lancé d'ici et non
+    // depuis `pays:()` parce qu'il faut D'ABORD savoir que ce pays a des régions — sans
+    // quoi on interrogerait le service pour la France, qui n'en a aucune.
+    resoudreRegionAuto(appel.pays, info.regions.map(r=>r.code));
     // Une région que ce pays ne connaît pas — un préréglage venu d'un éditeur étranger.
     // Le filtre l'a DÉJÀ ignorée (verrou de getHolidaysForRange) : le résultat affiché
     // est donc juste, et rien n'est à régénérer. Ce qu'il reste à faire est de le DIRE,
@@ -8393,10 +8580,17 @@ const refreshHolidayRegions=avis=>{
             +info.regions.map(r=>`<option value="${escHtml(r.code)}">${escHtml(t('holRegionOne',r.code,r.nb))}</option>`).join('');
     }
     sel.value=_holRegionVoulue;
-    // L'État de la sélection, affiché À CÔTÉ du libellé et jamais appliqué. WME ne rend
-    // qu'un nom libre (« Ontario ») : rien ne permet d'en déduire « CA-ON » sans une
-    // table écrite à la main. On montre donc l'indice, et l'éditeur choisit.
-    if(lbl) lbl.textContent=_paysEtat?t('holRegionInState',_paysEtat):'';
+    // L'État de la sélection, sous le libellé. Deux formulations, et la différence n'est
+    // pas cosmétique : une valeur DÉDUITE doit s'annoncer comme telle. Un filtre qui
+    // s'est réglé tout seul sans le dire est un filtre qu'on ne pense pas à vérifier.
+    if(lbl){
+        const sel2=getSelection();
+        const st=sel2&&sel2.ids.length?checkSelectionState(sel2.ids):{ok:false,states:[]};
+        lbl.textContent = !_paysEtat ? ''
+            : (!st.ok&&st.states.length>1) ? t('holRegionMultiState',st.states.length)
+            : (_holRegionDeduite&&_holRegionVoulue) ? t('holRegionDetected',_paysEtat)
+            : t('holRegionInState',_paysEtat);
+    }
     row.style.display='';
     // Sur « tout le pays » dans un pays à fériés régionaux, le compte annoncé mélange
     // des régions où l'éditeur ne travaille pas. On le dit dans le message existant, en
@@ -8409,7 +8603,20 @@ const refreshHolidayRegions=avis=>{
         warn.textContent+=' '+t('holRegionAllNote',info.regions.length);
 };
 
+// ⚠️⚠️ LE DERNIER LANCÉ N'EST PAS LE DERNIER TERMINÉ. `buildClosureList` est
+//    asynchrone — elle attend le réseau des jours fériés — et `refreshSmallPreview`
+//    la relance à CHAQUE frappe. Deux générations peuvent donc être en vol, et celle
+//    partie en premier, si elle est la plus lente, écrit son résultat APRÈS l'autre.
+//    Mesuré à Sydney le 06/09/2026 : le sélecteur affichait `AU-NSW` pendant que le
+//    message annonçait 18 jours exclus et l'aperçu 288 fermetures — les comptes de
+//    « tout le pays ». Un écran qui montre une région qu'il n'applique pas.
+//    Ce jeton donne la parole à la dernière génération, et à elle seule. Le CALCUL
+//    d'une génération périmée reste juste et rendu à son appelant : seules les
+//    écritures à l'écran sont retenues.
+let _buildGen=0;
+
 const buildClosureList=async()=>{
+    const gen=++_buildGen;
     // Remis à zéro AVANT chaque génération : sans cela, décocher le filtre laisserait le
     // sélecteur peuplé par l'appel précédent — un choix affiché qui ne pilote plus rien.
     _lastHolidayCall=null;
@@ -8442,6 +8649,10 @@ const buildClosureList=async()=>{
             // « filtre non appliqué », et le complément de refreshHolidayRegions dit
             // lequel n'a pas été reconnu.
             if(!iso) return null;
+            // Une génération périmée ne laisse pas sa trace : le sélecteur se peuple de
+            // `_lastHolidayCall`, et il doit décrire ce qui est AFFICHÉ, pas un calcul
+            // que personne ne verra.
+            if(gen!==_buildGen) return getHolidaysForRange(iso,debut,fin,_holRegionVoulue);
             // ⚠️ DEUX PAIRES DE BORNES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
             //  · `debut`/`fin` viennent du moteur : la première fermeture et la DERNIÈRE
             //    FIN. Elles servent à savoir quelles ANNÉES charger — il en faut parfois
@@ -8456,14 +8667,19 @@ const buildClosureList=async()=>{
             return getHolidaysForRange(iso,debut,fin,_holRegionVoulue);
         },
     });
-    // Les avis AVANT l'erreur : le chevauchement d'intervalle est annonce meme
-    // quand la boucle bute ensuite sur le plafond.
-    _creneauxAvis(r.avis,WMECreneaux.ZONES.REPETITION,'wct-rep-warn',false);
-    _creneauxAvis(r.avis,WMECreneaux.ZONES.FERIES,'wct-holidays-warn',true);
-    refreshHolidayRegions(r.avis);
-    if(r.erreur) return {list:[],error:_creneauxTexte(r.erreur.code,r.erreur.args)};
+    // Une génération dépassée rend son calcul mais n'écrit rien : c'est la plus récente
+    // qui décrit l'écran, sinon la plus LENTE aurait le dernier mot.
+    const perime = gen!==_buildGen;
+    if(!perime){
+        // Les avis AVANT l'erreur : le chevauchement d'intervalle est annonce meme
+        // quand la boucle bute ensuite sur le plafond.
+        _creneauxAvis(r.avis,WMECreneaux.ZONES.REPETITION,'wct-rep-warn',false);
+        _creneauxAvis(r.avis,WMECreneaux.ZONES.FERIES,'wct-holidays-warn',true);
+        refreshHolidayRegions(r.avis);
+    }
+    if(r.erreur) return {list:[],error:_creneauxTexte(r.erreur.code,r.erreur.args),perime};
     return {
-        list:r.list, error:'',
+        list:r.list, error:'', perime,
         pastRangeStart:r.debordement?formatDateDisplay(r.debordement.debut):undefined,
         pastRangeEnd:r.debordement?formatDateDisplay(r.debordement.fin):undefined,
     };
@@ -8532,6 +8748,11 @@ const applyConfig=cfg=>{
     // l'autre, la région écartée du précédent n'a plus à être tue.
     _holRegionVoulue=cfg.holidayRegion||'';
     _holRegionEcartee='';
+    // Un préréglage QUI PORTE une région est un choix : il fige. Un préréglage qui n'en
+    // porte pas — tous ceux d'avant la 1.15.00 — laisse la position décider, plutôt que
+    // d'imposer « tout le pays » à un éditeur dont le pays a des fériés régionaux.
+    _holRegionSource=cfg.holidayRegion?'manuel':'auto';
+    _holRegionDeduite=false;
     if(cfg.days)[0,1,2,3,4,5,6].forEach(i=>_chipSet(document.querySelector(`#wct-body .wct-chip[data-dow="${i}"]`),cfg.days[i]));
     if(cfg.activeTab){
         document.querySelectorAll('#wct-body .wct-tab').forEach(t=>t.classList.remove('on'));
@@ -9902,6 +10123,9 @@ let _prevCollapsed=false;
 const refreshSmallPreview=async()=>{
     const el=$id('wct-small-prev');if(!el)return;
     const rc=await buildClosureList();
+    // Une génération plus récente est passée pendant qu'on attendait le réseau : elle a
+    // déjà écrit, et son résultat est le bon. Écrire ici remettrait l'ancien.
+    if(rc.perime) return;
     if(rc.error){el.innerHTML=`<span style="color:var(--wct-red)">${rc.error}</span>`;return;}
     const n=rc.list.length;
     // Rien a lister : pas de chevron, il n'y a rien a replier.
@@ -15553,6 +15777,21 @@ const connectOverlay=ov=>{
     $id('wct-hol-region')?.addEventListener('change',e=>{
         _holRegionVoulue=e.target.value||'';
         _holRegionEcartee='';   // un choix explicite efface le souvenir d'un rejet
+        // ⚠️ Le geste de l'éditeur FIGE la valeur, y compris quand il revient à « tout le
+        //    pays » : sans cela, la position la remplacerait aussitôt et il verrait son
+        //    choix se défaire sous ses yeux.
+        _holRegionSource='manuel';
+        _holRegionDeduite=false;
+        // Et il fait autorité : ce qu'il choisit corrige ce qui avait été déduit pour cet
+        // État. C'est ainsi que la table se répare, sans que personne n'ait à l'éditer.
+        const s=getSelection(); const st=s&&s.ids.length?checkSelectionState(s.ids):{ok:false};
+        const p=_lastHolidayCall?_lastHolidayCall.pays:null;
+        if(st.ok&&p){
+            const cle=cleEtat(p,st.state);
+            if(_holRegionVoulue) _regionParEtat[cle]=_holRegionVoulue; else delete _regionParEtat[cle];
+            _regionEchecs.delete(cle);
+            save();
+        }
         refreshSmallPreview();
     });
     // Valider

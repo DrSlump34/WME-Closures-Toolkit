@@ -41,7 +41,7 @@ const dit = (b, quoi, detail) => {
 // ── Extraction du bloc reel ────────────────────────────────────────────────
 // Bornes choisies sur des commentaires de section, pas sur du code : elles ne
 // bougent pas quand une fonction est retouchee.
-const DEBUT = '// ─── LE CODE PAYS DE WME';
+const DEBUT = '// ─── LA RÉGION, DÉDUITE DE LA POSITION';
 const FIN = '// ─── Tile build timestamp';
 const iD = src.indexOf(DEBUT), iF = src.indexOf(FIN);
 if (iD < 0 || iF < 0 || iF <= iD) {
@@ -221,7 +221,7 @@ const charger = (panne) => {
     };
     // Exportation ajoutee ICI et non dans le userscript : le bloc extrait declare
     // ses `const` dans son propre scope lexical, invisibles depuis le bac.
-    const rallonge = '\n;__exp = { holidayCache, fetchHolidays, getHolidaysForRange, getHolidayRegions, holidayYearsOf, resolveCountryIso, fetchCountryIndex };';
+    const rallonge = '\n;__exp = { holidayCache, fetchHolidays, getHolidaysForRange, getHolidayRegions, holidayYearsOf, resolveCountryIso, fetchCountryIndex, choisirNiveauRegion };';
     vm.runInNewContext(BLOC + rallonge, vm.createContext(bac), { filename: 'bloc-feries.js', timeout: 10000 });
     return bac.__exp && Object.assign(bac.__exp, { __appels: appels });
 };
@@ -322,6 +322,51 @@ console.log('\n— Liste des pays indisponible : on ne devine pas —');
     await E2.resolveCountryIso('France');
     const n = E2.__appels.filter(x => x === 'AvailableCountries').length;
     dit(n >= 1, 'un échec n est pas mis en cache', n + ' appel(s)');
+}
+
+// ── Le croisement des niveaux ISO 3166-2 ───────────────────────────────────
+// Le geocodage inverse rend PLUSIEURS niveaux a la fois, et le niveau pertinent
+// change d un pays a l autre. Les couples ci-dessous sont les reponses REELLES du
+// service, relevees le 05/09/2026, avec la liste que l API des feries connait.
+console.log('\n— Le niveau ISO retenu est celui que l API des feries connait —');
+{
+    const E1 = charger();
+    const cas = [
+        // ville          ce que le geocodeur rend        ce que l API des feries connait   attendu
+        ['Sydney',        ['AU-NSW'],                      ['AU-NSW','AU-VIC','AU-QLD'],     'AU-NSW'],
+        ['Vienne',        ['AT-9'],                        ['AT-1','AT-9','AT-5'],           'AT-9'],
+        ['Barcelone',     ['ES-B','ES-CT'],                ['ES-AN','ES-CT','ES-AR'],        'ES-CT'],
+        ['Edimbourg',     ['GB-EDH','GB-SCT'],             ['GB-ENG','GB-NIR','GB-SCT'],     'GB-SCT'],
+        ['Magdebourg',    ['DE-ST'],                       ['DE-BW','DE-BY','DE-ST'],        'DE-ST'],
+        ['Toronto',       ['CA-ON'],                       ['CA-ON','CA-QC','CA-AB'],        'CA-ON'],
+        // Rome : le geocodeur rend IT-62 (Latium), mais l API ne connait que IT-32
+        // (Trentin) — le seul a avoir un ferie propre. Aucune correspondance : on ne
+        // renseigne RIEN. C est juste : Rome n a pas de ferie regional.
+        ['Rome',          ['IT-RM','IT-62'],               ['IT-32'],                        null],
+        // Paris : la France n a aucune region dans l API. Le selecteur ne s affiche meme
+        // pas, mais la fonction doit rendre null sans broncher.
+        ['Paris',         ['FR-75C','FR-IDF'],             [],                               null],
+    ];
+    let bons = 0;
+    for (const [ville, rendus, connus, attendu] of cas) {
+        const r = E1.choisirNiveauRegion(rendus, connus);
+        if (r === attendu) bons++;
+        else dit(false, ville, 'attendu ' + attendu + ', obtenu ' + r);
+    }
+    dit(bons === cas.length, 'les ' + cas.length + ' releves reels sont croises correctement', bons + '/' + cas.length);
+
+    // ⚠️ L ORDRE COMPTE : le geocodeur peut rendre le niveau fin AVANT le bon. Barcelone
+    //    rend ES-B en premier ; c est ES-CT qu il faut, parce que c est lui que l API
+    //    connait. Retenir le premier venu donnerait une region que le filtre ignore.
+    dit(E1.choisirNiveauRegion(['ES-B','ES-CT'], ['ES-CT']) === 'ES-CT',
+        'le PREMIER code rendu n est pas retenu s il est inconnu de l API');
+
+    // Et l inverse du sens interdit : jamais d a-peu-pres.
+    dit(E1.choisirNiveauRegion(['DE-BY'], ['DE-BW','DE-ST']) === null,
+        'un code sans correspondance ne rend RIEN', 'une region approchee retirerait les mauvaises nuits');
+    dit(E1.choisirNiveauRegion(null, ['AU-NSW']) === null, 'service muet : null');
+    dit(E1.choisirNiveauRegion(['AU-NSW'], null) === null, 'pays sans regions connues : null');
+    dit(E1.choisirNiveauRegion([], []) === null, 'deux listes vides : null');
 }
 
 // ── France : ce chantier ne doit RIEN y changer ────────────────────────────
