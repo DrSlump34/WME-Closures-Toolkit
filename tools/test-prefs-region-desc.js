@@ -15,6 +15,14 @@
 //         choix aurait alors survecu a la session mais pas au rechargement — c est-a-dire
 //         nulle part, et sans que rien ne le dise.
 //
+//   1 bis. ET CE N ETAIT PAS TOUT — mesure dans WME a Melbourne le 06/09 : AUCUN choix
+//      de region ne survivait, pas seulement « tout le pays ». La branche d enregistrement
+//      n etait jamais atteinte, parce que le gestionnaire refabriquait la cle Etat depuis
+//      `_lastHolidayCall`, remise a null EN TETE de chaque generation de l apercu. La cle
+//      vient desormais de la fonction qui AFFICHE le selecteur, ou pays et Etat sont ceux
+//      de la liste montree a l editeur. ⚠️ Le premier correctif etait juste et inutile :
+//      il reparait l ecriture d une valeur qui n etait de toute facon jamais ecrite.
+//
 //   2. La DESCRIPTION repartait de son defaut a chaque chargement. Elle est desormais
 //      persistee, et la chaine VIDE est une valeur : c est meme celle que reclame qui ne
 //      veut aucune description pre-remplie. Un `if (d.reason)` la relirait comme « rien
@@ -50,6 +58,7 @@ const extraireAvant = (debut, borne) => {
 };
 
 const ligneSentinelle = extraire("const REGION_PAYS_ENTIER='*';", ";");
+const codeMemoriser   = extraire('const memoriserRegionChoisie=', '\n};');
 // ⚠️ On part de la DECLARATION de _reason, pas de _prefsData. Declaree dans le decor,
 //    elle serait un stub ; extraite, c est la vraie — et si elle disparaissait du
 //    userscript, les affectations tomberaient dans une globale implicite et ce test
@@ -72,6 +81,7 @@ const _traceOpacityOk = v => v;
 const _ovClamp = (g) => g;
 const window = { innerWidth: 1280, innerHeight: 800 };
 const localStorage = {};
+const _regionEchecs = new Set();
 let champ = null;                       // le <input id="wct-reason">, ou rien
 const $id = id => (id === 'wct-reason' ? champ : null);
 `;
@@ -79,8 +89,10 @@ const $id = id => (id === 'wct-reason' ? champ : null);
 let api;
 try {
     api = new Function(PREAMBULE + '\n' + ligneSentinelle + '\n' + codePrefsData + '\n' + codeAppliquer
-        + '\nreturn { _prefsData, _appliquerPrefs, REGION_PAYS_ENTIER,'
+        + '\n' + codeMemoriser
+        + '\nreturn { _prefsData, _appliquerPrefs, REGION_PAYS_ENTIER, memoriserRegionChoisie,'
         + '  lireRegions: () => _regionParEtat, lireReason: () => _reason,'
+        + '  poserEchec: c => _regionEchecs.add(c), echecConnu: c => _regionEchecs.has(c),'
         + '  poserChamp: v => { champ = (v === null ? null : { value: v }); } };')();
 } catch (e) {
     console.error('❌ les fonctions extraites ne s evaluent pas : ' + e.message);
@@ -114,6 +126,52 @@ console.log('— La region « tout le pays » survit au rechargement —');
 
     verifier('temoin : la marque n est pas un code ISO 3166-2',
         !/^[A-Z]{2}-/.test(api.REGION_PAYS_ENTIER), 'marque : ' + api.REGION_PAYS_ENTIER);
+}
+
+console.log('\n— Le geste de l editeur s enregistre, et sous LE BON Etat —');
+{
+    // Ce que ce bloc verrouille, et qui manquait le 06/09/2026 : le choix de region ne
+    // survivait a AUCUN rechargement — ni « tout le pays », ni un autre Etat. La cause
+    // n etait pas la marque, c est que la branche d enregistrement n etait pas atteinte :
+    // le gestionnaire refabriquait la cle depuis `_lastHolidayCall`, remise a null en tete
+    // de chaque generation de l apercu. La cle vient desormais de la fonction qui AFFICHE
+    // le selecteur, ou le pays et l Etat sont ceux de la liste montree a l editeur.
+    api._appliquerPrefs({ regionParEtat: {} });
+
+    api.memoriserRegionChoisie('AU|Victoria', 'AU-NSW');
+    verifier('un Etat choisi a la main est ecrit dans la table',
+        api.lireRegions()['AU|Victoria'] === 'AU-NSW', JSON.stringify(api.lireRegions()));
+
+    api.memoriserRegionChoisie('AU|Victoria', '');
+    verifier('« tout le pays » ecrit la marque, il n efface pas l entree',
+        api.lireRegions()['AU|Victoria'] === api.REGION_PAYS_ENTIER, JSON.stringify(api.lireRegions()));
+
+    verifier('l appel rend true : c est ce qui dit a l appelant de sauvegarder',
+        api.memoriserRegionChoisie('AU|Victoria', 'AU-VIC') === true);
+
+    // ⚠️ LE CAS QUI COMPTE LE PLUS. Sans cle, on n ecrit RIEN — surtout pas « au dernier
+    // Etat connu » : un choix range sous le mauvais Etat ressort plus tard sur un chantier
+    // qui n a rien demande. Et rendre false empeche une sauvegarde inutile.
+    const avant = JSON.stringify(api.lireRegions());
+    const rendu = api.memoriserRegionChoisie(null, 'AU-WA');
+    verifier('sans cle : rien n est ecrit, et l appel rend false',
+        rendu === false && JSON.stringify(api.lireRegions()) === avant,
+        'rendu ' + rendu + ', table ' + JSON.stringify(api.lireRegions()));
+
+    // Le choix efface le souvenir d echec : l editeur vient de fournir la reponse que le
+    // service n avait pas su donner. Sans cela, l Etat resterait marque « ne pas reessayer »
+    // alors qu il n y a plus rien a demander a personne.
+    api.poserEchec('CA|Ontario');
+    api.memoriserRegionChoisie('CA|Ontario', 'CA-ON');
+    verifier('le choix efface le souvenir d echec de cet Etat',
+        !api.echecConnu('CA|Ontario'));
+
+    // Temoin : un echec sur un AUTRE Etat n est pas touche. Sans ce cas, un `clear()`
+    // maladroit passerait pour un correctif.
+    api.poserEchec('CA|Quebec');
+    api.memoriserRegionChoisie('CA|Ontario', 'CA-ON');
+    verifier('temoin : l echec d un autre Etat reste en place',
+        api.echecConnu('CA|Quebec'));
 }
 
 console.log('\n— La description survit au rechargement, le vide compris —');

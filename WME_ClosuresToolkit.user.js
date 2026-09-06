@@ -7486,6 +7486,21 @@ const _regionEchecs=new Set();
 
 const cleEtat=(pays,etat)=>pays+'|'+etat;
 
+// Enregistre le choix de région de l'éditeur POUR UN ÉTAT donné. Rend `true` quand
+// quelque chose a été écrit : c'est ainsi que l'appelant sait qu'il doit sauvegarder.
+//
+// ⚠️ SANS CLÉ, ON N'ÉCRIT RIEN — et surtout pas « au dernier État connu ». Mieux vaut un
+//    choix non mémorisé qu'un choix rangé sous le mauvais État : le second se retrouve
+//    appliqué ailleurs, plus tard, à un chantier qui n'a rien demandé.
+// ⚠️ Le choix efface le SOUVENIR D'ÉCHEC de cet État : l'éditeur vient de fournir la
+//    réponse que le service n'avait pas su donner, il n'y a plus rien à ne pas réessayer.
+const memoriserRegionChoisie=(cle,region)=>{
+    if(!cle) return false;
+    _regionParEtat[cle]=region||REGION_PAYS_ENTIER;
+    _regionEchecs.delete(cle);
+    return true;
+};
+
 // Rend TOUS les codes ISO 3166-2 que le service attribue à ce point, ou null.
 // Plusieurs niveaux coexistent — Barcelone rend `lvl6=ES-B` ET `lvl4=ES-CT` — et le bon
 // niveau dépend du pays. On ne choisit pas ici : on rend tout, l'appelant croise.
@@ -8544,6 +8559,22 @@ let _holRegionSource='auto';
 let _holRegionEcartee='';
 // Vrai quand la valeur affichée a été déduite de la position : l'écran doit le dire.
 let _holRegionDeduite=false;
+// ⚠️⚠️ L'ÉTAT AUQUEL LE SÉLECTEUR AFFICHÉ SE RAPPORTE — écrit par la fonction qui
+//    l'AFFICHE, jamais recalculé au moment du geste. C'est ce qui manquait, et le geste
+//    de l'éditeur était perdu en silence :
+//
+//    le gestionnaire refabriquait la clé à partir de `_lastHolidayCall`, or
+//    `buildClosureList` remet cette variable à `null` EN TÊTE de chaque génération et ne
+//    la renseigne que dans le rappel `feries` — rappel qu'une génération périmée quitte
+//    avant l'affectation. Il suffit que deux générations se croisent pour qu'elle vaille
+//    `null` au moment du clic : la branche d'enregistrement était sautée sans un mot, et
+//    le choix ne survivait pas au rechargement. Vérifié en vrai à Melbourne le
+//    06/09/2026 — ni « tout le pays », ni un autre État ne tenaient.
+//
+//    Ici, au contraire, le pays et l'État sont ceux qui ont SERVI À AFFICHER la liste :
+//    s'ils manquaient, il n'y aurait pas de sélecteur à l'écran. `null` quand la ligne
+//    est masquée, pour qu'une clé périmée ne puisse jamais être écrite.
+let _holRegionCle=null;
 // Le nom du pays et celui de l'État de la sélection, relevés au moment où le moteur
 // résout le pays. Le nom d'État ne SERT PAS à choisir la région — WME n'expose aucun
 // code ISO 3166-2, seulement un nom libre (mesuré le 05/09/2026 aux trois niveaux :
@@ -8613,9 +8644,13 @@ const resoudreRegionAuto=(paysIso, codesConnus)=>{
         // emploie réellement pour ce pays.
         const trouve=choisirNiveauRegion(codes,codesConnus);
         if(!trouve){ _regionEchecs.add(cle); return; }
-        _regionParEtat[cle]=trouve; save();
-        // Entre-temps l'éditeur a pu choisir lui-même : son geste prime sur la réponse.
+        // ⚠️ LE TEST PASSE AVANT L'ÉCRITURE, et l'ordre inverse effaçait un choix.
+        //    Entre-temps l'éditeur a pu choisir lui-même : son geste prime sur la
+        //    réponse. Écrire d'abord « pour garder le cache » remplaçait dans la table
+        //    ce qu'il venait d'y mettre — la requête partie avant son clic gagnait
+        //    contre lui, et rien ne le disait.
         if(_holRegionSource!=='auto') return;
+        _regionParEtat[cle]=trouve; save();
         _holRegionVoulue=trouve; _holRegionDeduite=true;
         // Même précaution que sur le chemin du cache : la réponse peut arriver pendant
         // une génération, et deux générations en vol se marchent dessus.
@@ -8629,6 +8664,10 @@ const resoudreRegionAuto=(paysIso, codesConnus)=>{
 const refreshHolidayRegions=avis=>{
     const row=$id('wct-hol-region-row'),sel=$id('wct-hol-region'),lbl=$id('wct-hol-region-lbl');
     if(!row||!sel) return;
+    // Tant que la ligne n'est pas affichée, il n'y a aucun État où enregistrer un choix.
+    // Remise à null D'ABORD : chacun des retours anticipés ci-dessous masque le sélecteur,
+    // et laisser la clé du passage précédent ferait écrire le geste dans le mauvais État.
+    _holRegionCle=null;
     const appel=_lastHolidayCall;
     // Pays non reconnu : le moteur affiche déjà « filtre non appliqué », mais ce message
     // ne dit pas POURQUOI. On le complète en nommant le pays — sans quoi un éditeur
@@ -8668,12 +8707,17 @@ const refreshHolidayRegions=avis=>{
             +info.regions.map(r=>`<option value="${escHtml(r.code)}">${escHtml(t('holRegionOne',r.code,r.nb))}</option>`).join('');
     }
     sel.value=_holRegionVoulue;
-    // L'État de la sélection, sous le libellé. Deux formulations, et la différence n'est
-    // pas cosmétique : une valeur DÉDUITE doit s'annoncer comme telle. Un filtre qui
-    // s'est réglé tout seul sans le dire est un filtre qu'on ne pense pas à vérifier.
+    // L'ÉTAT du sélecteur affiché, relevé UNE fois et servant à deux choses : le libellé
+    // sous le champ, et l'endroit où le geste de l'éditeur s'enregistrera. Les deux
+    // doivent parler du même État — les calculer séparément, à deux instants différents,
+    // est précisément ce qui faisait perdre le choix.
+    const sel2=getSelection();
+    const st=sel2&&sel2.ids.length?checkSelectionState(sel2.ids):{ok:false,states:[]};
+    if(st.ok&&appel.pays) _holRegionCle=cleEtat(appel.pays, st.state);
+    // Deux formulations, et la différence n'est pas cosmétique : une valeur DÉDUITE doit
+    // s'annoncer comme telle. Un filtre qui s'est réglé tout seul sans le dire est un
+    // filtre qu'on ne pense pas à vérifier.
     if(lbl){
-        const sel2=getSelection();
-        const st=sel2&&sel2.ids.length?checkSelectionState(sel2.ids):{ok:false,states:[]};
         lbl.textContent = !_paysEtat ? ''
             : (!st.ok&&st.states.length>1) ? t('holRegionMultiState',st.states.length)
             : (_holRegionDeduite&&_holRegionVoulue) ? t('holRegionDetected',_paysEtat)
@@ -15890,18 +15934,13 @@ const connectOverlay=ov=>{
         _holRegionDeduite=false;
         // Et il fait autorité : ce qu'il choisit corrige ce qui avait été déduit pour cet
         // État. C'est ainsi que la table se répare, sans que personne n'ait à l'éditer.
-        const s=getSelection(); const st=s&&s.ids.length?checkSelectionState(s.ids):{ok:false};
-        const p=_lastHolidayCall?_lastHolidayCall.pays:null;
-        if(st.ok&&p){
-            const cle=cleEtat(p,st.state);
-            // ⚠️ « Tout le pays » S'ÉCRIT, il ne s'efface pas. Effacer l'entrée rendait
-            //    l'État inconnu au rechargement suivant : la position était réinterrogée
-            //    et remettait sa région. Le choix ne tenait donc que le temps de la
-            //    session — voir REGION_PAYS_ENTIER.
-            _regionParEtat[cle]=_holRegionVoulue||REGION_PAYS_ENTIER;
-            _regionEchecs.delete(cle);
-            save();
-        }
+        //
+        // ⚠️ LA CLÉ N'EST PAS REFABRIQUÉE ICI. Elle vient de la fonction qui a AFFICHÉ ce
+        //    sélecteur, donc du même pays et du même État que la liste sous les yeux de
+        //    l'éditeur. La recalculer au moment du clic dépendait de `_lastHolidayCall`,
+        //    remise à null à chaque génération : la branche était sautée en silence et le
+        //    choix ne survivait pas au rechargement. Voir `_holRegionCle`.
+        if(memoriserRegionChoisie(_holRegionCle,_holRegionVoulue)) save();
         refreshSmallPreview();
     });
     // Valider
