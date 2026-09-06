@@ -57,7 +57,10 @@ Drop any file into the Import tab — the content decides where it goes:
 - **CSV export** — separate exports for segment closures and turn closures.
 - **Partner source** — record and display which partner a closure originates from.
 - **Major Traffic Event (MTE)** support.
-- **Public holidays** taken into account when scheduling recurrences.
+- **Public holidays, down to the region** — a recurrence can skip them, target only them, or add
+  them to the days you picked. In countries where holidays differ by state or territory, the region
+  is worked out from where the segment is; you can always pick another one, or the whole country,
+  and that choice is remembered.
 - **Eight languages**: English, French, German, Spanish, Italian, Portuguese (PT and BR), and Hebrew — with full right-to-left (RTL) layout for Hebrew.
 
 ## Installation

@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.16.00
+// @version      1.17.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -709,6 +709,10 @@ GM_addStyle(`
 .wct-prev-head { font-weight:700; color:var(--wct-blue); margin-bottom:3px; position:sticky; top:-5px; background:inherit; padding:2px 0; }
 .wct-prev-row { font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--wct-text2); white-space:nowrap; }
 .wct-prev-more { color:var(--wct-grey); font-style:italic; margin-top:3px; }
+/* Le jour férié, dans la ligne qui le porte : une annotation sur l'occurrence, pas une
+   donnée de la fermeture — d'où l'italique et une couleur qui n'est ni celle du texte
+   ni celle d'une erreur. La ligne est en white-space:nowrap : ceci l'allonge. */
+.wct-prev-hol { font-style:italic; color:var(--wct-orange); }
 /* Débordement de plage : une information, pas une erreur — ni rouge, ni orange. */
 .wct-prev-past { color:var(--wct-text2); font-style:italic; margin-bottom:3px; }
 
@@ -1717,7 +1721,7 @@ const D = {
             tipHolOnly:'Les fermetures ne seront propos\u00e9es QUE les jours f\u00e9ri\u00e9s \u2014 toutes les autres occurrences sont ignor\u00e9es.',
             tipHolAdd:'Ajoute les jours f\u00e9ri\u00e9s de la plage en suppl\u00e9ment des jours s\u00e9lectionn\u00e9s (union).',
             holRegionLabel:'Jours fériés : région',
-            tipHolRegion:'Ce pays a des jours fériés propres à certaines régions. Choisissez la vôtre : ceux des autres régions cessent d’être comptés.',
+            tipHolRegion:'Ce pays a des jours fériés propres à certaines régions. La vôtre est déduite du chantier quand c’est possible ; vous pouvez toujours en choisir une autre, ou tout le pays.',
             holRegionAll: n => `Tout le pays (${n} jours)`,
             holRegionOne: (c, n) => `${c} (${n} jours)`,
             holRegionAllNote: n => `(tout le pays, ${n} r\u00E9gions confondues)`,
@@ -1728,6 +1732,7 @@ const D = {
             holRegionMultiState: n => `${n} \u00E9tats dans la s\u00E9lection \u2014 choisissez`,
             holidayModeAdd:'+ Jours f\u00e9ri\u00e9s',
             holidaysAdded: n => `\u2705 ${n} jour(s) f\u00e9ri\u00e9(s) ajout\u00e9(s) en suppl\u00e9ment.`,
+            holidaysAddedCovered: n => `✅ ${n} jour(s) férié(s) dans la période, déjà couvert(s) par les jours choisis.`,
             // File
             sectionQueue:'\uD83D\uDCCB File d\u2019attente', queueEmpty:'File vide.',
             queueKept: n => `↩️ ${n} entrée(s) reprise(s) de votre session précédente. Vérifiez les dates avant d’appliquer.`,
@@ -1767,6 +1772,7 @@ const D = {
             closuresN: n => `${n} fermeture(s) configur\u00E9e(s)`,
             previewHead: n => `${n} fermeture(s) \u00E0 appliquer\u00A0:`,
             previewMore: n => `\u2026 et ${n} autre(s)`,
+            previewHoliday:'jour férié',
             // Confirms
             confirmClear:'Vider la file\u00A0?',
             clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
@@ -1873,6 +1879,7 @@ const D = {
             errRepeat:'Nombre de r\u00E9p\u00E9titions invalide',
             errMaxItems: n => `\u274C Limite de ${n} fermetures atteinte \u2014 v\u00E9rifiez la plage de dates ou r\u00E9duisez la p\u00E9riode.`,
             defaultClosure:'Fermeture',
+            defaultReason:'🚧Travaux🚧',
             selectAll:'Tout s\u00E9lectionner',
             // Segments \u00e9cart\u00e9s (sens incompatible)
             exclWarnTitle: n => `${n} segment(s) \u00e9cart\u00e9(s) \u2014 sens incompatible. Ils ne seront pas trait\u00e9s. Cliquez pour t\u00e9l\u00e9charger le d\u00e9tail.`,
@@ -2287,7 +2294,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipHolOnly:'Closures will be proposed ONLY on public holidays \u2014 all other occurrences are ignored.',
             tipHolAdd:'Adds public holidays in the range on top of the selected weekdays (union).',
             holRegionLabel:'Public holidays: region',
-            tipHolRegion:'This country has holidays specific to some regions. Pick yours: holidays from other regions stop being counted.',
+            tipHolRegion:'This country has holidays specific to some regions. Yours is detected from the segment when possible; you can always pick another one, or the whole country.',
             holRegionAll: n => `Whole country (${n} days)`,
             holRegionOne: (c, n) => `${c} (${n} days)`,
             holRegionAllNote: n => `(whole country, ${n} regions combined)`,
@@ -2298,6 +2305,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             holRegionMultiState: n => `${n} states in the selection \u2014 pick one`,
             holidayModeAdd:'+ Public holidays',
             holidaysAdded: n => `\u2705 ${n} additional public holiday(s) added.`,
+            holidaysAddedCovered: n => `✅ ${n} public holiday(s) in the period, already covered by the days selected.`,
             sectionQueue:'\uD83D\uDCCB Queue', queueEmpty:'Queue empty.',
             queueKept: n => `↩️ ${n} entry(-ies) restored from your previous session. Check the dates before applying.`,
             queueKeptKeep:'Keep', queueKeptDrop:'🗑️ Discard',
@@ -2333,6 +2341,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             closuresN: n => `${n} closure(s) configured`,
             previewHead: n => `${n} closure(s) to apply:`,
             previewMore: n => `\u2026 and ${n} more`,
+            previewHoliday:'public holiday',
             confirmClear:'Clear the queue?',
             clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
             confirmApply: (n,m) => `Write ${n} closure(s) in WME? (${m} queued entry/ies)`,
@@ -2433,6 +2442,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             errRepeat:'Invalid number of repetitions',
             errMaxItems: n => `\u274C Limit of ${n} closures reached \u2014 check the date range or reduce the period.`,
             defaultClosure:'Closure',
+            defaultReason:'🚧Roadworks🚧',
             selectAll:'Select all',
             tipCenter:'Center on this segment',
             centerUnavailable: sid => `Cannot centre on segment ${sid}: it is not loaded and no coordinate is available.`,
@@ -2849,7 +2859,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'חסימות יוצעו רק בחגים — כל שאר המופעים מתעלמים מהם.',
             tipHolAdd:'מוסיף את החגים שבטווח על גבי ימי השבוע הנבחרים (איחוד).',
             holRegionLabel:'חגים: אזור',
-            tipHolRegion:'במדינה זו יש חגים ייחודיים לאזורים מסוימים. בחרו את שלכם: חגי האזורים האחרים לא ייספרו עוד.',
+            tipHolRegion:'במדינה זו יש חגים ייחודיים לאזורים מסוימים. האזור שלכם מזוהה מהמקטע כשניתן; תמיד אפשר לבחור אזור אחר, או את כל המדינה.',
             holRegionAll: n => `כל המדינה (${n} ימים)`,
             holRegionOne: (c, n) => `${c} (${n} ימים)`,
             holRegionAllNote: n => `(כל המדינה, ${n} אזורים יחד)`,
@@ -2860,6 +2870,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMultiState: n => `${n} מחוזות בבחירה — בחרו`,
             holidayModeAdd:'+ חגים',
             holidaysAdded: n => `✅ ${n} חגים נוספים התווספו.`,
+            holidaysAddedCovered: n => `✅ ${n} חגים בתקופה, כבר נכללים בימים שנבחרו.`,
             sectionQueue:'📋 תור', queueEmpty:'התור ריק.',
             queueKept: n => `↩️ ${n} רשומות שוחזרו מהפעלה קודמת. בדוק את התאריכים לפני ההחלה.`,
             queueKeptKeep:'שמור', queueKeptDrop:'🗑️ מחק',
@@ -2901,6 +2912,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             closuresN: n => `${n} חסימות הוגדרו`,
             previewHead: n => `${n} חסימות ליישום:`,
             previewMore: n => `… ועוד ${n}`,
+            previewHoliday:'חג',
             confirmClear:'לנקות את התור?',
             clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
             confirmApply: (n,m) => `לכתוב ${n} חסימות ב-WME? (${m} רשומות בתור)`,
@@ -3001,6 +3013,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             errRepeat:'מספר חזרות לא תקין',
             errMaxItems: n => `❌ הגעת למגבלה של ${n} חסימות — בדוק את טווח התאריכים או צמצם את התקופה.`,
             defaultClosure:'חסימה',
+            defaultReason:'🚧עבודות🚧',
             selectAll:'בחר הכול',
             tipCenter:'מרכז על מקטע זה',
             centerUnavailable: sid => `לא ניתן למרכז על מקטע ${sid}: הוא לא טעון ואין קואורדינטה זמינה.`,
@@ -3417,7 +3430,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Le chiusure saranno proposte SOLO nei giorni festivi — tutte le altre occorrenze vengono ignorate.',
             tipHolAdd:'Aggiunge i giorni festivi dell’intervallo sopra i giorni della settimana selezionati (unione).',
             holRegionLabel:'Giorni festivi: regione',
-            tipHolRegion:'Questo paese ha giorni festivi propri di alcune regioni. Scegli la tua: quelli delle altre regioni non vengono più conteggiati.',
+            tipHolRegion:'Questo paese ha giorni festivi propri di alcune regioni. La tua è dedotta dal segmento quando è possibile; puoi sempre sceglierne un’altra, o tutto il paese.',
             holRegionAll: n => `Tutto il paese (${n} giorni)`,
             holRegionOne: (c, n) => `${c} (${n} giorni)`,
             holRegionAllNote: n => `(tutto il paese, ${n} regioni insieme)`,
@@ -3428,6 +3441,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMultiState: n => `${n} regioni nella selezione \u2014 scegli`,
             holidayModeAdd:'+ Giorni festivi',
             holidaysAdded: n => `✅ ${n} giorno/i festivi aggiuntivi aggiunti.`,
+            holidaysAddedCovered: n => `✅ ${n} giorno/i festivi nel periodo, già inclusi nei giorni scelti.`,
             sectionQueue:'📋 Coda', queueEmpty:'Coda vuota.',
             queueKept: n => `↩️ ${n} voce/voci recuperate dalla sessione precedente. Controlla le date prima di applicare.`,
             queueKeptKeep:'Mantieni', queueKeptDrop:'🗑️ Scarta',
@@ -3463,6 +3477,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             closuresN: n => `${n} chiusura/e configurate`,
             previewHead: n => `${n} chiusura/e da applicare:`,
             previewMore: n => `… e altre ${n}`,
+            previewHoliday:'giorno festivo',
             confirmClear:'Svuotare la coda?',
             clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
             confirmApply: (n,m) => `Scrivere ${n} chiusura/e in WME? (${m} voce/i in coda)`,
@@ -3563,6 +3578,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             errRepeat:'Numero di ripetizioni non valido',
             errMaxItems: n => `❌ Raggiunto il limite di ${n} chiusure — controlla l’intervallo di date o riduci il periodo.`,
             defaultClosure:'Chiusura',
+            defaultReason:'🚧Lavori🚧',
             selectAll:'Seleziona tutto',
             tipCenter:'Centra su questo segmento',
             centerUnavailable: sid => `Impossibile centrare sul segmento ${sid}: non è caricato e non è disponibile alcuna coordinata.`,
@@ -3980,7 +3996,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Sperrungen werden AUSSCHLIESSLICH an Feiertagen vorgeschlagen \u2014 alle anderen Termine entfallen.',
             tipHolAdd:'F\u00FCgt die Feiertage im Zeitraum zus\u00E4tzlich zu den gew\u00E4hlten Wochentagen hinzu (Vereinigung).',
             holRegionLabel:'Feiertage: Region',
-            tipHolRegion:'Dieses Land hat Feiertage, die nur in bestimmten Regionen gelten. Wählen Sie Ihre: Feiertage anderer Regionen zählen dann nicht mehr.',
+            tipHolRegion:'Dieses Land hat Feiertage, die nur in bestimmten Regionen gelten. Ihre wird nach Möglichkeit aus dem Segment ermittelt; Sie können jederzeit eine andere Region oder das ganze Land wählen.',
             holRegionAll: n => `Ganzes Land (${n} Tage)`,
             holRegionOne: (c, n) => `${c} (${n} Tage)`,
             holRegionAllNote: n => `(ganzes Land, ${n} Regionen zusammen)`,
@@ -3991,6 +4007,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMultiState: n => `${n} Regionen in der Auswahl \u2014 bitte w\u00E4hlen`,
             holidayModeAdd:'+ Feiertage',
             holidaysAdded: n => `\u2705 ${n} zus\u00E4tzliche(r) Feiertag(e) hinzugef\u00FCgt.`,
+            holidaysAddedCovered: n => `✅ ${n} Feiertag(e) im Zeitraum, bereits durch die gewählten Tage abgedeckt.`,
             sectionQueue:'\uD83D\uDCCB Warteschlange', queueEmpty:'Warteschlange leer.',
             queueKept: n => `↩️ ${n} Eintrag/Einträge aus der vorherigen Sitzung wiederhergestellt. Prüfe die Daten vor dem Anwenden.`,
             queueKeptKeep:'Behalten', queueKeptDrop:'🗑️ Verwerfen',
@@ -4026,6 +4043,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             closuresN: n => `${n} Sperrung(en) eingerichtet`,
             previewHead: n => `${n} anzuwendende Sperrung(en):`,
             previewMore: n => `\u2026 und ${n} weitere`,
+            previewHoliday:'Feiertag',
             confirmClear:'Warteschlange leeren?',
             clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
             confirmApply: (n,m) => `${n} Sperrung(en) in WME schreiben? (${m} Einträge in der Warteschlange)`,
@@ -4126,6 +4144,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             errRepeat:'Ung\u00FCltige Anzahl an Wiederholungen',
             errMaxItems: n => `\u274C Grenze von ${n} Sperrungen erreicht \u2014 pr\u00FCfe den Datumsbereich oder verk\u00FCrze den Zeitraum.`,
             defaultClosure:'Sperrung',
+            defaultReason:'🚧Bauarbeiten🚧',
             selectAll:'Alle ausw\u00E4hlen',
             tipCenter:'Auf dieses Segment zentrieren',
             centerUnavailable: sid => `Zentrieren auf Segment ${sid} nicht möglich: es ist nicht geladen und es liegt keine Koordinate vor.`,
@@ -4542,7 +4561,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Los cierres se propondrán SOLO en los días festivos — el resto de ocurrencias se ignoran.',
             tipHolAdd:'Añade los festivos del periodo además de los días seleccionados (unión).',
             holRegionLabel:'Festivos: región',
-            tipHolRegion:'Este país tiene festivos propios de algunas regiones. Elige la tuya: los de las demás regiones dejan de contarse.',
+            tipHolRegion:'Este país tiene festivos propios de algunas regiones. La tuya se deduce del segmento cuando es posible; siempre puedes elegir otra, o todo el país.',
             holRegionAll: n => `Todo el pa\u00EDs (${n} d\u00EDas)`,
             holRegionOne: (c, n) => `${c} (${n} d\u00EDas)`,
             holRegionAllNote: n => `(todo el pa\u00EDs, ${n} regiones juntas)`,
@@ -4553,6 +4572,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             holRegionMultiState: n => `${n} regiones en la selecci\u00F3n \u2014 elige`,
             holidayModeAdd:'+ Festivos',
             holidaysAdded: n => `✅ ${n} festivo(s) añadido(s) adicionalmente.`,
+            holidaysAddedCovered: n => `✅ ${n} festivo(s) en el periodo, ya incluidos en los días elegidos.`,
             sectionQueue:'📋 Cola', queueEmpty:'Cola vacía.',
             queueKept: n => `↩️ ${n} entrada(s) recuperada(s) de tu sesión anterior. Revisa las fechas antes de aplicar.`,
             queueKeptKeep:'Conservar', queueKeptDrop:'🗑️ Descartar',
@@ -4588,6 +4608,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             closuresN: n => `${n} cierre(s) configurado(s)`,
             previewHead: n => `${n} cierre(s) a aplicar:`,
             previewMore: n => `… y ${n} más`,
+            previewHoliday:'festivo',
             confirmClear:'¿Vaciar la cola?',
             clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
             confirmApply: (n,m) => `¿Escribir ${n} cierre(s) en WME? (${m} entrada(s) en la cola)`,
@@ -4688,6 +4709,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             errRepeat:'Número de repeticiones no válido',
             errMaxItems: n => `❌ Límite de ${n} cierres alcanzado — revisa el intervalo de fechas o reduce el periodo.`,
             defaultClosure:'Cierre',
+            defaultReason:'🚧Obras🚧',
             selectAll:'Seleccionar todo',
             tipCenter:'Centrar en este segmento',
             centerUnavailable: sid => `Imposible centrar en el segmento ${sid}: no está cargado y no hay ninguna coordenada disponible.`,
@@ -5104,7 +5126,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipHolOnly:'Os bloqueios serão propostos SOMENTE em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Adiciona os feriados do período aos dias da semana selecionados (união).',
             holRegionLabel:'Feriados: região',
-            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua: os das outras regiões deixam de ser contados.',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. A sua é deduzida do segmento quando possível; você sempre pode escolher outra, ou o país inteiro.',
             holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
             holRegionOne: (c, n) => `${c} (${n} dias)`,
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es juntas)`,
@@ -5115,6 +5137,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             holRegionMultiState: n => `${n} regi\u00F5es na sele\u00E7\u00E3o \u2014 escolha`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(is) incluído(s).`,
+            holidaysAddedCovered: n => `✅ ${n} feriado(s) no período, já incluídos nos dias escolhidos.`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             queueKept: n => `↩️ ${n} entrada(s) recuperada(s) da sessão anterior. Verifique as datas antes de aplicar.`,
             queueKeptKeep:'Manter', queueKeptDrop:'🗑️ Descartar',
@@ -5150,6 +5173,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             closuresN: n => `${n} bloqueio(s) configurado(s)`,
             previewHead: n => `${n} bloqueio(s) a aplicar:`,
             previewMore: n => `… e mais ${n}`,
+            previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Gravar ${n} bloqueio(s) no WME? (${m} entrada(s) na fila)`,
@@ -5250,6 +5274,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             errRepeat:'Número de repetições inválido',
             errMaxItems: n => `❌ Limite de ${n} bloqueios atingido — verifique o intervalo de datas ou reduza o período.`,
             defaultClosure:'Bloqueio',
+            defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centralizar neste segmento',
             centerUnavailable: sid => `Impossível centralizar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
@@ -5666,7 +5691,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipHolOnly:'Os cortes serão propostos APENAS em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Acrescenta os feriados do período aos dias da semana selecionados (união).',
             holRegionLabel:'Feriados: região',
-            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua: os das outras regiões deixam de ser contabilizados.',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. A sua é deduzida do segmento quando possível; pode sempre escolher outra, ou o país inteiro.',
             holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
             holRegionOne: (c, n) => `${c} (${n} dias)`,
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es em conjunto)`,
@@ -5677,6 +5702,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             holRegionMultiState: n => `${n} regi\u00F5es na sele\u00E7\u00E3o \u2014 escolha`,
             holidayModeAdd:'+ Feriados',
             holidaysAdded: n => `✅ ${n} feriado(s) adicional(ais) adicionado(s).`,
+            holidaysAddedCovered: n => `✅ ${n} feriado(s) no período, já incluídos nos dias escolhidos.`,
             sectionQueue:'📋 Fila', queueEmpty:'Fila vazia.',
             queueKept: n => `↩️ ${n} entrada(s) recuperada(s) da sessão anterior. Verifique as datas antes de aplicar.`,
             queueKeptKeep:'Manter', queueKeptDrop:'🗑️ Descartar',
@@ -5712,6 +5738,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             closuresN: n => `${n} corte(s) configurado(s)`,
             previewHead: n => `${n} corte(s) a aplicar:`,
             previewMore: n => `… e mais ${n}`,
+            previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Gravar ${n} corte(s) no WME? (${m} entrada(s) na fila)`,
@@ -5812,6 +5839,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             errRepeat:'Número de repetições inválido',
             errMaxItems: n => `❌ Limite de ${n} cortes atingido — verifique o intervalo de datas ou reduza o período.`,
             defaultClosure:'Corte',
+            defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centrar neste segmento',
             centerUnavailable: sid => `Impossível centrar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
@@ -7441,6 +7469,14 @@ const getSegPoint=sid=>{
 const NOMINATIM_URL='https://nominatim.openstreetmap.org/reverse';
 
 // { 'AU|New South Wales': 'AU-NSW' } — persisté avec les préférences.
+//
+// ⚠️⚠️ « TOUT LE PAYS » EST UN CHOIX, PAS UNE ABSENCE, et les confondre a coûté une
+//    version. Jusqu'à la 1.16.00, choisir « tout le pays » EFFAÇAIT l'entrée : au
+//    rechargement suivant, l'État redevenait inconnu, la position était réinterrogée et
+//    la région détectée se réimposait. L'éditeur voyait son choix se défaire à chaque
+//    ouverture de WME, sans un mot — signalé le 06/09/2026 depuis l'Australie.
+//    Le choix s'écrit donc, avec une marque qui n'est pas un code de région.
+const REGION_PAYS_ENTIER='*';
 let _regionParEtat={};
 // L'État en cours d'interrogation : un seul appel à la fois, et jamais deux fois le
 // même. Sans ce verrou, l'aperçu qui se régénère relancerait la requête en boucle.
@@ -8033,11 +8069,24 @@ var WMEPrefs = (function () {
 // part sans être awaitée — sous Tampermonkey GM_setValue est de toute façon
 // synchrone, et la bibliothèque double l'écriture dans localStorage.
 let _prefs = null;
+// La DESCRIPTION du panneau, telle qu'elle a été laissée. `null` = jamais enregistrée,
+// et c'est alors le défaut de la langue qui s'affiche.
+//
+// ⚠️ POURQUOI ELLE EST PERSISTÉE. Le champ repartait de son défaut à CHAQUE chargement
+//    de WME. Ce défaut était de surcroît écrit en dur en français (« 🚧Travaux🚧 »),
+//    dans les huit langues : un éditeur australien devait effacer un mot français avant
+//    chaque chantier. Signalé le 06/09/2026. Le défaut est désormais traduit, et ce qui
+//    a été saisi — y compris le vide — survit au rechargement.
+let _reason = null;
 const _prefsData = () => ({ presets, closeNodes, enabled, displayMode:_displayMode,
     dateFormat:_dateFormat, cardsCollapsedDefault:_cardsCollapsedDefault,
     langPref:_langPref, polyTypes:_polyTypes?[..._polyTypes]:null,
     traceWidth:_traceWidth, traceOpacity:_traceOpacity, ovGeom:_ovGeom,
-    timeMode:_timeMode, queue:_queuePourPrefs(), regionParEtat:_regionParEtat });
+    timeMode:_timeMode, queue:_queuePourPrefs(), regionParEtat:_regionParEtat,
+    // ⚠️ LUE DANS LE CHAMP QUAND IL EXISTE, sinon on réécrit ce qu'on avait lu. `save()`
+    //    part aussi AVANT que le panneau soit construit (reprise de la file, langue…) :
+    //    lire un `$id` absent y écrirait une chaîne vide et effacerait la description.
+    reason: $id('wct-reason') ? $id('wct-reason').value : _reason });
 const _appliquerPrefs = d => {
     if(!d || typeof d !== 'object') return;
     presets = d.presets || [];
@@ -8062,8 +8111,16 @@ const _appliquerPrefs = d => {
     if(d.regionParEtat && typeof d.regionParEtat === 'object' && !Array.isArray(d.regionParEtat)){
         _regionParEtat = {};
         for(const [k,v] of Object.entries(d.regionParEtat))
-            if(typeof k === 'string' && typeof v === 'string' && /^[A-Z]{2}-/.test(v)) _regionParEtat[k] = v;
+            // ⚠️ La marque « tout le pays » ne ressemble pas à un code ISO 3166-2, et ce
+            //    filtre l'aurait donc jetée à la relecture — le choix aurait survécu à la
+            //    session mais pas au rechargement, c'est-à-dire nulle part.
+            if(typeof k === 'string' && typeof v === 'string'
+               && (/^[A-Z]{2}-/.test(v) || v === REGION_PAYS_ENTIER)) _regionParEtat[k] = v;
     }
+    // ⚠️ `typeof === 'string'` et non un test de vérité : la chaîne VIDE est une valeur,
+    //    c'est même celle que réclame qui ne veut aucune description pré-remplie. La
+    //    traiter comme « rien d'enregistré » ferait revenir le défaut à chaque fois.
+    if(typeof d.reason === 'string') _reason = d.reason;
     if(d.timeMode === 'dur' || d.timeMode === 'end') _timeMode = d.timeMode;
     else { try { if(localStorage.WCT_timeMode === 'dur') _timeMode = 'dur'; } catch(e){} }
     // Borner en RELISANT la valeur stockee : un reglage hors bornes (fichier de prefs
@@ -8366,6 +8423,18 @@ var WMECreneaux = (function () {
             return modeFeries === 'only' ? hols.includes(k) : !hols.includes(k);
         });
 
+        /* ⚠️ LE MARQUAGE N'EST PAS DÉCORATIF. En mode « + jours fériés », une occurrence
+           tombée sur un férié est INDISCERNABLE des autres dans la liste rendue : sur
+           dix-huit créneaux, l'appelant n'avait aucun moyen de dire lequel est le férié,
+           et il n'affichait donc rien. Signalé le 06/09/2026 depuis l'Australie.
+           Le drapeau est POSÉ, jamais retiré : un appelant qui l'ignore voit exactement
+           ce qu'il voyait avant. */
+        const joursFeries = new Set(hols);
+        const marquer = l => {
+            l.forEach(cl => { if (joursFeries.has(dayKey(cl.start))) cl.ferie = true; });
+            return l;
+        };
+
         if (modeFeries === 'skip') {
             const retirees = list.length - retenues.length;
             avis.push(retirees > 0
@@ -8378,7 +8447,7 @@ var WMECreneaux = (function () {
             avis.push(retenues.length > 0
                 ? { zone: ZONES.FERIES, code: 'holidaysOnly', args: [retenues.length], niveau: 'info' }
                 : { zone: ZONES.FERIES, code: 'holidaysOnlyNone', args: [], niveau: 'info' });
-            return sortie(retenues);
+            return sortie(marquer(retenues));
         }
 
         /* 'add' — les fériés de la plage viennent EN PLUS de ce qui est déjà là.
@@ -8394,15 +8463,25 @@ var WMECreneaux = (function () {
             if (s > reDT) continue;   // même borne que la boucle : sur le DÉBUT
             enPlus.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
         }
+        /* ⚠️⚠️ « RIEN AJOUTÉ » N'EST PAS « AUCUN FÉRIÉ », et les confondre fait mentir
+           l'écran. Un férié qui tombe un jour DÉJÀ coché est déjà dans la liste : il n'y
+           a rien à ajouter, mais annoncer « aucun jour férié dans la période » est faux —
+           c'est exactement ce qui s'affichait sur le vendredi 25 septembre 2026 en
+           Victoria, avec « Lun–Ven » coché, pendant que le mode « fériés uniquement »
+           trouvait ce même jour. Trois situations, trois messages : ajoutés, déjà
+           couverts, aucun. */
+        const feriesDeLaPlage = hols.filter(h => h >= cfg.rangestart && h <= cfg.rangeend);
         avis.push(enPlus.length > 0
             ? { zone: ZONES.FERIES, code: 'holidaysAdded', args: [enPlus.length], niveau: 'info' }
-            : { zone: ZONES.FERIES, code: 'holidaysNone', args: [], niveau: 'info' });
+            : feriesDeLaPlage.length > 0
+                ? { zone: ZONES.FERIES, code: 'holidaysAddedCovered', args: [feriesDeLaPlage.length], niveau: 'info' }
+                : { zone: ZONES.FERIES, code: 'holidaysNone', args: [], niveau: 'info' });
 
-        return sortie([...list, ...enPlus].sort((a, b) => a.start - b.start));
+        return sortie(marquer([...list, ...enPlus].sort((a, b) => a.start - b.start)));
     }
 
     return {
-        VERSION: '1.0.0',
+        VERSION: '1.1.0',
         MODES,
         ZONES,
         generer,
@@ -8498,6 +8577,15 @@ const resoudreRegionAuto=(paysIso, codesConnus)=>{
     if(!st.ok) return;
     const cle=cleEtat(paysIso, st.state);
     const dejaVu=_regionParEtat[cle];
+    // « Tout le pays » demandé pour cet État : c'est une décision, et elle prime sur la
+    // position. On repasse la source en « manuel » — sans quoi cette fonction serait
+    // rappelée à chaque frappe et finirait par interroger le service de géocodage pour
+    // un État dont l'éditeur a déjà dit ce qu'il voulait.
+    if(dejaVu===REGION_PAYS_ENTIER){
+        _holRegionSource='manuel';
+        if(_holRegionVoulue!==''){ _holRegionVoulue=''; _holRegionDeduite=false; setTimeout(refreshSmallPreview,0); }
+        return;
+    }
     if(dejaVu){
         // Connu : aucune requête. On ne l'applique que si ce pays la connaît encore —
         // les subdivisions d'un pays peuvent changer, la mémoire ne fait pas foi.
@@ -8722,6 +8810,10 @@ const applyConfig=cfg=>{
         if(durEl)durEl.style.display=isEnd?'none':'flex';
         if(btn){ btn.classList.toggle('end',isEnd); }
     }
+    // ⚠️ Poser la valeur dans le champ NE DÉCLENCHE PAS `change` : sans cette ligne, une
+    //    description venue d'un préréglage ne serait jamais persistée, et le rechargement
+    //    suivant ramènerait l'ancienne.
+    if(typeof cfg.reason==='string')_reason=cfg.reason;
     set('wct-reason',cfg.reason);set('wct-direction',cfg.direction);chk('wct-ignoretraffic',cfg.ignoretraffic);
     if(cfg.mteId){
         // Tenter de sélectionner l'ID dans le select ; si absent, déclencher un refresh puis réessayer
@@ -10143,7 +10235,12 @@ const refreshSmallPreview=async()=>{
     const rows=shown.map(cl=>{
         const s=formatDateDisplay(cl.start), e=formatDateDisplay(cl.end);
         const pre=reason?`${escHtml(reason)}: `:'';
-        return `<div class="wct-prev-row">${_icon} ${pre}${s} \u2192 ${e} (${dirIcon})</div>`;
+        // \u26a0\ufe0f CE QUI MANQUAIT \u00c0 L'\u00c9CRAN. En \u00ab + jours f\u00e9ri\u00e9s \u00bb, rien ne distinguait le jour
+        //    f\u00e9ri\u00e9 des dix-sept nuits ordinaires : l'\u00e9diteur lisait un COMPTE, jamais
+        //    LESQUELS. Le moteur pose le drapeau (voir `marquer` dans WMECreneaux), on se
+        //    contente de le lire \u2014 l'aper\u00e7u ne recalcule aucun jour f\u00e9ri\u00e9 pour son compte.
+        const marque=cl.ferie?` <span class="wct-prev-hol">${escHtml(t('previewHoliday'))}</span>`:'';
+        return `<div class="wct-prev-row">${_icon} ${pre}${s} \u2192 ${e} (${dirIcon})${marque}</div>`;
     }).join('');
     const more=n>PREVIEW_MAX_ROWS?`<div class="wct-prev-more">${t('previewMore',n-PREVIEW_MAX_ROWS)}</div>`:'';
     // Repliable : le COMPTEUR reste toujours visible — c'est le filet qui evite de poser
@@ -14638,7 +14735,12 @@ const buildOverlay=()=>{
             <div class="wct-section" style="margin-top:0">${t('sectionParams')}</div>
             <div style="margin-bottom:4px"><label class="wct-label">${t('lblDesc')}</label>
               <div style="position:relative;display:flex;gap:4px;align-items:center">
-                <input id="wct-reason" class="wct-input" type="text" title="${t('tipReason')}" value="&#x1F6A7;Travaux&#x1F6A7;" style="flex:1;min-width:0">
+                <!-- ⚠️ NI EN DUR, NI EN FRANÇAIS. Cette valeur était « 🚧Travaux🚧 » quelle
+                     que soit la langue du script, et elle revenait à chaque chargement de
+                     WME : hors de France, il fallait l'effacer avant chaque chantier.
+                     Elle vient maintenant du dictionnaire, et ce que l'éditeur a laissé —
+                     y compris rien — reprend sa place. Voir _reason. -->
+                <input id="wct-reason" class="wct-input" type="text" title="${t('tipReason')}" value="${escHtml(_reason!==null?_reason:t('defaultReason'))}" style="flex:1;min-width:0">
                 <button id="wct-emoji-btn" type="button" title="${t('emojiPickerTip')}" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--wct-border);border-radius:var(--wct-radius);background:var(--wct-bg);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0">&#x1F4CC;</button>
                 <!-- ⚠️ L'ancrage horizontal (right) est dans la feuille de style, pas ici :
                      un style inline gagne contre tout sélecteur, y compris celui qui le
@@ -15764,6 +15866,10 @@ const connectOverlay=ov=>{
     });
     $id('wct-nodesel')?.addEventListener('change',()=>{closeNodes=parseInt($id('wct-nodesel').value);save();});
     $id('wct-nodesel').value=String(closeNodes);
+    // La description survit au rechargement. Sur `change` (donc à la sortie du champ) et
+    // non sur `input` : `save()` écrit dans le stockage, l'appeler à chaque caractère
+    // saisi ferait une écriture par frappe.
+    $id('wct-reason')?.addEventListener('change',()=>{_reason=$id('wct-reason').value;save();});
     // Checkboxes jours fériés — exclusivité mutuelle
     const holSkip=$id('wct-hol-skip'),holOnly=$id('wct-hol-only');
     if(holSkip&&holOnly){
@@ -15788,7 +15894,11 @@ const connectOverlay=ov=>{
         const p=_lastHolidayCall?_lastHolidayCall.pays:null;
         if(st.ok&&p){
             const cle=cleEtat(p,st.state);
-            if(_holRegionVoulue) _regionParEtat[cle]=_holRegionVoulue; else delete _regionParEtat[cle];
+            // ⚠️ « Tout le pays » S'ÉCRIT, il ne s'efface pas. Effacer l'entrée rendait
+            //    l'État inconnu au rechargement suivant : la position était réinterrogée
+            //    et remettait sa région. Le choix ne tenait donc que le temps de la
+            //    session — voir REGION_PAYS_ENTIER.
+            _regionParEtat[cle]=_holRegionVoulue||REGION_PAYS_ENTIER;
             _regionEchecs.delete(cle);
             save();
         }

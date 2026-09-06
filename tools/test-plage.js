@@ -424,6 +424,68 @@ const verifier = (titre, condition, detail) => {
         }
     }
 
+    console.log('\n— « + jours feries » : trois situations, trois messages —');
+    {
+        // Le defaut signale le 06/09/2026 depuis l Australie : un ferie qui tombe un jour
+        // DEJA coche n ajoute rien, et l ecran annoncait « aucun jour ferie dans la
+        // periode ». Faux, et contredit par le mode « feries uniquement » qui trouvait ce
+        // meme jour sur la MEME configuration. Deux messages cote a cote qui se
+        // contredisent : c est le message qu il fallait corriger, pas le filtre.
+        //
+        // 2026-09-25 est un VENDREDI, 2026-09-26 un SAMEDI. Les jours coches sont Lun-Ven :
+        // le premier est deja pris, le second non. C est toute la difference entre les deux
+        // premiers cas.
+        const tzAvant = process.env.TZ;
+        process.env.TZ = 'Australia/Melbourne';
+        const codeF = r => (r.avis.find(a => a.zone === 'feries') || {}).code;
+        const argF  = r => ((r.avis.find(a => a.zone === 'feries') || {}).args || [])[0];
+        const BASE = { debut: '2026-09-06', fin: '2026-09-30', heureDebut: '21:00', heureFin: '05:00',
+                       jours: LUN_VEN, pays: 'AU', feries: 'add' };
+
+        const rDeja = await lancer(Object.assign({}, BASE, { joursFeries: ['2026-09-25'] }));
+        verifier('un ferie DEJA couvert ne s annonce plus « aucun jour ferie »',
+            codeF(rDeja) === 'holidaysAddedCovered' && argF(rDeja) === 1,
+            'obtenu ' + codeF(rDeja) + '(' + argF(rDeja) + ')');
+        verifier('et il ne cree pas d occurrence en double',
+            rDeja.list.length === 18, 'obtenu ' + rDeja.list.length + ' occurrences, attendu 18');
+
+        const rAjout = await lancer(Object.assign({}, BASE, { joursFeries: ['2026-09-26'] }));
+        verifier('un ferie hors des jours coches est bien ajoute, et le message le dit',
+            codeF(rAjout) === 'holidaysAdded' && argF(rAjout) === 1,
+            'obtenu ' + codeF(rAjout) + '(' + argF(rAjout) + ')');
+        verifier('l occurrence ajoutee porte bien la date du ferie',
+            rAjout.list.length === 19 && rAjout.list.some(cl => cl.start.getDate() === 26),
+            'obtenu ' + rAjout.list.length + ' occurrences');
+
+        // Temoin du sens inverse : quand la periode ne contient VRAIMENT aucun ferie, c est
+        // « aucun jour ferie » qu il faut lire. Sans ce cas, le correctif pourrait avoir
+        // supprime le message au lieu de le rendre juste.
+        const rAucun = await lancer(Object.assign({}, BASE, { joursFeries: ['2026-12-25'] }));
+        verifier('temoin : hors periode, « aucun jour ferie » reste le bon message',
+            codeF(rAucun) === 'holidaysNone', 'obtenu ' + codeF(rAucun));
+
+        // Le marquage : c est par lui que l ecran peut MONTRER lesquels des 18 sont feries.
+        const marquees = rDeja.list.filter(cl => cl.ferie);
+        verifier('l occurrence du ferie est marquee, et elle seule',
+            marquees.length === 1 && marquees[0].start.getDate() === 25,
+            marquees.length + ' marquee(s) : [' + marquees.map(cl => cl.start.getDate()).join(',') + ']');
+
+        // « Feries uniquement » marque aussi : c est le meme drapeau, pose au meme endroit.
+        const rOnlyAU = await lancer(Object.assign({}, BASE, { feries: 'only', joursFeries: ['2026-09-25'] }));
+        verifier('« feries uniquement » : la seule occurrence retenue est marquee',
+            rOnlyAU.list.length === 1 && rOnlyAU.list[0].ferie === true,
+            'obtenu ' + rOnlyAU.list.length + ' occurrence(s)');
+
+        // Temoin : sans filtre de feries, RIEN n est marque. Un drapeau qui s inventerait
+        // ferait afficher « jour ferie » a cote de nuits ordinaires.
+        const rSans = await lancer(Object.assign({}, BASE, { feries: undefined, joursFeries: ['2026-09-25'] }));
+        verifier('temoin : sans filtre de feries, aucune occurrence n est marquee',
+            rSans.list.length === 18 && rSans.list.every(cl => !cl.ferie),
+            'obtenu ' + rSans.list.filter(cl => cl.ferie).length + ' marquee(s) sur ' + rSans.list.length);
+
+        if (tzAvant === undefined) delete process.env.TZ; else process.env.TZ = tzAvant;
+    }
+
     console.log('\n' + (ko === 0 ? 'TOUT PASSE : ' + ok + ' verifications' : '❌ ' + ko + ' ECHEC(S) sur ' + (ok + ko)));
     process.exit(ko === 0 ? 0 : 1);
 })();
