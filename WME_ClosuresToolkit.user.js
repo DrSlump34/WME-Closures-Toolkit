@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.17.00
+// @version      1.18.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1868,6 +1868,9 @@ const D = {
             applyCause: (c) => `Cause\u00A0: ${c}`,
             applyNothingWritten:'Aucune fermeture n\u2019a \u00E9t\u00E9 enregistr\u00E9e : rien n\u2019a \u00E9t\u00E9 cr\u00E9\u00E9 dans l\u2019\u00E9diteur.',
             tipCenter:'Centrer sur ce segment',
+            qFocusTip:'Aller voir : recadre la carte et selectionne les segments de ce lot',
+            qFocusOk: (sel,manq) => `✅ ${sel} segment(s) selectionne(s) · ${manq} introuvable(s) ici.`,
+            qFocusNone:'Aucun segment de ce lot n’est charge ici : la position du fichier ne mene pas a ces segments.',
             centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
             tipPresetSaveBtn:'Sauvegarder en pr\u00E9r\u00E9glage',
             btnPresetSave:'💾 Préréglage',
@@ -2445,6 +2448,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             defaultReason:'🚧Roadworks🚧',
             selectAll:'Select all',
             tipCenter:'Center on this segment',
+            qFocusTip:'Go and look: recentre the map and select this batch’s segments',
+            qFocusOk: (sel,manq) => `✅ ${sel} segment(s) selected · ${manq} not found here.`,
+            qFocusNone:'No segment of this batch is loaded here: the file’s position does not lead to these segments.',
             centerUnavailable: sid => `Cannot centre on segment ${sid}: it is not loaded and no coordinate is available.`,
             tipPresetSaveBtn:'Save as preset',
             btnPresetSave:'💾 Preset',
@@ -3016,6 +3022,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧עבודות🚧',
             selectAll:'בחר הכול',
             tipCenter:'מרכז על מקטע זה',
+            qFocusTip:'לכ וראה: ממרכז את המפה ובוחר את המקטעים של האוסף הזה',
+            qFocusOk: (sel,manq) => `✅ ${sel} מקטעים נבחרו · ${manq} לא נמצאו כאן.`,
+            qFocusNone:'אין מקטע טעון מהאוסף הזה כאן.',
             centerUnavailable: sid => `לא ניתן למרכז על מקטע ${sid}: הוא לא טעון ואין קואורדינטה זמינה.`,
             tipPresetSaveBtn:'שמור כתבנית',
             btnPresetSave:'💾 תבנית',
@@ -3581,6 +3590,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Lavori🚧',
             selectAll:'Seleziona tutto',
             tipCenter:'Centra su questo segmento',
+            qFocusTip:'Vai a vedere: ricentra la mappa e seleziona i segmenti di questo lotto',
+            qFocusOk: (sel,manq) => `✅ ${sel} segmento/i selezionati · ${manq} non trovati qui.`,
+            qFocusNone:'Nessun segmento di questo lotto è caricato qui: la posizione del file non porta a questi segmenti.',
             centerUnavailable: sid => `Impossibile centrare sul segmento ${sid}: non è caricato e non è disponibile alcuna coordinata.`,
             tipPresetSaveBtn:'Salva come preset',
             btnPresetSave:'💾 Preset',
@@ -4147,6 +4159,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Bauarbeiten🚧',
             selectAll:'Alle ausw\u00E4hlen',
             tipCenter:'Auf dieses Segment zentrieren',
+            qFocusTip:'Hinsehen: Karte neu zentrieren und die Segmente dieses Stapels auswählen',
+            qFocusOk: (sel,manq) => `✅ ${sel} Segment(e) ausgewählt · ${manq} hier nicht gefunden.`,
+            qFocusNone:'Kein Segment dieses Stapels ist hier geladen: die Position der Datei führt nicht zu diesen Segmenten.',
             centerUnavailable: sid => `Zentrieren auf Segment ${sid} nicht möglich: es ist nicht geladen und es liegt keine Koordinate vor.`,
             tipPresetSaveBtn:'Als Vorlage speichern',
             btnPresetSave:'💾 Vorlage',
@@ -4712,6 +4727,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Obras🚧',
             selectAll:'Seleccionar todo',
             tipCenter:'Centrar en este segmento',
+            qFocusTip:'Ir a ver: recentra el mapa y selecciona los segmentos de este lote',
+            qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) seleccionado(s) · ${manq} no encontrado(s) aquí.`,
+            qFocusNone:'Ningún segmento de este lote está cargado aquí: la posición del archivo no lleva a estos segmentos.',
             centerUnavailable: sid => `Imposible centrar en el segmento ${sid}: no está cargado y no hay ninguna coordenada disponible.`,
             tipPresetSaveBtn:'Guardar como preajuste',
             btnPresetSave:'💾 Preajuste',
@@ -5277,6 +5295,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centralizar neste segmento',
+            qFocusTip:'Ir ver: recentraliza o mapa e seleciona os segmentos deste lote',
+            qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) selecionado(s) · ${manq} não encontrado(s) aqui.`,
+            qFocusNone:'Nenhum segmento deste lote está carregado aqui: a posição do arquivo não leva a esses segmentos.',
             centerUnavailable: sid => `Impossível centralizar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Salvar como predefinição',
             btnPresetSave:'💾 Predefinição',
@@ -5842,6 +5863,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centrar neste segmento',
+            qFocusTip:'Ir ver: recentra o mapa e seleciona os segmentos deste lote',
+            qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) selecionado(s) · ${manq} não encontrado(s) aqui.`,
+            qFocusNone:'Nenhum segmento deste lote está carregado aqui: a posição do ficheiro não leva a estes segmentos.',
             centerUnavailable: sid => `Impossível centrar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Guardar como predefinição',
             btnPresetSave:'💾 Predefinição',
@@ -15118,6 +15142,32 @@ const renderPresetsTable=()=>{
     });
 };
 // Queue entry card avec poubelles par ligne
+// Recadre sur une entree de file, puis selectionne ses segments : verifier ce qui est en
+// file avant de l'appliquer. ⚠️ setSelection est tout ou rien — un id absent du modele et
+// l'appel entier leve : on ne selectionne que le charge, et on compte les manquants.
+const _qcardAllerVoir = async (entry) => {
+    const ids = (entry.segIds||[]).map(Number).filter(Boolean);
+    if(!ids.length) return;
+
+    const charge = ids.map(getSegById).find(Boolean);
+    const coords = _getSegCoords(charge);
+    if(coords) centerOnSegmentBbox(coords);
+    else {
+        const at = entry.csvCenter || entry.turnLonLat;
+        if(!at){ showToast(t('qFocusNone'), 4000, '#f57c00'); return; }
+        _centrerSurZoneVisibleOL(at.lon, at.lat, entry.csvZoom || POLY_LOAD_ZOOM);
+    }
+    try{ await waitMapLoaded(); }catch(e){}
+    await _sweepSleep(250);
+
+    const dispo = ids.filter(id => getSegById(id));
+    if(!dispo.length){ showToast(t('qFocusNone'), 4000, '#f57c00'); return; }
+    try{ sdk.Editing.setSelection({selection:{ids:dispo, objectType:'segment'}}); }
+    catch(e){ log('qcard setSelection: '+e.message); }
+    showToast(t('qFocusOk', dispo.length, ids.length - dispo.length), 4000,
+              dispo.length === ids.length ? '#43a047' : '#f57c00');
+};
+
 const buildQueueCard=(entry,idx)=>{
     // Initialiser le set des lignes supprimées si absent
     if(!entry.excludedRows) entry.excludedRows=new Set();
@@ -15182,6 +15232,7 @@ const buildQueueCard=(entry,idx)=>{
         <span class="wct-qcard-tgt" title="${escHtml(isTurnEntry?t('tgtTurn'):t('tgtSeg'))}" style="flex-shrink:0;font-size:13px">${isTurnEntry?TARGET_ICON.turn:TARGET_ICON.seg}</span>
         <span class="wct-qcard-label" style="flex:1;font-size:1em;font-weight:700;color:var(--wct-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.label)}</span>
         <button class="wct-qcard-edit" title="${t('tipEditLabel')}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;color:var(--wct-text2);opacity:.7">&#x270F;&#xFE0F;</button>
+        <button class="wct-qcard-focus" title="${escHtml(t('qFocusTip'))}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;opacity:.8">&#x1F3AF;</button>
         <span class="wct-badge ${countBadgeClass}" title="${t('tipCount',nbOcc,nbSeg)}">${t('countBadge',nbOcc,nbSeg)}</span>
         ${entry.nullSegs?.size?`<span class="wct-badge wct-badge-null" title="${t('nullSegBadgeTip',entry.nullSegs.size)}">\u26A0\uFE0F ${entry.nullSegs.size}</span>`:''}
         ${entry.recentSegs?.size?`<span class="wct-badge wct-badge-recent" title="${t('recentSegBadgeTip',entry.recentSegs.size)}">\uD83D\uDD52 ${entry.recentSegs.size}</span>`:''}
@@ -15193,6 +15244,11 @@ const buildQueueCard=(entry,idx)=>{
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
     // ── Logique édition inline du libellé ──
+    hdr.querySelector('.wct-qcard-focus').addEventListener('click', e => {
+        e.stopPropagation();
+        _qcardAllerVoir(entry);
+    });
+
     hdr.querySelector('.wct-qcard-edit').addEventListener('click', e => {
         e.stopPropagation();
         const labelSpan = hdr.querySelector('.wct-qcard-label');
@@ -15394,9 +15450,10 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
                 // vient d'une autre zone, rien n'y est chargé. Sans ce repli, le 🎯 ne
                 // faisait RIEN et sans le dire. Le lon/lat du nœud est justement dans le
                 // CSV : c'est pour ça qu'il y est.
-                if(entry.turnLonLat){
+                const repli=entry.turnLonLat||entry.csvCenter;
+                if(repli){
                     try{
-                        _centrerSurZoneVisibleOL(entry.turnLonLat.lon,entry.turnLonLat.lat,17);
+                        _centrerSurZoneVisibleOL(repli.lon,repli.lat,entry.csvZoom||17);
                     }catch(err){ log('centrage file: '+err.message); }
                     return;
                 }
