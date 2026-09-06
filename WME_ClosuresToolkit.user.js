@@ -8620,8 +8620,18 @@ const resoudreRegionAuto=(paysIso, codesConnus)=>{
     if(dejaVu){
         // Connu : aucune requête. On ne l'applique que si ce pays la connaît encore —
         // les subdivisions d'un pays peuvent changer, la mémoire ne fait pas foi.
+        //
+        // ⚠️ ET ON N'ANNONCE PAS « DÉTECTÉ ». Cette table porte DEUX choses qu'elle ne
+        //    distingue pas : ce que la position a trouvé, et ce que l'éditeur a choisi.
+        //    Depuis qu'un choix s'y écrit, dire « détecté » sur une valeur relue revient
+        //    à attribuer à la machine ce que l'éditeur avait décidé — mesuré à Melbourne
+        //    le 06/09/2026 : « détecté : segment en Victoria » s'affichait au-dessus d'un
+        //    AU-NSW choisi à la main. Entre taire et mentir, on tait : « détecté » n'est
+        //    plus dit que pour une réponse du service arrivée dans cette session.
+        //    ⏳ La vraie réparation est de séparer les deux tables — cache de position
+        //       d'un côté, choix de l'éditeur de l'autre. Pas dans cette version.
         if(codesConnus.includes(dejaVu)&&_holRegionVoulue!==dejaVu){
-            _holRegionVoulue=dejaVu; _holRegionDeduite=true;
+            _holRegionVoulue=dejaVu; _holRegionDeduite=false;
             // ⚠️⚠️ DIFFÉRÉ, ET CE N'EST PAS UN DÉTAIL DE STYLE. Cette fonction est
             //    appelée DEPUIS buildClosureList, qui n'a pas fini d'écrire son résultat.
             //    Relancer l'aperçu ici met deux générations en vol : celle du dessus
