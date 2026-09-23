@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.18.00
+// @version      1.20.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -816,7 +816,7 @@ GM_addStyle(`
 
 
 /* ── Zone : panneau d'arbitrage et poignées d'édition ── */
-/* Le panneau est posé sur la carte, dans sa partie visible (placement en JS). */
+/* Dans le panneau WCT en tête de Configurer ; sur la carte seulement si WCT est fermé. */
 #wct-zone-panel {
     position: fixed; z-index: 9992;
     background: var(--wct-surface, #fff); color: var(--wct-text, #222);
@@ -824,6 +824,11 @@ GM_addStyle(`
     box-shadow: 0 4px 16px rgba(0,0,0,.3);
     padding: 8px 10px; font-family: 'Rubik','Open Sans',sans-serif; font-size: 12px;
     max-width: 340px;
+}
+/* Dans le panneau WCT (cas normal) : un bloc de l'onglet Configurer, pas une bulle. */
+#wct-zone-panel.wct-zp-inline {
+    position: static; max-width: none; box-shadow: none; margin: 0 0 8px;
+    border: 2px solid var(--wct-blue, #1976d2); border-radius: var(--wct-radius, 8px);
 }
 #wct-zone-panel .wct-zp-head { font-weight: 700; margin-bottom: 6px; }
 #wct-zone-panel .wct-zp-btns { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1782,9 +1787,12 @@ const D = {
             colId:'ID', colName:'Nom', colStart:'D\u00E9but', colEnd:'Fin', colState:'\u00C9tat',
             colIdTip:'Identifiant du segment', colNameTip:'Nom du segment',
             colStartTip:'Date/heure de d\u00E9but', colEndTip:'Date/heure de fin',
-            colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 En cours  \uD83D\uDD34 Chevauchement  \u26AB Pass\u00E9e',
+            colStateTip: '🟢 OK  🟠 En cours  🔴 Chevauchement  ⚫ Passée  ⛔ Rien à fermer  ⚪ Non vérifié  ◐ Comblé en partie',
             stateOk:'OK', stateOn:'En cours', stateOv:'Chevauchement', statePast:'Pass\u00E9e',
             stateUnchecked:'Non v\u00E9rifi\u00E9',
+            stateNoDir:'Aucun sens ouvert à la circulation : rien à fermer, le segment sera écarté à l’application.',
+            stateOvSens:'Un sens de ce segment est déjà fermé sur ce créneau : seul l’autre sera fermé.',
+            qNumTip: (n,t) => `Entrée ${n} sur ${t} de la file`,
             queueLayerKo:'\u26A0\uFE0F Le calque \u00AB\u00A0Fermetures\u00A0\u00BB de WME est introuvable : les chevauchements avec les fermetures existantes ne sont PAS v\u00E9rifi\u00E9s. Les pastilles n\u2019indiquent plus qu\u2019une chose : l\u2019\u00E9tat des dates.',
             stateNull:'Segment absent du data model \u2014 modification r\u00E9cente non encore propagée. Sera ignoré à l\u2019application.',
             nullSegBadgeTip: n => `${n} segment(s) absent(s) du data model \u2014 modification r\u00E9cente non propagée. Ajouter à la file pour les détails.`,
@@ -1794,7 +1802,7 @@ const D = {
             noMte:'No MTE',
             // Infobulles badges lot
             countBadge: (o,s) => `${o}\u00D7${s} seg`,
-            tipCount: (o,s) => `${o} fermeture(s) \u00D7 ${s} segment(s) \u2014 hors lignes supprim\u00E9es et conflits de sens. Les chevauchements ne sont d\u00E9tect\u00E9s qu'\u00E0 l'application.`,
+            tipCount: (o,s) => `${o} fermeture(s) × ${s} segment(s) — hors lignes supprimées et conflits de sens. Chevauchements : signalés dans le tableau pour les segments chargés, et revérifiés juste avant l’application.`,
             tipDir:'Sens de la fermeture : double sens, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Sur les longs tron\u00E7ons, le sens A \u21D2 B peut diff\u00E9rer d\u2019un segment \u00E0 l\u2019autre : les segments incompatibles sont \u00E9cart\u00E9s automatiquement et list\u00E9s dans la carte de la file.',
             tipITon:'Ignore le trafic \u2014 pas de d\u00E9tection', tipIToff:'D\u00E9tecte le trafic',
             tipNodes: n => `Fermetures aux n\u0153uds\u00A0: ${n}`,
@@ -1866,11 +1874,27 @@ const D = {
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} pos\u00E9e(s) sur ${m} demand\u00E9e(s)`,
             applyCause: (c) => `Cause\u00A0: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segment(s) sans sens ouvert à la circulation : rien à fermer`:'', b?`${b} segment(s) déjà fermé(s) sur ce créneau : laissé(s) tel(s) quel(s)`:'', c?`${c} segment(s) déjà fermé(s) dans un sens : fermé(s) dans l’autre seulement`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segment ${sid} refusé par Waze : ${m}`,
+            applyAbsents: n => `${n} segment(s) non chargé(s) sur la carte, donc non fermé(s) : ramenez la carte sur l’entrée (🎯) puis réappliquez.`,
+            lblCombler: 'Combler les trous',
+            tipCombler: 'Si un segment est déjà fermé en partie sur le créneau, WCT ne pose que les morceaux manquants — avant, entre ou après les fermetures existantes — sans jamais y toucher. Décoché : le segment est simplement écarté.',
+            applyComble: (n,t) => `\u25D0 ${n} segment(s) déjà fermé(s) en partie\u00A0: ${t} trou(s) comblé(s), fermetures existantes laissées telles quelles`,
+            bilanCombles: n => `\u25D0 ${n} complété(s)`,
+            stateComble: 'Déjà fermé en partie sur ce créneau\u00A0: seuls les trous seront fermés (au moins 5\u00A0min, une minute d’écart avec l’existant).',
+            csvChoixTitre: (l,n) => `Fichier de fermetures : ${l} ligne(s), ${n} segment(s)`,
+            csvChoixSel: '🧲 Sélectionner les segments',
+            csvChoixFile: 'Ajouter à la file',
+            tipCsvChoixSel: 'Sélectionne les segments du fichier sur la carte. Vous réglez ensuite la fermeture dans Configurer (dates, MTE, source) et vous validez.',
+            tipCsvChoixFile: 'Met les fermetures du fichier dans la file telles quelles, avec leurs dates et leur MTE. Elles ne se reconfigurent pas ensuite.',
+            csvChoixAide: 'Sélectionner est le bon choix pour choisir le MTE dans la liste : à l’import, les MTE ne sont pas encore chargés.',
+            csvSelManquants: (m,n) => `${m} segment(s) du fichier sur ${n} introuvable(s) dans la zone inventoriée : supprimés, fusionnés ou trop loin de la position indiquée.`,
+            bilanEcartes: n => `↷ ${n} écarté(s), rien à y fermer`,
             applyNothingWritten:'Aucune fermeture n\u2019a \u00E9t\u00E9 enregistr\u00E9e : rien n\u2019a \u00E9t\u00E9 cr\u00E9\u00E9 dans l\u2019\u00E9diteur.',
             tipCenter:'Centrer sur ce segment',
-            qFocusTip:'Aller voir : recadre la carte et selectionne les segments de ce lot',
+            qFocusTip: 'Aller voir : recadre la carte et sélectionne les segments de ce lot',
             qFocusOk: (sel,manq) => `✅ ${sel} segment(s) selectionne(s) · ${manq} introuvable(s) ici.`,
-            qFocusNone:'Aucun segment de ce lot n’est charge ici : la position du fichier ne mene pas a ces segments.',
+            qFocusNone: 'Aucun segment de ce lot n’est chargé ici : la position connue de l’entrée ne mène pas à ces segments.',
             centerUnavailable: sid => `Impossible de centrer sur le segment ${sid} : il n’est pas chargé et aucune coordonnée n’est disponible.`,
             tipPresetSaveBtn:'Sauvegarder en pr\u00E9r\u00E9glage',
             btnPresetSave:'💾 Préréglage',
@@ -2352,9 +2376,12 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             colId:'ID', colName:'Name', colStart:'Start', colEnd:'End', colState:'State',
             colIdTip:'Segment ID', colNameTip:'Segment name',
             colStartTip:'Start date/time', colEndTip:'End date/time',
-            colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 Ongoing  \uD83D\uDD34 Overlap  \u26AB Past',
+            colStateTip: '🟢 OK  🟠 Ongoing  🔴 Overlap  ⚫ Past  ⛔ Nothing to close  ⚪ Not checked  ◐ Partly filled',
             stateOk:'OK', stateOn:'Ongoing', stateOv:'Overlap', statePast:'Past',
             stateUnchecked:'Not checked',
+            stateNoDir:'No direction open to traffic: nothing to close, the segment will be skipped on apply.',
+            stateOvSens:'One direction of this segment is already closed at this time: only the other will be closed.',
+            qNumTip: (n,t) => `Entry ${n} of ${t} in the queue`,
             queueLayerKo:'\u26A0\uFE0F The WME \u00ABClosures\u00BB layer cannot be found: overlaps with existing closures are NOT checked. The dots now only reflect the dates.',
             stateNull:'Segment not found in data model \u2014 recent edit not yet propagated. Will be skipped on apply.',
             nullSegBadgeTip: n => `${n} segment(s) missing from data model \u2014 recent edit not yet propagated. Add to queue for details.`,
@@ -2363,7 +2390,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             nodeIconNone:'\u26AA None', nodeIconInner:'\uD83D\uDFE1 Inner', nodeIconAll:'\uD83D\uDD34 All',
             noMte:'No MTE',
             countBadge: (o,s) => `${o}\u00D7${s} seg`,
-            tipCount: (o,s) => `${o} closure(s) \u00D7 ${s} segment(s) \u2014 excluding deleted rows and direction conflicts. Overlaps are only detected on apply.`,
+            tipCount: (o,s) => `${o} closure(s) × ${s} segment(s) — excluding deleted rows and direction conflicts. Overlaps: flagged in the table for loaded segments, and checked again just before applying.`,
             tipDir:'Closure direction: both ways, A \u21D2 B or B \u21D2 A. \u26A0\uFE0F On long stretches the A \u21D2 B direction can differ from one segment to the next: incompatible segments are excluded automatically and listed in the queue card.',
             tipITon:'Ignores traffic \u2014 no detection', tipIToff:'Detects traffic',
             tipNodes: n => `Node closures: ${n}`,
@@ -2436,6 +2463,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} of ${m} applied`,
             applyCause: (c) => `Cause: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segment(s) with no direction open to traffic: nothing to close`:'', b?`${b} segment(s) already closed at this time: left as is`:'', c?`${c} segment(s) already closed in one direction: closed in the other only`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segment ${sid} rejected by Waze: ${m}`,
+            applyAbsents: n => `${n} segment(s) not loaded on the map, so not closed: bring the map back to the entry (🎯) and apply again.`,
+            lblCombler: 'Fill the gaps',
+            tipCombler: 'If a segment is already partly closed during the time window, WCT only adds the missing pieces — before, between or after the existing closures — without ever touching them. Unticked: the segment is simply skipped.',
+            applyComble: (n,t) => `\u25D0 ${n} segment(s) already partly closed: ${t} gap(s) filled, existing closures left as they are`,
+            bilanCombles: n => `\u25D0 ${n} completed`,
+            stateComble: 'Already partly closed during this time window: only the gaps will be closed (at least 5 min, one minute apart from the existing ones).',
+            csvChoixTitre: (l,n) => `Closure file: ${l} row(s), ${n} segment(s)`,
+            csvChoixSel: '🧲 Select the segments',
+            csvChoixFile: 'Add to the queue',
+            tipCsvChoixSel: 'Selects the file’s segments on the map. You then set the closure in Configure (dates, MTE, source) and validate.',
+            tipCsvChoixFile: 'Puts the file’s closures in the queue as they are, with their dates and MTE. They cannot be reconfigured afterwards.',
+            csvChoixAide: 'Select is the right choice to pick the MTE from the list: at import time, MTEs are not loaded yet.',
+            csvSelManquants: (m,n) => `${m} of ${n} segment(s) from the file not found in the inventoried area: deleted, merged or too far from the given position.`,
+            bilanEcartes: n => `↷ ${n} skipped, nothing to close there`,
             applyNothingWritten:'No closure was saved: nothing was created in the editor.',
             errDateStart:'Invalid start date',
             errDateEnd:'End date before start date',
@@ -2448,9 +2491,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             defaultReason:'🚧Roadworks🚧',
             selectAll:'Select all',
             tipCenter:'Center on this segment',
-            qFocusTip:'Go and look: recentre the map and select this batch’s segments',
+            qFocusTip: 'Go and look: recentre the map and select this batch’s segments',
             qFocusOk: (sel,manq) => `✅ ${sel} segment(s) selected · ${manq} not found here.`,
-            qFocusNone:'No segment of this batch is loaded here: the file’s position does not lead to these segments.',
+            qFocusNone: 'No segment of this batch is loaded here: the entry’s known position does not lead to these segments.',
             centerUnavailable: sid => `Cannot centre on segment ${sid}: it is not loaded and no coordinate is available.`,
             tipPresetSaveBtn:'Save as preset',
             btnPresetSave:'💾 Preset',
@@ -2926,9 +2969,12 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
             colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
             colStartTip:'תאריך/שעת התחלה', colEndTip:'תאריך/שעת סיום',
-            colStateTip:'🟢 תקין  🟠 מתמשך  🔴 חפיפה  ⚫ עבר',
+            colStateTip: '🟢 תקין  🟠 מתמשך  🔴 חפיפה  ⚫ עבר  ⛔ אין מה לחסום  ⚪ לא נבדק  ◐ הושלם חלקית',
             stateOk:'תקין', stateOn:'מתמשך', stateOv:'חפיפה', statePast:'עבר',
             stateUnchecked:'לא נבדק',
+            stateNoDir:'אין כיוון פתוח לתנועה: אין מה לחסום, המקטע ידולג ביישום.',
+            stateOvSens:'כיוון אחד של מקטע זה כבר חסום בזמן הזה: רק הכיוון השני ייחסם.',
+            qNumTip: (n,t) => `רשומה ${n} מתוך ${t} בתור`,
             queueLayerKo:'\u26A0\uFE0F שכבת החסימות של WME לא נמצאה: חפיפות עם חסימות קיימות אינן נבדקות. הנקודות משקפות כעת רק את התאריכים.',
             stateNull:'המקטע לא נמצא במודל הנתונים — עריכה אחרונה טרם הופצה. ידולג ביישום.',
             nullSegBadgeTip: n => `${n} מקטעים חסרים במודל הנתונים — עריכה אחרונה טרם הופצה. הוסף לתור לפרטים.`,
@@ -2937,7 +2983,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             nodeIconNone:'⚪ ללא', nodeIconInner:'🟡 פנימי', nodeIconAll:'🔴 הכול',
             noMte:'ללא MTE',
             countBadge: (o,s) => `${o}×${s} מק'`,
-            tipCount: (o,s) => `${o} חסימות × ${s} מקטעים — לא כולל שורות שנמחקו והתנגשויות כיוון. חפיפות מזוהות רק ביישום.`,
+            tipCount: (o,s) => `${o} חסימות × ${s} מקטעים — לא כולל שורות שנמחקו והתנגשויות כיוון. חפיפות: מסומנות בטבלה עבור מקטעים טעונים, ונבדקות שוב ממש לפני היישום.`,
             tipDir:'כיוון החסימה: דו-כיווני, A ⇒ B או B ⇒ A. ⚠️ במקטעים ארוכים כיוון A ⇒ B יכול להשתנות ממקטע למקטע: מקטעים לא תואמים מוחרגים אוטומטית ומופיעים בכרטיס התור.',
             tipITon:'מתעלם מתנועה — אין זיהוי', tipIToff:'מזהה תנועה',
             tipNodes: n => `חסימות צמתים: ${n}`,
@@ -3010,6 +3056,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} \u05DE\u05EA\u05D5\u05DA ${m} \u05D4\u05D5\u05D7\u05DC\u05D5`,
             applyCause: (c) => `\u05E1\u05D9\u05D1\u05D4: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} מקטעים ללא כיוון פתוח לתנועה: אין מה לחסום`:'', b?`${b} מקטעים כבר חסומים בזמן הזה: נשארו כפי שהם`:'', c?`${c} מקטעים כבר חסומים בכיוון אחד: נחסמו רק בכיוון השני`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `מקטע ${sid} נדחה על ידי Waze: ${m}`,
+            applyAbsents: n => `${n} מקטעים לא נטענו במפה ולכן לא נחסמו: החזירו את המפה לרשומה (🎯) והחילו שוב.`,
+            lblCombler: 'השלמת הפערים',
+            tipCombler: 'אם מקטע כבר חסום חלקית בחלון הזמן, WCT מוסיף רק את החלקים החסרים — לפני, בין או אחרי החסימות הקיימות — בלי לגעת בהן. ללא סימון: המקטע פשוט מדולג.',
+            applyComble: (n,t) => `\u25D0 ${n} מקטעים שכבר חסומים חלקית: ${t} פערים הושלמו, החסימות הקיימות נשארו כפי שהן`,
+            bilanCombles: n => `\u25D0 ${n} הושלמו`,
+            stateComble: 'כבר חסום חלקית בחלון הזמן הזה: רק הפערים ייחסמו (לפחות 5 דקות, דקה אחת מרווח מהחסימות הקיימות).',
+            csvChoixTitre: (l,n) => `קובץ חסימות: ${l} שורות, ${n} מקטעים`,
+            csvChoixSel: '🧲 בחירת המקטעים',
+            csvChoixFile: 'הוספה לתור',
+            tipCsvChoixSel: 'בוחר את מקטעי הקובץ במפה. לאחר מכן מגדירים את החסימה בלשונית ההגדרה (תאריכים, MTE, מקור) ומאשרים.',
+            tipCsvChoixFile: 'מכניס את חסימות הקובץ לתור כפי שהן, עם התאריכים וה־MTE שלהן. לא ניתן להגדיר אותן מחדש אחר כך.',
+            csvChoixAide: 'בחירה היא האפשרות הנכונה כדי לבחור MTE מהרשימה: בזמן הייבוא ה־MTE עדיין לא נטענו.',
+            csvSelManquants: (m,n) => `${m} מתוך ${n} מקטעים מהקובץ לא נמצאו באזור שנסרק: נמחקו, אוחדו או רחוקים מדי מהמיקום שצוין.`,
+            bilanEcartes: n => `↷ ${n} דולגו, אין מה לחסום בהם`,
             applyNothingWritten:'\u05DC\u05D0 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D0\u05E3 \u05D7\u05E1\u05D9\u05DE\u05D4: \u05DC\u05D0 \u05E0\u05D5\u05E6\u05E8 \u05D3\u05D1\u05E8 \u05D1\u05E2\u05D5\u05E8\u05DA.',
             errDateStart:'תאריך התחלה לא תקין',
             errDateEnd:'תאריך הסיום לפני תאריך ההתחלה',
@@ -3022,9 +3084,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧עבודות🚧',
             selectAll:'בחר הכול',
             tipCenter:'מרכז על מקטע זה',
-            qFocusTip:'לכ וראה: ממרכז את המפה ובוחר את המקטעים של האוסף הזה',
+            qFocusTip: 'לך וראה: ממרכז את המפה ובוחר את המקטעים של האוסף הזה',
             qFocusOk: (sel,manq) => `✅ ${sel} מקטעים נבחרו · ${manq} לא נמצאו כאן.`,
-            qFocusNone:'אין מקטע טעון מהאוסף הזה כאן.',
+            qFocusNone: 'אין מקטע טעון מהאוסף הזה כאן: המיקום הידוע של הרשומה אינו מוביל למקטעים האלה.',
             centerUnavailable: sid => `לא ניתן למרכז על מקטע ${sid}: הוא לא טעון ואין קואורדינטה זמינה.`,
             tipPresetSaveBtn:'שמור כתבנית',
             btnPresetSave:'💾 תבנית',
@@ -3494,9 +3556,12 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             colId:'ID', colName:'Nome', colStart:'Inizio', colEnd:'Fine', colState:'Stato',
             colIdTip:'ID segmento', colNameTip:'Nome segmento',
             colStartTip:'Data/ora di inizio', colEndTip:'Data/ora di fine',
-            colStateTip:'🟢 OK  🟠 In corso  🔴 Sovrapposta  ⚫ Passata',
+            colStateTip: '🟢 OK  🟠 In corso  🔴 Sovrapposta  ⚫ Passata  ⛔ Nulla da chiudere  ⚪ Non verificato  ◐ Colmato in parte',
             stateOk:'OK', stateOn:'In corso', stateOv:'Sovrap.', statePast:'Passata',
             stateUnchecked:'Non verificato',
+            stateNoDir:'Nessuna direzione aperta al traffico: nulla da chiudere, il segmento sarà saltato in fase di applicazione.',
+            stateOvSens:'Una direzione di questo segmento è già chiusa in questa fascia: sarà chiusa solo l’altra.',
+            qNumTip: (n,t) => `Voce ${n} di ${t} in coda`,
             queueLayerKo:'\u26A0\uFE0F Il livello \u00ABChiusure\u00BB di WME non \u00E8 raggiungibile: le sovrapposizioni con le chiusure esistenti NON sono verificate. I pallini indicano ormai solo lo stato delle date.',
             stateNull:'Segmento non trovato nel modello dati — modifica recente non ancora propagata. Sarà saltato in fase di applicazione.',
             nullSegBadgeTip: n => `${n} segmento/i mancanti nel modello dati — modifica recente non ancora propagata. Aggiungi alla coda per i dettagli.`,
@@ -3505,7 +3570,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             nodeIconNone:'⚪ Nessuno', nodeIconInner:'🟡 Interni', nodeIconAll:'🔴 Tutti',
             noMte:'Nessun MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
-            tipCount: (o,s) => `${o} chiusura/e × ${s} segmento/i — escluse le righe eliminate e i conflitti di direzione. Le sovrapposizioni sono rilevate solo in fase di applicazione.`,
+            tipCount: (o,s) => `${o} chiusura/e × ${s} segmento/i — escluse le righe eliminate e i conflitti di direzione. Sovrapposizioni: segnalate nella tabella per i segmenti caricati, e ricontrollate subito prima dell’applicazione.`,
             tipDir:'Direzione della chiusura: doppio senso, A ⇒ B o B ⇒ A. ⚠️ Su tratti lunghi la direzione A ⇒ B può variare da un segmento all’altro: i segmenti incompatibili vengono esclusi automaticamente ed elencati nella scheda della coda.',
             tipITon:'Ignora il traffico — nessun rilevamento', tipIToff:'Rileva il traffico',
             tipNodes: n => `Chiusure dei nodi: ${n}`,
@@ -3578,6 +3643,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} su ${m} applicate`,
             applyCause: (c) => `Causa: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento/i senza direzione aperta al traffico: nulla da chiudere`:'', b?`${b} segmento/i già chiuso/i in questa fascia: lasciato/i com’è`:'', c?`${c} segmento/i già chiuso/i in una direzione: chiuso/i solo nell’altra`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segmento ${sid} rifiutato da Waze: ${m}`,
+            applyAbsents: n => `${n} segmento/i non caricato/i sulla mappa, quindi non chiuso/i: riporta la mappa sulla voce (🎯) e applica di nuovo.`,
+            lblCombler: 'Colmare i vuoti',
+            tipCombler: 'Se un segmento è già chiuso in parte nella fascia, WCT aggiunge solo i pezzi mancanti — prima, tra o dopo le chiusure esistenti — senza mai toccarle. Non spuntato: il segmento viene semplicemente saltato.',
+            applyComble: (n,t) => `\u25D0 ${n} segmento/i già chiuso/i in parte: ${t} vuoto/i colmato/i, chiusure esistenti lasciate com’erano`,
+            bilanCombles: n => `\u25D0 ${n} completato/i`,
+            stateComble: 'Già chiuso in parte in questa fascia: saranno chiusi solo i vuoti (almeno 5 min, un minuto di distanza da quelle esistenti).',
+            csvChoixTitre: (l,n) => `File di chiusure: ${l} riga/e, ${n} segmento/i`,
+            csvChoixSel: '🧲 Seleziona i segmenti',
+            csvChoixFile: 'Aggiungi alla coda',
+            tipCsvChoixSel: 'Seleziona sulla mappa i segmenti del file. Poi imposti la chiusura in Configura (date, MTE, fonte) e convalidi.',
+            tipCsvChoixFile: 'Mette in coda le chiusure del file così come sono, con le loro date e il loro MTE. Non si possono riconfigurare dopo.',
+            csvChoixAide: 'Seleziona è la scelta giusta per scegliere l’MTE dall’elenco: all’importazione gli MTE non sono ancora caricati.',
+            csvSelManquants: (m,n) => `${m} segmento/i del file su ${n} non trovato/i nell’area inventariata: eliminati, uniti o troppo lontani dalla posizione indicata.`,
+            bilanEcartes: n => `↷ ${n} saltato/i, nulla da chiudere`,
             applyNothingWritten:'Nessuna chiusura \u00E8 stata salvata: nulla \u00E8 stato creato nell\u2019editor.',
             errDateStart:'Data di inizio non valida',
             errDateEnd:'Data di fine precedente alla data di inizio',
@@ -3590,9 +3671,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Lavori🚧',
             selectAll:'Seleziona tutto',
             tipCenter:'Centra su questo segmento',
-            qFocusTip:'Vai a vedere: ricentra la mappa e seleziona i segmenti di questo lotto',
+            qFocusTip: 'Vai a vedere: ricentra la mappa e seleziona i segmenti di questo lotto',
             qFocusOk: (sel,manq) => `✅ ${sel} segmento/i selezionati · ${manq} non trovati qui.`,
-            qFocusNone:'Nessun segmento di questo lotto è caricato qui: la posizione del file non porta a questi segmenti.',
+            qFocusNone: 'Nessun segmento di questo lotto è caricato qui: la posizione nota della voce non porta a questi segmenti.',
             centerUnavailable: sid => `Impossibile centrare sul segmento ${sid}: non è caricato e non è disponibile alcuna coordinata.`,
             tipPresetSaveBtn:'Salva come preset',
             btnPresetSave:'💾 Preset',
@@ -4063,9 +4144,12 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
             colIdTip:'Segment-ID', colNameTip:'Segmentname',
             colStartTip:'Startdatum/-zeit', colEndTip:'Enddatum/-zeit',
-            colStateTip:'\uD83D\uDFE2 OK  \uD83D\uDFE0 Laufend  \uD83D\uDD34 \u00DCberschneidung  \u26AB Vergangen',
+            colStateTip: '🟢 OK  🟠 Laufend  🔴 Überschneidung  ⚫ Vergangen  ⛔ Nichts zu sperren  ⚪ Nicht geprüft  ◐ Teilweise ergänzt',
             stateOk:'OK', stateOn:'Laufend', stateOv:'\u00DCberschneidung', statePast:'Vergangen',
             stateUnchecked:'Nicht gepr\u00FCft',
+            stateNoDir:'Keine für den Verkehr offene Fahrtrichtung: nichts zu sperren, das Segment wird beim Anwenden übersprungen.',
+            stateOvSens:'Eine Fahrtrichtung dieses Segments ist in diesem Zeitraum bereits gesperrt: nur die andere wird gesperrt.',
+            qNumTip: (n,t) => `Eintrag ${n} von ${t} in der Warteschlange`,
             queueLayerKo:'\u26A0\uFE0F Die WME-Ebene \u00ABSperrungen\u00BB ist nicht auffindbar: \u00DCberschneidungen mit bestehenden Sperrungen werden NICHT gepr\u00FCft. Die Punkte zeigen nur noch den Zustand der Daten an.',
             stateNull:'Segment nicht im Datenmodell gefunden \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. Wird beim Anwenden \u00FCbersprungen.',
             nullSegBadgeTip: n => `${n} Segment(e) fehlen im Datenmodell \u2014 eine k\u00FCrzliche \u00C4nderung ist noch nicht \u00FCbernommen. F\u00FCr Details zur Warteschlange hinzuf\u00FCgen.`,
@@ -4074,7 +4158,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             nodeIconNone:'\u26AA Keine', nodeIconInner:'\uD83D\uDFE1 Innere', nodeIconAll:'\uD83D\uDD34 Alle',
             noMte:'Kein MTE',
             countBadge: (o,s) => `${o}\u00D7${s} Seg`,
-            tipCount: (o,s) => `${o} Sperrung(en) \u00D7 ${s} Segment(e) \u2014 ohne gel\u00F6schte Zeilen und Richtungskonflikte. \u00DCberschneidungen werden erst beim Anwenden erkannt.`,
+            tipCount: (o,s) => `${o} Sperrung(en) × ${s} Segment(e) — ohne gelöschte Zeilen und Richtungskonflikte. Überschneidungen: in der Tabelle für geladene Segmente markiert und direkt vor dem Anwenden erneut geprüft.`,
             tipDir:'Sperrrichtung: beide Richtungen, A \u21D2 B oder B \u21D2 A. \u26A0\uFE0F Auf langen Abschnitten kann die Richtung A \u21D2 B von Segment zu Segment abweichen: unpassende Segmente werden automatisch ausgeschlossen und in der Karte der Warteschlange aufgef\u00FChrt.',
             tipITon:'Ignoriert den Verkehr \u2014 keine Erkennung', tipIToff:'Erkennt den Verkehr',
             tipNodes: n => `Knotensperrungen: ${n}`,
@@ -4147,6 +4231,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyErr: (r,s,e) => `\u274C ${r} ${s} \u2014 ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} von ${m} gesetzt`,
             applyCause: (c) => `Ursache: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} Segment(e) ohne für den Verkehr offene Fahrtrichtung: nichts zu sperren`:'', b?`${b} Segment(e) in diesem Zeitraum bereits gesperrt: unverändert gelassen`:'', c?`${c} Segment(e) in einer Fahrtrichtung bereits gesperrt: nur in der anderen gesperrt`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segment ${sid} von Waze abgelehnt: ${m}`,
+            applyAbsents: n => `${n} Segment(e) nicht auf der Karte geladen, daher nicht gesperrt: Karte zum Eintrag zurückholen (🎯) und erneut anwenden.`,
+            lblCombler: 'Lücken füllen',
+            tipCombler: 'Ist ein Segment im Zeitraum schon teilweise gesperrt, setzt WCT nur die fehlenden Stücke — davor, dazwischen oder danach — ohne die bestehenden Sperrungen anzufassen. Nicht angehakt: das Segment wird einfach übersprungen.',
+            applyComble: (n,t) => `\u25D0 ${n} Segment(e) schon teilweise gesperrt: ${t} Lücke(n) gefüllt, bestehende Sperrungen unverändert`,
+            bilanCombles: n => `\u25D0 ${n} ergänzt`,
+            stateComble: 'In diesem Zeitraum schon teilweise gesperrt: nur die Lücken werden gesperrt (mindestens 5 Min., eine Minute Abstand zu den bestehenden).',
+            csvChoixTitre: (l,n) => `Sperrungsdatei: ${l} Zeile(n), ${n} Segment(e)`,
+            csvChoixSel: '🧲 Segmente auswählen',
+            csvChoixFile: 'Zur Warteschlange',
+            tipCsvChoixSel: 'Wählt die Segmente der Datei auf der Karte aus. Danach stellst du die Sperrung unter Konfigurieren ein (Daten, MTE, Quelle) und bestätigst.',
+            tipCsvChoixFile: 'Legt die Sperrungen der Datei unverändert in die Warteschlange, mit ihren Daten und ihrem MTE. Sie lassen sich danach nicht mehr umkonfigurieren.',
+            csvChoixAide: 'Auswählen ist die richtige Wahl, um das MTE aus der Liste zu wählen: beim Import sind die MTE noch nicht geladen.',
+            csvSelManquants: (m,n) => `${m} von ${n} Segment(en) der Datei im erfassten Bereich nicht gefunden: gelöscht, zusammengeführt oder zu weit von der angegebenen Position.`,
+            bilanEcartes: n => `↷ ${n} übersprungen, dort nichts zu sperren`,
             applyNothingWritten:'Es wurde keine Sperrung gespeichert: im Editor wurde nichts erstellt.',
             errDateStart:'Ung\u00FCltiges Startdatum',
             errDateEnd:'Enddatum liegt vor dem Startdatum',
@@ -4159,9 +4259,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Bauarbeiten🚧',
             selectAll:'Alle ausw\u00E4hlen',
             tipCenter:'Auf dieses Segment zentrieren',
-            qFocusTip:'Hinsehen: Karte neu zentrieren und die Segmente dieses Stapels auswählen',
+            qFocusTip: 'Hinsehen: Karte neu zentrieren und die Segmente dieses Stapels auswählen',
             qFocusOk: (sel,manq) => `✅ ${sel} Segment(e) ausgewählt · ${manq} hier nicht gefunden.`,
-            qFocusNone:'Kein Segment dieses Stapels ist hier geladen: die Position der Datei führt nicht zu diesen Segmenten.',
+            qFocusNone: 'Kein Segment dieses Stapels ist hier geladen: die bekannte Position des Eintrags führt nicht zu diesen Segmenten.',
             centerUnavailable: sid => `Zentrieren auf Segment ${sid} nicht möglich: es ist nicht geladen und es liegt keine Koordinate vor.`,
             tipPresetSaveBtn:'Als Vorlage speichern',
             btnPresetSave:'💾 Vorlage',
@@ -4631,9 +4731,12 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
             colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
             colStartTip:'Fecha/hora de inicio', colEndTip:'Fecha/hora de fin',
-            colStateTip:'🟢 OK  🟠 En curso  🔴 Solapamiento  ⚫ Pasado',
+            colStateTip: '🟢 OK  🟠 En curso  🔴 Solapamiento  ⚫ Pasado  ⛔ Nada que cerrar  ⚪ Sin verificar  ◐ Rellenado en parte',
             stateOk:'OK', stateOn:'En curso', stateOv:'Solapamiento', statePast:'Pasado',
             stateUnchecked:'Sin verificar',
+            stateNoDir:'Ningún sentido abierto al tráfico: nada que cerrar, el segmento se omitirá al aplicar.',
+            stateOvSens:'Un sentido de este segmento ya está cerrado en esta franja: solo se cerrará el otro.',
+            qNumTip: (n,t) => `Entrada ${n} de ${t} en la cola`,
             queueLayerKo:'\u26A0\uFE0F No se encuentra la capa \u00ABCierres\u00BB de WME: los solapamientos con cierres existentes NO se verifican. Los puntos solo reflejan ya el estado de las fechas.',
             stateNull:'Segmento ausente del modelo de datos — edición reciente aún no propagada. Se omitirá al aplicar.',
             nullSegBadgeTip: n => `${n} segmento(s) ausente(s) del modelo de datos — edición reciente aún no propagada. Añádelos a la cola para ver los detalles.`,
@@ -4642,7 +4745,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             nodeIconNone:'⚪ Ninguno', nodeIconInner:'🟡 Interiores', nodeIconAll:'🔴 Todos',
             noMte:'No MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
-            tipCount: (o,s) => `${o} cierre(s) × ${s} segmento(s) — sin contar las filas eliminadas ni los conflictos de sentido. Los solapamientos solo se detectan al aplicar.`,
+            tipCount: (o,s) => `${o} cierre(s) × ${s} segmento(s) — sin contar las filas eliminadas ni los conflictos de sentido. Solapamientos: señalados en la tabla para los segmentos cargados, y verificados de nuevo justo antes de aplicar.`,
             tipDir:'Sentido del cierre: doble sentido, A \u21D2 B o B \u21D2 A. \u26A0\uFE0F En tramos largos el sentido A \u21D2 B puede variar de un segmento a otro: los segmentos incompatibles se descartan autom\u00E1ticamente y se listan en la tarjeta de la cola.',
             tipITon:'Ignora el tráfico — sin detección', tipIToff:'Detecta el tráfico',
             tipNodes: n => `Cierres en los nodos: ${n}`,
@@ -4715,6 +4818,22 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
             applyCause: (c) => `Causa: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sin sentido abierto al tráfico: nada que cerrar`:'', b?`${b} segmento(s) ya cerrado(s) en esta franja: sin cambios`:'', c?`${c} segmento(s) ya cerrado(s) en un sentido: cerrado(s) solo en el otro`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segmento ${sid} rechazado por Waze: ${m}`,
+            applyAbsents: n => `${n} segmento(s) no cargado(s) en el mapa, por tanto no cerrado(s): vuelve a llevar el mapa a la entrada (🎯) y aplica de nuevo.`,
+            lblCombler: 'Rellenar los huecos',
+            tipCombler: 'Si un segmento ya está cerrado en parte en la franja, WCT solo añade los trozos que faltan — antes, entre o después de los cierres existentes — sin tocarlos nunca. Sin marcar: el segmento simplemente se omite.',
+            applyComble: (n,t) => `\u25D0 ${n} segmento(s) ya cerrado(s) en parte: ${t} hueco(s) rellenado(s), cierres existentes sin cambios`,
+            bilanCombles: n => `\u25D0 ${n} completado(s)`,
+            stateComble: 'Ya cerrado en parte en esta franja: solo se cerrarán los huecos (al menos 5 min, un minuto de separación con los existentes).',
+            csvChoixTitre: (l,n) => `Archivo de cierres: ${l} fila(s), ${n} segmento(s)`,
+            csvChoixSel: '🧲 Seleccionar los segmentos',
+            csvChoixFile: 'Añadir a la cola',
+            tipCsvChoixSel: 'Selecciona en el mapa los segmentos del archivo. Luego ajustas el cierre en Configurar (fechas, MTE, fuente) y validas.',
+            tipCsvChoixFile: 'Pone en la cola los cierres del archivo tal cual, con sus fechas y su MTE. Después no se pueden reconfigurar.',
+            csvChoixAide: 'Seleccionar es la opción adecuada para elegir el MTE de la lista: al importar, los MTE aún no están cargados.',
+            csvSelManquants: (m,n) => `${m} de ${n} segmento(s) del archivo no encontrado(s) en la zona inventariada: eliminados, fusionados o demasiado lejos de la posición indicada.`,
+            bilanEcartes: n => `↷ ${n} omitido(s), nada que cerrar`,
             applyNothingWritten:'No se guard\u00F3 ning\u00FAn cierre: no se cre\u00F3 nada en el editor.',
             errDateStart:'Fecha de inicio no válida',
             errDateEnd:'La fecha de fin es anterior a la de inicio',
@@ -4727,9 +4846,9 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             defaultReason:'🚧Obras🚧',
             selectAll:'Seleccionar todo',
             tipCenter:'Centrar en este segmento',
-            qFocusTip:'Ir a ver: recentra el mapa y selecciona los segmentos de este lote',
+            qFocusTip: 'Ir a ver: recentra el mapa y selecciona los segmentos de este lote',
             qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) seleccionado(s) · ${manq} no encontrado(s) aquí.`,
-            qFocusNone:'Ningún segmento de este lote está cargado aquí: la posición del archivo no lleva a estos segmentos.',
+            qFocusNone: 'Ningún segmento de este lote está cargado aquí: la posición conocida de la entrada no lleva a estos segmentos.',
             centerUnavailable: sid => `Imposible centrar en el segmento ${sid}: no está cargado y no hay ninguna coordenada disponible.`,
             tipPresetSaveBtn:'Guardar como preajuste',
             btnPresetSave:'💾 Preajuste',
@@ -5199,9 +5318,12 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
             colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
-            colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
+            colStateTip: '🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado  ⛔ Nada a bloquear  ⚪ Não verificado  ◐ Preenchido em parte',
             stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
             stateUnchecked:'N\u00E3o verificado',
+            stateNoDir:'Nenhum sentido aberto ao trânsito: nada a bloquear, o segmento será ignorado ao aplicar.',
+            stateOvSens:'Um sentido deste segmento já está bloqueado neste horário: só o outro será bloqueado.',
+            qNumTip: (n,t) => `Entrada ${n} de ${t} na fila`,
             queueLayerKo:'\u26A0\uFE0F A camada \u00ABBloqueios\u00BB do WME n\u00E3o foi encontrada: as sobreposi\u00E7\u00F5es com bloqueios existentes N\u00C3O s\u00E3o verificadas. Os pontos passam a refletir apenas as datas.',
             stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado ao aplicar.',
             nullSegBadgeTip: n => `${n} segmento(s) ausente(s) do modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
@@ -5210,7 +5332,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             nodeIconNone:'⚪ Nenhum', nodeIconInner:'🟡 Internos', nodeIconAll:'🔴 Todos',
             noMte:'Sem MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
-            tipCount: (o,s) => `${o} bloqueio(s) × ${s} segmento(s) — sem contar as linhas excluídas e os conflitos de sentido. As sobreposições só são detectadas ao aplicar.`,
+            tipCount: (o,s) => `${o} bloqueio(s) × ${s} segmento(s) — sem contar as linhas excluídas e os conflitos de sentido. Sobreposições: sinalizadas na tabela para os segmentos carregados, e verificadas de novo logo antes de aplicar.`,
             tipDir:'Sentido do bloqueio: m\u00E3o dupla, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em trechos longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o tráfego — sem detecção', tipIToff:'Detecta o tráfego',
             tipNodes: n => `Bloqueios nos nós: ${n}`,
@@ -5283,6 +5405,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
             applyCause: (c) => `Causa: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sem sentido aberto ao trânsito: nada a bloquear`:'', b?`${b} segmento(s) já bloqueado(s) neste horário: mantido(s) como está(ão)`:'', c?`${c} segmento(s) já bloqueado(s) em um sentido: bloqueado(s) só no outro`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segmento ${sid} recusado pelo Waze: ${m}`,
+            applyAbsents: n => `${n} segmento(s) não carregado(s) no mapa, portanto não bloqueado(s): leve o mapa de volta à entrada (🎯) e aplique de novo.`,
+            lblCombler: 'Preencher as lacunas',
+            tipCombler: 'Se um segmento já está bloqueado em parte no horário, o WCT só adiciona os pedaços que faltam — antes, entre ou depois dos bloqueios existentes — sem nunca mexer neles. Desmarcado: o segmento é simplesmente ignorado.',
+            applyComble: (n,t) => `\u25D0 ${n} segmento(s) já bloqueado(s) em parte: ${t} lacuna(s) preenchida(s), bloqueios existentes mantidos como estão`,
+            bilanCombles: n => `\u25D0 ${n} completado(s)`,
+            stateComble: 'Já bloqueado em parte neste horário: só as lacunas serão bloqueadas (pelo menos 5 min, um minuto de distância dos existentes).',
+            csvChoixTitre: (l,n) => `Arquivo de bloqueios: ${l} linha(s), ${n} segmento(s)`,
+            csvChoixSel: '🧲 Selecionar os segmentos',
+            csvChoixFile: 'Adicionar à fila',
+            tipCsvChoixSel: 'Seleciona no mapa os segmentos do arquivo. Depois você ajusta o bloqueio em Configurar (datas, MTE, fonte) e valida.',
+            tipCsvChoixFile: 'Coloca os bloqueios do arquivo na fila como estão, com suas datas e seu MTE. Eles não podem ser reconfigurados depois.',
+            csvChoixAide: 'Selecionar é a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvSelManquants: (m,n) => `${m} de ${n} segmento(s) do arquivo não encontrado(s) na área inventariada: excluídos, mesclados ou longe demais da posição indicada.`,
+            bilanEcartes: n => `↷ ${n} ignorado(s), nada a bloquear`,
             applyNothingWritten:'Nenhum bloqueio foi salvo: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
@@ -5295,9 +5433,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centralizar neste segmento',
-            qFocusTip:'Ir ver: recentraliza o mapa e seleciona os segmentos deste lote',
+            qFocusTip: 'Ir ver: recentraliza o mapa e seleciona os segmentos deste lote',
             qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) selecionado(s) · ${manq} não encontrado(s) aqui.`,
-            qFocusNone:'Nenhum segmento deste lote está carregado aqui: a posição do arquivo não leva a esses segmentos.',
+            qFocusNone: 'Nenhum segmento deste lote está carregado aqui: a posição conhecida da entrada não leva a esses segmentos.',
             centerUnavailable: sid => `Impossível centralizar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Salvar como predefinição',
             btnPresetSave:'💾 Predefinição',
@@ -5767,9 +5905,12 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
             colStartTip:'Data/hora de início', colEndTip:'Data/hora de fim',
-            colStateTip:'🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado',
+            colStateTip: '🟢 OK  🟠 Em curso  🔴 Sobreposição  ⚫ Passado  ⛔ Nada a cortar  ⚪ Não verificado  ◐ Preenchido em parte',
             stateOk:'OK', stateOn:'Em curso', stateOv:'Sobreposição', statePast:'Passado',
             stateUnchecked:'N\u00E3o verificado',
+            stateNoDir:'Nenhum sentido aberto ao trânsito: nada a cortar, o segmento será ignorado na aplicação.',
+            stateOvSens:'Um sentido deste segmento já está cortado neste horário: só o outro será cortado.',
+            qNumTip: (n,t) => `Entrada ${n} de ${t} na fila`,
             queueLayerKo:'\u26A0\uFE0F A camada \u00ABCortes\u00BB do WME n\u00E3o foi encontrada: as sobreposi\u00E7\u00F5es com cortes existentes N\u00C3O s\u00E3o verificadas. Os pontos passam a refletir apenas as datas.',
             stateNull:'Segmento não encontrado no modelo de dados — edição recente ainda não propagada. Será ignorado na aplicação.',
             nullSegBadgeTip: n => `${n} segmento(s) em falta no modelo de dados — edição recente ainda não propagada. Adicione à fila para ver os detalhes.`,
@@ -5778,7 +5919,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             nodeIconNone:'⚪ Nenhum', nodeIconInner:'🟡 Interiores', nodeIconAll:'🔴 Todos',
             noMte:'Sem MTE',
             countBadge: (o,s) => `${o}×${s} seg`,
-            tipCount: (o,s) => `${o} corte(s) × ${s} segmento(s) — excluindo as linhas eliminadas e os conflitos de sentido. As sobreposições só são detetadas na aplicação.`,
+            tipCount: (o,s) => `${o} corte(s) × ${s} segmento(s) — excluindo as linhas eliminadas e os conflitos de sentido. Sobreposições: assinaladas na tabela para os segmentos carregados, e verificadas de novo mesmo antes da aplicação.`,
             tipDir:'Sentido do corte: dois sentidos, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em tro\u00E7os longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o trânsito — sem deteção', tipIToff:'Deteta o trânsito',
             tipNodes: n => `Cortes nos nós: ${n}`,
@@ -5851,6 +5992,22 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyErr: (r,s,e) => `❌ ${r} ${s} — ${e}`,
             applyPartial: (r,s,n,m) => `\u26A0\uFE0F ${r} ${s} \u2014 ${n} de ${m} aplicados`,
             applyCause: (c) => `Causa: ${c}`,
+            applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sem sentido aberto ao trânsito: nada a cortar`:'', b?`${b} segmento(s) já cortado(s) neste horário: mantido(s) como está(ão)`:'', c?`${c} segmento(s) já cortado(s) num sentido: cortado(s) só no outro`:''].filter(Boolean).join(' · '),
+            applyRefusSeg: (sid,m) => `Segmento ${sid} recusado pelo Waze: ${m}`,
+            applyAbsents: n => `${n} segmento(s) não carregado(s) no mapa, portanto não cortado(s): leve o mapa de volta à entrada (🎯) e aplique de novo.`,
+            lblCombler: 'Preencher as lacunas',
+            tipCombler: 'Se um segmento já está cortado em parte no horário, o WCT só adiciona os pedaços em falta — antes, entre ou depois dos cortes existentes — sem nunca lhes mexer. Desmarcado: o segmento é simplesmente ignorado.',
+            applyComble: (n,t) => `\u25D0 ${n} segmento(s) já cortado(s) em parte: ${t} lacuna(s) preenchida(s), cortes existentes mantidos tal como estão`,
+            bilanCombles: n => `\u25D0 ${n} completado(s)`,
+            stateComble: 'Já cortado em parte neste horário: só as lacunas serão cortadas (pelo menos 5 min, um minuto de distância dos existentes).',
+            csvChoixTitre: (l,n) => `Ficheiro de cortes: ${l} linha(s), ${n} segmento(s)`,
+            csvChoixSel: '🧲 Selecionar os segmentos',
+            csvChoixFile: 'Adicionar à fila',
+            tipCsvChoixSel: 'Seleciona no mapa os segmentos do ficheiro. Depois ajusta o corte em Configurar (datas, MTE, fonte) e valida.',
+            tipCsvChoixFile: 'Coloca os cortes do ficheiro na fila tal como estão, com as suas datas e o seu MTE. Não podem ser reconfigurados depois.',
+            csvChoixAide: 'Selecionar é a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvSelManquants: (m,n) => `${m} de ${n} segmento(s) do ficheiro não encontrado(s) na área inventariada: eliminados, fundidos ou demasiado longe da posição indicada.`,
+            bilanEcartes: n => `↷ ${n} ignorado(s), nada a cortar`,
             applyNothingWritten:'Nenhum corte foi guardado: nada foi criado no editor.',
             errDateStart:'Data de início inválida',
             errDateEnd:'Data de fim anterior à data de início',
@@ -5863,9 +6020,9 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             defaultReason:'🚧Obras🚧',
             selectAll:'Selecionar tudo',
             tipCenter:'Centrar neste segmento',
-            qFocusTip:'Ir ver: recentra o mapa e seleciona os segmentos deste lote',
+            qFocusTip: 'Ir ver: recentra o mapa e seleciona os segmentos deste lote',
             qFocusOk: (sel,manq) => `✅ ${sel} segmento(s) selecionado(s) · ${manq} não encontrado(s) aqui.`,
-            qFocusNone:'Nenhum segmento deste lote está carregado aqui: a posição do ficheiro não leva a estes segmentos.',
+            qFocusNone: 'Nenhum segmento deste lote está carregado aqui: a posição conhecida da entrada não leva a estes segmentos.',
             centerUnavailable: sid => `Impossível centrar no segmento ${sid}: não está carregado e não há coordenada disponível.`,
             tipPresetSaveBtn:'Guardar como predefinição',
             btnPresetSave:'💾 Predefinição',
@@ -6082,6 +6239,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Ouvrez l\u2019onglet \u00C9v\u00E9nements dans WME, puis cliquez \u21BB dans le champ MTE pour charger la liste.</td></tr>
             <tr><td><b>Fermetures aux n\u0153uds</b></td><td>Aucune / Int\u00E9rieures (n\u0153uds partag\u00E9s) / Toutes</td></tr>
             <tr><td><b>Ignorer le trafic</b></td><td>Si coch\u00e9, la fermeture s\u2019applique sans tenir compte du trafic r\u00e9el. Waze ne r\u00e9ouvre pas automatiquement le segment m\u00eame s\u2019il d\u00e9tecte du trafic passant.</td></tr>
+            <tr><td><b>Combler les trous</b></td><td>Cochée par défaut. Si un segment est déjà fermé <b>en partie</b> sur le créneau, WCT ne pose que les morceaux manquants — avant, entre ou après les fermetures existantes — sans jamais toucher à celles-ci, qu’elles viennent d’un autre éditeur ou d’un partenaire. Un morceau commence une minute après une fermeture existante et finit une minute avant la suivante (Waze refuse le bout à bout) ; un trou de moins de 5 minutes est laissé. Décochée : le segment est écarté.</td></tr>
             </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>✏️ Area</b></td><td><b>Draw an area</b> button, at the top of the tab: outline a sector on the map and every segment more than half inside it is selected. Details in the <b>✏️ Area (polygon)</b> section.</td></tr>
@@ -6099,6 +6257,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Open the Events tab in WME, then click \u21BB in the MTE field to load the list.</td></tr>
             <tr><td><b>Node closures</b></td><td>None / Inner nodes (shared between segments) / All</td></tr>
             <tr><td><b>Ignore traffic</b></td><td>If checked, closure applies regardless of actual traffic. Waze will not automatically reopen the segment even if it detects traffic passing through.</td></tr>
+            <tr><td><b>Fill the gaps</b></td><td>Ticked by default. If a segment is already <b>partly</b> closed during the time window, WCT only adds the missing pieces — before, between or after the existing closures — without ever touching them, whether they come from another editor or a partner. A piece starts one minute after an existing closure and ends one minute before the next one (Waze rejects end-to-end closures); a gap shorter than 5 minutes is left. Unticked: the segment is skipped.</td></tr>
             </table>`, it:`
             <table class="wct-help-table">
             <tr><td><b>✏️ Zona</b></td><td>Pulsante <b>Traccia una zona</b>, in cima alla scheda: delimita un settore sulla mappa e ogni segmento per più di metà all'interno viene selezionato. Dettagli nella sezione <b>✏️ Zona (poligono)</b>.</td></tr>
@@ -6116,6 +6275,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Apri la scheda Eventi in WME, poi clicca ↻ nel campo MTE per caricare l'elenco.</td></tr>
             <tr><td><b>Chiusure ai nodi</b></td><td>Nessuna / Interne (nodi condivisi tra segmenti) / Tutte</td></tr>
             <tr><td><b>Ignora traffico</b></td><td>Se selezionato, la chiusura si applica senza tenere conto del traffico reale. Waze non riaprirà automaticamente il segmento anche se rileva traffico in transito.</td></tr>
+            <tr><td><b>Colmare i vuoti</b></td><td>Spuntato per impostazione predefinita. Se un segmento è già chiuso <b>in parte</b> nella fascia, WCT aggiunge solo i pezzi mancanti — prima, tra o dopo le chiusure esistenti — senza mai toccarle, che vengano da un altro editor o da un partner. Un pezzo inizia un minuto dopo una chiusura esistente e finisce un minuto prima della successiva (Waze rifiuta le chiusure contigue); un vuoto di meno di 5 minuti viene lasciato. Non spuntato: il segmento viene saltato.</td></tr>
             </table>`, he:`
             <table class="wct-help-table">
             <tr><td><b>✏️ אזור</b></td><td>כפתור <b>שרטוט אזור</b>, בראש הלשונית: סמן אזור על המפה וכל מקטע שיותר ממחציתו בתוכו ייבחר. פרטים בסעיף <b>✏️ אזור (מצולע)</b>.</td></tr>
@@ -6133,6 +6293,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>פתח את לשונית האירועים ב-WME, ואז לחץ ↻ בשדה MTE כדי לטעון את הרשימה.</td></tr>
             <tr><td><b>חסימות צמתים</b></td><td>ללא / פנימיים (צמתים משותפים בין מקטעים) / הכול</td></tr>
             <tr><td><b>התעלם מתנועה</b></td><td>אם מסומן, החסימה חלה ללא תלות בתנועה בפועל. Waze לא יפתח מחדש את המקטע אוטומטית גם אם יזהה תנועה עוברת.</td></tr>
+            <tr><td><b>השלמת הפערים</b></td><td>מסומן כברירת מחדל. אם מקטע כבר חסום <b>חלקית</b> בחלון הזמן, WCT מוסיף רק את החלקים החסרים — לפני, בין או אחרי החסימות הקיימות — בלי לגעת בהן, בין אם הן של עורך אחר ובין אם של שותף. חלק מתחיל דקה אחרי חסימה קיימת ומסתיים דקה לפני הבאה (Waze דוחה חסימות צמודות); פער קצר מ־5 דקות נשאר. ללא סימון: המקטע מדולג.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>✏️ Bereich</b></td><td>Schaltfläche <b>Bereich zeichnen</b>, oben im Reiter: einen Sektor auf der Karte umreißen, und jedes Segment, das zu mehr als der Hälfte darin liegt, wird ausgewählt. Näheres im Abschnitt <b>✏️ Bereich (Polygon)</b>.</td></tr>
@@ -6150,6 +6311,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Öffne den Reiter Ereignisse in WME und klicke dann im MTE-Feld auf ↻, um die Liste zu laden.</td></tr>
             <tr><td><b>Knotensperrungen</b></td><td>Keine / Innere Knoten (zwischen Segmenten geteilt) / Alle</td></tr>
             <tr><td><b>Verkehr ignorieren</b></td><td>Wenn aktiviert, gilt die Sperrung unabhängig vom tatsächlichen Verkehr. Waze öffnet das Segment nicht automatisch wieder, selbst wenn Verkehr darauf erkannt wird.</td></tr>
+            <tr><td><b>Lücken füllen</b></td><td>Standardmäßig angehakt. Ist ein Segment im Zeitraum schon <b>teilweise</b> gesperrt, setzt WCT nur die fehlenden Stücke — davor, dazwischen oder danach — ohne die bestehenden Sperrungen anzufassen, ob sie von einem anderen Editor oder einem Partner stammen. Ein Stück beginnt eine Minute nach einer bestehenden Sperrung und endet eine Minute vor der nächsten (Waze lehnt nahtlose Sperrungen ab); eine Lücke unter 5 Minuten bleibt offen. Nicht angehakt: das Segment wird übersprungen.</td></tr>
             </table>`, es:`
             <table class="wct-help-table">
             <tr><td><b>✏️ Zona</b></td><td>Botón <b>Dibujar una zona</b>, arriba en la pestaña: delimita un sector en el mapa y se selecciona todo segmento que quede dentro en más de la mitad. Detalle en la sección <b>✏️ Zona (polígono)</b>.</td></tr>
@@ -6167,6 +6329,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Abre la pestaña Eventos en WME y haz clic en ↻ en el campo MTE para cargar la lista.</td></tr>
             <tr><td><b>Cierres en los nodos</b></td><td>Ninguno / Nodos interiores (compartidos entre segmentos) / Todos</td></tr>
             <tr><td><b>Ignorar el tráfico</b></td><td>Si se marca, el cierre se aplica sin tener en cuenta el tráfico real. Waze no reabrirá automáticamente el segmento aunque detecte tráfico circulando por él.</td></tr>
+            <tr><td><b>Rellenar los huecos</b></td><td>Marcada por defecto. Si un segmento ya está cerrado <b>en parte</b> en la franja, WCT solo añade los trozos que faltan — antes, entre o después de los cierres existentes — sin tocarlos nunca, vengan de otro editor o de un socio. Un trozo empieza un minuto después de un cierre existente y termina un minuto antes del siguiente (Waze rechaza los cierres contiguos); un hueco de menos de 5 minutos se deja. Sin marcar: el segmento se omite.</td></tr>
             </table>`, 'pt-BR':`
             <table class="wct-help-table">
             <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo da aba: delimite um setor no mapa e todo segmento com mais da metade dentro é selecionado. Detalhes na seção <b>✏️ Área (polígono)</b>.</td></tr>
@@ -6184,6 +6347,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Abra a aba Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
             <tr><td><b>Bloqueios nos nós</b></td><td>Nenhum / Nós internos (compartilhados entre segmentos) / Todos</td></tr>
             <tr><td><b>Ignorar o tráfego</b></td><td>Se marcado, o bloqueio se aplica independentemente do tráfego real. O Waze não reabrirá o segmento automaticamente, mesmo que detecte tráfego passando por ele.</td></tr>
+            <tr><td><b>Preencher as lacunas</b></td><td>Marcada por padrão. Se um segmento já está bloqueado <b>em parte</b> no horário, o WCT só adiciona os pedaços que faltam — antes, entre ou depois dos bloqueios existentes — sem nunca mexer neles, venham de outro editor ou de um parceiro. Um pedaço começa um minuto depois de um bloqueio existente e termina um minuto antes do seguinte (o Waze recusa bloqueios colados); uma lacuna de menos de 5 minutos é deixada. Desmarcada: o segmento é ignorado.</td></tr>
             </table>`, 'pt-PT':`
             <table class="wct-help-table">
             <tr><td><b>✏️ Área</b></td><td>Botão <b>Desenhar uma área</b>, no topo do separador: delimite um setor no mapa e é selecionado todo o segmento com mais de metade no interior. Detalhes na secção <b>✏️ Área (polígono)</b>.</td></tr>
@@ -6201,6 +6365,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE</b></td><td>Abra o separador Eventos no WME e clique em ↻ no campo MTE para carregar a lista.</td></tr>
             <tr><td><b>Cortes nos nós</b></td><td>Nenhum / Nós interiores (partilhados entre segmentos) / Todos</td></tr>
             <tr><td><b>Ignorar o trânsito</b></td><td>Se estiver marcado, o corte aplica-se independentemente do trânsito real. O Waze não reabre automaticamente o segmento, mesmo que detete trânsito a passar.</td></tr>
+            <tr><td><b>Preencher as lacunas</b></td><td>Marcada por predefinição. Se um segmento já está cortado <b>em parte</b> no horário, o WCT só adiciona os pedaços em falta — antes, entre ou depois dos cortes existentes — sem nunca lhes mexer, venham de outro editor ou de um parceiro. Um pedaço começa um minuto depois de um corte existente e termina um minuto antes do seguinte (o Waze recusa cortes colados); uma lacuna de menos de 5 minutos é deixada. Desmarcada: o segmento é ignorado.</td></tr>
             </table>` }) },
         { id:'h3', title:t('helpH3'), body: _L({ fr:`
             <p>La file accumule des <b>lots</b> de fermetures avant application.</p>
@@ -6212,6 +6377,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Bordure color\u00E9e</b></td><td>\uD83D\uDD35 Configur\u00E9 manuellement \u00B7 \uD83D\uDFE2 Import\u00E9 CSV \u00B7 \uD83D\uDFE0 Charg\u00E9 depuis pr\u00E9r\u00E9glage</td></tr>
             <tr><td><b>\u00C9tat \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 En cours \u00B7 \uD83D\uDD34 Chevauchement \u00B7 \u26AB Date pass\u00E9e</td></tr>
             <tr><td><b>\u00C9tat d\u2019application \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Pos\u00E9 sur l\u2019en-t\u00EAte du lot pendant l\u2019application\u00A0: \u23F3 en cours \u00B7 \u2705 appliqu\u00E9 \u00B7 \u26A0\uFE0F partiel \u00B7 \u274C \u00E9chec. Un lot jamais atteint reste sans marque. Le d\u00E9tail ligne \u00E0 ligne s\u2019affiche dans le <b>bilan</b>, sous la file, \u00E0 la fin de l\u2019application.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Rien à fermer : aucun sens ouvert à la circulation, ou sens incompatible — écarté à l’application · ⚪ Non vérifié : segment hors de la vue ou fermetures illisibles ; le contrôle est refait juste avant l’envoi. 🔴 vaut aussi pour un seul sens déjà fermé, et pour une fermeture <b>bout à bout</b> avec une autre, que Waze refuse.</td></tr>
+            <tr><td><b>◐</b></td><td>Déjà fermé en partie sur le créneau : avec « Combler les trous », seuls les morceaux manquants seront fermés.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Numéro de l’entrée dans la file.</td></tr>
+            <tr><td><b>↷ Écartés</b></td><td>Avant l’envoi, WCT écarte les segments déjà fermés sur le créneau et ceux sans sens ouvert, et le dit dans le bilan. Si Waze refuse quand même un lot, WCT le recoupe pour ne perdre que le segment fautif, désigné par son identifiant.</td></tr>
             </table>`, en:`
             <p>The queue accumulates <b>batches</b> of closures before applying.</p>
             <table class="wct-help-table">
@@ -6222,6 +6392,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Colored border</b></td><td>\uD83D\uDD35 Manual \u00B7 \uD83D\uDFE2 CSV import \u00B7 \uD83D\uDFE0 From preset</td></tr>
             <tr><td><b>State \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Ongoing \u00B7 \uD83D\uDD34 Overlap \u00B7 \u26AB Past date</td></tr>
             <tr><td><b>Apply state \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Shown on the batch header while applying: \u23F3 running \u00B7 \u2705 applied \u00B7 \u26A0\uFE0F partial \u00B7 \u274C failed. A batch never reached stays unmarked. The line-by-line detail appears in the <b>summary</b>, below the queue, once the run is over.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nothing to close: no direction open to traffic, or incompatible direction — skipped on apply · ⚪ Not checked: segment outside the view or closures unreadable; the check is run again just before sending. 🔴 also covers a single direction already closed, and a closure <b>touching</b> another one end to end, which Waze rejects.</td></tr>
+            <tr><td><b>◐</b></td><td>Already partly closed during the time window: with “Fill the gaps”, only the missing pieces will be closed.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Number of the entry in the queue.</td></tr>
+            <tr><td><b>↷ Skipped</b></td><td>Before sending, WCT skips segments already closed at that time and those with no open direction, and says so in the summary. If Waze still rejects a batch, WCT splits it so that only the faulty segment is lost, named by its ID.</td></tr>
             </table>`, it:`
             <p>La coda accumula <b>lotti</b> di chiusure prima dell'applicazione.</p>
             <table class="wct-help-table">
@@ -6232,6 +6407,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Bordo colorato</b></td><td>🔵 Manuale · 🟢 Importato da CSV · 🟠 Caricato da modello</td></tr>
             <tr><td><b>Stato 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 In corso · 🔴 Sovrapposta · ⚫ Data passata</td></tr>
             <tr><td><b>Stato di applicazione ⏳✅⚠️❌</b></td><td>Mostrato sull'intestazione del lotto durante l'applicazione: ⏳ in corso · ✅ applicato · ⚠️ parziale · ❌ non riuscito. Un lotto mai raggiunto resta senza segno. Il dettaglio riga per riga compare nel <b>riepilogo</b>, sotto la coda, al termine.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nulla da chiudere: nessuna direzione aperta al traffico, o direzione incompatibile — saltato in fase di applicazione · ⚪ Non verificato: segmento fuori dalla vista o chiusure illeggibili; il controllo viene ripetuto subito prima dell’invio. 🔴 vale anche per una sola direzione già chiusa, e per una chiusura <b>contigua</b> a un’altra, che Waze rifiuta.</td></tr>
+            <tr><td><b>◐</b></td><td>Già chiuso in parte nella fascia: con «Colmare i vuoti», saranno chiusi solo i pezzi mancanti.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Numero della voce nella coda.</td></tr>
+            <tr><td><b>↷ Saltati</b></td><td>Prima dell’invio, WCT salta i segmenti già chiusi in quella fascia e quelli senza direzione aperta, e lo indica nel riepilogo. Se Waze rifiuta comunque un lotto, WCT lo divide per perdere solo il segmento difettoso, indicato con il suo ID.</td></tr>
             </table>`, he:`
             <p>התור צובר <b>מנות</b> של חסימות לפני ההחלה.</p>
             <table class="wct-help-table">
@@ -6242,6 +6422,11 @@ const buildHelpHTML = () => {
             <tr><td><b>מסגרת צבעונית</b></td><td>🔵 ידני · 🟢 יובא מ-CSV · 🟠 נטען מתבנית</td></tr>
             <tr><td><b>מצב 🟢🟠🔴⚫</b></td><td>🟢 תקין · 🟠 מתמשך · 🔴 חפיפה · ⚫ תאריך שעבר</td></tr>
             <tr><td><b>מצב החלה ⏳✅⚠️❌</b></td><td>מוצג בכותרת המנה במהלך ההחלה: ⏳ בתהליך · ✅ הוחל · ⚠️ חלקי · ❌ נכשל. מנה שלא הגיע אליה התור נשארת ללא סימון. הפירוט שורה אחר שורה מופיע ב<b>סיכום</b>, מתחת לתור, בסיום.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ אין מה לחסום: אין כיוון פתוח לתנועה, או כיוון לא תואם — מדולג ביישום · ⚪ לא נבדק: מקטע מחוץ לתצוגה או חסימות שלא ניתן לקרוא; הבדיקה חוזרת ממש לפני השליחה. 🔴 חל גם על כיוון אחד שכבר חסום, ועל חסימה <b>צמודה</b> לחסימה אחרת, ש־Waze דוחה.</td></tr>
+            <tr><td><b>◐</b></td><td>כבר חסום חלקית בחלון הזמן: עם „השלמת הפערים”, ייחסמו רק החלקים החסרים.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>מספר הרשומה בתור.</td></tr>
+            <tr><td><b>↷ דולגו</b></td><td>לפני השליחה WCT מדלג על מקטעים שכבר חסומים בזמן הזה ועל מקטעים ללא כיוון פתוח, ומציין זאת בסיכום. אם Waze בכל זאת דוחה אוסף, WCT מפצל אותו כך שרק המקטע הבעייתי אובד, עם המזהה שלו.</td></tr>
             </table>`, de:`
             <p>Die Warteschlange sammelt <b>Pakete</b> von Sperrungen, bevor sie angewendet werden.</p>
             <table class="wct-help-table">
@@ -6252,6 +6437,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Farbiger Rand</b></td><td>\uD83D\uDD35 Manuell eingerichtet \u00B7 \uD83D\uDFE2 CSV-Import \u00B7 \uD83D\uDFE0 Aus Vorlage geladen</td></tr>
             <tr><td><b>Zustand \uD83D\uDFE2\uD83D\uDFE0\uD83D\uDD34\u26AB</b></td><td>\uD83D\uDFE2 OK \u00B7 \uD83D\uDFE0 Laufend \u00B7 \uD83D\uDD34 \u00DCberschneidung \u00B7 \u26AB Vergangenes Datum</td></tr>
             <tr><td><b>Anwendungsstatus \u23F3\u2705\u26A0\uFE0F\u274C</b></td><td>Wird w\u00E4hrend des Setzens auf der Paket-Kopfzeile angezeigt: \u23F3 l\u00E4uft \u00B7 \u2705 gesetzt \u00B7 \u26A0\uFE0F teilweise \u00B7 \u274C fehlgeschlagen. Ein nie erreichtes Paket bleibt ohne Markierung. Die zeilenweise Aufstellung steht am Ende in der <b>Bilanz</b> unter der Warteschlange.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nichts zu sperren: keine für den Verkehr offene Fahrtrichtung oder unpassende Richtung — beim Anwenden übersprungen · ⚪ Nicht geprüft: Segment außerhalb der Ansicht oder Sperrungen nicht lesbar; die Prüfung wird direkt vor dem Senden wiederholt. 🔴 gilt auch, wenn nur eine Richtung schon gesperrt ist, und für eine Sperrung, die <b>nahtlos</b> an eine andere anschließt — Waze lehnt das ab.</td></tr>
+            <tr><td><b>◐</b></td><td>Im Zeitraum schon teilweise gesperrt: mit „Lücken füllen“ werden nur die fehlenden Stücke gesperrt.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Nummer des Eintrags in der Warteschlange.</td></tr>
+            <tr><td><b>↷ Übersprungen</b></td><td>Vor dem Senden überspringt WCT Segmente, die in diesem Zeitraum schon gesperrt sind oder keine offene Richtung haben, und nennt sie im Bericht. Lehnt Waze einen Stapel trotzdem ab, teilt WCT ihn auf, sodass nur das fehlerhafte Segment verloren geht — mit seiner ID.</td></tr>
             </table>`, es:`
             <p>La cola acumula <b>lotes</b> de cierres antes de aplicarlos.</p>
             <table class="wct-help-table">
@@ -6262,6 +6452,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Borde de color</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Cargado desde preajuste</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 En curso · 🔴 Solapamiento · ⚫ Fecha pasada</td></tr>
             <tr><td><b>Estado de aplicación ⏳✅⚠️❌</b></td><td>Se muestra en la cabecera del lote durante la aplicación: ⏳ en curso · ✅ aplicado · ⚠️ parcial · ❌ fallido. Un lote nunca alcanzado se queda sin marca. El detalle línea por línea aparece en el <b>resumen</b>, bajo la cola, al terminar.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nada que cerrar: ningún sentido abierto al tráfico, o sentido incompatible — se omite al aplicar · ⚪ Sin verificar: segmento fuera de la vista o cierres ilegibles; la comprobación se repite justo antes del envío. 🔴 vale también para un solo sentido ya cerrado, y para un cierre <b>contiguo</b> a otro, que Waze rechaza.</td></tr>
+            <tr><td><b>◐</b></td><td>Ya cerrado en parte en la franja: con «Rellenar los huecos», solo se cerrarán los trozos que faltan.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Número de la entrada en la cola.</td></tr>
+            <tr><td><b>↷ Omitidos</b></td><td>Antes del envío, WCT omite los segmentos ya cerrados en esa franja y los que no tienen sentido abierto, y lo indica en el resumen. Si Waze aun así rechaza un lote, WCT lo divide para perder solo el segmento defectuoso, identificado por su ID.</td></tr>
             </table>`, 'pt-BR':`
             <p>A fila acumula <b>lotes</b> de bloqueios antes da aplicação.</p>
             <table class="wct-help-table">
@@ -6272,6 +6467,11 @@ const buildHelpHTML = () => {
             <tr><td><b>Borda colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             <tr><td><b>Estado de aplicação ⏳✅⚠️❌</b></td><td>Exibido no cabeçalho do lote durante a aplicação: ⏳ em curso · ✅ aplicado · ⚠️ parcial · ❌ falhou. Um lote nunca alcançado fica sem marca. O detalhe linha a linha aparece no <b>resumo</b>, abaixo da fila, ao terminar.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nada a bloquear: nenhum sentido aberto ao trânsito, ou sentido incompatível — ignorado ao aplicar · ⚪ Não verificado: segmento fora da vista ou bloqueios ilegíveis; a verificação é refeita logo antes do envio. 🔴 vale também para um só sentido já bloqueado, e para um bloqueio <b>colado</b> a outro, que o Waze recusa.</td></tr>
+            <tr><td><b>◐</b></td><td>Já bloqueado em parte no horário: com “Preencher as lacunas”, só os pedaços que faltam serão bloqueados.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Número da entrada na fila.</td></tr>
+            <tr><td><b>↷ Ignorados</b></td><td>Antes do envio, o WCT ignora os segmentos já bloqueados nesse horário e os sem sentido aberto, e informa no resumo. Se o Waze ainda assim recusar um lote, o WCT o divide para perder só o segmento com problema, indicado pelo seu ID.</td></tr>
             </table>`, 'pt-PT':`
             <p>A fila acumula <b>lotes</b> de cortes antes da aplicação.</p>
             <table class="wct-help-table">
@@ -6282,20 +6482,13 @@ const buildHelpHTML = () => {
             <tr><td><b>Margem colorida</b></td><td>🔵 Manual · 🟢 Importado de CSV · 🟠 Carregado de predefinição</td></tr>
             <tr><td><b>Estado 🟢🟠🔴⚫</b></td><td>🟢 OK · 🟠 Em curso · 🔴 Sobreposição · ⚫ Data passada</td></tr>
             <tr><td><b>Estado de aplicação ⏳✅⚠️❌</b></td><td>Apresentado no cabeçalho do lote durante a aplicação: ⏳ em curso · ✅ aplicado · ⚠️ parcial · ❌ falhou. Um lote nunca alcançado fica sem marca. O detalhe linha a linha surge no <b>resumo</b>, por baixo da fila, no fim.</td></tr>
+            
+            <tr><td><b>⛔ ⚪</b></td><td>⛔ Nada a cortar: nenhum sentido aberto ao trânsito, ou sentido incompatível — ignorado na aplicação · ⚪ Não verificado: segmento fora da vista ou cortes ilegíveis; a verificação é refeita mesmo antes do envio. 🔴 vale também para um só sentido já cortado, e para um corte <b>colado</b> a outro, que o Waze recusa.</td></tr>
+            <tr><td><b>◐</b></td><td>Já cortado em parte no horário: com “Preencher as lacunas”, só os pedaços em falta serão cortados.</td></tr>
+            <tr><td><b>#1, #2…</b></td><td>Número da entrada na fila.</td></tr>
+            <tr><td><b>↷ Ignorados</b></td><td>Antes do envio, o WCT ignora os segmentos já cortados nesse horário e os sem sentido aberto, e indica-o no resumo. Se o Waze ainda assim recusar um lote, o WCT divide-o para perder só o segmento com problema, indicado pelo seu ID.</td></tr>
             </table>` }) },
-        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) ou virages (format WCT) — ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format) or turns (WCT format) — added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, it:`<p><b>Un unico punto di ingresso per tutti i file.</b> Trascinalo qui: WCT ne riconosce il formato, lo elabora e ti porta dove prosegue il lavoro.</p><table class="wct-help-table"><tr><td><b>CSV di chiusure</b></td><td>Segmenti (formato Advanced Closures) o svolte (formato WCT) — aggiunti alla <b>coda</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Le <b>linee</b> diventano <b>tracciati</b>; un <b>poligono</b> diventa un’<b>area</b> di selezione. Se il file contiene entrambi, WCT ti chiede quale intendevi.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Diventa un’<b>area</b> di selezione.</td></tr><tr><td><b>Preset WCT</b></td><td>Un file esportato dalla scheda 💾 Preset — si <b>aggiungono</b> ai tuoi, nulla viene cancellato.</td></tr></table><p style="margin-top:6px">I punti di ingresso abituali restano validi: trascinare un tracciato direttamente nella scheda 🗺️ Tracciati, o un’area tramite <b>⬆️ Area</b>, funziona ancora.</p><p style="margin-top:6px"><i>Un file non riconosciuto viene rifiutato dicendolo, con l’elenco dei formati accettati — non succede nulla in silenzio.</i></p>`, he:`<p><b>נקודת כניסה אחת לכל הקבצים.</b> גררו אותו לכאן: WCT מזהה את הפורמט, מטפל בו, ומעביר אתכם למקום שבו העבודה נמשכת.</p><table class="wct-help-table"><tr><td><b>CSV של חסימות</b></td><td>מקטעים (פורמט Advanced Closures) או פניות (פורמט WCT) — נוספים ל<b>תור</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>קווים</b> הופכים ל<b>מסלולים</b>; <b>מצולע</b> הופך ל<b>אזור</b> בחירה. אם הקובץ מכיל את שניהם, WCT שואל למה התכוונתם.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>הופך ל<b>אזור</b> בחירה.</td></tr><tr><td><b>תבניות WCT</b></td><td>קובץ שיוצא מלשונית 💾 תבניות — הן <b>מתווספות</b> לשלכם, שום דבר לא נמחק.</td></tr></table><p style="margin-top:6px">נקודות הכניסה הרגילות נשארות: גרירת מסלול ישירות ללשונית 🗺️ מסלולים, או אזור דרך <b>⬆️ אזור</b>, עדיין עובדות.</p><p style="margin-top:6px"><i>קובץ שאינו מזוהה נדחה בקול, עם רשימת הפורמטים הנתמכים — שום דבר לא קורה בשקט.</i></p>`, de:`
-            <p>Importiert eine CSV-Datei im Format <b>WME Advanced Closures</b> direkt in die Warteschlange.</p>
-            <p>Erwartete Spalten:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>Das von diesem Skript exportierte Format ist mit dem ursprünglichen Skript WME Advanced Closures kompatibel.</p>`, es:`
-            <p>Importa un archivo CSV en formato <b>WME Advanced Closures</b> directamente en la cola.</p>
-            <p>Columnas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>El formato exportado por este script es compatible con el script original WME Advanced Closures.</p>`, 'pt-BR':`
-            <p>Importa um arquivo CSV no formato <b>WME Advanced Closures</b> diretamente para a fila.</p>
-            <p>Colunas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>O formato exportado por este script é compatível com o script original WME Advanced Closures.</p>`, 'pt-PT':`
-            <p>Importa um ficheiro CSV no formato <b>WME Advanced Closures</b> diretamente para a fila.</p>
-            <p>Colunas esperadas:<br><code style="font-size:0.833em">header, reason, start date, end date, direction, ignore traffic, segment IDs, lon/lat, zoom, MTE id, comment</code></p>
-            <p>O formato exportado por este script é compatível com o script WME Advanced Closures original.</p>` }) },
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) : WCT vous propose de <b>sélectionner</b> les segments — vous réglez ensuite la fermeture, MTE compris — ou de les <b>ajouter à la file</b> tels quels. Virages (format WCT) : ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format): WCT offers to <b>select</b> the segments — you then set the closure, MTE included — or to <b>add them to the queue</b> as they are. Turns (WCT format): added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, it:`<p><b>Un unico punto di ingresso per tutti i file.</b> Trascinalo qui: WCT ne riconosce il formato, lo elabora e ti porta dove prosegue il lavoro.</p><table class="wct-help-table"><tr><td><b>CSV di chiusure</b></td><td>Segmenti (formato Advanced Closures): WCT propone di <b>selezionare</b> i segmenti — poi imposti la chiusura, MTE compreso — oppure di <b>aggiungerli alla coda</b> così come sono. Svolte (formato WCT): aggiunte alla <b>coda</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Le <b>linee</b> diventano <b>tracciati</b>; un <b>poligono</b> diventa un’<b>area</b> di selezione. Se il file contiene entrambi, WCT ti chiede quale intendevi.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Diventa un’<b>area</b> di selezione.</td></tr><tr><td><b>Preset WCT</b></td><td>Un file esportato dalla scheda 💾 Preset — si <b>aggiungono</b> ai tuoi, nulla viene cancellato.</td></tr></table><p style="margin-top:6px">I punti di ingresso abituali restano validi: trascinare un tracciato direttamente nella scheda 🗺️ Tracciati, o un’area tramite <b>⬆️ Area</b>, funziona ancora.</p><p style="margin-top:6px"><i>Un file non riconosciuto viene rifiutato dicendolo, con l’elenco dei formati accettati — non succede nulla in silenzio.</i></p>`, he:`<p><b>נקודת כניסה אחת לכל הקבצים.</b> גררו אותו לכאן: WCT מזהה את הפורמט, מטפל בו, ומעביר אתכם למקום שבו העבודה נמשכת.</p><table class="wct-help-table"><tr><td><b>CSV של חסימות</b></td><td>מקטעים (פורמט Advanced Closures): WCT מציע <b>לבחור</b> את המקטעים — ואז מגדירים את החסימה, כולל MTE — או <b>להוסיף אותם לתור</b> כפי שהם. פניות (פורמט WCT): נוספות ל<b>תור</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>קווים</b> הופכים ל<b>מסלולים</b>; <b>מצולע</b> הופך ל<b>אזור</b> בחירה. אם הקובץ מכיל את שניהם, WCT שואל למה התכוונתם.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>הופך ל<b>אזור</b> בחירה.</td></tr><tr><td><b>תבניות WCT</b></td><td>קובץ שיוצא מלשונית 💾 תבניות — הן <b>מתווספות</b> לשלכם, שום דבר לא נמחק.</td></tr></table><p style="margin-top:6px">נקודות הכניסה הרגילות נשארות: גרירת מסלול ישירות ללשונית 🗺️ מסלולים, או אזור דרך <b>⬆️ אזור</b>, עדיין עובדות.</p><p style="margin-top:6px"><i>קובץ שאינו מזוהה נדחה בקול, עם רשימת הפורמטים הנתמכים — שום דבר לא קורה בשקט.</i></p>`, de:`<p><b>Ein einziger Einstiegspunkt für alle Dateien.</b> Lege die Datei hier ab: WCT erkennt das Format, verarbeitet sie und bringt dich dorthin, wo es weitergeht.</p><table class="wct-help-table"><tr><td><b>Sperrungs-CSV</b></td><td>Segmente (Format Advanced Closures): WCT bietet an, die Segmente <b>auszuwählen</b> — danach stellst du die Sperrung ein, MTE inklusive — oder sie unverändert <b>in die Warteschlange</b> zu legen. Abbieger (Format WCT): kommen in die <b>Warteschlange</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linien</b> werden zu <b>Tracks</b>; ein <b>Polygon</b> wird zu einem Auswahl-<b>Bereich</b>. Enthält die Datei beides, fragt WCT, was du meinst.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Wird zu einem Auswahl-<b>Bereich</b>.</td></tr><tr><td><b>WCT-Vorlagen</b></td><td>Aus dem Reiter 💾 Vorlagen exportierte Datei — sie <b>ergänzen</b> deine, nichts wird gelöscht.</td></tr></table><p style="margin-top:6px">Die gewohnten Einstiegspunkte bleiben: einen Track direkt im Reiter 🗺️ Tracks ablegen oder einen Bereich über <b>⬆️ Bereich</b> laden funktioniert weiterhin.</p><p style="margin-top:6px"><i>Eine nicht erkannte Datei wird mit Hinweis abgelehnt, samt Liste der unterstützten Formate — nichts passiert stillschweigend.</i></p>`, es:`<p><b>Un único punto de entrada para todos los archivos.</b> Suéltalo aquí: WCT reconoce su formato, lo procesa y te lleva donde sigue el trabajo.</p><table class="wct-help-table"><tr><td><b>CSV de cierres</b></td><td>Segmentos (formato Advanced Closures): WCT propone <b>seleccionar</b> los segmentos — luego ajustas el cierre, MTE incluido — o <b>añadirlos a la cola</b> tal cual. Giros (formato WCT): añadidos a la <b>cola</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Las <b>líneas</b> se convierten en <b>trazas</b>; un <b>polígono</b> se convierte en una <b>zona</b> de selección. Si el archivo contiene ambos, WCT te pregunta cuál querías.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Se convierte en una <b>zona</b> de selección.</td></tr><tr><td><b>Preajustes WCT</b></td><td>Archivo exportado desde la pestaña 💾 Preajustes — <b>se suman</b> a los tuyos, no se borra nada.</td></tr></table><p style="margin-top:6px">Los puntos de entrada habituales siguen ahí: soltar una traza directamente en la pestaña 🗺️ Trazas, o una zona con <b>⬆️ Zona</b>, sigue funcionando.</p><p style="margin-top:6px"><i>Un archivo no reconocido se rechaza avisando, con la lista de formatos aceptados — nada ocurre en silencio.</i></p>`, 'pt-BR':`<p><b>Um único ponto de entrada para todos os arquivos.</b> Solte-o aqui: o WCT reconhece o formato, processa o arquivo e leva você aonde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de bloqueios</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois você ajusta o bloqueio, MTE incluído — ou <b>adicioná-los à fila</b> como estão. Conversões (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> viram <b>trajetos</b>; um <b>polígono</b> vira uma <b>área</b> de seleção. Se o arquivo tiver os dois, o WCT pergunta qual você quer.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Vira uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Arquivo exportado da aba 💾 Predefinições — elas <b>se somam</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px">Os pontos de entrada habituais continuam: soltar um trajeto direto na aba 🗺️ Trajetos, ou uma área por <b>⬆️ Área</b>, ainda funciona.</p><p style="margin-top:6px"><i>Um arquivo não reconhecido é recusado com aviso, com a lista dos formatos aceitos — nada acontece em silêncio.</i></p>`, 'pt-PT':`<p><b>Um único ponto de entrada para todos os ficheiros.</b> Largue-o aqui: o WCT reconhece o formato, trata o ficheiro e leva-o para onde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de cortes</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois ajusta o corte, MTE incluído — ou <b>adicioná-los à fila</b> tal como estão. Viragens (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> tornam-se <b>trajetos</b>; um <b>polígono</b> torna-se uma <b>área</b> de seleção. Se o ficheiro contiver os dois, o WCT pergunta qual pretende.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Torna-se uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Ficheiro exportado a partir do separador 💾 Predefinições — <b>juntam-se</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px">Os pontos de entrada habituais mantêm-se: largar um trajeto diretamente no separador 🗺️ Trajetos, ou uma área através de <b>⬆️ Área</b>, continua a funcionar.</p><p style="margin-top:6px"><i>Um ficheiro não reconhecido é recusado com aviso, com a lista dos formatos aceites — nada acontece em silêncio.</i></p>` }) },
         { id:'h5', title:t('helpH5'), body: _L({ fr:`
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
             <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
@@ -6346,6 +6539,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE introuvable</b></td><td>Ouvrez l\u2019onglet \u00C9v\u00E9nements WME et cliquez \u21BB pour recharger la liste.</td></tr>
             <tr><td><b>Intervalle &lt; dur\u00E9e</b></td><td>En mode R\u00E9p\u00E9ter, les occurrences se chevauchent. Augmentez l\u2019intervalle ou r\u00E9duisez la dur\u00E9e.</td></tr>
             <tr><td><b>Changement d\u2019heure (limite)</b></td><td>Les horaires sont interpr\u00E9t\u00E9s dans le <b>fuseau horaire du navigateur</b>. Si vous \u00e9ditez des segments dans un fuseau diff\u00E9rent de celui de votre syst\u00e8me (ex.\u00a0: un \u00e9diteur fran\u00e7ais travaillant sur des segments japonais), les heures saisies seront d\u00e9cal\u00e9es. Dans ce cas, convertissez manuellement les horaires dans votre fuseau local avant saisie.</td></tr>
+            <tr><td><b>Bout à bout</b></td><td>Waze refuse deux fermetures du même sens qui se touchent (l’une finit à 08h00, l’autre commence à 08h00). Terminez à 07h59, ou reprenez à 08h01. WCT le signale en rouge et l’écarte à l’application.</td></tr>
             </table>`, en:`
             <table class="wct-help-table">
             <tr><td><b>Segment not editable</b></td><td>You don\u2019t have edit permissions on this segment.</td></tr>
@@ -6355,6 +6549,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE not found</b></td><td>Open the WME Events tab and click \u21BB to reload the list.</td></tr>
             <tr><td><b>Interval &lt; duration</b></td><td>In Repeat mode, occurrences overlap. Increase interval or reduce duration.</td></tr>
             <tr><td><b>DST / time zone (limit)</b></td><td>Schedules are interpreted in the <b>browser\u2019s time zone</b>. If you are editing segments in a different time zone from your system (e.g. a French editor working on Japanese segments), the entered times will be offset accordingly. In that case, manually convert the times to your local time zone before entering them.</td></tr>
+            <tr><td><b>End to end</b></td><td>Waze rejects two closures in the same direction that touch (one ends at 08:00, the other starts at 08:00). End at 07:59, or resume at 08:01. WCT flags it in red and skips it on apply.</td></tr>
             </table>`, it:`
             <table class="wct-help-table">
             <tr><td><b>Segmento non modificabile</b></td><td>Non hai i permessi di modifica su questo segmento.</td></tr>
@@ -6364,6 +6559,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE non trovato</b></td><td>Apri la scheda Eventi di WME e clicca ↻ per ricaricare l’elenco.</td></tr>
             <tr><td><b>Intervallo &lt; durata</b></td><td>In modalità Ripeti le occorrenze si sovrappongono. Aumenta l’intervallo o riduci la durata.</td></tr>
             <tr><td><b>Ora legale / fuso orario (limite)</b></td><td>Gli orari sono interpretati nel <b>fuso orario del browser</b>. Se modifichi segmenti in un fuso diverso da quello del tuo sistema (per esempio un editor italiano che lavora su segmenti giapponesi), gli orari inseriti risulteranno sfasati di conseguenza. In quel caso converti manualmente gli orari nel tuo fuso locale prima di inserirli.</td></tr>
+            <tr><td><b>Contigue</b></td><td>Waze rifiuta due chiusure nella stessa direzione che si toccano (una finisce alle 08:00, l’altra inizia alle 08:00). Termina alle 07:59, oppure riprendi alle 08:01. WCT lo segnala in rosso e lo salta in fase di applicazione.</td></tr>
             </table>`, he:`
             <table class="wct-help-table">
             <tr><td><b>מקטע לא ניתן לעריכה</b></td><td>אין לכם הרשאות עריכה על המקטע הזה.</td></tr>
@@ -6373,6 +6569,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE לא נמצא</b></td><td>פתחו את לשונית האירועים של WME ולחצו ↻ כדי לטעון מחדש את הרשימה.</td></tr>
             <tr><td><b>מרווח &lt; משך</b></td><td>במצב חזרה המופעים חופפים. הגדילו את המרווח או קצרו את המשך.</td></tr>
             <tr><td><b>שעון קיץ / אזור זמן (מגבלה)</b></td><td>השעות מתפרשות לפי <b>אזור הזמן של הדפדפן</b>. אם אתם עורכים מקטעים באזור זמן שונה מזה של המערכת שלכם (למשל עורך ישראלי שעובד על מקטעים ביפן), השעות שתזינו יוסטו בהתאם. במקרה כזה המירו את השעות ידנית לאזור הזמן המקומי שלכם לפני ההזנה.</td></tr>
+            <tr><td><b>צמודות</b></td><td>Waze דוחה שתי חסימות באותו כיוון שנוגעות זו בזו (אחת מסתיימת ב־08:00 והשנייה מתחילה ב־08:00). סיימו ב־07:59, או התחילו שוב ב־08:01. WCT מסמן זאת באדום ומדלג על כך ביישום.</td></tr>
             </table>`, de:`
             <table class="wct-help-table">
             <tr><td><b>Segment nicht bearbeitbar</b></td><td>Du hast keine Bearbeitungsrechte f\u00fcr dieses Segment.</td></tr>
@@ -6382,6 +6579,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE nicht gefunden</b></td><td>\u00d6ffne den WME-Reiter Ereignisse und klicke auf \u21bb, um die Liste neu zu laden.</td></tr>
             <tr><td><b>Intervall &lt; Dauer</b></td><td>Im Modus Wiederholen \u00fcberschneiden sich die Termine. Vergr\u00f6\u00dfere das Intervall oder verk\u00fcrze die Dauer.</td></tr>
             <tr><td><b>Zeitumstellung / Zeitzone (Grenze)</b></td><td>Die Uhrzeiten werden in der <b>Zeitzone des Browsers</b> ausgewertet. Wenn du Segmente in einer anderen Zeitzone als der deines Systems bearbeitest (z. B. ein deutscher Editor, der an japanischen Segmenten arbeitet), sind die eingegebenen Uhrzeiten entsprechend verschoben. Rechne die Zeiten in diesem Fall vor der Eingabe manuell in deine lokale Zeitzone um.</td></tr>
+            <tr><td><b>Nahtlos</b></td><td>Waze lehnt zwei Sperrungen in derselben Richtung ab, die aneinanderstoßen (eine endet um 08:00, die andere beginnt um 08:00). Um 07:59 beenden oder um 08:01 fortsetzen. WCT markiert das rot und überspringt es beim Anwenden.</td></tr>
             </table>`, es:`
             <table class="wct-help-table">
             <tr><td><b>Segmento no editable</b></td><td>No tienes permisos de edición sobre este segmento.</td></tr>
@@ -6391,6 +6589,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE no encontrado</b></td><td>Abre la pestaña Eventos de WME y haz clic en ↻ para recargar la lista.</td></tr>
             <tr><td><b>Intervalo &lt; duración</b></td><td>En modo Repetir, las ocurrencias se solapan. Aumenta el intervalo o reduce la duración.</td></tr>
             <tr><td><b>Cambio de hora / zona horaria (límite)</b></td><td>Los horarios se interpretan en la <b>zona horaria del navegador</b>. Si editas segmentos situados en una zona horaria distinta a la de tu sistema (p. ej. un editor español trabajando sobre segmentos japoneses), las horas introducidas quedarán desfasadas. En ese caso, convierte manualmente los horarios a tu zona horaria local antes de introducirlos.</td></tr>
+            <tr><td><b>Contiguos</b></td><td>Waze rechaza dos cierres en el mismo sentido que se tocan (uno termina a las 08:00 y el otro empieza a las 08:00). Termina a las 07:59, o reanuda a las 08:01. WCT lo marca en rojo y lo omite al aplicar.</td></tr>
             </table>`, 'pt-BR':`
             <table class="wct-help-table">
             <tr><td><b>Segmento não editável</b></td><td>Você não tem permissão de edição neste segmento.</td></tr>
@@ -6400,6 +6599,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE não encontrado</b></td><td>Abra a aba Eventos do WME e clique em ↻ para recarregar a lista.</td></tr>
             <tr><td><b>Intervalo &lt; duração</b></td><td>No modo Repetir, as ocorrências se sobrepõem. Aumente o intervalo ou reduza a duração.</td></tr>
             <tr><td><b>Horário de verão / fuso (limite)</b></td><td>Os horários são interpretados no <b>fuso horário do navegador</b>. Se você editar segmentos em um fuso diferente do seu sistema (ex.: um editor brasileiro trabalhando em segmentos japoneses), as horas informadas ficarão deslocadas. Nesse caso, converta manualmente os horários para o seu fuso local antes de digitá-los.</td></tr>
+            <tr><td><b>Colados</b></td><td>O Waze recusa dois bloqueios no mesmo sentido que se tocam (um termina às 08:00 e o outro começa às 08:00). Termine às 07:59, ou retome às 08:01. O WCT sinaliza em vermelho e ignora ao aplicar.</td></tr>
             </table>`, 'pt-PT':`
             <table class="wct-help-table">
             <tr><td><b>Segmento não editável</b></td><td>Não tem permissões de edição neste segmento.</td></tr>
@@ -6409,6 +6609,7 @@ const buildHelpHTML = () => {
             <tr><td><b>MTE não encontrado</b></td><td>Abra o separador Eventos do WME e clique em ↻ para recarregar a lista.</td></tr>
             <tr><td><b>Intervalo &lt; duração</b></td><td>No modo Repetir, as ocorrências sobrepõem-se. Aumente o intervalo ou reduza a duração.</td></tr>
             <tr><td><b>Mudança de hora / fuso horário (limite)</b></td><td>Os horários são interpretados no <b>fuso horário do navegador</b>. Se estiver a editar segmentos num fuso horário diferente do do seu sistema (por exemplo, um editor português a trabalhar em segmentos japoneses), as horas introduzidas ficarão desfasadas. Nesse caso, converta manualmente as horas para o seu fuso horário local antes de as introduzir.</td></tr>
+            <tr><td><b>Colados</b></td><td>O Waze recusa dois cortes no mesmo sentido que se tocam (um termina às 08:00 e o outro começa às 08:00). Termine às 07:59, ou retome às 08:01. O WCT assinala-o a vermelho e ignora-o na aplicação.</td></tr>
             </table>` }) },
         { id:'h7', title:t('helpH7'), body: _L({ fr:`
             <table class="wct-help-table">
@@ -6988,7 +7189,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Quels segments sont pris ?</b> Ceux dont <b>plus de la moitié de la longueur</b> est à l'intérieur. Un segment qui effleure la zone est écarté ; un segment majoritairement dedans est retenu.</p>
             <p style="margin-top:6px">⚠️ <b>La fermeture porte sur le segment ENTIER</b>, pas sur la portion contenue dans la zone : Waze ne sait pas fermer un bout de segment. Un segment retenu à 60 % sera fermé sur toute sa longueur, y compris hors de la zone. Tracez au plus juste, et vérifiez la sélection avant de valider.</p>
             <p style="margin-top:6px"><b>Grandes zones.</b> L'inventaire <b>ne dépend pas du zoom</b> : la carte est interrogée par tuiles, donc rien n'est oublié même très dézoomé. En revanche WME ne garde en mémoire que ce qu'il affiche : la carte se déplace donc vue par vue pour charger les segments (progression, bouton <b>Stop</b> ou touche <b>Échap</b>). La zone part ensuite dans la file <b>en lots</b>, et la carte se recadre sur chacun au moment d'appliquer.</p>
-            <p style="margin-top:6px"><i>La zone ne sélectionne que des <b>segments</b> : les fermetures de virage passent par l'onglet 🔀 Virages. Si l'inventaire est indisponible, WCT le signale et se replie sur les segments déjà chargés — il ne rend jamais moins en silence.</i></p>`, en:`
+            <p style="margin-top:6px"><i>La zone ne sélectionne que des <b>segments</b> : les fermetures de virage passent par l'onglet 🔀 Virages. Si l'inventaire est indisponible, WCT le signale et se replie sur les segments déjà chargés — il ne rend jamais moins en silence.</i></p>
+            <p style="margin-top:6px">⬆️ Zone accepte aussi un fichier <b>GeoJSON</b>. Une fois la zone tracée ou chargée, le choix <b>✓ Valider · ✎ Éditer · ✕ Abandonner</b> s’affiche en tête de l’onglet ⚙️ Configurer — sur la carte seulement si le panneau WCT est fermé.</p>`, en:`
             <p>Close <b>a whole neighbourhood</b> without clicking segments one by one: draw an area on the map, WCT selects what it holds, then the closure is set up as usual.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Draw</b></td><td>Tab <b>⚙️ Configure</b>. The panel folds away, <b>one click per corner</b>, <b>double-click</b> to close. The tab stays reachable even without a selection: this button is what creates one.</td></tr>
@@ -6999,7 +7201,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Which segments are kept?</b> Those with <b>more than half their length</b> inside. A segment merely grazing the area is left out; one mostly inside is kept.</p>
             <p style="margin-top:6px">⚠️ <b>The closure covers the WHOLE segment</b>, not the part inside the area: Waze cannot close a piece of a segment. A segment kept at 60 % will be closed over its full length, outside the area included. Draw tightly, and check the selection before validating.</p>
             <p style="margin-top:6px"><b>Large areas.</b> The scan <b>does not depend on zoom</b>: the map is queried tile by tile, so nothing is missed even far out. WME, however, only keeps in memory what it displays: the map therefore moves view by view to load the segments (progress bar, <b>Stop</b> button or <b>Esc</b> key). The area then enters the queue <b>as batches</b>, and the map re-centres on each one when applying.</p>
-            <p style="margin-top:6px"><i>An area only selects <b>segments</b>: turn closures go through the 🔀 Turns tab. If the scan is unavailable, WCT says so and falls back on the already-loaded segments — it never returns less in silence.</i></p>`, he:`
+            <p style="margin-top:6px"><i>An area only selects <b>segments</b>: turn closures go through the 🔀 Turns tab. If the scan is unavailable, WCT says so and falls back on the already-loaded segments — it never returns less in silence.</i></p>
+            <p style="margin-top:6px">⬆️ Area also accepts a <b>GeoJSON</b> file. Once the area is drawn or loaded, the <b>✓ Accept · ✎ Edit · ✕ Discard</b> choice appears at the top of the ⚙️ Configure tab — on the map only when the WCT panel is closed.</p>`, he:`
             <p>לסגור <b>שכונה שלמה</b> בלי ללחוץ על כל מקטע בנפרד: משרטטים אזור על המפה, WCT בוחר את מה שנמצא בתוכו, ואז מגדירים את החסימה כרגיל.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ שרטוט</b></td><td>לשונית <b>⚙️ הגדרה</b>. החלונית מתקפלת, <b>לחיצה אחת לכל פינה</b>, <b>לחיצה כפולה</b> לסגירה. הלשונית נגישה גם ללא בחירה: הכפתור הזה הוא שיוצר אותה.</td></tr>
@@ -7010,7 +7213,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>אילו מקטעים נבחרים?</b> אלה שיותר <b>ממחצית אורכם</b> נמצא בפנים. מקטע שרק נוגע באזור מושמט; מקטע שרובו בפנים נשמר.</p>
             <p style="margin-top:6px">⚠️ <b>החסימה חלה על המקטע כולו</b>, ולא על החלק שבתוך האזור: Waze אינו יודע לחסום קטע חלקי. מקטע שנשמר ב-60% ייחסם לכל אורכו, גם מחוץ לאזור. שרטט בדיוק, ובדוק את הבחירה לפני אישור.</p>
             <p style="margin-top:6px"><b>אזורים גדולים.</b> הסריקה <b>אינה תלויה בזום</b>: המפה נסרקת באריחים, ולכן דבר לא נשכח גם בתצוגה רחוקה. אך WME שומר בזיכרון רק את מה שמוצג: המפה נעה אפוא מתצוגה לתצוגה כדי לטעון את המקטעים (סרגל התקדמות, כפתור <b>עצור</b> או מקש <b>Esc</b>). לאחר מכן האזור נכנס לתור <b>במנות</b>, והמפה מתמקדת בכל אחת בעת ההחלה.</p>
-            <p style="margin-top:6px"><i>אזור בוחר <b>מקטעים</b> בלבד: חסימות פנייה נעשות בלשונית 🔀 פניות. אם הסריקה אינה זמינה, WCT מודיע על כך ונסוג למקטעים שכבר נטענו — הוא לעולם אינו מחזיר פחות בשקט.</i></p>`, it:`
+            <p style="margin-top:6px"><i>אזור בוחר <b>מקטעים</b> בלבד: חסימות פנייה נעשות בלשונית 🔀 פניות. אם הסריקה אינה זמינה, WCT מודיע על כך ונסוג למקטעים שכבר נטענו — הוא לעולם אינו מחזיר פחות בשקט.</i></p>
+            <p style="margin-top:6px">⬆️ אזור מקבל גם קובץ <b>GeoJSON</b>. לאחר שהאזור שורטט או נטען, הבחירה <b>✓ אישור · ✎ עריכה · ✕ ביטול</b> מופיעה בראש לשונית ⚙️ הגדרה — על המפה רק כאשר חלונית WCT סגורה.</p>`, it:`
             <p>Chiudere <b>un intero quartiere</b> senza cliccare i segmenti uno a uno: si disegna un’area sulla mappa, WCT seleziona ciò che contiene, poi la chiusura si imposta come sempre.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Disegna</b></td><td>Scheda <b>⚙️ Configura</b>. Il pannello si richiude, <b>un clic per ogni vertice</b>, <b>doppio clic</b> per chiudere. La scheda resta accessibile anche senza selezione: è questo pulsante a crearla.</td></tr>
@@ -7021,7 +7225,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Quali segmenti vengono presi?</b> Quelli con <b>più di metà della lunghezza</b> all’interno. Un segmento che sfiora l’area viene escluso; uno per lo più dentro viene tenuto.</p>
             <p style="margin-top:6px">⚠️ <b>La chiusura riguarda il segmento INTERO</b>, non la porzione dentro l’area: Waze non sa chiudere un pezzo di segmento. Un segmento tenuto al 60 % sarà chiuso per tutta la sua lunghezza, anche fuori dall’area. Disegna con precisione e controlla la selezione prima di convalidare.</p>
             <p style="margin-top:6px"><b>Aree grandi.</b> La scansione <b>non dipende dallo zoom</b>: la mappa viene interrogata a riquadri, quindi non si perde nulla nemmeno molto rimpiccioliti. WME però tiene in memoria solo ciò che mostra: la mappa si sposta vista per vista per caricare i segmenti (barra di avanzamento, pulsante <b>Stop</b> o tasto <b>Esc</b>). L’area entra poi in coda <b>a lotti</b>, e la mappa si ricentra su ciascuno al momento di applicare.</p>
-            <p style="margin-top:6px"><i>Un’area seleziona solo <b>segmenti</b>: le chiusure di svolta passano dalla scheda 🔀 Svolte. Se la scansione non è disponibile, WCT lo segnala e ripiega sui segmenti già caricati — non restituisce mai meno in silenzio.</i></p>`, de:`
+            <p style="margin-top:6px"><i>Un’area seleziona solo <b>segmenti</b>: le chiusure di svolta passano dalla scheda 🔀 Svolte. Se la scansione non è disponibile, WCT lo segnala e ripiega sui segmenti già caricati — non restituisce mai meno in silenzio.</i></p>
+            <p style="margin-top:6px">⬆️ Area accetta anche un file <b>GeoJSON</b>. Una volta tracciata o caricata l’area, la scelta <b>✓ Conferma · ✎ Modifica · ✕ Annulla</b> compare in cima alla scheda ⚙️ Configura — sulla mappa solo se il pannello WCT è chiuso.</p>`, de:`
             <p><b>Ein ganzes Viertel</b> sperren, ohne die Segmente einzeln anzuklicken: Du zeichnest einen Bereich auf der Karte, WCT wählt aus, was darin liegt, und die Sperrung richtest du wie gewohnt ein.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Zeichnen</b></td><td>Reiter <b>⚙️ Einrichten</b>. Das Fenster klappt zu, <b>ein Klick je Eckpunkt</b>, <b>Doppelklick</b> zum Schließen. Der Reiter bleibt auch ohne Auswahl erreichbar: dieser Knopf erzeugt sie ja gerade.</td></tr>
@@ -7032,7 +7237,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Welche Segmente werden genommen?</b> Die, deren <b>Länge zu mehr als der Hälfte</b> innen liegt. Ein Segment, das den Bereich nur streift, fällt heraus; ein überwiegend innen liegendes wird behalten.</p>
             <p style="margin-top:6px">⚠️ <b>Die Sperrung gilt dem GANZEN Segment</b>, nicht dem Stück im Bereich: Waze kann kein Teilstück sperren. Ein zu 60 % erfasstes Segment wird auf voller Länge gesperrt, auch außerhalb. Zeichne knapp und prüfe die Auswahl vor dem Bestätigen.</p>
             <p style="margin-top:6px"><b>Große Bereiche.</b> Die Erfassung <b>hängt nicht vom Zoom ab</b>: die Karte wird kachelweise abgefragt, es geht also auch weit herausgezoomt nichts verloren. WME behält jedoch nur im Speicher, was es anzeigt: die Karte wandert daher Ansicht für Ansicht, um die Segmente zu laden (Fortschritt, Knopf <b>Stopp</b> oder Taste <b>Esc</b>). Danach geht der Bereich <b>paketweise</b> in die Warteschlange, und die Karte richtet sich beim Anwenden auf jedes Paket neu aus.</p>
-            <p style="margin-top:6px"><i>Ein Bereich wählt nur <b>Segmente</b>: Abbiegersperrungen laufen über den Reiter 🔀 Abbieger. Ist die Erfassung nicht verfügbar, sagt WCT es und weicht auf die bereits geladenen Segmente aus — es liefert nie stillschweigend weniger.</i></p>`, es:`
+            <p style="margin-top:6px"><i>Ein Bereich wählt nur <b>Segmente</b>: Abbiegersperrungen laufen über den Reiter 🔀 Abbieger. Ist die Erfassung nicht verfügbar, sagt WCT es und weicht auf die bereits geladenen Segmente aus — es liefert nie stillschweigend weniger.</i></p>
+            <p style="margin-top:6px">⬆️ Bereich akzeptiert auch eine <b>GeoJSON</b>-Datei. Sobald der Bereich gezeichnet oder geladen ist, erscheint die Wahl <b>✓ Übernehmen · ✎ Bearbeiten · ✕ Verwerfen</b> oben im Reiter ⚙️ Einrichten — auf der Karte nur, wenn das WCT-Fenster geschlossen ist.</p>`, es:`
             <p>Cerrar <b>todo un barrio</b> sin ir pinchando segmento a segmento: dibujas una zona en el mapa, WCT selecciona lo que contiene y el cierre se configura como siempre.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Dibujar</b></td><td>Pestaña <b>⚙️ Configurar</b>. El panel se pliega, <b>un clic por vértice</b>, <b>doble clic</b> para cerrar. La pestaña sigue accesible aunque no haya selección: es este botón el que la crea.</td></tr>
@@ -7043,7 +7249,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>¿Qué segmentos entran?</b> Aquellos con <b>más de la mitad de su longitud</b> dentro. Un segmento que solo roza la zona queda fuera; uno mayoritariamente dentro se conserva.</p>
             <p style="margin-top:6px">⚠️ <b>El cierre afecta al segmento ENTERO</b>, no al tramo que está dentro de la zona: Waze no sabe cerrar un trozo de segmento. Un segmento tomado al 60 % se cerrará en toda su longitud, también fuera de la zona. Dibuja ajustado y revisa la selección antes de validar.</p>
             <p style="margin-top:6px"><b>Zonas grandes.</b> El rastreo <b>no depende del zoom</b>: el mapa se consulta por teselas, así que no se pierde nada ni muy alejado. Pero WME solo guarda en memoria lo que muestra: el mapa se desplaza vista a vista para cargar los segmentos (progreso, botón <b>Parar</b> o tecla <b>Esc</b>). Después la zona entra en la cola <b>por lotes</b>, y el mapa se recentra en cada uno al aplicar.</p>
-            <p style="margin-top:6px"><i>Una zona solo selecciona <b>segmentos</b>: los cierres de giro van por la pestaña 🔀 Giros. Si el rastreo no está disponible, WCT lo avisa y recurre a los segmentos ya cargados — nunca devuelve menos en silencio.</i></p>`, 'pt-BR':`
+            <p style="margin-top:6px"><i>Una zona solo selecciona <b>segmentos</b>: los cierres de giro van por la pestaña 🔀 Giros. Si el rastreo no está disponible, WCT lo avisa y recurre a los segmentos ya cargados — nunca devuelve menos en silencio.</i></p>
+            <p style="margin-top:6px">⬆️ Zona acepta también un archivo <b>GeoJSON</b>. Una vez trazada o cargada la zona, la elección <b>✓ Aceptar · ✎ Editar · ✕ Descartar</b> aparece arriba de la pestaña ⚙️ Configurar — en el mapa solo si el panel de WCT está cerrado.</p>`, 'pt-BR':`
             <p>Bloquear <b>um bairro inteiro</b> sem clicar segmento por segmento: você desenha uma área no mapa, o WCT seleciona o que ela contém e o bloqueio é configurado como sempre.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Desenhar</b></td><td>Aba <b>⚙️ Configurar</b>. O painel se recolhe, <b>um clique por vértice</b>, <b>clique duplo</b> para fechar. A aba continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
@@ -7054,7 +7261,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Quais segmentos entram?</b> Aqueles com <b>mais da metade do comprimento</b> dentro. Um segmento que apenas encosta na área fica de fora; um majoritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O bloqueio vale para o segmento INTEIRO</b>, não para o trecho dentro da área: o Waze não sabe bloquear um pedaço de segmento. Um segmento pego a 60 % será bloqueado em todo o comprimento, inclusive fora da área. Desenhe justo e confira a seleção antes de validar.</p>
             <p style="margin-top:6px"><b>Áreas grandes.</b> A varredura <b>não depende do zoom</b>: o mapa é consultado por blocos, então nada se perde mesmo bem afastado. Mas o WME só guarda na memória o que exibe: o mapa se desloca vista a vista para carregar os segmentos (progresso, botão <b>Parar</b> ou tecla <b>Esc</b>). Depois a área entra na fila <b>em lotes</b>, e o mapa se recentra em cada um ao aplicar.</p>
-            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os bloqueios de conversão passam pela aba 🔀 Conversões. Se a varredura estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>`, 'pt-PT':`
+            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os bloqueios de conversão passam pela aba 🔀 Conversões. Se a varredura estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>
+            <p style="margin-top:6px">⬆️ Área aceita também um arquivo <b>GeoJSON</b>. Depois de traçada ou carregada a área, a escolha <b>✓ Aceitar · ✎ Editar · ✕ Descartar</b> aparece no topo da aba ⚙️ Configurar — no mapa só quando o painel do WCT está fechado.</p>`, 'pt-PT':`
             <p>Cortar <b>um bairro inteiro</b> sem clicar segmento a segmento: desenha uma área no mapa, o WCT seleciona o que ela contém e o corte configura-se como sempre.</p>
             <table class="wct-help-table">
             <tr><td><b>✏️ Desenhar</b></td><td>Separador <b>⚙️ Configurar</b>. O painel recolhe-se, <b>um clique por vértice</b>, <b>duplo clique</b> para fechar. O separador continua acessível mesmo sem seleção: é este botão que a cria.</td></tr>
@@ -7065,7 +7273,8 @@ const buildHelpHTML = () => {
             <p style="margin-top:6px"><b>Que segmentos entram?</b> Aqueles com <b>mais de metade do comprimento</b> lá dentro. Um segmento que apenas toca a área fica de fora; um maioritariamente dentro é mantido.</p>
             <p style="margin-top:6px">⚠️ <b>O corte abrange o segmento INTEIRO</b>, não o troço dentro da área: o Waze não sabe cortar um pedaço de segmento. Um segmento apanhado a 60 % será cortado em todo o comprimento, incluindo fora da área. Desenhe justo e verifique a seleção antes de validar.</p>
             <p style="margin-top:6px"><b>Áreas grandes.</b> A análise <b>não depende do zoom</b>: o mapa é consultado por mosaicos, pelo que nada se perde mesmo muito afastado. Mas o WME só guarda em memória o que mostra: o mapa desloca-se vista a vista para carregar os segmentos (progresso, botão <b>Parar</b> ou tecla <b>Esc</b>). Depois a área entra na fila <b>em lotes</b>, e o mapa recentra-se em cada um ao aplicar.</p>
-            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os cortes de viragem passam pelo separador 🔀 Viragens. Se a análise estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>` }) },
+            <p style="margin-top:6px"><i>Uma área seleciona apenas <b>segmentos</b>: os cortes de viragem passam pelo separador 🔀 Viragens. Se a análise estiver indisponível, o WCT avisa e recorre aos segmentos já carregados — nunca devolve menos em silêncio.</i></p>
+            <p style="margin-top:6px">⬆️ Área aceita também um ficheiro <b>GeoJSON</b>. Depois de traçada ou carregada a área, a escolha <b>✓ Aceitar · ✎ Editar · ✕ Descartar</b> aparece no topo do separador ⚙️ Configurar — no mapa só quando o painel do WCT está fechado.</p>` }) },
         { id:'h15', title:t('helpH15'), body: _L({ fr:`
             <p><b>Trois niveaux</b>, et mieux vaut savoir lequel s'applique avant de fermer l'onglet.</p>
             <table class="wct-help-table">
@@ -7289,6 +7498,23 @@ const _clavierPourCliquables = (racine) => {
 //  WME HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 const getSegById=id=>sdk.DataModel.Segments.getById({segmentId:Number(id)});
+// Emprise {minLon,minLat,maxLon,maxLat} des segments CHARGÉS parmi `ids`, ou null.
+// Relevée à la validation d'une sélection manuelle : c'est le seul moment où l'on sait
+// où sont les segments. Sans elle, « Appliquer » travaillait sur la vue du moment — une
+// entrée validée au Quartier latin, appliquée la carte sur le 18ᵉ, ne trouvait aucun
+// segment et WME répondait « Save is disabled » (6 entrées sur 7, 23/09/2026).
+const _empriseDe=ids=>{
+    let mnLon=Infinity,mnLat=Infinity,mxLon=-Infinity,mxLat=-Infinity;
+    for(const id of ids){
+        const c=getSegById(id)?.geometry?.coordinates;
+        if(!c) continue;
+        for(const p of c){
+            if(p[0]<mnLon)mnLon=p[0]; if(p[0]>mxLon)mxLon=p[0];
+            if(p[1]<mnLat)mnLat=p[1]; if(p[1]>mxLat)mxLat=p[1];
+        }
+    }
+    return mnLon===Infinity?null:{minLon:mnLon,minLat:mnLat,maxLon:mxLon,maxLat:mxLat};
+};
 const getSegName=id=>{
     try{const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});if(addr?.street&&!addr.street.isEmpty)return addr.street.name;}catch(e){}
     return 'No name';
@@ -7298,10 +7524,110 @@ const getNodeList=segIds=>{
     segIds.forEach(id=>{const seg=getSegById(id);if(!seg)return;[seg.fromNodeId,seg.toNodeId].forEach(nid=>{if(nid)nd[nid]=(nd[nid]||0)+1;});});
     return nd;
 };
+// Fermetures de segment chargées, forme SDK. Rend null si on ne sait PAS les lire.
+// ⚠️⚠️ Relevé le 23/09/2026 sur WME v2.370 : RoadClosures.getAll() LÈVE dès qu'une seule
+// fermeture chargée porte `attributions: null` (77 sur 721 autour de Notre-Dame). Le
+// `catch` rendait une liste vide, donc AUCUN chevauchement n'était plus détecté : toutes
+// les pastilles au vert, puis Waze refusait l'enregistrement et le lot entier tombait
+// (visite du pape, 4 lots sur 4 en échec, 0 fermeture posée). Repli sur le modèle, dont
+// les attributs ont la forme de l'API — d'où _apiToClosure.
+// null ≠ [] : « je n'ai pas pu regarder » n'est pas « il n'y a rien ».
+const _fermeturesChargees=()=>{
+    try{ return sdk.DataModel.RoadClosures.getAll(); }
+    catch(e){
+        try{ return (W?.model?.roadClosures?.getObjectArray?.()||[]).map(o=>_apiToClosure(o.attributes||o)); }
+        catch(e2){ log('fermetures chargées illisibles : '+e.message+' / '+e2.message); return null; }
+    }
+};
 const getExistingClosures=segIds=>{
-    try{return sdk.DataModel.RoadClosures.getAll().filter(c=>segIds.map(Number).includes(Number(c.segmentId)));}catch(e){return [];}
+    const all=_fermeturesChargees();
+    if(!all) return null;
+    const ids=new Set(segIds.map(Number));
+    return all.filter(c=>ids.has(Number(c.segmentId)));
 };
 const dateTimeOverlaps=(a,b)=>new Date(a.startDate)<new Date(b.endDate)&&new Date(a.endDate)>new Date(b.startDate);
+// Heure MURALE en ms (l'heure locale lue comme si elle était UTC) : c'est ce que le
+// serveur stocke (addClosure écrit valueOf()-tzOffset) et ce que rendent les fermetures
+// existantes (« 2026-09-25 06:00 »). Comparer dans cet espace évite de mêler une chaîne
+// lue en local et une Date décalée — les deux conventions coexistent dans ce fichier.
+const _versMurale=x=>{
+    if(x instanceof Date) return x.valueOf()-x.getTimezoneOffset()*60000;
+    if(typeof x==='number') return x;
+    const d=new Date(String(x));
+    return d.valueOf()-d.getTimezoneOffset()*60000;
+};
+// ─── Tri des segments AVANT d'écrire ───────────────────────────────────────
+// Fonction PURE (éprouvée par tools/test-ecartes.js) : ni SDK, ni carte.
+// Pour chaque segment : les sens à fermer, ou la raison de l'écarter.
+//  - absent       : pas dans le modèle (hors vue) ;
+//  - sansSens     : aucun sens demandé n'est ouvert à la circulation (chemin piéton
+//                   verrouillé des deux côtés…) : il n'y a RIEN à fermer — ce n'est
+//                   pas un échec, et le compter « non posé » faisait lire un échec ;
+//  - dejaFermes   : chaque sens demandé porte déjà une fermeture qui chevauche le
+//                   créneau. Waze REFUSE l'enregistrement pour un seul de ces cas, et
+//                   l'enregistrement étant groupé, c'est tout le lot qui tombait.
+// ⚠️ Le chevauchement se juge PAR SENS : « double sens » pose précisément deux
+// fermetures au même créneau sur le même segment, une par sens. Un segment dont un
+// seul sens est déjà fermé est donc fermé dans l'autre (compté dans sensBloques).
+// `existantes` à null = non vérifiable : on n'écarte rien sur ce motif.
+// Créneaux LIBRES de [debut, fin] une fois retirées les fermetures existantes, en heure
+// murale (ms). Fonction PURE, éprouvée par tools/test-ecartes.js.
+// ⚠️ Chaque fermeture existante est élargie d'UNE MINUTE de chaque côté : Waze refuse
+// deux fermetures bout à bout (fin 08:00 / début 08:00), il faut 07:59 ou 08:01.
+// Un trou plus court que TROU_MIN_MS n'est pas rendu : on ne pose pas une fermeture de
+// deux minutes pour boucher un interstice (seuil choisi par l'auteur, 23/09/2026).
+const TROU_MIN_MS = 5*60000, TROU_MARGE_MS = 60000;
+const _trousLibres=(debut,fin,occupes)=>{
+    const bloc=occupes.map(([a,b])=>[a-TROU_MARGE_MS,b+TROU_MARGE_MS])
+        .filter(([a,b])=>a<fin&&b>debut).sort((x,y)=>x[0]-y[0]);
+    const out=[]; let cur=debut;
+    for(const [a,b] of bloc){
+        if(a>cur) out.push([cur,a]);
+        if(b>cur) cur=b;
+    }
+    if(cur<fin) out.push([cur,fin]);
+    return out.filter(([a,b])=>b-a>=TROU_MIN_MS);
+};
+// `combler` : au lieu d'écarter un sens déjà fermé en partie sur le créneau, n'y poser
+// que les TROUS (avant, entre, après les fermetures existantes). On ne touche jamais aux
+// fermetures existantes — celles d'un autre éditeur ou d'un partenaire — on complète.
+// Un sens comblé porte `fenetresF` / `fenetresR` (liste de [debut, fin] muraux) ; sans
+// elles, il se ferme sur le créneau entier.
+const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler})=>{
+    const r={plan:[],absents:[],sansSens:[],dejaFermes:[],partiels:[],sensBloques:0,combles:[],trous:0};
+    const occupations=(sid,fwd)=>!existantes?[]:existantes.filter(c=>
+        Number(c.segmentId)===sid && !!c.isForward===fwd).map(c=>[_versMurale(c.startDate),_versMurale(c.endDate)]);
+    // ⚠️ BOUT À BOUT = CONFLIT. Waze refuse « Road Closure time is overlapped » pour une
+    // fermeture qui finit à 08:00 quand une autre commence à 08:00 sur le même sens : il
+    // faut 07:59 (ou reprendre à 08:01). D'où <= et >= et non < et > — 86 fermetures
+    // refusées une à une, zone jaune de la visite du pape (23/09/2026).
+    const occupe=(sid,fwd)=>!!existantes&&existantes.some(c=>
+        Number(c.segmentId)===sid && !!c.isForward===fwd &&
+        _versMurale(c.startDate)<=fin && _versMurale(c.endDate)>=debut);
+    for(const id of ids){
+        const sid=Number(id), s=seg(sid);
+        if(!s){ r.absents.push(sid); continue; }
+        let d=dir;
+        if(d!==DIR.TWO && inverses.has(sid)) d=d===DIR.AtoB?DIR.BtoA:DIR.AtoB;
+        const veutF=(d===DIR.AtoB||d===DIR.TWO)&&(s.isTwoWay||s.isAtoB);
+        const veutR=(d===DIR.BtoA||d===DIR.TWO)&&(s.isTwoWay||s.isBtoA);
+        if(!veutF&&!veutR){ r.sansSens.push(sid); continue; }
+        const bloqF=veutF&&occupe(sid,true), bloqR=veutR&&occupe(sid,false);
+        // Combler : un sens occupé en partie reçoit ses trous au lieu d'être écarté.
+        const trF=(combler&&bloqF)?_trousLibres(debut,fin,occupations(sid,true)):null;
+        const trR=(combler&&bloqR)?_trousLibres(debut,fin,occupations(sid,false)):null;
+        const fwd=veutF&&(!bloqF||(trF&&trF.length>0)), rev=veutR&&(!bloqR||(trR&&trR.length>0));
+        if(!fwd&&!rev){ r.dejaFermes.push(sid); continue; }
+        const p={sid,fwd,rev};
+        if(fwd&&trF){ p.fenetresF=trF; r.trous+=trF.length; }
+        if(rev&&trR){ p.fenetresR=trR; r.trous+=trR.length; }
+        if(p.fenetresF||p.fenetresR) r.combles.push(sid);
+        // Un sens resté entièrement bloqué (rien à combler) : le segment est « partiel ».
+        if((bloqF&&!fwd)||(bloqR&&!rev)){ r.sensBloques++; r.partiels.push(sid); }
+        r.plan.push(p);
+    }
+    return r;
+};
 // ─── Vérifie la compatibilité sens de circulation / direction de fermeture ──
 // Retourne les segments en conflit : [{sid, name, segDirLabel}]
 // Tient compte des reversed segments (même logique que addClosure).
@@ -8858,6 +9184,7 @@ const readConfig=()=>({
     timemode:($id('wct-mode-end')?.style.display!=='none')?'end':'dur',
     reason:$id('wct-reason')?.value||'',
     direction:$id('wct-direction')?.value||'3',ignoretraffic:$id('wct-ignoretraffic')?.checked||false,
+    combler:$id('wct-combler')?.checked!==false,
     mteId:$id('wct-mtesel')?.value||'',
     // Source : jamais lue si la capacité est tombée — sinon une valeur restée dans le DOM
     // pourrait repartir alors que le sélecteur est grisé.
@@ -8893,6 +9220,8 @@ const applyConfig=cfg=>{
     //    suivant ramènerait l'ancienne.
     if(typeof cfg.reason==='string')_reason=cfg.reason;
     set('wct-reason',cfg.reason);set('wct-direction',cfg.direction);chk('wct-ignoretraffic',cfg.ignoretraffic);
+    // Un préréglage d'avant la 1.20.00 n'a pas la clé : on garde alors l'état de la case.
+    if(typeof cfg.combler==='boolean') chk('wct-combler',cfg.combler);
     if(cfg.mteId){
         // Tenter de sélectionner l'ID dans le select ; si absent, déclencher un refresh puis réessayer
         const mtesel=$id('wct-mtesel');
@@ -9847,7 +10176,9 @@ const _srcBlockSegments=(resEl,F,zone)=>{
     let all=[];
     if(zone){ all=zone.closures; }
     else{
-        try{ all=sdk.DataModel.RoadClosures.getAll().map(c=>({...c,_provider:_providerOf(c.id,'seg')})); }catch(e){}
+        // Via _fermeturesChargees : getAll() du SDK lève sur une fermeture sans attributions,
+        // et la recherche en vue courante rendait alors zéro résultat sans rien dire.
+        try{ all=(_fermeturesChargees()||[]).map(c=>({...c,_provider:_providerOf(c.id,'seg')})); }catch(e){}
     }
     const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId')
         && _srcPartnerMatch(cl._provider??null, F.partner));
@@ -10355,7 +10686,7 @@ const showPreview=()=>{
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const addClosure=(options,okCb,koCb)=>{
-    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId}=options;
+    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler}=options;
     // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
     // le diff est donc le seul moyen de retrouver les nôtres.
     // ⚠️ Pris SYSTÉMATIQUEMENT depuis la 1.02.00, et plus seulement quand une Source est
@@ -10381,24 +10712,27 @@ const addClosure=(options,okCb,koCb)=>{
     try{revSegs=sdk.DataModel.Segments.getReversedSegments({segmentIds:segments.map(Number)});}catch(e){log('getReversedSegments failed: '+e.message);}
     const args={description:reason,endDate:ed.valueOf()-edoff,fromNodeClosed:false,isForward:false,isPermanent:permanent,segmentId:0,startDate:sd.valueOf()-sdoff,trafficEventId:eventId||null};
     const loopErrors=[];
-    for(const sid of segments){
-        args.segmentId=Number(sid);const seg=getSegById(sid);if(!seg){segsAbsents++;continue;}
+    // Trier AVANT d'écrire : ce qui est déjà fermé sur le créneau, ou n'a aucun sens
+    // ouvert, n'entre pas dans l'enregistrement. Voir _trierAFermer.
+    const tri=_trierAFermer({ ids:segments, dir:direction, seg:getSegById,
+        inverses:new Set((revSegs||[]).map(r=>Number(r.id))),
+        existantes:getExistingClosures(segments),
+        debut:args.startDate, fin:args.endDate, combler:!!combler });
+    segsAbsents=tri.absents.length;
+    // Une fenêtre par trou quand le sens est comblé ; sinon le créneau demandé entier.
+    // args.startDate/endDate sont déjà en heure murale, comme les fenêtres de _trierAFermer.
+    const pleine=[[args.startDate,args.endDate]];
+    for(const {sid,fwd,rev,fenetresF,fenetresR} of tri.plan){
+        args.segmentId=sid; const seg=getSegById(sid);
         if(nodeInfo){fromClosed=nodeInfo[seg.fromNodeId]>1;toClosed=nodeInfo[seg.toNodeId]>1;}
-        let dir=direction;
-        for(const r of revSegs){if(r.id===args.segmentId){if(dir!==DIR.TWO)dir=dir===DIR.AtoB?DIR.BtoA:DIR.AtoB;break;}}
-        try{
-            // En mode TWO sur un segment sens unique : ne tenter que le sens autorisé
-            const canFwd=seg.isTwoWay||seg.isAtoB;
-            const canRev=seg.isTwoWay||seg.isBtoA;
-            if((dir===DIR.AtoB||dir===DIR.TWO)&&canFwd){
-                try{args.isForward=true;args.fromNodeClosed=fromClosed;sdk.DataModel.RoadClosures.addClosure(args);segsPoses.add(Number(sid));}
-                catch(e){loopErrors.push(`seg ${sid} fwd: ${e.message}`);}
+        const poser=(sensAvant,noeud,fenetres,lib)=>{
+            for(const [a,b] of fenetres){
+                try{ sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b}); segsPoses.add(sid); }
+                catch(e){ loopErrors.push(`seg ${sid} ${lib}: ${e.message}`); }
             }
-            if((dir===DIR.BtoA||dir===DIR.TWO)&&canRev){
-                try{args.isForward=false;args.fromNodeClosed=toClosed;sdk.DataModel.RoadClosures.addClosure(args);segsPoses.add(Number(sid));}
-                catch(e){loopErrors.push(`seg ${sid} rev: ${e.message}`);}
-            }
-        }catch(e){loopErrors.push(`seg ${sid}: ${e.message}`);}
+        };
+        if(fwd) poser(true, fromClosed, fenetresF||pleine, 'fwd');
+        if(rev) poser(false, toClosed, fenetresR||pleine, 'rev');
     }
     if(loopErrors.length>0){log('addClosure errors: '+loopErrors.join(' | '));}
     // ─── SOURCE (partenaire) : poser provider/attributions AVANT save() ───
@@ -10411,7 +10745,17 @@ const addClosure=(options,okCb,koCb)=>{
     // Bilan remonté aux deux rappels : ce qui a été demandé, ce qui a été fait, ce qui
     // manque. C'est lui qui permet à applyQueue d'afficher un compte vrai.
     const bilan = { demandes:segments.length, poses:segsPoses.size, absents:segsAbsents,
-                    erreurs:loopErrors.length, objets:_nouvelles.length };
+                    erreurs:loopErrors.length, objets:_nouvelles.length,
+                    sansSens:tri.sansSens.length, dejaFermes:tri.dejaFermes.length,
+                    sensBloques:tri.sensBloques, combles:tri.combles.length, trous:tri.trous };
+    // Rien à écrire : ne PAS appeler save(). Si tout a été écarté pour une raison
+    // légitime (déjà fermé, aucun sens ouvert), ce n'est pas un échec — c'est même le
+    // cas d'une file ré-appliquée après un premier passage réussi.
+    if(!_nouvelles.length){
+        if(segsAbsents||loopErrors.length) koCb&&koCb([t('applyNothingWritten')], bilan);
+        else okCb&&okCb(null, bilan);
+        return;
+    }
     if(partnerId){
         let pose=0;
         try{
@@ -10431,7 +10775,9 @@ const addClosure=(options,okCb,koCb)=>{
     }
     sdk.Editing.save().then(v=>{
         const er=document.querySelector('.error-list');
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg], bilan);}
+        // refusServeur : c'est Waze qui a dit non. Seul ce cas autorise applyQueue à
+        // recouper le lot pour isoler le fautif (voir _poserParMoitie).
+        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();bilan.refusServeur=true;koCb&&koCb([msg], bilan);}
         // ⚠️ CORROBORATION. `.error-list` est un nœud de l'interface de WAZE, pas un
         // contrat : le jour où cette classe est renommée, `er` vaut null et TOUT refus
         // deviendrait un succès annoncé — sur l'opération la plus coûteuse du script.
@@ -10440,7 +10786,12 @@ const addClosure=(options,okCb,koCb)=>{
         // le DOM. Les deux garde-fous tombent rarement ensemble.
         else if(!_nouvelles.length && segments.length){ koCb&&koCb([t('applyNothingWritten')], bilan); }
         else{okCb&&okCb(v, bilan);}
-    },r=>koCb&&koCb([r], bilan));
+    },r=>{
+        // Une promesse rejetée laisse les fermetures en attente dans l'éditeur : les
+        // défaire, sinon le prochain save() les renverrait avec le lot suivant.
+        try{ sdk.Editing.undoAll(); }catch(e){ log('addClosure/undoAll apres refus: '+e.message); }
+        bilan.refusServeur=true; koCb&&koCb([r?.message||String(r)], bilan);
+    });
 };
 // Re-résout les virages d'une entrée à partir de leur IDENTITÉ SÉMANTIQUE
 // (from → to via le nœud), et non du turn id stocké. Rend [{orig, id}] : `orig` est
@@ -10583,6 +10934,8 @@ const _afficherBilan=(journal,compte)=>{
     const parts=[`${APPLY_ETAT.ok} ${t('bilanPosees',compte.done)}`];
     if(compte.partiels) parts.push(`${APPLY_ETAT.partiel} ${t('bilanPartielles',compte.partiels,compte.fermManques||0)}`);
     if(compte.echecs)   parts.push(`${APPLY_ETAT.echec} ${t('bilanEchecs',compte.echecs,compte.fermErreurs||0)}`);
+    if(compte.ecartes)  parts.push(t('bilanEcartes',compte.ecartes));
+    if(compte.combles)  parts.push(t('bilanCombles',compte.combles));
     if(compte.interrompu) parts.push(t('bilanInterrompu'));
     const ouvert=anomalies>0||!!compte.interrompu;
     box.className='wct-bilan';
@@ -10635,6 +10988,51 @@ const _queueTotalClosures=(entries)=>{
     });
     return total;
 };
+// Pose une occurrence sur un jeu de segments ; si WAZE refuse l'enregistrement, recoupe
+// en deux et repose chaque moitié, jusqu'à isoler le ou les segments fautifs.
+// ⚠️ Pourquoi : l'enregistrement est groupé et Waze le refuse EN BLOC. Un seul segment
+// fautif parmi 405 faisait perdre les 404 autres (visite du pape, 23/09/2026). Le tri
+// préalable (_trierAFermer) écarte les causes connues ; ceci rattrape celles qu'il ne
+// connaît pas.
+// ⚠️ Budget d'enregistrements PARTAGÉ : si tout est refusé (droits, événement clos…),
+// recouper jusqu'au segment coûterait 2n-1 enregistrements. Le budget laisse isoler
+// quelques fautifs puis rend le reste comme refusé, avec le message de Waze.
+// Rend { demandes, poses, absents, sansSens, dejaFermes, sensBloques, refus:[{segs,msg}] }.
+const _POSE_BUDGET_PAR_FAUTIF = 3;
+const _poserParMoitie=async(opts,budget)=>{
+    const segs=opts.segments;
+    if(!budget) budget={ reste:1+2*Math.ceil(Math.log2(Math.max(2,segs.length)))*_POSE_BUDGET_PAR_FAUTIF };
+    budget.reste--;
+    const r=await new Promise(res=>addClosure(opts,
+        (v,b)=>res({ok:true,b}), (errs,b)=>res({ok:false,errs,b})));
+    const b=r.b||{};
+    const base={ demandes:segs.length, poses:0, absents:b.absents||0, sansSens:b.sansSens||0,
+                 dejaFermes:b.dejaFermes||0, sensBloques:b.sensBloques||0, combles:0, trous:0, refus:[] };
+    // Les trous ne comptent comme comblés que s'ils sont PARTIS : un lot refusé n'a rien comblé.
+    if(r.ok) return {...base, poses:b.poses??segs.length, combles:b.combles||0, trous:b.trous||0};
+    if(b.refusServeur && segs.length>1 && budget.reste>=2 && !_applyAborted){
+        const m=Math.ceil(segs.length/2);
+        const g=await _poserParMoitie({...opts,segments:segs.slice(0,m)},budget);
+        // Budget épuisé par la première moitié : la seconde n'est PAS envoyée, elle est
+        // rendue refusée avec le message du bloc — sans quoi le budget ne borne rien.
+        const reste=segs.slice(m);
+        const d=_applyAborted
+            ? {demandes:reste.length,poses:0,absents:0,sansSens:0,dejaFermes:0,sensBloques:0,combles:0,trous:0,refus:[]}
+            : budget.reste<=0
+            ? {demandes:reste.length,poses:0,absents:0,sansSens:0,dejaFermes:0,sensBloques:0,combles:0,trous:0,
+               refus:[{segs:reste,n:reste.length,msg:String(r.errs?.[0]||'error')}]}
+            : await _poserParMoitie({...opts,segments:reste},budget);
+        const som=k=>g[k]+d[k];
+        return { demandes:som('demandes'), poses:som('poses'), absents:som('absents'),
+                 sansSens:som('sansSens'), dejaFermes:som('dejaFermes'),
+                 sensBloques:som('sensBloques'), combles:som('combles'), trous:som('trous'),
+                 refus:[...g.refus,...d.refus] };
+    }
+    // Refus non recoupable : on ne compte en refusé que ce qui DEVAIT partir, pas ce que
+    // le tri avait déjà écarté ni les absents (comptés à part).
+    const aPoser=segs.length-base.absents-base.sansSens-base.dejaFermes;
+    return {...base, refus:aPoser>0?[{segs,n:aPoser,msg:String(r.errs?.[0]||'error')}]:[]};
+};
 const applyQueue=async()=>{
     _applyAborted=false;
     let total=_queueTotalClosures(queue),done=0,failed=0;
@@ -10668,7 +11066,7 @@ const applyQueue=async()=>{
     // ratées — le bilan minimisait l'échec d'un facteur 9, sur une écriture qu'on ne
     // sait pas défaire. On garde le décompte par entrée (c'est la granularité de la
     // carte) mais on dit aussi ce qu'il pèse.
-    let totManques=0, totErreurs=0;
+    let totManques=0, totErreurs=0, totEcartes=0, totCombles=0;
     const nbPartiels=[], nbEchecs=[];
     const clotureEntree=(idx)=>{
         const etat=_etatEntree(entryOk,entryManques,entryErreurs);
@@ -10721,6 +11119,15 @@ const applyQueue=async()=>{
                     _centrerSurZoneVisibleOL(e.csvCenter.lon, e.csvCenter.lat, e.csvZoom||POLY_LOAD_ZOOM);
                     await waitMapLoaded();
                 }catch(err){ log('applyQueue/csvCenter: '+err.message); }
+                await _sweepSleep(150);
+                if(_applyAborted) break;
+            }
+            // ─── Entrée faite À LA MAIN (sélection, zone d'un seul tenant) ───
+            // Même raison que les deux branches ci-dessus : un segment absent du modèle
+            // n'est pas fermé. On ne bouge la carte que s'il en MANQUE — une entrée
+            // entièrement visible s'applique là où l'on est, comme avant.
+            else if(e.source!=='turn' && e.emprise && e.segIds.some(sid=>!getSegById(sid))){
+                try{ await _chargerEmprise(e.emprise); }catch(err){ log('applyQueue/emprise: '+err.message); }
                 await _sweepSleep(150);
                 if(_applyAborted) break;
             }
@@ -10797,26 +11204,40 @@ const applyQueue=async()=>{
                 // Relire le drapeau : l'attente ci-dessus dure jusqu'à 10 s, et un Stop cliqué
                 // pendant celle-ci laissait partir une fermeture de plus.
                 if(_applyAborted) break;
-                await new Promise(res=>{
-                    addClosure({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null},
-                        (v,bilan)=>{
-                            // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
-                            // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
-                            // sans condition : un lot dont la carte n'avait chargé que 11
-                            // segments sur 62 s'affichait « ✅ » et en comptait 62.
-                            const poses=bilan?bilan.poses:activeSegs.length;
-                            const manques=activeSegs.length-poses;
-                            done+=poses; failed+=manques; totManques+=manques; upd(done+failed);
-                            const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
-                            // Un succès partiel n'est PAS un succès : il se voit en orange et
-                            // il se chiffre, parce que l'éditeur doit savoir qu'il faut repasser.
-                            entryOk+=poses; entryManques+=manques;
-                            if(manques>0) logApply(TARGET_ICON.seg+' '+t('applyPartial',e.config.reason,ls,poses,activeSegs.length),'partiel');
-                            else logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'ok');
-                            res();
-                        },
-                        (errs)=>{failed+=activeSegs.length;entryErreurs+=activeSegs.length;totErreurs+=activeSegs.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
-                });
+                // combler : coché par défaut ; une entrée d'avant la 1.20.00 (ou venue d'un
+                // CSV mis en file) n'a pas la clé et comble donc, comme le veut le défaut.
+                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false});
+                // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
+                // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
+                // sans condition : un lot dont la carte n'avait chargé que 11
+                // segments sur 62 s'affichait « ✅ » et en comptait 62.
+                // ⚠️ Et un ÉCARTÉ n'est ni posé ni raté : un chemin piéton sans sens
+                // ouvert, ou un segment déjà fermé sur ce créneau, n'a rien à recevoir.
+                // Les compter « non posés » faisait lire un échec là où tout ce qui
+                // pouvait l'être avait été fermé (9 chemins piétons, 23/09/2026).
+                const ecartes=b.sansSens+b.dejaFermes;
+                const refuses=b.refus.reduce((s,x)=>s+x.n,0);
+                const manques=Math.max(0,b.demandes-b.poses-ecartes-refuses);
+                const vises=b.demandes-ecartes;
+                done+=b.poses; failed+=manques+refuses; totManques+=manques; totErreurs+=refuses;
+                totEcartes+=ecartes; upd(done+failed+totEcartes);
+                const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
+                // Un succès partiel n'est PAS un succès : il se voit en orange et
+                // il se chiffre, parce que l'éditeur doit savoir qu'il faut repasser.
+                entryOk+=b.poses; entryManques+=manques; entryErreurs+=refuses;
+                if(refuses&&!b.poses) b.refus.forEach(x=>logApply(TARGET_ICON.seg+' '+t('applyErr',e.config.reason,ls,x.msg),'echec'));
+                else{
+                    if(manques||refuses) logApply(TARGET_ICON.seg+' '+t('applyPartial',e.config.reason,ls,b.poses,vises),'partiel');
+                    else if(vises>0) logApply(TARGET_ICON.seg+' '+t('applyOk',e.config.reason,ls),'ok');
+                    // Refus isolés : un par segment, avec l'identifiant — c'est lui qu'on ira voir.
+                    b.refus.forEach(x=>logApply(TARGET_ICON.seg+' '+(x.segs.length===1
+                        ? t('applyRefusSeg',x.segs[0],x.msg) : t('applyErr',e.config.reason,ls,x.msg)),'echec'));
+                }
+                // « 0 posée(s) sur 3 » ne disait pas POURQUOI : des segments non chargés se
+                // lisaient comme un refus. La cause et le geste qui la lève, sur leur ligne.
+                if(manques) logApply(TARGET_ICON.seg+' '+t('applyAbsents',manques),'partiel');
+                if(ecartes||b.sensBloques) logApply(TARGET_ICON.seg+' '+t('applyEcartes',b.sansSens,b.dejaFermes,b.sensBloques),'info');
+                if(b.combles){ totCombles+=b.combles; logApply(TARGET_ICON.seg+' '+t('applyComble',b.combles,b.trous),'info'); }
             }
             clotureEntree(idxEntree);
             // Pause assistée entre les lots (sauf après le dernier, et jamais pour une
@@ -10844,7 +11265,8 @@ const applyQueue=async()=>{
         // ne doit pas emporter avec elle le compte rendu de ce qui a déjà été écrit sur la
         // carte. C'est justement là qu'on en a le plus besoin.
         _afficherBilan(journal,{ done, partiels:nbPartiels.length, echecs:nbEchecs.length,
-                                 fermManques:totManques, fermErreurs:totErreurs, interrompu:_applyAborted });
+                                 fermManques:totManques, fermErreurs:totErreurs, ecartes:totEcartes, combles:totCombles,
+                                 interrompu:_applyAborted });
         // Les entrées jamais atteintes (interruption) restent SANS état : un ✅ ou un ❌ y
         // serait faux, et un blanc se lit correctement comme « pas traité ».
     }
@@ -10876,6 +11298,15 @@ const _queueToCSV=(entries)=>{
     entries.forEach(e=>{
         const dir=DIR_CSV[parseInt(e.config.direction)],it=e.config.ignoretraffic?'Yes':'No';
         const excl=e.excludedRows||new Set();
+        // Position PROPRE à l'entrée : c'est sur elle que l'import recadrera la carte avant
+        // d'appliquer. Toutes les lignes portaient la position de la carte au moment de
+        // l'export — 4 lots d'une zone parisienne sortaient au même point, et un import
+        // n'aurait chargé que les segments autour de ce point (23/09/2026).
+        const pos=e.lotBbox
+            ? { lon:(e.lotBbox.minLon+e.lotBbox.maxLon)/2, lat:(e.lotBbox.minLat+e.lotBbox.maxLat)/2, zoom:SWEEP_ZOOM }
+            : e.csvCenter ? { lon:e.csvCenter.lon, lat:e.csvCenter.lat, zoom:e.csvZoom||zoom }
+            : e.emprise ? { lon:(e.emprise.minLon+e.emprise.maxLon)/2, lat:(e.emprise.minLat+e.emprise.maxLat)/2, zoom:SWEEP_ZOOM }
+            : { lon:center.lon, lat:center.lat, zoom };
         e.closures.forEach((cl,ci)=>{
             // Une ligne CSV = une occurrence x l'ensemble de ses segments encore actifs.
             // Meme calcul que applyQueue : ce qu'on exporte doit etre ce qu'on appliquerait.
@@ -10883,7 +11314,7 @@ const _queueToCSV=(entries)=>{
             if(!activeSegs.length) return;   // occurrence entierement supprimee : pas de ligne
             const cs=cl.start instanceof Date?dateToUTCStr(cl.start):cl.start;
             const ce=cl.end instanceof Date?dateToUTCStr(cl.end):cl.end;
-            csv+=`add,${_csvQ(e.config.reason)},"${cs}","${ce}","${dir}",${it},"${activeSegs.join(';')}","lon=${center.lon}&lat=${center.lat}",${zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
+            csv+=`add,${_csvQ(e.config.reason)},"${cs}","${ce}","${dir}",${it},"${activeSegs.join(';')}","lon=${pos.lon}&lat=${pos.lat}",${pos.zoom},${e.config.mteId||''},"WME Closures Toolkit"\n`;
         });
     });
     return csv;
@@ -13351,25 +13782,46 @@ const _zoneSurvol = (ev) => {
     el.style.top  = Math.round(ev.clientY + 16) + 'px';
 };
 
-// ── Le panneau posé sur la carte ─────────────────────────────────────────────
-// ⚠️ Il se place dans la zone VISIBLE, pas dans un coin de l'écran : collé au bord, il
-// finirait sous le volet de WME ou sous notre propre panneau. Même mesure que le
-// recadrage (_zoneVisible).
+// ── Le panneau de décision de la zone ────────────────────────────────────────
+// ⭐ Il vit DANS le panneau WCT, en tête de l'onglet Configurer — là où s'affiche
+// ensuite le bandeau « Zone tracée : n segment(s) » : toute la vie de la zone se lit au
+// même endroit, celui qu'on regarde déjà. Il était posé sur la carte, dans le coin
+// bas-gauche de la partie visible : « on le cherche » (l'auteur, 23/09/2026) — et sur
+// une fenêtre basse le calcul le sortait même de l'écran (x = −148 px).
+// Repli quand le panneau WCT est fermé ou replié : en HAUT et au CENTRE de la carte
+// visible, et toujours ramené dans l'écran.
 const _zonePanelHide = () => { $id('wct-zone-panel')?.remove(); };
+const _zonePanelDansWct = () => {
+    const ov = $id('wct-overlay');
+    return !!(ov && _estVisible(ov) && ov.classList.contains('open') && !ov.classList.contains('collapsed') && $id('wct-pane-cfg'));
+};
 const _zonePanelPlace = () => {
-    const el = $id('wct-zone-panel'); if(!el) return;
+    const el = $id('wct-zone-panel'); if(!el || el.classList.contains('wct-zp-inline')) return;
     const z = _zoneVisible();
-    el.style.left = Math.round(z.gauche + 12) + 'px';
-    el.style.top  = Math.round(z.bas - el.offsetHeight - 12) + 'px';
+    const w = el.offsetWidth, h = el.offsetHeight;
+    let x = Math.round((z.gauche + z.droite) / 2 - w / 2), y = Math.round(z.haut + 12);
+    x = Math.max(8, Math.min(x, window.innerWidth  - w - 8));
+    y = Math.max(8, Math.min(y, window.innerHeight - h - 8));
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
 };
 const _zonePanelShow = (html) => {
     _zonePanelHide();
     const el = make('div');
     el.id = 'wct-zone-panel';
-    el.dir = isRTL() ? 'rtl' : 'ltr';   // idem : pose dans <body>, hors de l'overlay
     el.innerHTML = html;
-    document.body.appendChild(el);
-    _zonePanelPlace();
+    if(_zonePanelDansWct()){
+        el.className = 'wct-zp-inline';
+        _impVersOnglet('cfg');                 // la décision se prend dans Configurer
+        const pane = $id('wct-pane-cfg');
+        pane.insertBefore(el, pane.firstChild);
+        pane.scrollTop = 0;
+        el.scrollIntoView?.({ block:'nearest' });
+    } else {
+        el.dir = isRTL() ? 'rtl' : 'ltr';   // posé dans <body>, hors de l'overlay
+        document.body.appendChild(el);
+        _zonePanelPlace();
+    }
     return el;
 };
 
@@ -13659,9 +14111,38 @@ const _zoneInstallerDblClic = () => {
     }, true);
 };
 
-const _polyProcessRings = async (rings) => {
-    if(!rings || rings.length < 1 || rings[0].length < 4){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
-    const bbox = _polyBBoxOf(rings);
+// Enveloppe convexe de segments, élargie d'environ 30 m : la « zone » d'une sélection
+// venue d'une LISTE (CSV). Elle ne décide de rien — la liste le fait — mais elle donne à
+// la sélection ce qu'une zone tracée possède : un contour visible, recadrable, exportable.
+const _polyEnveloppe = (segs) => {
+    const pts = [];
+    segs.forEach(s => (s.geometry?.coordinates || []).forEach(p => pts.push([p[0], p[1]])));
+    if(pts.length < 3) return [];
+    pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const x = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const bas = [], haut = [];
+    for(const p of pts){ while(bas.length >= 2 && x(bas[bas.length - 2], bas[bas.length - 1], p) <= 0) bas.pop(); bas.push(p); }
+    for(let i = pts.length - 1; i >= 0; i--){ const p = pts[i]; while(haut.length >= 2 && x(haut[haut.length - 2], haut[haut.length - 1], p) <= 0) haut.pop(); haut.push(p); }
+    const env = bas.slice(0, -1).concat(haut.slice(0, -1));
+    if(env.length < 3) return [];
+    const cx = env.reduce((a, p) => a + p[0], 0) / env.length, cy = env.reduce((a, p) => a + p[1], 0) / env.length;
+    const kx = 111320 * Math.cos(cy * Math.PI / 180), ky = 110574;
+    const large = env.map(([lo, la]) => {
+        const dx = (lo - cx) * kx, dy = (la - cy) * ky, d = Math.hypot(dx, dy) || 1;
+        return [lo + dx / d * 30 / kx, la + dy / d * 30 / ky];
+    });
+    return _polyClose([large]);
+};
+// `parIds` : { ids:Set, bbox } — sélection venue d'une LISTE de segments (import CSV
+// « sélectionner ») au lieu d'un polygone. On inventorie l'emprise, on garde EXACTEMENT
+// les segments de la liste, puis tout le reste est commun avec la zone : filtre des
+// types, chargement vue par vue, sélection, et lots recadrés à la validation.
+// ⚠️ Pourquoi : un CSV importé part dans la FILE avec son MTE tel quel. Or les MTE ne
+// sont pas chargés au moment de l'import, et une entrée de file ne se reconfigure pas —
+// l'éditeur ne pouvait ni choisir l'événement ni corriger quoi que ce soit (23/09/2026).
+const _polyProcessRings = async (rings, parIds) => {
+    if(!parIds && (!rings || rings.length < 1 || rings[0].length < 4)){ showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
+    let bbox = parIds ? parIds.bbox : _polyBBoxOf(rings);
     const tuiles = _polyTiles(bbox, POLY_TILE_KM);
     _sweepRunning = true; _sweepAborted = false;
     let segs = [], apiKo = false;
@@ -13687,8 +14168,20 @@ const _polyProcessRings = async (rings) => {
         // Inventaire GÉOMÉTRIQUE complet : ce qui est dans le polygone, tous types
         // confondus. Conservé dans _polyZone.tous pour que changer les types plus tard
         // ne demande pas de retracer.
-        const retenus = _sweepAborted ? [] : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
+        const retenus = _sweepAborted ? []
+            : parIds ? segs.filter(s => parIds.ids.has(Number(s.id)))
+            : segs.filter(s => _polyInsideFrac(s.geometry.coordinates, rings) > POLY_INSIDE_FRAC);
         if(_sweepAborted){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyCancelled'), 2500, '#f57c00'); return; }
+        if(parIds){
+            // Les absents de l'inventaire se DISENT : un segment supprimé, fusionné, ou
+            // hors de l'emprise déduite des positions du fichier ne doit pas disparaître
+            // en silence.
+            const manquants = parIds.ids.size - retenus.length;
+            if(manquants > 0) showToast(t('csvSelManquants', manquants, parIds.ids.size), 6000, '#f57c00');
+            rings = _polyEnveloppe(retenus);
+            if(!rings.length){ _sweepRunning = false; _sweepHideFooter(); showToast(t('polyNone'), 3500, '#f57c00'); return; }
+            bbox = _polyBBoxOf(rings);
+        }
         if(!retenus.length){
             // Inventoriée et vide : ce n'est PAS la même chose que jamais inventoriée.
             // `tous` à [] le dit, et la zone reste posée — donc encore exportable.
@@ -13811,11 +14304,36 @@ const _polyFromKML = (txt) => {
     for(let i = 0; i < trous.length; i++){ const r = lire(trous[i]); if(r) anneaux.push(r); }
     return _polyClose(anneaux);
 };
+// GeoJSON : premier Polygon (ou premier polygone d'un MultiPolygon) trouvé dans une
+// géométrie, une Feature ou une FeatureCollection. ⚠️ L'import 📥 annonçait « un polygone
+// GeoJSON devient une zone » et routait bien le fichier vers la zone — mais ce lecteur-ci
+// ne savait lire que KML et WKT : « Zone illisible » sur un fichier parfaitement valide
+// (zone jaune des Champs-Élysées, visite du pape, 23/09/2026).
+const _polyFromGeoJSON = (txt) => {
+    let j;
+    try { j = JSON.parse(String(txt)); } catch(e){ return []; }
+    const geoms = [];
+    const visiter = (o) => {
+        if(!o || typeof o !== 'object') return;
+        if(o.type === 'FeatureCollection') (o.features || []).forEach(visiter);
+        else if(o.type === 'Feature') visiter(o.geometry);
+        else if(o.type === 'GeometryCollection') (o.geometries || []).forEach(visiter);
+        else if(o.type === 'Polygon' || o.type === 'MultiPolygon') geoms.push(o);
+    };
+    visiter(j);
+    const g = geoms[0];
+    if(!g) return [];
+    const rings = g.type === 'Polygon' ? g.coordinates : (g.coordinates || [])[0];
+    const anneaux = (rings || []).map(r => (r || []).map(p => [parseFloat(p[0]), parseFloat(p[1])])
+        .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]))).filter(r => r.length >= 3);
+    return _polyClose(anneaux);
+};
 // Devine le format et rend les anneaux — l'utilisateur n'a pas à le préciser.
 const _polyParseZone = (txt) => {
     const s = String(txt || '').trim();
     if(!s) return [];
     if(/^\s*</.test(s)) return _polyFromKML(s);            // commence par une balise
+    if(/^\s*[\[{]/.test(s)) return _polyFromGeoJSON(s);  // commence par { ou [ : JSON
     if(/polygon/i.test(s)) return _polyFromWKT(s);
     return [];
 };
@@ -14853,6 +15371,7 @@ const buildOverlay=()=>{
                 <option value="3">${t('nodeAll')}</option>
               </select></div>
             <label class="wct-check" title="${t('tipIT')}"><input id="wct-ignoretraffic" type="checkbox"> ${t('lblIT')}</label>
+            <label class="wct-check" title="${t('tipCombler')}"><input id="wct-combler" type="checkbox" checked> ${t('lblCombler')}</label>
           </div>
         </div>
         <div id="wct-small-prev" class="wct-prev-box">${t('fillForm')}</div>
@@ -15145,6 +15664,18 @@ const renderPresetsTable=()=>{
 // Recadre sur une entree de file, puis selectionne ses segments : verifier ce qui est en
 // file avant de l'appliquer. ⚠️ setSelection est tout ou rien — un id absent du modele et
 // l'appel entier leve : on ne selectionne que le charge, et on compte les manquants.
+// Où recadrer une entrée dont aucun segment n'est chargé : sa position CONNUE, dans cet
+// ordre — virage, fichier CSV, lot (tracé ou zone), sélection manuelle. Rend
+// {lon,lat,zoom} ou null. ⚠️ Les deux 🎯 (carte et ligne) ne connaissaient que les deux
+// premières : une entrée validée à la main hors de la vue répondait « aucune coordonnée
+// disponible » alors que l'emprise existait (23/09/2026).
+const _positionEntree = (entry) => {
+    if(entry.turnLonLat) return { lon:entry.turnLonLat.lon, lat:entry.turnLonLat.lat, zoom:17 };
+    if(entry.csvCenter)  return { lon:entry.csvCenter.lon, lat:entry.csvCenter.lat, zoom:entry.csvZoom||POLY_LOAD_ZOOM };
+    const b = entry.lotBbox || entry.emprise;
+    if(b) return { lon:(b.minLon+b.maxLon)/2, lat:(b.minLat+b.maxLat)/2, zoom:POLY_LOAD_ZOOM };
+    return null;
+};
 const _qcardAllerVoir = async (entry) => {
     const ids = (entry.segIds||[]).map(Number).filter(Boolean);
     if(!ids.length) return;
@@ -15153,9 +15684,9 @@ const _qcardAllerVoir = async (entry) => {
     const coords = _getSegCoords(charge);
     if(coords) centerOnSegmentBbox(coords);
     else {
-        const at = entry.csvCenter || entry.turnLonLat;
+        const at = _positionEntree(entry);
         if(!at){ showToast(t('qFocusNone'), 4000, '#f57c00'); return; }
-        _centrerSurZoneVisibleOL(at.lon, at.lat, entry.csvZoom || POLY_LOAD_ZOOM);
+        _centrerSurZoneVisibleOL(at.lon, at.lat, at.zoom);
     }
     try{ await waitMapLoaded(); }catch(e){}
     await _sweepSleep(250);
@@ -15230,6 +15761,7 @@ const buildQueueCard=(entry,idx)=>{
         <span class="wct-qcard-etat" title="" aria-live="polite"></span>
         <span class="wct-qcard-chevron" style="font-size:12px;color:var(--wct-text2);cursor:pointer;flex-shrink:0;width:14px">&#x25BC;</span>
         <span class="wct-qcard-tgt" title="${escHtml(isTurnEntry?t('tgtTurn'):t('tgtSeg'))}" style="flex-shrink:0;font-size:13px">${isTurnEntry?TARGET_ICON.turn:TARGET_ICON.seg}</span>
+        <span class="wct-qcard-num" title="${escHtml(t('qNumTip',idx+1,queue.length))}" style="flex-shrink:0;font-size:.917em;font-weight:700;color:var(--wct-text2)">#${idx+1}</span>
         <span class="wct-qcard-label" style="flex:1;font-size:1em;font-weight:700;color:var(--wct-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.label)}</span>
         <button class="wct-qcard-edit" title="${t('tipEditLabel')}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;color:var(--wct-text2);opacity:.7">&#x270F;&#xFE0F;</button>
         <button class="wct-qcard-focus" title="${escHtml(t('qFocusTip'))}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;opacity:.8">&#x1F3AF;</button>
@@ -15352,6 +15884,21 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
         const dirConflictIds=new Set(
             getSegDirConflicts(entry.segIds,parseInt(entry.config.direction)).map(c=>c.sid)
         );
+        // Le MÊME tri que l'application (_trierAFermer), une fois par occurrence : une
+        // pastille qui jugerait autrement que addClosure mentirait. L'ancien calcul
+        // ignorait le sens (une fermeture A ⇒ B marquait rouge une fermeture B ⇒ A),
+        // plantait avec getAll() (liste vide, donc tout VERT) et affichait VERT un
+        // segment non chargé, sur lequel il n'avait rien pu regarder.
+        const dirN=parseInt(entry.config.direction);
+        let inverses=new Set();
+        try{ inverses=new Set(sdk.DataModel.Segments.getReversedSegments({segmentIds:entry.segIds.map(Number)}).map(r=>Number(r.id))); }catch(e){}
+        const tris=entry.closures.map(cl=>{
+            const r=_trierAFermer({ ids:entry.segIds, dir:dirN, seg:getSegById, inverses,
+                existantes:existCl, debut:_versMurale(cl.start), fin:_versMurale(cl.end),
+                combler:entry.config.combler!==false });
+            return { absents:new Set(r.absents), sansSens:new Set(r.sansSens),
+                     deja:new Set(r.dejaFermes), partiels:new Set(r.partiels), combles:new Set(r.combles) };
+        });
         let rows=[];
         entry.segIds.forEach(sid=>{
             entry.closures.forEach((cl,closureIdx)=>{
@@ -15360,20 +15907,27 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
                 // cl.start / cl.end sont des Date (config manuelle) ou des chaînes UTC (import CSV)
                 const s=cl.start instanceof Date ? cl.start : new Date(cl.start.replace(' ','T')+'Z');
                 const e=cl.end instanceof Date ? cl.end : new Date(cl.end.replace(' ','T')+'Z');
-                const overlap=existCl.some(c=>dateTimeOverlaps({startDate:s,endDate:e},{startDate:new Date(c.startDate),endDate:new Date(c.endDate)}));
-                const nullSeg=entry.nullSegs?.has(Number(sid));
-                const recentSeg=!nullSeg&&entry.recentSegs?.has(Number(sid));
+                const tr=tris[closureIdx], nsid=Number(sid);
+                const nullSeg=entry.nullSegs?.has(nsid);
+                const recentSeg=!nullSeg&&entry.recentSegs?.has(nsid);
                 // ⚠️ Sans le calque Fermetures, la liste des fermetures existantes est vide, donc
 // aucun chevauchement ne peut etre detecte. Afficher un rond VERT « OK » serait alors
 // une affirmation fausse : on affiche « non verifie ». Voir _closuresLayerKo.
-let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?t('stateUnchecked'):t('stateOk'),stateBg='',stateVal=0;
+// Même pastille quand les fermetures chargées sont illisibles (existCl null) ou que le
+// segment n'est pas chargé (lot de zone hors vue) : dans les deux cas, rien n'a été vu.
+const nonVu=_closuresLayerKo||!existCl||tr.absents.has(nsid);
+let stateIcon=nonVu?'&#x26AA;':'&#x1F7E2;',stateTip=nonVu?t('stateUnchecked'):t('stateOk'),stateBg='',stateVal=0;
                 if(nullSeg){
                     stateIcon='\u26A0\uFE0F';stateTip=t('stateNull');stateBg='#fff9c4';stateVal=6;
                 } else if(recentSeg){
                     stateIcon='\uD83D\uDD52';stateTip=t('stateRecent');stateBg='#fff3e0';stateVal=5;
-                } else if(dirConflictIds.has(Number(sid))){
+                } else if(dirConflictIds.has(nsid)){
                     stateIcon='\u26D4';stateTip=t('dirConflictTip');stateBg='#fce4ec';stateVal=4;
-                } else if(overlap){stateIcon='&#x1F534;';stateTip=t('stateOv');stateBg='#fff0f0';stateVal=3;}
+                } else if(tr.sansSens.has(nsid)){
+                    stateIcon='\u26D4';stateTip=t('stateNoDir');stateBg='#f5f5f5';stateVal=4;
+                } else if(tr.deja.has(nsid)){stateIcon='&#x1F534;';stateTip=t('stateOv');stateBg='#fff0f0';stateVal=3;}
+                else if(tr.combles.has(nsid)){stateIcon='◐';stateTip=t('stateComble');stateBg='#fff8e1';stateVal=3;}
+                else if(tr.partiels.has(nsid)){stateIcon='&#x1F534;';stateTip=t('stateOvSens');stateBg='#fff0f0';stateVal=3;}
                 else if(e<now){stateIcon='&#x26AB;';stateTip=t('statePast');stateBg='#fafafa';stateVal=1;}
                 else if(s<now){stateIcon='&#x1F7E0;';stateTip=t('stateOn');stateBg='#fff8e1';stateVal=2;}
                 rows.push({sid,cl,closureIdx,rowKey,s,e,stateIcon,stateTip,stateBg,stateVal,name:getSegName(sid),isDirConflict:dirConflictIds.has(Number(sid))});
@@ -15450,10 +16004,10 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
                 // vient d'une autre zone, rien n'y est chargé. Sans ce repli, le 🎯 ne
                 // faisait RIEN et sans le dire. Le lon/lat du nœud est justement dans le
                 // CSV : c'est pour ça qu'il y est.
-                const repli=entry.turnLonLat||entry.csvCenter;
+                const repli=_positionEntree(entry);
                 if(repli){
                     try{
-                        _centrerSurZoneVisibleOL(repli.lon,repli.lat,entry.csvZoom||17);
+                        _centrerSurZoneVisibleOL(repli.lon,repli.lat,Math.max(repli.zoom,17));
                     }catch(err){ log('centrage file: '+err.message); }
                     return;
                 }
@@ -16102,6 +16656,7 @@ const connectOverlay=ov=>{
             }
         }
         const entry={...makeEntry(validIds,cfg,rc.list),source:'cfg'};
+        entry.emprise=_empriseDe(validIds);   // où recadrer à l'application : voir _empriseDe
         // Pont Tracés → Configurer → file : si la sélection vient d'un lot, l'entrée
         // porte la bbox du lot (pour le recadrage à l'application) et devient 'sweep'.
         const _lotCtx=(()=>{ if(!_currentLot) return null; const trk=_traceTracks.find(t=>t.trackId===_currentLot.trackId); const lot=trk?.lots?.[_currentLot.lotIdx-1]; return (trk&&lot)?{trk,lot}:null; })();
@@ -16447,6 +17002,40 @@ const _impNomType = (ty) => ty === 'csv' ? t('impTypeCsv') : ty === 'trace' ? t(
 
 // Reconnaît un fichier, le confie au bon module, puis amène l'utilisateur là où la
 // suite se passe — c'est tout l'intérêt : après un import, on ne cherche pas où aller.
+// CSV de fermetures : SÉLECTIONNER ses segments, ou les mettre en FILE tels quels.
+// ⭐ Sélectionner est le geste principal : on configure alors soi-même la fermeture
+// (dates, MTE choisi dans la liste une fois chargé, source) puis on valide. Mettre en
+// file reprend le MTE du fichier sans pouvoir le changer ensuite — et à l'import les
+// MTE ne sont pas chargés : l'éditeur ne pouvait plus rien y faire (23/09/2026).
+// Un CSV de VIRAGES garde son chemin : il n'y a pas de segments à sélectionner.
+const _impCsvChoix = async (f) => {
+    const texte = await _impLireTout(f);
+    const items = parseCSV(texte);
+    const adds = (items || []).filter(it => it.action === 'add' && it.closure.isValid && it.closure.segIDs.length);
+    if(!adds.length || _sweepRunning){ handleCSV([f]); _impVersOnglet('cfg'); return; }
+    const ids = new Set(adds.flatMap(it => it.closure.segIDs.map(Number).filter(Boolean)));
+    // Emprise à inventorier : les positions portées par le fichier, élargies d'environ
+    // 1 km — une ligne ne porte que le CENTRE de ses segments.
+    const lo = adds.map(it => it.closure.lonlat.lon), la = adds.map(it => it.closure.lonlat.lat);
+    const bbox = { minLon: Math.min(...lo) - 0.014, maxLon: Math.max(...lo) + 0.014,
+                   minLat: Math.min(...la) - 0.009, maxLat: Math.max(...la) + 0.009 };
+    const el = _zonePanelShow(
+        '<div class="wct-zp-head">' + escHtml(t('csvChoixTitre', adds.length, ids.size)) + '</div>' +
+        '<div class="wct-zp-btns">' +
+          '<button type="button" class="wct-btn wct-btn-primary wct-btn-sm" id="wct-csv-sel" title="' +
+            escHtml(t('tipCsvChoixSel')) + '">' + escHtml(t('csvChoixSel')) + '</button>' +
+          '<button type="button" class="wct-btn wct-btn-sm" id="wct-csv-file" title="' +
+            escHtml(t('tipCsvChoixFile')) + '">' + escHtml(t('csvChoixFile')) + '</button>' +
+        '</div>' +
+        '<div class="wct-zp-hint">' + escHtml(t('csvChoixAide')) + '</div>');
+    el.querySelector('#wct-csv-sel')?.addEventListener('click', () => {
+        _zonePanelHide(); _impVersOnglet('cfg');
+        _polyProcessRings(null, { ids, bbox });
+    });
+    el.querySelector('#wct-csv-file')?.addEventListener('click', () => {
+        _zonePanelHide(); handleCSV([f]); _impVersOnglet('cfg');
+    });
+};
 const _impUnFichier = async (f) => {
     const texte = await _impLire(f);
     const det = _impDetecter(f.name, texte);
@@ -16462,7 +17051,7 @@ const _impUnFichier = async (f) => {
     }
     _impLog(`<span style="color:var(--wct-green,#2e7d32)">${escHtml(t('impReconnu', f.name, _impNomType(type)))}</span>`);
     try {
-        if(type === 'csv'){ handleCSV([f]); _impVersOnglet('cfg'); }
+        if(type === 'csv'){ await _impCsvChoix(f); }
         else if(type === 'trace'){ traceHandleFiles([f]); _impVersOnglet('gpx'); }
         else if(type === 'zone'){ _impVersOnglet('cfg'); await _polyImportTexte(await _impLireTout(f)); }
         else if(type === 'prefs'){

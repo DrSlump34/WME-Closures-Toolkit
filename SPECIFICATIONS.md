@@ -408,7 +408,13 @@ Tant qu'il n'y a **aucune sélection**, le seul contrôle actif est le tracé de
 (`refreshCfgGate`). L'aperçu du nombre de fermetures se recalcule à chaque frappe.
 
 À la mise en file : `makeEntry`, puis détection des conflits de sens (`excludedSegs`), des segments
-absents (`nullSegs`) et des segments récemment modifiés (`recentSegs`).
+absents (`nullSegs`) et des segments récemment modifiés (`recentSegs`). Une entrée faite à la main
+retient l'**emprise** de ses segments (`_empriseDe`) : c'est sur elle que l'application et le 🎯
+recadrent la carte (§ 8.7).
+
+La case **« Combler les trous »** (`combler`, cochée par défaut, portée par la config et les
+préréglages) décide de ce qu'on fait d'un segment déjà fermé **en partie** sur le créneau : n'y poser
+que les trous (§ 8.7), ou l'écarter.
 
 ### 8.2 La zone
 
@@ -419,6 +425,11 @@ absents (`nullSegs`) et des segments récemment modifiés (`recentSegs`).
   glisser un sommet, clic droit pour en supprimer un, clic sur une pastille creuse pour en insérer.
 - **Ce n'est qu'après validation du contour** que WCT demande s'il faut sélectionner les segments
   à l'intérieur. Répondre non conserve la zone, prête à l'export.
+- Ces deux décisions (Accepter · Éditer · Abandonner, puis la sélection) s'affichent **en tête de
+  l'onglet Configurer** (`_zonePanelShow`) — là où vit ensuite le bandeau de la zone. Sur la carte
+  seulement si le panneau WCT est fermé ou replié, en haut au centre et **toujours ramenées dans
+  l'écran**. Posées dans un coin de la carte jusqu'à la 1.18.05, on les cherchait — et une fenêtre
+  basse les sortait de l'écran.
 - **Règle de sélection : tout segment dont plus de la moitié est à l'intérieur** (`_polyInsideFrac`,
   seuil strictement supérieur à 50 %). Le relevé **ne dépend pas du zoom** : la zone est découpée en
   tuiles de `POLY_TILE_KM = 5` km chargées au zoom `POLY_LOAD_ZOOM = 16`, avec barre de progression.
@@ -464,6 +475,15 @@ sémantique (segment d'entrée → nœud → segment de sortie), qui, elle, surv
 
 Le fichier reconnu est **routé vers l'onglet où se passe l'étape suivante**.
 
+Un **CSV de fermetures de segments** propose deux suites (`_impCsvChoix`), dans le bloc de décision
+en tête de Configurer : **🧲 Sélectionner les segments** (geste principal) ou **Ajouter à la file**.
+Sélectionner passe par la même mécanique qu'une zone (`_polyProcessRings(null, {ids, bbox})`) :
+inventaire de l'emprise des positions du fichier élargie d'environ 1 km, **exactement** les
+segments de la liste, l'enveloppe convexe comme contour, puis chargement vue par vue, sélection et
+lots recadrés. Les segments introuvables sont **annoncés**. Motif : mis en file, un CSV garde son
+MTE tel quel, alors qu'à l'import les MTE ne sont pas encore chargés et qu'une entrée de file ne se
+reconfigure pas. Un CSV de virages garde l'ancien chemin.
+
 ### 8.6 La recherche
 
 Cherche les fermetures existantes sur **segments et virages**, soit dans la **vue courante**
@@ -484,11 +504,32 @@ segments / virages.
    - marque la carte **⏳ en cours** *avant* de commencer — sur une file longue, savoir *laquelle*
      est traitée vaut autant que le pourcentage global ;
    - **recadre si nécessaire** : emprise **complète** du lot (`sweep`), centre et zoom **portés par
-     le CSV** (`csv`), nœud du virage (`turn`) ;
+     le CSV** (`csv`), nœud du virage (`turn`), et, pour une entrée faite à la main, son emprise
+     **s'il en manque des segments** ;
    - écrit les fermetures, occurrence par occurrence, en respectant `excludedRows`.
+
+**Trier avant d'écrire** (`_trierAFermer`, fonction pure, `test-ecartes.js`) — chaque segment, sens
+par sens : *absent* du modèle, *sans sens ouvert* (rien à fermer : écarté, pas compté en échec),
+*déjà fermé* sur le créneau (écarté), ou à poser. ⚠️ **Bout à bout = conflit** : Waze refuse une
+fermeture qui finit à 08:00 quand une autre commence à 08:00 sur le même sens (« Road Closure time
+is overlapped »). Avec `combler`, un sens occupé **en partie** reçoit ses **trous** (`_trousLibres`) :
+chaque fermeture existante est élargie d'**une minute** de chaque côté, un trou de moins de
+**5 minutes** est laissé, et **on ne touche jamais aux fermetures existantes** — d'un autre éditeur
+ou d'un partenaire, on complète. Une fermeture par trou, dans le même enregistrement.
+
+Les fermetures déjà chargées se lisent par `_fermeturesChargees()` : ⚠️ `RoadClosures.getAll()` du
+SDK **lève** dès qu'une seule fermeture a `attributions: null` (WME v2.370). Repli sur le modèle ;
+`null` (« pas pu regarder ») n'est pas `[]` (« rien »).
+
+**Un refus de Waze ne fait plus tomber le lot** (`_poserParMoitie`) : l'enregistrement est groupé
+et Waze le refuse en bloc — un segment fautif sur 405 faisait perdre les 404 autres. Sur un refus
+**du serveur** seulement, le lot est coupé en deux et chaque moitié renvoyée, jusqu'à isoler le
+fautif, nommé dans le bilan. Budget d'enregistrements borné (`_POSE_BUDGET_PAR_FAUTIF`) : si tout
+est refusé, on ne descend pas jusqu'au segment.
 3. **Clôt l'entrée** avec un état calculé : `ok` / `partiel` / `echec`, posé sur la carte.
 4. À la fin, un **bilan** : replié quand tout est passé, **ouvert de lui-même** sinon. Il donne
-   **les deux comptes** — entrées et fermetures (§ 1.2).
+   **les deux comptes** — entrées et fermetures (§ 1.2) — et, à part, les segments **écartés** (↷)
+   et **complétés** (◐), qui ne sont ni des poses ni des échecs.
 
 ⚠️ **Le recadrage CSV a manqué jusqu'au 01/08/2026** : le fichier portait son lon/lat et son zoom,
 qui étaient lus puis jamais utilisés. Un éditeur recevant le CSV d'une ville et travaillant sur une
@@ -723,6 +764,7 @@ node check-keys.js        # avant toute publication
 |---|---|
 | `check-keys.js` | Mêmes clés, types et arités dans les 8 langues |
 | `check-help.js` | L'aide se rend dans les 8 langues, **section par section**, dette nommée |
+| `check-aide-parite.js` | Aucune section d'aide **périmée** dans une langue (longueur rapportée au français, seuil propre à l'hébreu, témoin intégré) |
 | `check-lib-copie.js` | La copie de `WMEPrefs` est identique à `../../WME-Prefs/WMEPrefs.js` **et fonctionne** |
 | `check-lib-creneaux.js` | La copie de `WMECreneaux` est identique à `lib/` **et rejoue `test-plage.js` sur la copie** |
 | `check-contraste.js` | 4,5:1 (WCAG), thème clair **et** compact |
@@ -746,7 +788,9 @@ réellement écrites), `test-file-persistance.js` (la file survit à un recharge
 perdre**), `test-turn-bilan.js` (ce que l'onglet Virages compte comme **posé**),
 `test-raccourcis.js`, `test-maj.js`, `test-imp-route.js`, `test-geojson-noms.js`, `test-repli.js`,
 `test-prefs-region-desc.js`, `test-feries-regions.js`, `test-extremites.js`, `test-style-trace.js`,
-`test-emprise-captage.js`, `test-lib-dico.js`.
+`test-emprise-captage.js`, `test-lib-dico.js`, `test-ecartes.js` (le **tri avant écriture**, le
+bout à bout, le **comblement des trous** et la pose par moitiés), `test-zone-geojson.js` (une zone
+GeoJSON se lit).
 
 ### 13.3 Les audits
 

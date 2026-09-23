@@ -9,7 +9,7 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_1.17.00_normal.png)
+![WME Closures Toolkit](capture_1.20.00_normal.png)
 
 Draw an area and it stays on the map. Pick it back up whenever you like: drag a corner,
 right-click one to delete it, click a hollow dot to insert one.
@@ -27,6 +27,15 @@ Drop any file into the Import tab — the content decides where it goes:
   *Repeat* for N occurrences at a fixed interval, and *Continuous* for the simplest case of all:
   one closure running without interruption from a start date and time to an end date and time.
   A single event usually needs several of these at once — they all land in the same queue.
+- **Checked before anything is written** — segments already closed at that time, or with no
+  direction open to traffic, are skipped and reported instead of being sent; two closures that
+  meet end to end (08:00 / 08:00) are caught too, since Waze rejects them. If Waze still refuses a
+  batch, WCT splits it until only the faulty segment is left out — named in the summary.
+- **Fill the gaps** — when a segment is already partly closed during the requested time, WCT only
+  adds the missing pieces, before, between or after the existing closures, one minute apart, and
+  never touches them — whether they belong to another editor or to a partner. On by default.
+- **Import a closure CSV as a selection** — instead of queueing a file as it is, WCT can select
+  its segments on the map, so you set the closure yourself — MTE picked from the list included.
 - **You can see what the run is doing, and what it did** — while applying, each queue batch
   carries its own state on its header (running · applied · partial · failed); a batch never
   reached stays unmarked. The line-by-line detail waits for the end, in a summary that stays
@@ -35,7 +44,7 @@ Drop any file into the Import tab — the content decides where it goes:
   a layer. Double-click it to pick it back up: drag a corner to move it, right-click to delete
   one, click a hollow dot to insert one. Only once you accept the outline does WCT ask whether to
   select the segments inside — answer *no* and the area still lives on, ready to export.
-  An imported KML or WKT area lands at exactly the same point as a freshly drawn one.
+  An imported KML, GeoJSON or WKT area lands at exactly the same point as a freshly drawn one.
 - **Every segment more than half inside is selected** — the survey does not depend on zoom, so
   nothing is missed on a large area. Road types are filterable after the fact, without redrawing,
   and the area itself exports to KML / WKT and reads back in.
