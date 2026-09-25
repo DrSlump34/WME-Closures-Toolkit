@@ -15,15 +15,16 @@ const reHtml = /(innerHTML\s*=|insertAdjacentHTML\([^,]+,)\s*`([^`]*)`/gs;
 let m;
 while ((m = reHtml.exec(txt)) !== null) {
     const corps = m[2];
-    const interp = corps.match(/\$\{[^}]+\}/g) || [];
-    for (const it of interp) {
+    const debut = m.index + m[0].indexOf(corps);
+    for (const mi of corps.matchAll(/\$\{[^}]+\}/g)) {
+        const it = mi[0];
         const inner = it.slice(2, -1).trim();
         if (/^(escHtml|t)\(/.test(inner)) continue;             // deja echappe / traduit
         if (/^[\d\s+\-*/().]+$/.test(inner)) continue;           // arithmetique
         if (/\.(length|size|idx|id)\b/.test(inner) && !/name|label|reason|desc|text|nom/i.test(inner)) continue;
         if (/^_?[A-Za-z_$][\w$]*\s*\?\s*['"`]/.test(inner)) continue;  // ternaire de style
         if (/(Style|style|color|width|display|px|CSS|\?\s*'')/.test(inner)) continue;
-        suspects.push(noLigne(m.index) + ' : ' + inner.slice(0, 70));
+        suspects.push(noLigne(debut + mi.index) + ' : ' + inner.slice(0, 70));
     }
 }
 R.htmlNonEchappe = suspects;
@@ -98,6 +99,9 @@ R.taille = { lignes: lignes.length, ko: Math.round(txt.length / 1024), commentai
              tauxCommentaires: Math.round(nCom * 100 / lignes.length) + ' %' };
 
 for (const [k, v] of Object.entries(R)) {
-    const val = Array.isArray(v) ? (v.length ? v.length + ' → ' + v.slice(0, 12).join(' | ') : 'aucun') : JSON.stringify(v);
+    // ⚠️ La liste de sécurité se lit EN ENTIER : tronquée à 12 entrées sur 56, elle a caché une injection
+    // de code par la colonne 7 d'un CSV de virages (audit du 25/09/2026).
+    const plafond = k === 'htmlNonEchappe' ? Infinity : 12;
+    const val = Array.isArray(v) ? (v.length ? v.length + ' → ' + v.slice(0, plafond).join(' | ') : 'aucun') : JSON.stringify(v);
     console.log('\n### ' + k + '\n' + val);
 }

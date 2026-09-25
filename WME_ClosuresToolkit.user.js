@@ -1933,6 +1933,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             multiCountryAlert: cc => `\u26A0\uFE0F S\u00e9lection multi-pays (${cc}).\nImpossible d\u2019utiliser le filtre jours f\u00e9ri\u00e9s.\nD\u00e9s\u00e9lectionnez les segments d\u2019un seul pays.`,
             // CSV import log
             csvAdded: (ok,ko) => `\u2705 ${ok} fermeture(s) ajout\u00e9e(s) \u00e0 la file${ko?', '+ko+' erreur(s)':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} ligne(s) \u00ab\u00a0remove\u00a0\u00bb ignor\u00e9e(s)\u00a0: WCT pose des fermetures, il n\u2019en supprime pas.`,
             csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L’import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
             csvImportCancelled:'Import annulé.',
             sweepTitle:'Sélectionner les segments du tracé (balaie la carte)',
@@ -2522,6 +2523,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `\u26A0\uFE0F Multi-country selection (${cc}).\nCannot use public holiday filter.\nDeselect segments from one country only.`,
             // CSV import log
             csvAdded: (ok,ko) => `\u2705 ${ok} closure(s) added to queue${ko?', '+ko+' error(s)':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u201cremove\u201d row(s) skipped: WCT sets closures, it does not delete them.`,
             csvBigConfirm: (seg,rows) => `⚠️ This file contains ${seg} segments across ${rows} rows. Importing large volumes can slow the browser down, and WME will only close segments loaded in the current view. Continue?`,
             csvImportCancelled:'Import cancelled.',
             sweepTitle:'Select track segments (pans the map)',
@@ -3115,6 +3117,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `⚠️ בחירה מרובת-מדינות (${cc}).\nלא ניתן להשתמש בסינון חגים.\nבטל בחירת מקטעים ממדינה אחת בלבד.`,
             // CSV import log
             csvAdded: (ok,ko) => `✅ ${ok} חסימות נוספו לתור${ko?', '+ko+' שגיאות':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u05e9\u05d5\u05e8\u05d5\u05ea \u201cremove\u201d \u05d3\u05d5\u05dc\u05d2\u05d5: WCT \u05de\u05e6\u05d9\u05d1 \u05d7\u05e1\u05d9\u05de\u05d5\u05ea \u05d5\u05d0\u05d9\u05e0\u05d5 \u05de\u05d5\u05d7\u05e7 \u05d0\u05d5\u05ea\u05df.`,
             csvBigConfirm: (seg,rows) => `⚠️ קובץ זה מכיל ${seg} מקטעים ב-${rows} שורות. ייבוא כמויות גדולות עלול להאט את הדפדפן, ו-WME יחסום רק מקטעים הטעונים בתצוגה הנוכחית. להמשיך?`,
             csvImportCancelled:'הייבוא בוטל.',
             sweepTitle:'בחר מקטעי מסלול (מזיז את המפה)',
@@ -3702,6 +3705,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `⚠️ Selezione multi-paese (${cc}).\nImpossibile usare il filtro dei giorni festivi.\nDeseleziona i segmenti di un solo paese.`,
             // CSV import log
             csvAdded: (ok,ko) => `✅ ${ok} chiusura/e aggiunte alla coda${ko?', '+ko+' errore/i':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} riga/e \u201cremove\u201d ignorata/e: WCT crea chiusure, non le elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Questo file contiene ${seg} segmenti su ${rows} righe. Importare grandi volumi può rallentare il browser, e WME chiuderà solo i segmenti caricati nella vista attuale. Continuare?`,
             csvImportCancelled:'Importazione annullata.',
             sweepTitle:'Seleziona i segmenti del tracciato (sposta la mappa)',
@@ -4290,6 +4294,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             multiCountryAlert: cc => `\u26A0\uFE0F Auswahl \u00FCber mehrere L\u00E4nder (${cc}).\nDer Feiertagsfilter kann nicht verwendet werden.\nW\u00E4hle Segmente aus nur einem Land ab.`,
             // CSV-Importprotokoll
             csvAdded: (ok,ko) => `\u2705 ${ok} Sperrung(en) zur Warteschlange hinzugef\u00FCgt${ko?', '+ko+' Fehler':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u201eremove\u201c-Zeile(n) \u00fcbersprungen: WCT setzt Sperrungen, l\u00f6scht aber keine.`,
             csvBigConfirm: (seg,rows) => `⚠️ Diese Datei enthält ${seg} Segmente in ${rows} Zeilen. Der Import großer Mengen kann den Browser verlangsamen, und WME schließt nur Segmente, die in der aktuellen Ansicht geladen sind. Fortfahren?`,
             csvImportCancelled:'Import abgebrochen.',
             sweepTitle:'Segmente des Tracks auswählen (verschiebt die Karte)',
@@ -4877,6 +4882,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             multiCountryAlert: cc => `⚠️ Selección en varios países (${cc}).\nNo se puede usar el filtro de festivos.\nDeja seleccionados solo los segmentos de un único país.`,
             // Registro de importación CSV
             csvAdded: (ok,ko) => `✅ ${ok} cierre(s) añadido(s) a la cola${ko?', '+ko+' error(es)':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} fila(s) \u201cremove\u201d omitida(s): WCT crea cierres, no los elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este archivo contiene ${seg} segmentos en ${rows} filas. Importar grandes volúmenes puede ralentizar el navegador, y WME solo cerrará los segmentos cargados en la vista actual. ¿Continuar?`,
             csvImportCancelled:'Importación cancelada.',
             sweepTitle:'Seleccionar los segmentos de la traza (desplaza el mapa)',
@@ -5464,6 +5470,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível usar o filtro de feriados.\nDesmarque os segmentos para manter apenas um país.`,
             // Log de importação CSV
             csvAdded: (ok,ko) => `✅ ${ok} bloqueio(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} linha(s) \u201cremove\u201d ignorada(s): o WCT cria bloqueios, n\u00e3o os exclui.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este arquivo contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode deixar o navegador lento, e o WME só vai bloquear os segmentos carregados na visualização atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
             sweepTitle:'Selecionar os segmentos do trajeto (move o mapa)',
@@ -6051,6 +6058,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             multiCountryAlert: cc => `⚠️ Seleção em vários países (${cc}).\nNão é possível utilizar o filtro de feriados.\nMantenha selecionados apenas os segmentos de um único país.`,
             // CSV import log
             csvAdded: (ok,ko) => `✅ ${ok} corte(s) adicionado(s) à fila${ko?', '+ko+' erro(s)':''}.`,
+            csvRemoveSkipped: n => `\u2139\uFE0F ${n} linha(s) \u201cremove\u201d ignorada(s): o WCT cria cortes, n\u00e3o os elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este ficheiro contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode tornar o navegador lento, e o WME só vai cortar os segmentos carregados na vista atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
             sweepTitle:'Selecionar os segmentos do trajeto (desloca o mapa)',
@@ -10871,7 +10879,13 @@ const addTurnClosure=(options,okCb,koCb)=>{
         const er=document.querySelector('.error-list');
         if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg], bilan);}
         else{okCb&&okCb(v, bilan);}
-    },r=>koCb&&koCb([r], bilan));
+    },r=>{
+        // Jumeau du chemin des segments : une promesse rejetée laisse les fermetures de virage
+        // EN ATTENTE dans l'éditeur. Sans undoAll, le save() du lot suivant les publiait alors
+        // que cette carte affichait un échec (audit du 25/09/2026).
+        try{ sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }
+        koCb&&koCb([r?.message||String(r)], bilan);
+    });
 };
 // Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
 // Le retour visuel est immédiat : sans lui, le clic n'avait aucun effet perceptible
@@ -11088,7 +11102,10 @@ const applyQueue=async()=>{
     let lotNo=0;
     const totalLots=queue.filter(e=>e.source==='sweep'&&e.lotBbox).length;
     try{
-        for(const [idxEntree,e] of queue.entries()){
+        // ⚠️ La file est FIGÉE au départ : une entrée ajoutée pendant l'application (Valider,
+        // import) attend le prochain Appliquer, au lieu d'être écrite sans avoir été confirmée.
+        // Les suppressions sont refusées tant que l'application tourne (audit du 25/09/2026).
+        for(const [idxEntree,e] of queue.slice().entries()){
             if(_applyAborted) break;
             idxCourant=idxEntree;
             // L'entrée s'annonce AVANT de commencer : sur une file longue, savoir laquelle
@@ -15771,7 +15788,7 @@ const buildQueueCard=(entry,idx)=>{
         ${entry.excludedSegs&&entry.excludedSegs.length?`<span class="wct-badge wct-badge-warn wct-excl-warn" title="${t('exclWarnTitle',entry.excludedSegs.length)}">\u26A0\uFE0F ${entry.excludedSegs.length}</span>`:''}
         ${isTurnEntry?'':`<span class="wct-badge wct-badge-dir" title="${t('tipDir')}">${dir}</span>`}
         <span class="wct-badge" style="background:#fce4ec;color:#880e4f" title="${it?t('tipITon'):t('tipIToff')}">${it?'&#x1F6AB;IT':'&#x2705;IT'}</span>
-        ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${t('tipNodes',entry.config.nodesClosed||t('nodeNone'))}">${entry.config.nodesClosed||t('nodeIconNone')}</span>`}
+        ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${escHtml(t('tipNodes',entry.config.nodesClosed||t('nodeNone')))}">${escHtml(entry.config.nodesClosed||t('nodeIconNone'))}</span>`}
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
@@ -15986,9 +16003,9 @@ let stateIcon=nonVu?'&#x26AA;':'&#x1F7E2;',stateTip=nonVu?t('stateUnchecked'):t(
             tr.style.background=row.stateBg;
             tr.innerHTML=`
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);text-align:center">
-                    <span class="wct-row-del" data-key="${row.rowKey}" title="${t('tipRowDel')}" style="cursor:pointer;font-size:13px;line-height:1;color:var(--wct-red);${row.isDirConflict?'opacity:.4;pointer-events:none':''}">&#x1F5D1;</span></td>
-                <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${row.sid}">
-                    <span class="wct-center-seg" data-sid="${row.sid}" title="${t('tipCenter')}" style="cursor:pointer;margin-right:3px;font-size:13px">&#x1F3AF;</span>${row.sid}</td>
+                    <span class="wct-row-del" data-key="${escHtml(row.rowKey)}" title="${t('tipRowDel')}" style="cursor:pointer;font-size:13px;line-height:1;color:var(--wct-red);${row.isDirConflict?'opacity:.4;pointer-events:none':''}">&#x1F5D1;</span></td>
+                <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(row.sid)}">
+                    <span class="wct-center-seg" data-sid="${escHtml(row.sid)}" title="${t('tipCenter')}" style="cursor:pointer;margin-right:3px;font-size:13px">&#x1F3AF;</span>${escHtml(row.sid)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(row.name)}">${escHtml(row.name)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.833em">${formatDateDisplay(row.s)}</td>
                 <td style="padding:3px 5px;border-bottom:1px solid var(--wct-border);white-space:nowrap;font-size:0.833em">${formatDateDisplay(row.e)}</td>
@@ -16017,6 +16034,7 @@ let stateIcon=nonVu?'&#x26AA;':'&#x1F7E2;',stateTip=nonVu?t('stateUnchecked'):t(
             // Supprimer la ligne (poubelle)
             tr.querySelector('.wct-row-del')?.addEventListener('click',e=>{
                 e.stopPropagation();
+                if(_applyRunning) return;   // la file est en cours d'écriture : on n'y touche pas
                 const key=e.target.dataset.key;
                 entry.excludedRows.add(key);
                 // Si toutes les lignes sont supprimées, retirer le lot entier.
@@ -16077,6 +16095,9 @@ let stateIcon=nonVu?'&#x26AA;':'&#x1F7E2;',stateTip=nonVu?t('stateUnchecked'):t(
     // Supprimer lot
     hdr.querySelector('.wct-qcard-del').addEventListener('click',e=>{
         e.stopPropagation();
+        // Supprimer une entrée pendant l'application décalait les suivantes : l'une d'elles
+        // était sautée sans un mot.
+        if(_applyRunning) return;
         queue.splice(idx,1); renderQueue();
     });
 
@@ -17095,8 +17116,11 @@ const parseCSV=text=>{
 // Colonnes (cf. TURN_CSV_HEADER, écrit par _turnsToCSV) :
 //  0 add-turn · 1 reason · 2 start · 3 end · 4 from segment id · 5 node id ·
 //  6 to segment id · 7 turn id · 8 ignore trafic · 9 MTE id · 10 lon/lat · 11 zoom · 12 comment
+// Colonnes 7 (id du virage) et 9 (MTE) : aucun caractère de balisage. Elles finissent dans des
+// attributs HTML de la carte de file ; ouvertes à /.*/, une cellule piégée exécutait du code à chaque
+// ouverture de WME, la file étant persistée (audit du 25/09/2026). L'affichage échappe aussi.
 const TURN_CSV_RE=[/^add-turn$/,/.*/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
-    /^\d+$/,/^\d+$/,/^\d+$/,/.*/,/^(Yes|No)$/,/.*/,
+    /^\d+$/,/^\d+$/,/^\d+$/,/^[^"'<>&]*$/,/^(Yes|No)$/,/^[^"'<>&]*$/,
     /(lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*))|(lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*))/,/^\d*$/,/.*/];
 const _parseLonLat=(s)=>{
     const lon=/lon=(-?\d+\.?\d*)/.exec(s||''), lat=/lat=(-?\d+\.?\d*)/.exec(s||'');
@@ -17154,8 +17178,14 @@ const handleCSV=files=>{
                 if(!brut.some(x=>['add','remove'].includes(x[0]))) return;
             }
 
-            const items=parseCSV(e.target.result);
-            if(!items){if(logEl)logEl.innerHTML='❌ CSV invalide.';return;}
+            const tout=parseCSV(e.target.result);
+            if(!tout){if(logEl)logEl.innerHTML='❌ CSV invalide.';return;}
+            // ⚠️ Une ligne « remove » (format Advanced Closures) demande de SUPPRIMER une fermeture :
+            // WCT n'en supprime pas. Mise en file, elle était posée comme un AJOUT — et, l'entrée
+            // comblant ses trous par défaut, ce qu'on demandait de lever se retrouvait fermé.
+            // Elle est écartée, et comptée dans le journal (audit du 25/09/2026).
+            const items=tout.filter(it=>it.action==='add');
+            const nRemove=tout.length-items.length;
             // Garde-fou volume : avertir avant d'ajouter un très gros lot (freeze possible).
             const valid=items.filter(it=>it.closure.isValid);
             const totalSeg=valid.reduce((s,it)=>s+it.closure.segIDs.length,0);
@@ -17185,7 +17215,7 @@ const handleCSV=files=>{
                 added++;
             });
             renderQueue();
-            if(logEl) logEl.innerHTML=t('csvAdded',added,errors||0);
+            if(logEl) logEl.innerHTML=t('csvAdded',added,errors||0)+(nRemove?'<br>'+escHtml(t('csvRemoveSkipped',nRemove)):'');
         };
         r.readAsText(f);
     }

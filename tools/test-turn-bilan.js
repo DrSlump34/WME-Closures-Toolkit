@@ -43,8 +43,8 @@ for (const attendu of ['TurnClosures.addClosure', 'poses', 'bilan']) {
 // ── Bac a sable ────────────────────────────────────────────────────────────
 // `rendu` decide, pour chaque appel, ce que fait le SDK : un objet (pose reussie),
 // null/undefined (pas de retour), ou une exception (refus).
-const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLeve = false }) => {
-    const etat = { appels: 0, saveAppele: 0, journal: [] };
+const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLeve = false, saveRejette = false, code = bloc }) => {
+    const etat = { appels: 0, saveAppele: 0, undo: 0, journal: [] };
     let nAppels = 0;
     const sdk = {
         DataModel: {
@@ -63,15 +63,15 @@ const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLev
             },
         },
         Editing: {
-            save: () => { etat.saveAppele++; return Promise.resolve('sauve'); },
-            undoAll: () => {},
+            save: () => { etat.saveAppele++; return saveRejette ? Promise.reject(new Error('refus serveur')) : Promise.resolve('sauve'); },
+            undoAll: () => { etat.undo++; },
         },
     };
     const document = { querySelector: () => null };
     const log = (m) => etat.journal.push(m);
     const t = (cle) => cle;
     const f = new Function('sdk', 'document', 'log', 't',
-        bloc + '\nreturn addTurnClosure;')(sdk, document, log, t);
+        code + '\nreturn addTurnClosure;')(sdk, document, log, t);
     return new Promise(resolve => {
         f({ turnIds, reason: 'Travaux', startDate: new Date('2026-10-01T08:00:00'),
             endDate: new Date('2026-10-01T18:00:00'), permanent: false, eventId: null },
@@ -155,6 +155,22 @@ const OBJET = (i) => ({ id: 'c' + i });
         dit(r.issue === 'ok', 'modele illisible : la pose est quand meme comptee', 'issue=' + r.issue);
         dit(r.bilan.poses === 2, 'deux poses', 'poses=' + r.bilan.poses);
         dit(r.bilan.objets === null, 'la corroboration se declare NON FAITE', 'objets=' + r.bilan.objets);
+    }
+
+    // 7. save() rejete : les fermetures de virage restees EN ATTENTE doivent etre defaites.
+    // Audit du 25/09/2026 : sans undoAll, le save() du lot suivant les publiait alors que
+    // la carte affichait un echec. Jumeau du chemin des segments.
+    {
+        const r = await jouer({ turnIds: [1, 2], rendu: OBJET, saveRejette: true });
+        dit(r.issue === 'ko', 'save() rejete : echec', 'issue=' + r.issue);
+        dit(r.undo === 1, 'undoAll() appele une fois', 'undo=' + r.undo);
+        dit(String(r.errs[0]).includes('refus serveur'), 'le motif du rejet remonte', 'errs[0]=' + r.errs[0]);
+        // TEMOIN : sans l undoAll du rejet, rien n est defait.
+        const ligne = "try{ sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }";
+        const sans = bloc.replace(ligne, '');
+        dit(sans !== bloc, 'TEMOIN : le correctif est trouve dans le bloc');
+        const t2 = await jouer({ turnIds: [1, 2], rendu: OBJET, saveRejette: true, code: sans });
+        dit(t2.undo === 0, 'TEMOIN : sans le correctif, rien n est defait', 'undo=' + t2.undo);
     }
 
     // ── Le branchement dans applyQueue ─────────────────────────────────────

@@ -6,3 +6,5 @@ Exemples/
 Thumbs.db
 desktop.ini
 .DS_Store
+# Rapports d audit (citent du code client) — conservés en local, jamais publiés
+Audits/
