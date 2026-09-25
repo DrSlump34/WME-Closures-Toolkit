@@ -27,6 +27,9 @@ const SEGS = { 1: { isTwoWay: true }, 2: { isTwoWay: true }, 3: { isTwoWay: fals
 let appelsSdk = 0;
 const sdk = { DataModel: { Segments: { getReversedSegments: ({ segmentIds }) => {
     appelsSdk++;
+    // Comme le vrai (relevé dans WME le 25/09/2026) : un seul segment hors du modèle fait LEVER.
+    const inconnu = segmentIds.find(id => !(id in ORIENT));
+    if (inconnu !== undefined) throw new Error('segment with id: ' + inconnu + ' not found in data model');
     const ref = ORIENT[segmentIds[0]];
     return segmentIds.filter(id => ORIENT[id] !== ref).map(id => ({ id }));
 } } } };
@@ -39,6 +42,11 @@ const { _inversesListe, _inversesDe, getSegDirConflicts } =
 console.log('\n— Témoin : la doublure suit la doc (la référence est le 1er segment) —');
 chk('liste [1,2,3] : seul 2 est à rebours', String([..._inversesListe([1, 2, 3])]) === '2');
 chk('sous-liste [2,3] : c\'est 3 qui passe à rebours — la chaîne a basculé', String([..._inversesListe([2, 3])]) === '3');
+
+console.log('\n— Un segment hors du modèle ne fait pas tout perdre —');
+chk('[1,2,99,3] : 2 reste à rebours malgré le segment 99 non chargé', String([..._inversesListe([1, 2, 99, 3])]) === '2');
+let leve = false; try { sdk.DataModel.Segments.getReversedSegments({ segmentIds: [1, 2, 99, 3] }); } catch (e) { leve = true; }
+chk('TÉMOIN : le SDK appelé sur la liste brute lève', leve);
 
 console.log('\n— Le calcul de l\'entrée —');
 const entry = { segIds: [1, 2, 3] };

@@ -7689,8 +7689,15 @@ const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler})=>{
 // ⇒ Calculé sur la liste validée par l'éditeur, figé dans l'entrée (`inverses`), relu partout.
 // Figé seulement quand toute la liste est chargée : sur une liste en partie hors du modèle, le
 // calcul est refait à l'application, toujours sur la liste ENTIÈRE, après recadrage.
+// ⚠️ getReversedSegments LÈVE dès qu'un seul segment de la liste est hors du modèle (« segment with
+// id … not found in data model », relevé dans WME le 25/09/2026) : sur la liste brute, un seul
+// segment non chargé faisait perdre TOUS les inversés. On ne lui passe donc que les segments
+// chargés, dans l'ordre de la liste. La référence reste le premier segment chargé — c'est pourquoi
+// _inversesDe ne FIGE le résultat que lorsque toute la liste est chargée.
 const _inversesListe=(ids)=>{
-    try{ return new Set((sdk.DataModel.Segments.getReversedSegments({segmentIds:ids.map(Number)})||[]).map(r=>Number(r.id))); }
+    const charges=ids.map(Number).filter(id=>getSegById(id));
+    if(!charges.length) return new Set();
+    try{ return new Set((sdk.DataModel.Segments.getReversedSegments({segmentIds:charges})||[]).map(r=>Number(r.id))); }
     catch(e){ log('getReversedSegments: '+e.message); return new Set(); }
 };
 const _inversesDe=(entry)=>{
