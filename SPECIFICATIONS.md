@@ -1,8 +1,9 @@
 # WCT — WME Closures Toolkit · Dossier de spécifications
 
-> **Version du code décrite ici : 1.18.00** (lue dans le bloc `==UserScript==` du fichier
+> **Version du code décrite ici : 1.21.00** (lue dans le bloc `==UserScript==` du fichier
 > `WME_ClosuresToolkit.user.js`, seule source de vérité du numéro).
-> Dernière version **publiée** sur GreasyFork au moment où ce dossier est écrit : **1.17.00**.
+> Dernière version **publiée** sur GreasyFork au moment où ce dossier est écrit : **1.20.00**.
+> La 1.21.00 traite l'audit du 25/09/2026 (rapport local, hors dépôt : il cite du code client).
 > Ce dossier décrit le code présent dans le dépôt, pas ce qui est en ligne.
 
 ---
@@ -256,6 +257,9 @@ Produite par `makeEntry(segIds, cfg, closures)` puis enrichie :
   source,            // 'cfg' | 'csv' | 'turn' | 'sweep'
   label, detail,     // ce que la carte affiche
   excludedSegs,      // segments écartés pour conflit de sens
+  inverses,          // [ids] segments à rebours de la chaîne, calculés UNE fois sur la liste
+                     //   entière (1.21.00) — voir « Le sens d'une liste » ci-dessous
+  nodesInside,       // [ids] nœuds intérieurs de toute la sélection validée (mode « Intérieurs »)
   excludedRows,      // Set de clés 'segId:occurrenceIdx' supprimées à la main
   nullSegs,          // Set — segments absents du modèle de données
   recentSegs,        // Set — segments modifiés après le dernier assemblage de tuiles
@@ -267,6 +271,16 @@ Produite par `makeEntry(segIds, cfg, closures)` puis enrichie :
   turnIds, turnMeta, turnSegId, turnNodeId, turnLonLat
 }
 ```
+
+⭐ **Le sens d'une liste (1.21.00).** `getReversedSegments` prend le **premier** segment de la liste
+pour référence (doc du SDK) : « A ⇒ B » est un sens **le long de la chaîne**, et un segment raccordé
+tête-bêche reçoit le sens opposé de sa propre géométrie. Rappelé sur une sous-liste — moitié après
+un refus, lignes supprimées, segment nul ou récent retiré, premier segment écarté pour conflit — il
+changeait de référence et la chaîne entière pouvait basculer. D'où `_inversesDe(entry)` : un seul
+calcul, sur la liste validée, figé dans l'entrée dès que toute la liste est chargée, relu par
+l'aperçu, `addClosure`, `_poserParMoitie` et `getSegDirConflicts`. La carte le dit (badge ⇄ n).
+Même règle pour les nœuds « intérieurs » et le mode de fermeture des nœuds, qui appartient à
+l'entrée (`config.closeNodes`) et non plus au réglage global du moment d'Appliquer.
 
 ⚠️ **`nullSegs` et `recentSegs` ne sont pas cosmétiques.** Un segment absent du modèle est *sauté
 en silence* à l'application ; un segment modifié après le dernier assemblage de tuiles peut ne pas
@@ -372,6 +386,14 @@ au SDK), `feries` (`async (pays, debut, fin) => string[] | null`).
 
 Une heure de fin antérieure à l'heure de début **décrit une nuit** : la durée court jusqu'au
 lendemain.
+
+5. **(1.21.00, WMECreneaux 1.1.1) La fin et la répétition par jour sont MURALES aussi.** En mode
+   « heure de fin », la fin est bâtie comme le début (jour du début, ou lendemain pour une nuit,
+   plus les jours en plus) ; « Répéter tous les X jours » bâtit chaque occurrence jour par jour.
+   Additionner des millisecondes faisait passer 08:00 à 07:00 dès le 25/10 et rouvrir à 04:00 la
+   nuit 21:00-05:00 du changement d'heure. Restent **absolus**, et c'est voulu : le mode « durée »
+   (2 h, c'est deux heures réelles) et la répétition toutes les X heures ou minutes (un intervalle).
+   Banc : `tools/test-heure-ete.js` (25/10/2026, 28/03/2027), avec témoin.
 
 ### 7.3 Les fériés dans le moteur
 
@@ -714,7 +736,13 @@ lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),
 MTE id (empty cell if not),comment (optional)
 ```
 
-Action `add` (ou `remove`). **Une ligne = une occurrence × l'ensemble de ses segments encore
+Action `add`. Une ligne `remove` est **lue puis écartée**, et comptée dans le journal : WCT pose
+des fermetures, il n'en supprime pas — mise en file, elle était posée comme un ajout (corrigé en
+1.21.00). Le **sens** d'une ligne suit la **chaîne** de ses segments, dans l'ordre du fichier : le
+premier segment est la référence (convention d'Advanced Closures, et celle de l'aller-retour
+WCT → WCT). Un producteur qui veut dire le sens **propre de chaque segment** écrit **une ligne par
+segment** : une ligne à un seul segment n'est jamais inversée. Les heures sont **murales** (heure
+locale), à l'import comme à l'export et dans l'aperçu. **Une ligne = une occurrence × l'ensemble de ses segments encore
 actifs** — même calcul que `applyQueue` : *ce qu'on exporte doit être ce qu'on appliquerait.*
 Une occurrence entièrement supprimée à la main ne produit pas de ligne.
 
@@ -845,8 +873,14 @@ Points de méthode acquis, à ne pas réapprendre :
 - La **dette de traduction de l'aide** est nommée dans `check-help.js` et affichée à chaque
   exécution : elle est connue, chiffrée, et le contrôle refuse de dire « complète » tant qu'elle
   existe.
-- **La v1.18.00 est committée mais pas publiée** — elle ajoute « aller voir une entrée de file, et
-  la sélectionner ».
+- **La v1.21.00 est committée mais pas publiée** — elle traite l'audit du 25/09/2026 (4 critiques,
+  4 majeurs, 3 points notés). Restent : les **constats mineurs** de l'audit (zone : Entrée/Échap et
+  pastille ✕ ; `pointerEvents` des calques à mesurer ; `unzipSync` sans borne ; import des
+  préréglages ; miroir localStorage dans WMEPrefs ; FAB moins insistant ; contrastes, cibles et
+  libellés en dur ; 29 messages d'import en 3 langues), et la **mesure en lecture seule** du sens
+  d'un CSV EVIDRA (incident du 19/09).
+- La copie de **WMECreneaux dans l'extranet EVIDRA** est restée en 1.1.0 (défaut d'heure d'été
+  dans son aperçu).
 
 ### Documents annexes du dépôt
 
