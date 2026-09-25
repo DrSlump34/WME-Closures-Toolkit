@@ -41,6 +41,7 @@ const essai = (source, csv = CSV) => {
         queue, renderQueue: () => {}, getSegDirConflicts: () => [],
         DIR: { AtoB: 1, BtoA: 2, TWO: 3 }, dirStr: d => 'dir' + d, confirm: () => true,
         parseTurnCSV: () => ({ entries: [], errors: 0 }),
+        closeNodes: 1,
         FileReader: class { readAsText(f) { this.onload({ target: { result: f } }); } },
     };
     const noms = Object.keys(env);

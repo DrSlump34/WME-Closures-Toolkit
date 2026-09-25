@@ -7540,6 +7540,15 @@ const getNodeList=segIds=>{
     segIds.forEach(id=>{const seg=getSegById(id);if(!seg)return;[seg.fromNodeId,seg.toNodeId].forEach(nid=>{if(nid)nd[nid]=(nd[nid]||0)+1;});});
     return nd;
 };
+// Nœuds « intérieurs » : partagés par deux segments au moins de la liste.
+// ⚠️ Calculés sur la liste ENTIÈRE de l'entrée, jamais sur un lot ni sur une moitié : un
+// carrefour à la frontière de deux moitiés restait OUVERT (audit du 25/09/2026). Figés à la
+// validation dans Configurer (`nodesInside`), où toute la sélection est chargée.
+const _noeudsInterieurs=segIds=>{
+    const nd=getNodeList(segIds);
+    return new Set(Object.keys(nd).filter(k=>nd[k]>1).map(Number));
+};
+const _noeudsDe=e=>Array.isArray(e.nodesInside) ? new Set(e.nodesInside.map(Number)) : _noeudsInterieurs(e.segIds||[]);
 // Fermetures de segment chargées, forme SDK. Rend null si on ne sait PAS les lire.
 // ⚠️⚠️ Relevé le 23/09/2026 sur WME v2.370 : RoadClosures.getAll() LÈVE dès qu'une seule
 // fermeture chargée porte `attributions: null` (77 sur 721 autour de Notre-Dame). Le
@@ -9476,7 +9485,7 @@ const renderTurnBanner = () => {
 //  QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const makeEntry=(segIds,cfg,closures)=>{
-    return{segIds,config:cfg,closures,source:'cfg',
+    return{segIds,config:{...cfg,closeNodes:cfg.closeNodes??closeNodes},closures,source:'cfg',
         label:cfg.reason||t('defaultClosure'),
         detail:t('entryDetail',segIds.length,closures.length,dirStr(parseInt(cfg.direction)),cfg.starttime)};
 
@@ -10713,7 +10722,8 @@ const refreshSmallPreview=async()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  FULL PREVIEW TABLE
 // ═══════════════════════════════════════════════════════════════════════════
-const nodeIcon=()=>closeNodes===NODE_CL.all?t('nodeIconAll'):closeNodes===NODE_CL.inside?t('nodeIconInner'):t('nodeIconNone');
+const nodeIcon=(mode=closeNodes)=>mode===NODE_CL.all?t('nodeIconAll'):mode===NODE_CL.inside?t('nodeIconInner'):t('nodeIconNone');
+const nodeLabel=(mode=closeNodes)=>mode===NODE_CL.all?t('nodeAll'):mode===NODE_CL.inside?t('nodeInner'):t('nodeNone');
 const showPreview=()=>{
     if(!queue.length){alert(t('queueEmpty'));return;}
     // Les cartes de la file d'attente SONT l'aperçu — on les déplie toutes et on scrolle
@@ -10732,7 +10742,7 @@ const showPreview=()=>{
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const addClosure=(options,okCb,koCb)=>{
-    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses}=options;
+    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses,nodesInside}=options;
     // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
     // le diff est donc le seul moyen de retrouver les nôtres.
     // ⚠️ Pris SYSTÉMATIQUEMENT depuis la 1.02.00, et plus seulement quand une Source est
@@ -10751,9 +10761,12 @@ const addClosure=(options,okCb,koCb)=>{
     const sd=new Date(startDate),ed=new Date(endDate);
     const sdoff=sd.getTimezoneOffset()*60000;
     const edoff=ed.getTimezoneOffset()*60000;
-    let fromClosed=false,toClosed=false,nodeInfo=null;
-    if(closeNodes===NODE_CL.all){fromClosed=toClosed=true;}
-    if(closeNodes===NODE_CL.inside){nodeInfo=getNodeList(segments);}
+    // Le mode est celui de l'ENTRÉE, réglé dans Configurer au moment de la valider : le lire
+    // dans le réglage global au moment d'Appliquer posait le mode du moment, pas celui préparé.
+    const modeNoeuds=options.closeNodes??closeNodes;
+    let fromClosed=false,toClosed=false,interieurs=null;
+    if(modeNoeuds===NODE_CL.all){fromClosed=toClosed=true;}
+    if(modeNoeuds===NODE_CL.inside){interieurs=nodesInside||_noeudsInterieurs(segments);}
     // Les segments à l'envers viennent de l'ENTRÉE (voir _inversesDe) : recalculés ici sur
     // `segments` — un lot, une moitié — ils changeraient de référence.
     const inv=inverses||_inversesListe(segments);
@@ -10771,7 +10784,7 @@ const addClosure=(options,okCb,koCb)=>{
     const pleine=[[args.startDate,args.endDate]];
     for(const {sid,fwd,rev,fenetresF,fenetresR} of tri.plan){
         args.segmentId=sid; const seg=getSegById(sid);
-        if(nodeInfo){fromClosed=nodeInfo[seg.fromNodeId]>1;toClosed=nodeInfo[seg.toNodeId]>1;}
+        if(interieurs){fromClosed=interieurs.has(Number(seg.fromNodeId));toClosed=interieurs.has(Number(seg.toNodeId));}
         const poser=(sensAvant,noeud,fenetres,lib)=>{
             for(const [a,b] of fenetres){
                 try{ sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b}); segsPoses.add(sid); }
@@ -11262,7 +11275,8 @@ const applyQueue=async()=>{
                 if(_applyAborted) break;
                 // combler : coché par défaut ; une entrée d'avant la 1.20.00 (ou venue d'un
                 // CSV mis en file) n'a pas la clé et comble donc, comme le veut le défaut.
-                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false,inverses:_inversesDe(e)});
+                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false,inverses:_inversesDe(e),
+                    closeNodes:e.config.closeNodes??closeNodes,nodesInside:(e.config.closeNodes??closeNodes)===NODE_CL.inside?_noeudsDe(e):null});
                 // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
                 // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
                 // sans condition : un lot dont la carte n'avait chargé que 11
@@ -15832,7 +15846,7 @@ const buildQueueCard=(entry,idx)=>{
         ${isTurnEntry?'':`<span class="wct-badge wct-badge-dir" title="${t('tipDir')}">${dir}</span>`}
         ${nInverses?`<span class="wct-badge wct-badge-dir" title="${escHtml(t('tipInverses',nInverses))}">&#x21C4; ${nInverses}</span>`:''}
         <span class="wct-badge" style="background:#fce4ec;color:#880e4f" title="${it?t('tipITon'):t('tipIToff')}">${it?'&#x1F6AB;IT':'&#x2705;IT'}</span>
-        ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${escHtml(t('tipNodes',entry.config.nodesClosed||t('nodeNone')))}">${escHtml(entry.config.nodesClosed||t('nodeIconNone'))}</span>`}
+        ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${escHtml(t('tipNodes',nodeLabel(entry.config.closeNodes??closeNodes)))}">${escHtml(nodeIcon(entry.config.closeNodes??closeNodes))}</span>`}
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
@@ -16676,6 +16690,9 @@ const connectOverlay=ov=>{
         const invSel=_inversesListe(sel.ids);
         const dirConflicts=getSegDirConflicts(sel.ids,parseInt(cfg.direction),invSel);
         const validIds=sel.ids.filter(id=>!dirConflicts.find(c=>c.sid===Number(id)));
+        // Nœuds intérieurs sur TOUTE la sélection validée : les lots d'une zone et les moitiés
+        // d'un refus ne doivent pas rouvrir le carrefour qui les sépare.
+        const nodesSel=closeNodes===NODE_CL.inside?[..._noeudsInterieurs(validIds)]:null;
         if(!validIds.length){
             const dirLabel=cfg.direction==='1'?'A \u21D2 B':'B \u21D2 A';
             showToast(t('toastNoCompatible',dirLabel),3500,'#f57c00');
@@ -16706,6 +16723,7 @@ const connectOverlay=ov=>{
                             : `\u270F\uFE0F ${cfg.reason||t('defaultClosure')}`};
                     if(dirConflicts.length) e2.excludedSegs=dirConflicts;
                     e2.inverses=[...invSel];
+                    if(nodesSel) e2.nodesInside=nodesSel;
                     // ⚠️ nullSegs VOLONTAIREMENT vide : un segment hors vue sera rechargé par
                     // le recadrage du lot. L'y inscrire le ferait SAUTER à l'application.
                     e2.nullSegs=new Set(); e2.recentSegs=new Set();
@@ -16725,6 +16743,7 @@ const connectOverlay=ov=>{
         // Le sens se lit sur la sélection ENTIÈRE, conflits compris : écarter le premier
         // segment ne doit pas changer la référence du reste (voir _inversesDe).
         entry.inverses=[...invSel];
+        if(nodesSel) entry.nodesInside=nodesSel;
         entry.emprise=_empriseDe(validIds);   // où recadrer à l'application : voir _empriseDe
         // Pont Tracés → Configurer → file : si la sélection vient d'un lot, l'entrée
         // porte la bbox du lot (pour le recadrage à l'application) et devient 'sweep'.
@@ -17246,7 +17265,7 @@ const handleCSV=files=>{
                 if(!it.closure.isValid){errors++;return;}
                 const cl=it.closure;
                 const dir=cl.direction==='A to B'?1:cl.direction==='B to A'?2:3;
-                const cfg={reason:cl.reason,direction:String(dir),ignoretraffic:cl.permanent==='Yes',mteId:cl.eventId||''};
+                const cfg={reason:cl.reason,direction:String(dir),ignoretraffic:cl.permanent==='Yes',mteId:cl.eventId||'',closeNodes};
                 const csvEntry={segIds:cl.segIDs,config:cfg,closures:[{start:cl.startDate,end:cl.endDate}],
                     label:cl.reason||'CSV',
                     detail:dirStr(dir)+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16),
