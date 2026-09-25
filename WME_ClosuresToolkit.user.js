@@ -10753,8 +10753,10 @@ const nodeLabel=(mode=closeNodes)=>mode===NODE_CL.all?t('nodeAll'):mode===NODE_C
 const showPreview=()=>{
     if(!queue.length){alert(t('queueEmpty'));return;}
     // Les cartes de la file d'attente SONT l'aperçu — on les déplie toutes et on scrolle
-    document.querySelectorAll('.wct-qcard-body').forEach(b=>b.style.display='');
-    document.querySelectorAll('.wct-qcard-chevron').forEach(c=>c.innerHTML='&#x25BC;');
+    // Par l'état des entrées et un nouveau rendu : le tableau d'une carte ne se construit qu'au
+    // dépli (voir buildQueueCard) — montrer le corps d'une carte jamais dépliée le montrait vide.
+    queue.forEach(e=>{ e.collapsed=false; });
+    renderQueue();
     $id('wct-queue-body')?.scrollIntoView({behavior:'smooth',block:'start'});
     // Ouvrir la section file si repliée
     const qb=$id('wct-queue-body');
@@ -16172,19 +16174,26 @@ let stateIcon=nonVu?'&#x26AA;':'&#x1F7E2;',stateTip=nonVu?t('stateUnchecked'):t(
         body.appendChild(table);
     };
 
-    renderTable();
+    // ⚠️ Le tableau se construit au PREMIER DÉPLI, pas avant : une carte repliée n'affiche rien,
+    // et la file le construisait quand même, ligne par ligne, nom de rue compris — pour la visite
+    // du pape (967 segments × 30 nuits), ~29 000 lignes à chaque ouverture du panneau (audit du
+    // 25/09/2026). Les poubelles et le crayon rappellent renderTable : il existe alors déjà.
+    let tableFaite=false;
+    const construireTable=()=>{ if(tableFaite) return; tableFaite=true; renderTable(); };
     card.appendChild(hdr);
     card.appendChild(body);
     // Collapse toggle sur le chevron uniquement
     let open=!entry.collapsed;
     const chev=hdr.querySelector('.wct-qcard-chevron');
     // Appliquer l'état initial (plié/déplié)
+    if(open) construireTable();
     body.style.display=open?'':'none';
     chev.innerHTML=open?'&#x25BC;':'&#x25B6;';
     chev.addEventListener('click',e=>{
         e.stopPropagation();
         open=!open;
         entry.collapsed=!open;
+        if(open) construireTable();
         body.style.display=open?'':'none';
         chev.innerHTML=open?'&#x25BC;':'&#x25B6;';
     });
