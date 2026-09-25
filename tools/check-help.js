@@ -6,6 +6,9 @@
 const { charger } = require('./lib-dico.js');
 const { txt, D } = charger();
 const LANGUES = Object.keys(D);
+// L'aide lit l'adresse GreasyFork déclarée avant le dictionnaire (25/09/2026).
+const GF_URL = (txt.match(/^const GF_URL = '([^'\n]*)';$/m) || [])[1];
+if (!GF_URL) { console.error('❌ GF_URL introuvable dans le fichier'); process.exit(2); }
 
 // Corps de buildHelpHTML
 const hDeb = txt.indexOf('const buildHelpHTML = () => {');
@@ -18,7 +21,7 @@ for (const L of LANGUES) {
     const t = (key, ...args) => { const v = D[L][key] ?? D.en[key]; return typeof v === 'function' ? v(...args) : (v ?? key); };
     const _L = obj => obj[L] ?? obj.en;
     let html;
-    try { html = new Function('t', '_L', corps)(t, _L); }
+    try { html = new Function('t', '_L', 'GF_URL', corps)(t, _L, GF_URL); }
     catch (e) { console.log('  ECHEC ' + L + ' : ' + e.message); ko++; continue; }
     rendu[L] = html;
     const sections = (html.match(/data-help="h\d+"/g) || []).length;

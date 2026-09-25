@@ -47,6 +47,7 @@
 // @connect      storage.googleapis.com
 // @connect      update.greasyfork.org
 // @connect      nominatim.openstreetmap.org
+// @homepageURL  https://greasyfork.org/scripts/581015-wme-closures-toolkit
 // @supportURL   https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542
 // @downloadURL  https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.user.js
 // @updateURL    https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js
@@ -733,7 +734,11 @@ GM_addStyle(`
 .wct-toggle-row { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
 .wct-toggle { position:relative; width:36px; height:20px; }
 .wct-toggle input { opacity:0; width:0; height:0; }
-.wct-toggle-slider { position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:50px; transition:background .2s; }
+/* Rail éteint #8a94a0 : 3,08:1 sur blanc (WCAG 1.4.11 demande 3:1 pour un composant) ; l'ancien
+   #ccc faisait 1,61:1, l'interrupteur éteint se lisait à peine. La case elle-même est invisible
+   (opacity:0) : c'est le rail qui porte le contour de focus au clavier (audit du 25/09/2026). */
+.wct-toggle-slider { position:absolute; cursor:pointer; inset:0; background:#8a94a0; border-radius:50px; transition:background .2s; }
+.wct-toggle input:focus-visible + .wct-toggle-slider { outline:2px solid var(--wct-blue); outline-offset:2px; }
 .wct-toggle-slider:before { content:''; position:absolute; width:14px; height:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:transform .2s; }
 .wct-toggle input:checked + .wct-toggle-slider { background:var(--wct-blue); }
 .wct-toggle input:checked + .wct-toggle-slider:before { transform:translateX(16px); }
@@ -1487,6 +1492,10 @@ const _L = obj => obj[_lang] ?? obj.en;
 // ⚠️ L'indentation interne n'a pas été reprise : la corriger produirait un diff de
 // 3 900 lignes, illisible en relecture, pour zéro effet. Le déplacement tient en deux
 // hunks et se vérifie d'un coup d'œil.
+// Page GreasyFork du script : UNE adresse, SANS langue. GreasyFork redirige selon la langue du
+// navigateur (302 vers /it/, /he/…) ; écrite en /fr/ à 10 endroits, elle envoyait tout le monde
+// sur la page française (audit du 25/09/2026). ⚠️ Déclarée AVANT `D`, qui la lit au chargement.
+const GF_URL = 'https://greasyfork.org/scripts/581015-wme-closures-toolkit';
 const D = {
         fr: {
             // Onglets
@@ -2064,7 +2073,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             sbToggle:'Activer l\u2019outil',
             emojiPickerTip:'Ins\u00e9rer un \u00e9moji',
             sbResetFab:'R\u00E9initialiser la position du bouton',
-            sbDesc:'Le bouton \uD83D\uDEA7 est toujours visible sur la carte et peut \u00EAtre d\u00E9plac\u00E9 librement par glisser-d\u00E9poser.<br>Il affiche en vert le nombre de segments s\u00E9lectionn\u00E9s.<br>L\u2019overlay est d\u00E9pla\u00E7able et repliable.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fil Discuss</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'Le bouton \uD83D\uDEA7 est toujours visible sur la carte et peut \u00EAtre d\u00E9plac\u00E9 librement par glisser-d\u00E9poser.<br>Il affiche en vert le nombre de segments s\u00E9lectionn\u00E9s.<br>L\u2019overlay est d\u00E9pla\u00E7able et repliable.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fil Discuss</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Affichage',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -2654,7 +2663,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbToggle:'Enable tool',
             emojiPickerTip:'Insert emoji',
             sbResetFab:'Reset button position',
-            sbDesc:'The \uD83D\uDEA7 button is always visible on the map and can be freely repositioned by drag and drop.<br>It shows in green the number of selected segments.<br>The overlay is draggable and collapsible.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss thread</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'The \uD83D\uDEA7 button is always visible on the map and can be freely repositioned by drag and drop.<br>It shows in green the number of selected segments.<br>The overlay is draggable and collapsible.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss thread</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Display',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -3249,7 +3258,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbToggle:'הפעל כלי',
             emojiPickerTip:'הוסף אימוג\'י',
             sbResetFab:'אפס את מיקום הכפתור',
-            sbDesc:'כפתור 🚧 תמיד גלוי במפה וניתן למקם אותו מחדש בחופשיות בגרירה.<br>הוא מציג בירוק את מספר המקטעים הנבחרים.<br>הפאנל ניתן לגרירה ולכיווץ.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">שרשור Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'כפתור 🚧 תמיד גלוי במפה וניתן למקם אותו מחדש בחופשיות בגרירה.<br>הוא מציג בירוק את מספר המקטעים הנבחרים.<br>הפאנל ניתן לגרירה ולכיווץ.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">שרשור Discuss</a> &nbsp;·&nbsp; 🔗 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'תצוגה',
             sbModeCompact:'Windows 95',
             sbModeNormal:'רגילה',
@@ -3838,7 +3847,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbToggle:'Abilita strumento',
             emojiPickerTip:'Inserisci emoji',
             sbResetFab:'Reimposta posizione del pulsante',
-            sbDesc:'Il pulsante 🚧 è sempre visibile sulla mappa e può essere riposizionato liberamente trascinandolo.<br>Mostra in verde il numero di segmenti selezionati.<br>Il pannello è trascinabile e comprimibile.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discussione sul forum</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'Il pulsante 🚧 è sempre visibile sulla mappa e può essere riposizionato liberamente trascinandolo.<br>Mostra in verde il numero di segmenti selezionati.<br>Il pannello è trascinabile e comprimibile.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discussione sul forum</a> &nbsp;·&nbsp; 🔗 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Visualizzazione',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normale',
@@ -4428,7 +4437,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             sbToggle:'Werkzeug aktivieren',
             emojiPickerTip:'Emoji einf\u00FCgen',
             sbResetFab:'Position der Schaltfl\u00E4che zur\u00FCcksetzen',
-            sbDesc:'Die Schaltfl\u00E4che \uD83D\uDEA7 ist immer auf der Karte sichtbar und l\u00E4sst sich frei per Drag & Drop verschieben.<br>Sie zeigt in Gr\u00FCn die Anzahl der ausgew\u00E4hlten Segmente.<br>Das Overlay ist verschiebbar und einklappbar.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss-Thread</a> &nbsp;\u00B7&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'Die Schaltfl\u00E4che \uD83D\uDEA7 ist immer auf der Karte sichtbar und l\u00E4sst sich frei per Drag & Drop verschieben.<br>Sie zeigt in Gr\u00FCn die Anzahl der ausgew\u00E4hlten Segmente.<br>Das Overlay ist verschiebbar und einklappbar.<br><br>\uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Discuss-Thread</a> &nbsp;\u00B7&nbsp; \uD83D\uDD17 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Darstellung',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -5017,7 +5026,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             sbToggle:'Activar la herramienta',
             emojiPickerTip:'Insertar un emoji',
             sbResetFab:'Restablecer la posición del botón',
-            sbDesc:'El botón 🚧 está siempre visible en el mapa y se puede mover libremente arrastrándolo.<br>Muestra en verde el número de segmentos seleccionados.<br>El panel se puede mover y plegar.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Hilo de Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'El botón 🚧 está siempre visible en el mapa y se puede mover libremente arrastrándolo.<br>Muestra en verde el número de segmentos seleccionados.<br>El panel se puede mover y plegar.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Hilo de Discuss</a> &nbsp;·&nbsp; 🔗 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Visualización',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -5606,7 +5615,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbToggle:'Ativar a ferramenta',
             emojiPickerTip:'Inserir emoji',
             sbResetFab:'Redefinir a posição do botão',
-            sbDesc:'O botão 🚧 fica sempre visível no mapa e pode ser reposicionado livremente arrastando com o mouse.<br>Ele mostra em verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fórum Discuss</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'O botão 🚧 fica sempre visível no mapa e pode ser reposicionado livremente arrastando com o mouse.<br>Ele mostra em verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Fórum Discuss</a> &nbsp;·&nbsp; 🔗 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Exibição',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -6195,7 +6204,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             sbToggle:'Ativar a ferramenta',
             emojiPickerTip:'Inserir emoji',
             sbResetFab:'Repor a posição do botão',
-            sbDesc:'O botão 🚧 está sempre visível no mapa e pode ser reposicionado livremente por arrastar e largar.<br>Mostra a verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Tópico de discussão</a> &nbsp;·&nbsp; 🔗 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
+            sbDesc:'O botão 🚧 está sempre visível no mapa e pode ser reposicionado livremente por arrastar e largar.<br>Mostra a verde o número de segmentos selecionados.<br>O painel pode ser arrastado e recolhido.<br><br>💬 <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">Tópico de discussão</a> &nbsp;·&nbsp; 🔗 <a href="'+GF_URL+'" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>',
             sbDisplayMode:'Apresentação',
             sbModeCompact:'Windows 95',
             sbModeNormal:'Normal',
@@ -7363,7 +7372,7 @@ const buildHelpHTML = () => {
             <div class="wct-help-body" id="${s.id}" style="${s.open?'':'display:none'}">${s.body}</div>
         </div>`).join('')
     + `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--wct-border);font-size:0.917em;color:var(--wct-text2);text-align:center">
-        \uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">${_L({fr:'Fil Discuss', en:'Discuss thread', de:'Discuss-Thread', es:'Hilo Discuss', 'pt-BR':'Tópico Discuss', 'pt-PT':'Tópico Discuss'})}</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>
+        \uD83D\uDCAC <a href="https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542" target="_blank" style="color:var(--wct-blue)">${_L({fr:'Fil Discuss', en:'Discuss thread', de:'Discuss-Thread', es:'Hilo Discuss', 'pt-BR':'Tópico Discuss', 'pt-PT':'Tópico Discuss', it:'Discussione su Discuss', he:'שרשור Discuss'})}</a> &nbsp;·&nbsp; \uD83D\uDD17 <a href="${GF_URL}" target="_blank" style="color:var(--wct-blue)">GreasyFork</a>
     </div>`;
 };
 
@@ -8190,7 +8199,7 @@ const waitMapLoaded=()=>new Promise(resolve=>{
 // l'editeur reinstaller ce qu'il a deja, et il cesserait de la croire.
 // Le fichier interroge est celui que le gestionnaire de scripts lit lui-meme
 // (@updateURL) : quelques centaines d'octets, un seul appel par chargement de WME.
-const GF_PAGE_URL = 'https://greasyfork.org/fr/scripts/581015-wme-closures-toolkit';
+const GF_PAGE_URL = GF_URL;
 const GF_META_URL = 'https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js';
 const _VER_RE     = /^\d+(\.\d+)*$/;
 let _majEnLigne = null;   // version publiee, renseignee SEULEMENT si elle est plus recente
@@ -11490,13 +11499,26 @@ const _ovClamp = (g, vw, vh) => {
     const y = Math.max(0, Math.min(Number(g.y) || 0, vh - h));
     return { x, y, w, h };
 };
+// Bord droit utilisable par la fenêtre : le bord GAUCHE de la colonne de boutons de la carte
+// (zoom, calques, géolocalisation… et le bouton 🚧 lui-même), moins la marge. Déplacée ou
+// agrandie par-dessus, la fenêtre recouvrait ces boutons, et comme sa géométrie est mémorisée,
+// le défaut revenait à chaque session (demande de l'auteur, 25/09/2026, comme WPEU et WRP).
+// MESURÉ à chaque geste : WME reconstruit la colonne, et sa place dépend de la largeur de
+// l'écran. Sans colonne trouvée (ou colonne à gauche), repli sur la largeur de la fenêtre.
+const _ovDroite = () => {
+    const vw = window.innerWidth;
+    const c = document.querySelector('.overlay-buttons-container.top') || document.querySelector('.overlay-buttons-container');
+    const r = c && c.getBoundingClientRect();
+    if(!r || !r.width || r.left < vw / 2) return vw;
+    return Math.max(OV_W_MIN + 2 * OV_MARGE, Math.round(r.left) - OV_MARGE);
+};
 // Géométrie choisie par l'éditeur, ou null tant qu'il n'a rien touché : tant que c'est
 // null, le CSS et ses media queries gardent la main — le réglage par défaut reste celui
 // qui s'adapte tout seul.
 let _ovGeom = null;
 const _ovApply = (el) => {
     if(!el || !_ovGeom) return;
-    const g = _ovClamp(_ovGeom, window.innerWidth, window.innerHeight);
+    const g = _ovClamp(_ovGeom, _ovDroite(), window.innerHeight);
     el.style.left = g.x + 'px'; el.style.top = g.y + 'px'; el.style.right = 'auto';
     el.style.width = g.w + 'px';
     // `height` ET `maxHeight` : la première fixe la taille, la seconde neutralise le
@@ -11505,7 +11527,7 @@ const _ovApply = (el) => {
     el.style.height = g.h + 'px'; el.style.maxHeight = g.h + 'px';
 };
 const _ovGeomSet = (el, g) => {
-    _ovGeom = _ovClamp(g, window.innerWidth, window.innerHeight);
+    _ovGeom = _ovClamp(g, _ovDroite(), window.innerHeight);
     _ovApply(el); save();
 };
 // Retour au réglage automatique. ⚠️ Il ne suffit pas de vider `_ovGeom` : les styles
@@ -11524,7 +11546,7 @@ const makeDraggable=(el,handle)=>{
         const ox=e.clientX-r.left,oy=e.clientY-r.top;
         const mv=ev=>{
             let x=ev.clientX-ox,y=ev.clientY-oy;
-            x=Math.max(0,Math.min(x,window.innerWidth-el.offsetWidth));
+            x=Math.max(0,Math.min(x,_ovDroite()-el.offsetWidth));
             y=Math.max(0,Math.min(y,window.innerHeight-30));
             el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';
             // ⚠️ La hauteur maximale est calculée en CSS sur la FENÊTRE (100vh - N), pas
@@ -11564,7 +11586,7 @@ const makeResizable=(el,handle)=>{
         const x0=e.clientX, y0=e.clientY, w0=r.width, h0=r.height;
         const mv=ev=>{
             const g=_ovClamp({x:r.left,y:r.top,w:w0+(ev.clientX-x0),h:h0+(ev.clientY-y0)},
-                             window.innerWidth,window.innerHeight);
+                             _ovDroite(),window.innerHeight);
             el.style.width=g.w+'px'; el.style.height=g.h+'px'; el.style.maxHeight=g.h+'px';
         };
         const up=()=>{
@@ -17661,7 +17683,7 @@ const buildSidebar=()=>`
     <div class="wct-toggle-row">
         <span style="font-size:13px;font-weight:600">${t('sbToggle')}</span>
         <label class="wct-toggle">
-            <input type="checkbox" id="wct-enable-toggle" ${enabled?'checked':''}>
+            <input type="checkbox" id="wct-enable-toggle" aria-label="${escHtml(t('sbToggle'))}" ${enabled?'checked':''}>
             <span class="wct-toggle-slider"></span>
         </label>
     </div>

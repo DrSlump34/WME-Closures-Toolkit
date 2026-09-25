@@ -107,7 +107,11 @@ const charger = () => {
     }
     const litteral = txt.slice(ouvrante, fin + 1);
     let D;
-    try { D = eval('(' + litteral + ')'); }
+    // Le dictionnaire lit des constantes déclarées JUSTE AVANT lui (GF_URL, depuis le 25/09/2026) :
+    // on les reprend du fichier, telles quelles, plutôt que de les recopier ici.
+    const avant = [...txt.slice(Math.max(0, decl - 2000), decl).matchAll(/^const (GF_URL) = ('[^'\n]*');$/gm)];
+    const consts = avant.map(m => 'const ' + m[1] + ' = ' + m[2] + ';').join('\n');
+    try { D = eval(consts + '\n(' + litteral + ')'); }
     catch (e) { console.error('❌ le dictionnaire ne s evalue pas : ' + e.message); process.exit(2); }
     return { txt, litteral, D, debut: ouvrante, fin };
 };

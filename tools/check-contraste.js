@@ -43,6 +43,13 @@ const variable = (nom, portee) => {
 };
 
 const COMPACT = '#wct-overlay.wct-compact { background:';
+// Couleur de fond de la règle .wct-toggle-slider (forme courte #abc acceptée).
+const railEteint = () => {
+    const m = txt.match(/\.wct-toggle-slider \{[^}]*background:(#[0-9a-fA-F]{3,6})/);
+    if (!m) return null;
+    const h = m[1].slice(1);
+    return '#' + (h.length === 3 ? h.split('').map(x => x + x).join('') : h);
+};
 const cas = [
     // libelle                              texte                       fond          seuil
     ['texte principal sur carte',           variable('text'),           '#ffffff',    4.5],
@@ -51,7 +58,11 @@ const cas = [
     ['texte compact sur gris Win95',        '#000000',                  '#c0c0c0',    4.5],
     ['texte secondaire compact',            variable('text2', COMPACT), '#c0c0c0',    4.5],
     ['gris compact (« et N autres »)',      variable('grey', COMPACT),  '#c0c0c0',    4.5],
+    // Composant (WCAG 1.4.11, 3:1) : le rail de l'interrupteur ÉTEINT, lu dans la règle réelle.
+    ['rail d\'interrupteur éteint',          railEteint(),               '#ffffff',    3],
 ];
+// Témoin : l'ancien rail #ccc (1,61:1) doit être refusé, sans quoi le seuil ne mord pas.
+if (ratio('#cccccc', '#ffffff') >= 3) { console.log('ECHEC : le témoin #ccc passe le seuil de 3:1'); process.exit(1); }
 
 let ko = 0;
 console.log('libelle                              | texte   | fond    | ratio | seuil');
