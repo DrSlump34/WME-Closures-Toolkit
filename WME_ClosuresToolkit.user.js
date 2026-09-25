@@ -8656,6 +8656,13 @@ var WMECreneaux = (function () {
 
         const joursEnPlus = parseInt(cfg.durday) || 0;
         let dur;
+        /* Fin d'une occurrence. En mode « heure de fin », c'est une HEURE MURALE : le jour du
+           début (ou le lendemain pour une nuit), plus les jours en plus, à l'heure dite. L'ancienne
+           fin — début + durée en millisecondes — rouvrait à 04:00 une nuit 21:00-05:00 du
+           changement d'heure d'octobre (audit du 25/09/2026). En mode « durée », l'addition
+           absolue est juste : « 2 h », c'est deux heures de fermeture réelles, changement d'heure
+           ou non. */
+        let finOcc = debut => debut.clone().addMinutes(dur);
         if (cfg.timemode === 'end') {
             const [etH, etM] = (cfg.endtime || '00:00').split(':').map(Number);
             const etMin = (etH || 0) * 60 + (etM || 0);
@@ -8663,6 +8670,8 @@ var WMECreneaux = (function () {
                on passe minuit, la durée court jusqu'au lendemain. */
             const base = etMin > stMin ? etMin - stMin : (1440 - stMin + etMin);
             dur = base + joursEnPlus * 1440;
+            const joursFin = (etMin > stMin ? 0 : 1) + joursEnPlus;
+            finOcc = debut => makeDSTSafeDate(debut, joursFin, etH || 0, etM || 0);
         } else {
             const [dH, dM] = (cfg.durtime || '00:00').split(':').map(Number);
             dur = joursEnPlus * 1440 + (dH || 0) * 60 + (dM || 0);
@@ -8733,9 +8742,15 @@ var WMECreneaux = (function () {
             const first = makeDSTSafeDate(cfg.rangestart, 0, stH, stM);
             for (let i = 0; i < n; i++) {
                 if (list.length >= MAX) return erreur('errMaxItems', [MAX], avis);
-                const s = first.clone().addMinutes(evMin * i);
+                /* ⚠️ Tous les X JOURS : à la même heure murale, bâtie jour par jour comme en
+                   « Chaque jour ». Additionner des millisecondes faisait passer 08:00 à 07:00
+                   au lendemain du changement d'heure d'octobre, et à 09:00 au printemps. Tous
+                   les X heures ou minutes, l'addition absolue est la bonne : c'est un intervalle. */
+                const s = unit === 'day'
+                    ? makeDSTSafeDate(cfg.rangestart, every * i, stH, stM)
+                    : first.clone().addMinutes(evMin * i);
                 if (s > reDT) break;
-                list.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
+                list.push({ start: new Date(s), end: new Date(finOcc(s)) });
             }
         } else {
             /* ── CHAQUE JOUR : une occurrence par jour coché ───────────────── */
@@ -8761,7 +8776,7 @@ var WMECreneaux = (function () {
                 if (!dow[s.getDay()]) continue;
                 if (s > reDT) break;
 
-                list.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
+                list.push({ start: new Date(s), end: new Date(finOcc(s)) });
             }
         }
 
@@ -8834,7 +8849,7 @@ var WMECreneaux = (function () {
             if (dejaLa.has(h)) continue;
             const s = makeDSTSafeDate(h, 0, stH, stM);
             if (s > reDT) continue;   // même borne que la boucle : sur le DÉBUT
-            enPlus.push({ start: new Date(s), end: new Date(s.clone().addMinutes(dur)) });
+            enPlus.push({ start: new Date(s), end: new Date(finOcc(s)) });
         }
         /* ⚠️⚠️ « RIEN AJOUTÉ » N'EST PAS « AUCUN FÉRIÉ », et les confondre fait mentir
            l'écran. Un férié qui tombe un jour DÉJÀ coché est déjà dans la liste : il n'y
@@ -8854,7 +8869,7 @@ var WMECreneaux = (function () {
     }
 
     return {
-        VERSION: '1.1.0',
+        VERSION: '1.1.1',
         MODES,
         ZONES,
         generer,
