@@ -1806,6 +1806,7 @@ const D = {
             tipDir:'Sens de la fermeture : double sens, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Sur les longs tron\u00E7ons, le sens A \u21D2 B peut diff\u00E9rer d\u2019un segment \u00E0 l\u2019autre : les segments incompatibles sont \u00E9cart\u00E9s automatiquement et list\u00E9s dans la carte de la file.',
             tipITon:'Ignore le trafic \u2014 pas de d\u00E9tection', tipIToff:'D\u00E9tecte le trafic',
             tipNodes: n => `Fermetures aux n\u0153uds\u00A0: ${n}`,
+            tipInverses: n => `${n} segment(s) tracé(s) à contre-sens de la chaîne : le sens demandé y est inversé pour suivre la chaîne.`,
             tipMte: n => `MTE associ\u00E9\u00A0: ${n}`,
             tipPresetLoad:'Charger', tipPresetDel:'Supprimer',
             fabNoSeg:'S\u00E9lectionnez des segments sur la carte',
@@ -2395,6 +2396,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipDir:'Closure direction: both ways, A \u21D2 B or B \u21D2 A. \u26A0\uFE0F On long stretches the A \u21D2 B direction can differ from one segment to the next: incompatible segments are excluded automatically and listed in the queue card.',
             tipITon:'Ignores traffic \u2014 no detection', tipIToff:'Detects traffic',
             tipNodes: n => `Node closures: ${n}`,
+            tipInverses: n => `${n} segment(s) drawn against the chain: the requested direction is reversed on them to follow the chain.`,
             tipMte: n => `Associated MTE: ${n}`,
             tipPresetLoad:'Load', tipPresetDel:'Delete',
             fabNoSeg:'Select segments on the map',
@@ -2989,6 +2991,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipDir:'כיוון החסימה: דו-כיווני, A ⇒ B או B ⇒ A. ⚠️ במקטעים ארוכים כיוון A ⇒ B יכול להשתנות ממקטע למקטע: מקטעים לא תואמים מוחרגים אוטומטית ומופיעים בכרטיס התור.',
             tipITon:'מתעלם מתנועה — אין זיהוי', tipIToff:'מזהה תנועה',
             tipNodes: n => `חסימות צמתים: ${n}`,
+            tipInverses: n => `${n} מקטעים משורטטים בניגוד לשרשרת: הכיוון המבוקש מתהפך בהם כדי לעקוב אחר השרשרת.`,
             tipMte: n => `MTE משויך: ${n}`,
             tipPresetLoad:'טען', tipPresetDel:'מחק',
             fabNoSeg:'בחר מקטעים במפה',
@@ -3577,6 +3580,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipDir:'Direzione della chiusura: doppio senso, A ⇒ B o B ⇒ A. ⚠️ Su tratti lunghi la direzione A ⇒ B può variare da un segmento all’altro: i segmenti incompatibili vengono esclusi automaticamente ed elencati nella scheda della coda.',
             tipITon:'Ignora il traffico — nessun rilevamento', tipIToff:'Rileva il traffico',
             tipNodes: n => `Chiusure dei nodi: ${n}`,
+            tipInverses: n => `${n} segmento/i disegnato/i in senso opposto alla catena: la direzione richiesta vi è invertita per seguire la catena.`,
             tipMte: n => `MTE associato: ${n}`,
             tipPresetLoad:'Carica', tipPresetDel:'Elimina',
             fabNoSeg:'Seleziona segmenti sulla mappa',
@@ -4166,6 +4170,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipDir:'Sperrrichtung: beide Richtungen, A \u21D2 B oder B \u21D2 A. \u26A0\uFE0F Auf langen Abschnitten kann die Richtung A \u21D2 B von Segment zu Segment abweichen: unpassende Segmente werden automatisch ausgeschlossen und in der Karte der Warteschlange aufgef\u00FChrt.',
             tipITon:'Ignoriert den Verkehr \u2014 keine Erkennung', tipIToff:'Erkennt den Verkehr',
             tipNodes: n => `Knotensperrungen: ${n}`,
+            tipInverses: n => `${n} Segment(e) entgegen der Kette gezeichnet: Die gewünschte Richtung wird dort umgekehrt, um der Kette zu folgen.`,
             tipMte: n => `Zugeh\u00F6riges MTE: ${n}`,
             tipPresetLoad:'Laden', tipPresetDel:'L\u00F6schen',
             fabNoSeg:'Segmente auf der Karte ausw\u00E4hlen',
@@ -4754,6 +4759,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipDir:'Sentido del cierre: doble sentido, A \u21D2 B o B \u21D2 A. \u26A0\uFE0F En tramos largos el sentido A \u21D2 B puede variar de un segmento a otro: los segmentos incompatibles se descartan autom\u00E1ticamente y se listan en la tarjeta de la cola.',
             tipITon:'Ignora el tráfico — sin detección', tipIToff:'Detecta el tráfico',
             tipNodes: n => `Cierres en los nodos: ${n}`,
+            tipInverses: n => `${n} segmento(s) dibujado(s) en sentido contrario a la cadena: la dirección pedida se invierte en ellos para seguir la cadena.`,
             tipMte: n => `MTE asociado: ${n}`,
             tipPresetLoad:'Cargar', tipPresetDel:'Eliminar',
             fabNoSeg:'Selecciona segmentos en el mapa',
@@ -5342,6 +5348,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipDir:'Sentido do bloqueio: m\u00E3o dupla, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em trechos longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o tráfego — sem detecção', tipIToff:'Detecta o tráfego',
             tipNodes: n => `Bloqueios nos nós: ${n}`,
+            tipInverses: n => `${n} segmento(s) desenhado(s) em sentido contrário à cadeia: a direção pedida é invertida neles para seguir a cadeia.`,
             tipMte: n => `MTE associado: ${n}`,
             tipPresetLoad:'Carregar', tipPresetDel:'Excluir',
             fabNoSeg:'Selecione segmentos no mapa',
@@ -5930,6 +5937,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipDir:'Sentido do corte: dois sentidos, A \u21D2 B ou B \u21D2 A. \u26A0\uFE0F Em tro\u00E7os longos o sentido A \u21D2 B pode variar de um segmento para outro: os segmentos incompat\u00EDveis s\u00E3o descartados automaticamente e listados no cart\u00E3o da fila.',
             tipITon:'Ignora o trânsito — sem deteção', tipIToff:'Deteta o trânsito',
             tipNodes: n => `Cortes nos nós: ${n}`,
+            tipInverses: n => `${n} segmento(s) desenhado(s) em sentido contrário à cadeia: a direção pedida é invertida neles para seguir a cadeia.`,
             tipMte: n => `MTE associado: ${n}`,
             tipPresetLoad:'Carregar', tipPresetDel:'Eliminar',
             fabNoSeg:'Selecione segmentos no mapa',
@@ -7636,13 +7644,33 @@ const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler})=>{
     }
     return r;
 };
+// ─── Segments « à l'envers » d'une liste : calculés UNE fois, sur la liste ENTIÈRE ──
+// ⚠️⚠️ Le sens A ⇒ B d'une entrée est un sens LE LONG DE LA CHAÎNE : getReversedSegments prend
+// le PREMIER segment de la liste pour référence (doc du SDK) et marque inversé tout segment
+// raccordé tête-bêche. Rappelé sur une SOUS-liste — seconde moitié après un refus, lignes
+// supprimées, segment nul ou récent retiré, premier segment écarté pour conflit — il change de
+// référence, et toute la chaîne pouvait basculer : un double sens fermé à l'envers, sans rien à
+// l'écran, puisque l'aperçu, lui, calculait sur la liste complète (audit du 25/09/2026).
+// ⇒ Calculé sur la liste validée par l'éditeur, figé dans l'entrée (`inverses`), relu partout.
+// Figé seulement quand toute la liste est chargée : sur une liste en partie hors du modèle, le
+// calcul est refait à l'application, toujours sur la liste ENTIÈRE, après recadrage.
+const _inversesListe=(ids)=>{
+    try{ return new Set((sdk.DataModel.Segments.getReversedSegments({segmentIds:ids.map(Number)})||[]).map(r=>Number(r.id))); }
+    catch(e){ log('getReversedSegments: '+e.message); return new Set(); }
+};
+const _inversesDe=(entry)=>{
+    if(Array.isArray(entry.inverses)) return new Set(entry.inverses.map(Number));
+    const set=_inversesListe(entry.segIds||[]);
+    if((entry.segIds||[]).length && entry.segIds.every(sid=>getSegById(sid))) entry.inverses=[...set];
+    return set;
+};
 // ─── Vérifie la compatibilité sens de circulation / direction de fermeture ──
 // Retourne les segments en conflit : [{sid, name, segDirLabel}]
-// Tient compte des reversed segments (même logique que addClosure).
-const getSegDirConflicts=(segIds,requestedDir)=>{
+// Tient compte des segments à l'envers (même logique que addClosure) ; `inverses` (Set),
+// quand l'appelant l'a déjà, évite de recalculer sur une autre liste.
+const getSegDirConflicts=(segIds,requestedDir,inverses)=>{
     if(requestedDir===DIR.TWO) return []; // double sens : toujours compatible
-    let revSegs=[];
-    try{revSegs=sdk.DataModel.Segments.getReversedSegments({segmentIds:segIds.map(Number)});}catch(e){}
+    const inv=inverses||_inversesListe(segIds);
     const conflicts=[];
     for(const sid of segIds){
         const seg=getSegById(sid);
@@ -7650,12 +7678,7 @@ const getSegDirConflicts=(segIds,requestedDir)=>{
         if(seg.isTwoWay) continue; // double sens : toujours OK
         // Résoudre la direction effective pour ce segment (copie de la logique addClosure)
         let effDir=requestedDir;
-        for(const r of revSegs){
-            if(r.id===Number(sid)){
-                effDir=effDir===DIR.AtoB?DIR.BtoA:DIR.AtoB;
-                break;
-            }
-        }
+        if(inv.has(Number(sid))) effDir=effDir===DIR.AtoB?DIR.BtoA:DIR.AtoB;
         // Vérifier la compatibilité
         const ok=(effDir===DIR.AtoB && seg.isAtoB)||(effDir===DIR.BtoA && seg.isBtoA);
         if(!ok){
@@ -10709,7 +10732,7 @@ const showPreview=()=>{
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const addClosure=(options,okCb,koCb)=>{
-    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler}=options;
+    const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses}=options;
     // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
     // le diff est donc le seul moyen de retrouver les nôtres.
     // ⚠️ Pris SYSTÉMATIQUEMENT depuis la 1.02.00, et plus seulement quand une Source est
@@ -10731,14 +10754,15 @@ const addClosure=(options,okCb,koCb)=>{
     let fromClosed=false,toClosed=false,nodeInfo=null;
     if(closeNodes===NODE_CL.all){fromClosed=toClosed=true;}
     if(closeNodes===NODE_CL.inside){nodeInfo=getNodeList(segments);}
-    let revSegs=[];
-    try{revSegs=sdk.DataModel.Segments.getReversedSegments({segmentIds:segments.map(Number)});}catch(e){log('getReversedSegments failed: '+e.message);}
+    // Les segments à l'envers viennent de l'ENTRÉE (voir _inversesDe) : recalculés ici sur
+    // `segments` — un lot, une moitié — ils changeraient de référence.
+    const inv=inverses||_inversesListe(segments);
     const args={description:reason,endDate:ed.valueOf()-edoff,fromNodeClosed:false,isForward:false,isPermanent:permanent,segmentId:0,startDate:sd.valueOf()-sdoff,trafficEventId:eventId||null};
     const loopErrors=[];
     // Trier AVANT d'écrire : ce qui est déjà fermé sur le créneau, ou n'a aucun sens
     // ouvert, n'entre pas dans l'enregistrement. Voir _trierAFermer.
     const tri=_trierAFermer({ ids:segments, dir:direction, seg:getSegById,
-        inverses:new Set((revSegs||[]).map(r=>Number(r.id))),
+        inverses:inv,
         existantes:getExistingClosures(segments),
         debut:args.startDate, fin:args.endDate, combler:!!combler });
     segsAbsents=tri.absents.length;
@@ -11238,7 +11262,7 @@ const applyQueue=async()=>{
                 if(_applyAborted) break;
                 // combler : coché par défaut ; une entrée d'avant la 1.20.00 (ou venue d'un
                 // CSV mis en file) n'a pas la clé et comble donc, comme le veut le défaut.
-                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false});
+                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false,inverses:_inversesDe(e)});
                 // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
                 // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
                 // sans condition : un lot dont la carte n'avait chargé que 11
@@ -15742,6 +15766,10 @@ const buildQueueCard=(entry,idx)=>{
     // Entree virages : ni sens ni noeud ferme (sans objet), et l'unite comptee est le virage.
     const isTurnEntry=entry.source==='turn'&&!!entry.turnIds?.length;
     const dir=dirStr(parseInt(entry.config.direction));
+    // Segments fermés à rebours de leur géométrie pour suivre la chaîne : le dire, sans quoi
+    // un « A ⇒ B » posé en B ⇒ A sur la carte semble faux (voir _inversesDe).
+    const nInverses=(!isTurnEntry&&parseInt(entry.config.direction)!==DIR.TWO)
+        ? entry.segIds.filter(sid=>_inversesDe(entry).has(Number(sid))).length : 0;
     const it=entry.config.ignoretraffic;
     const mteId=entry.config.mteId;
     let mteName=t('noMte');
@@ -15802,6 +15830,7 @@ const buildQueueCard=(entry,idx)=>{
         ${entry.recentSegs?.size?`<span class="wct-badge wct-badge-recent" title="${t('recentSegBadgeTip',entry.recentSegs.size)}">\uD83D\uDD52 ${entry.recentSegs.size}</span>`:''}
         ${entry.excludedSegs&&entry.excludedSegs.length?`<span class="wct-badge wct-badge-warn wct-excl-warn" title="${t('exclWarnTitle',entry.excludedSegs.length)}">\u26A0\uFE0F ${entry.excludedSegs.length}</span>`:''}
         ${isTurnEntry?'':`<span class="wct-badge wct-badge-dir" title="${t('tipDir')}">${dir}</span>`}
+        ${nInverses?`<span class="wct-badge wct-badge-dir" title="${escHtml(t('tipInverses',nInverses))}">&#x21C4; ${nInverses}</span>`:''}
         <span class="wct-badge" style="background:#fce4ec;color:#880e4f" title="${it?t('tipITon'):t('tipIToff')}">${it?'&#x1F6AB;IT':'&#x2705;IT'}</span>
         ${isTurnEntry?'':`<span class="wct-badge wct-badge-node" title="${escHtml(t('tipNodes',entry.config.nodesClosed||t('nodeNone')))}">${escHtml(entry.config.nodesClosed||t('nodeIconNone'))}</span>`}
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
@@ -15922,8 +15951,7 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
         // plantait avec getAll() (liste vide, donc tout VERT) et affichait VERT un
         // segment non chargé, sur lequel il n'avait rien pu regarder.
         const dirN=parseInt(entry.config.direction);
-        let inverses=new Set();
-        try{ inverses=new Set(sdk.DataModel.Segments.getReversedSegments({segmentIds:entry.segIds.map(Number)}).map(r=>Number(r.id))); }catch(e){}
+        const inverses=_inversesDe(entry);
         const tris=entry.closures.map(cl=>{
             const r=_trierAFermer({ ids:entry.segIds, dir:dirN, seg:getSegById, inverses,
                 existantes:existCl, debut:_versMurale(cl.start), fin:_versMurale(cl.end),
@@ -16645,7 +16673,8 @@ const connectOverlay=ov=>{
         if(!rc.list.length){showToast(t('errNone'),2500,'#e53935');return;}
         const cfg=readConfig();lastConfig=cfg;
         // Vérif compatibilité sens de circulation / direction de fermeture
-        const dirConflicts=getSegDirConflicts(sel.ids,parseInt(cfg.direction));
+        const invSel=_inversesListe(sel.ids);
+        const dirConflicts=getSegDirConflicts(sel.ids,parseInt(cfg.direction),invSel);
         const validIds=sel.ids.filter(id=>!dirConflicts.find(c=>c.sid===Number(id)));
         if(!validIds.length){
             const dirLabel=cfg.direction==='1'?'A \u21D2 B':'B \u21D2 A';
@@ -16676,6 +16705,7 @@ const connectOverlay=ov=>{
                             ? `\u270F\uFE0F ${cfg.reason||t('defaultClosure')} \u00B7 ${t('lotRowLabel',i+1,lots.length)}`
                             : `\u270F\uFE0F ${cfg.reason||t('defaultClosure')}`};
                     if(dirConflicts.length) e2.excludedSegs=dirConflicts;
+                    e2.inverses=[...invSel];
                     // ⚠️ nullSegs VOLONTAIREMENT vide : un segment hors vue sera rechargé par
                     // le recadrage du lot. L'y inscrire le ferait SAUTER à l'application.
                     e2.nullSegs=new Set(); e2.recentSegs=new Set();
@@ -16692,6 +16722,9 @@ const connectOverlay=ov=>{
             }
         }
         const entry={...makeEntry(validIds,cfg,rc.list),source:'cfg'};
+        // Le sens se lit sur la sélection ENTIÈRE, conflits compris : écarter le premier
+        // segment ne doit pas changer la référence du reste (voir _inversesDe).
+        entry.inverses=[...invSel];
         entry.emprise=_empriseDe(validIds);   // où recadrer à l'application : voir _empriseDe
         // Pont Tracés → Configurer → file : si la sélection vient d'un lot, l'entrée
         // porte la bbox du lot (pour le recadrage à l'application) et devient 'sweep'.
