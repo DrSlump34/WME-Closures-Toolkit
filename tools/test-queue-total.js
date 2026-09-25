@@ -77,6 +77,11 @@ chk('virage avec ligne supprimee',
     _queueTotalClosures([turn(2, 3, { excludedRows: new Set(['T0:0', 'T0:1']) })]), 4);
 chk('melange segments + virages', _queueTotalClosures([seg(2, 2), turn(2, 3)]), 10);
 
+// Audit du 25/09/2026 : un CSV garde dans segIds les segments ecartes pour conflit de sens ;
+// ils ne partiront pas, la confirmation ne doit pas les annoncer.
+chk('segment ecarte pour conflit de sens (CSV) non compte',
+    _queueTotalClosures([seg(3, 2, { excludedSegs: [{ sid: 1001, name: 'x', segDirLabel: 'A ⇒ B' }] })]), 4);
+
 console.log('\n— Degenere —');
 chk('entree sans occurrence → 0', _queueTotalClosures([seg(5, 0)]), 0);
 chk('entree sans segment → 0', _queueTotalClosures([seg(0, 5)]), 0);

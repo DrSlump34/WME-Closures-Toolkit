@@ -1790,7 +1790,8 @@ const D = {
             // Confirms
             confirmClear:'Vider la file\u00A0?',
             clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
-            confirmApply: (n,m) => `Écrire ${n} fermeture(s) dans WME ? (${m} entrée(s) dans la file)`,
+            confirmApply: (n,m) => `Publier ${n} fermeture(s) sur la carte Waze ? (${m} entrée(s) dans la file)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} modification(s) non enregistrée(s) dans WME partiront avec les fermetures. Si Waze refuse l’enregistrement, elles seront annulées. Pour les garder à part, enregistrez-les (ou annulez-les) d’abord.`,
             confirmDel: n => `Supprimer \u00AB\u00A0${n}\u00A0\u00BB\u00A0?`,
             // Colonnes
             colId:'ID', colName:'Nom', colStart:'D\u00E9but', colEnd:'Fin', colState:'\u00C9tat',
@@ -2382,7 +2383,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             previewHoliday:'public holiday',
             confirmClear:'Clear the queue?',
             clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
-            confirmApply: (n,m) => `Write ${n} closure(s) in WME? (${m} queued entry/ies)`,
+            confirmApply: (n,m) => `Publish ${n} closure(s) on the Waze map? (${m} queued entry/ies)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} unsaved edit(s) in WME will be saved with the closures. If Waze rejects the save, they will be undone. To keep them separate, save (or undo) them first.`,
             confirmDel: n => `Delete \u201C${n}\u201D?`,
             colId:'ID', colName:'Name', colStart:'Start', colEnd:'End', colState:'State',
             colIdTip:'Segment ID', colNameTip:'Segment name',
@@ -2977,7 +2979,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHoliday:'חג',
             confirmClear:'לנקות את התור?',
             clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
-            confirmApply: (n,m) => `לכתוב ${n} חסימות ב-WME? (${m} רשומות בתור)`,
+            confirmApply: (n,m) => `לפרסם ${n} חסימות במפת Waze? (${m} רשומות בתור)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} עריכות שלא נשמרו ב-WME יישמרו יחד עם החסימות. אם Waze ידחה את השמירה, הן יבוטלו. כדי לשמור אותן בנפרד, שמור (או בטל) אותן קודם.`,
             confirmDel: n => `למחוק את “${n}”?`,
             colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
             colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
@@ -3566,7 +3569,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHoliday:'giorno festivo',
             confirmClear:'Svuotare la coda?',
             clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
-            confirmApply: (n,m) => `Scrivere ${n} chiusura/e in WME? (${m} voce/i in coda)`,
+            confirmApply: (n,m) => `Pubblicare ${n} chiusura/e sulla mappa Waze? (${m} voce/i in coda)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} modifica/he non salvata/e in WME verranno salvate con le chiusure. Se Waze rifiuta il salvataggio, verranno annullate. Per tenerle separate, salvale (o annullale) prima.`,
             confirmDel: n => `Eliminare “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Inizio', colEnd:'Fine', colState:'Stato',
             colIdTip:'ID segmento', colNameTip:'Nome segmento',
@@ -4156,7 +4160,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHoliday:'Feiertag',
             confirmClear:'Warteschlange leeren?',
             clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
-            confirmApply: (n,m) => `${n} Sperrung(en) in WME schreiben? (${m} Einträge in der Warteschlange)`,
+            confirmApply: (n,m) => `${n} Sperrung(en) auf der Waze-Karte veröffentlichen? (${m} Einträge in der Warteschlange)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} nicht gespeicherte Änderung(en) in WME werden mit den Sperrungen gespeichert. Lehnt Waze das Speichern ab, werden sie rückgängig gemacht. Um sie getrennt zu halten, zuerst speichern (oder rückgängig machen).`,
             confirmDel: n => `\u201E${n}\u201C l\u00F6schen?`,
             colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
             colIdTip:'Segment-ID', colNameTip:'Segmentname',
@@ -4745,7 +4750,8 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             previewHoliday:'festivo',
             confirmClear:'¿Vaciar la cola?',
             clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
-            confirmApply: (n,m) => `¿Escribir ${n} cierre(s) en WME? (${m} entrada(s) en la cola)`,
+            confirmApply: (n,m) => `¿Publicar ${n} cierre(s) en el mapa de Waze? (${m} entrada(s) en la cola)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} cambio(s) sin guardar en WME se guardarán con los cierres. Si Waze rechaza el guardado, se desharán. Para mantenerlos aparte, guárdalos (o deshazlos) antes.`,
             confirmDel: n => `¿Eliminar “${n}”?`,
             colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
             colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
@@ -5334,7 +5340,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
-            confirmApply: (n,m) => `Gravar ${n} bloqueio(s) no WME? (${m} entrada(s) na fila)`,
+            confirmApply: (n,m) => `Publicar ${n} bloqueio(s) no mapa do Waze? (${m} entrada(s) na fila)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} alteração(ões) não salva(s) no WME serão salvas com os bloqueios. Se o Waze recusar o salvamento, elas serão desfeitas. Para mantê-las à parte, salve-as (ou desfaça-as) antes.`,
             confirmDel: n => `Excluir “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -5923,7 +5930,8 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
-            confirmApply: (n,m) => `Gravar ${n} corte(s) no WME? (${m} entrada(s) na fila)`,
+            confirmApply: (n,m) => `Publicar ${n} corte(s) no mapa do Waze? (${m} entrada(s) na fila)`,
+            confirmApplyPending: k => `\n\n⚠️ ${k} alteração(ões) não guardada(s) no WME serão guardadas com os cortes. Se o Waze recusar a gravação, serão anuladas. Para as manter à parte, guarde-as (ou anule-as) antes.`,
             confirmDel: n => `Eliminar “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -7584,6 +7592,15 @@ const dateTimeOverlaps=(a,b)=>new Date(a.startDate)<new Date(b.endDate)&&new Dat
 // serveur stocke (addClosure écrit valueOf()-tzOffset) et ce que rendent les fermetures
 // existantes (« 2026-09-25 06:00 »). Comparer dans cet espace évite de mêler une chaîne
 // lue en local et une Date décalée — les deux conventions coexistent dans ce fichier.
+// Date d'une fermeture venue d'un CSV (« AAAA-MM-JJ HH:MM ») : une HEURE MURALE, lue en LOCAL —
+// comme la lit la pose (addClosure) et comme l'écrit l'export (dateToUTCStr, qui malgré son nom
+// écrit l'heure locale). L'aperçu y collait un « Z » : à Paris l'été, 08:00 posé s'affichait
+// 10:00, et les pastilles « passé / en cours » étaient faussées d'autant (audit du 25/09/2026).
+const _dateLocale=v=>{
+    if(v instanceof Date) return v;
+    const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(String(v));
+    return m ? new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]) : new Date(v);
+};
 const _versMurale=x=>{
     if(x instanceof Date) return x.valueOf()-x.getTimezoneOffset()*60000;
     if(typeof x==='number') return x;
@@ -10760,6 +10777,9 @@ const addClosure=(options,okCb,koCb)=>{
     // absent du data model est sauté en silence trois lignes plus bas, et le bilan
     // affichait quand même « ✅ 868 sur 868 » pendant que des rues restaient ouvertes à
     // la circulation. Le compte doit être MESURÉ, pas supposé.
+    // ⚠️ `W.model.roadClosures.objects` n'est pas un contrat : s'il disparaît un jour, le
+    // diff n'est plus LISIBLE — ce qui n'est pas « rien de créé ». Voir _nouvelles.
+    const _modeleLisible = !!W?.model?.roadClosures?.objects;
     const _clesAvant = new Set(Object.keys(W?.model?.roadClosures?.objects||{}));
     // Ce que la boucle a vraiment fait, en SEGMENTS (unité du compteur de progression :
     // un segment à double sens produit deux fermetures, les deux comptent pour un).
@@ -10810,17 +10830,22 @@ const addClosure=(options,okCb,koCb)=>{
     // partenaire, une pose silencieusement incomplète serait une fausse attribution.
     // Le diff, calculé UNE fois. ⚠️ Il DOIT être pris avant save() : après, les objets
     // temporaires reçoivent leur identifiant serveur et les clés ne correspondent plus.
-    const _nouvelles = Object.keys(W?.model?.roadClosures?.objects||{}).filter(k=>!_clesAvant.has(k));
+    // null = diff illisible (modèle interne changé) ; [] = lisible et rien de créé.
+    const _nouvelles = _modeleLisible && W?.model?.roadClosures?.objects
+        ? Object.keys(W.model.roadClosures.objects).filter(k=>!_clesAvant.has(k)) : null;
     // Bilan remonté aux deux rappels : ce qui a été demandé, ce qui a été fait, ce qui
     // manque. C'est lui qui permet à applyQueue d'afficher un compte vrai.
     const bilan = { demandes:segments.length, poses:segsPoses.size, absents:segsAbsents,
-                    erreurs:loopErrors.length, objets:_nouvelles.length,
+                    erreurs:loopErrors.length, objets:_nouvelles?_nouvelles.length:null,
                     sansSens:tri.sansSens.length, dejaFermes:tri.dejaFermes.length,
                     sensBloques:tri.sensBloques, combles:tri.combles.length, trous:tri.trous };
     // Rien à écrire : ne PAS appeler save(). Si tout a été écarté pour une raison
     // légitime (déjà fermé, aucun sens ouvert), ce n'est pas un échec — c'est même le
     // cas d'une file ré-appliquée après un premier passage réussi.
-    if(!_nouvelles.length){
+    // ⚠️ « Rien à écrire » se juge sur ce que le SDK a ACCEPTÉ (segsPoses), plus sur le diff du
+    // modèle : le jour où `roadClosures.objects` change, le diff vaudrait vide et CHAQUE lot
+    // serait annoncé posé sans que save() soit appelé (audit du 25/09/2026).
+    if(!segsPoses.size){
         if(segsAbsents||loopErrors.length) koCb&&koCb([t('applyNothingWritten')], bilan);
         else okCb&&okCb(null, bilan);
         return;
@@ -10828,6 +10853,7 @@ const addClosure=(options,okCb,koCb)=>{
     if(partnerId){
         let pose=0;
         try{
+            if(!_nouvelles) throw new Error('fermetures créées illisibles dans le modèle : source impossible à poser');
             pose=_applyProviderTo(_nouvelles, partnerId);
             if(pose!==_nouvelles.length) throw new Error(`source posée sur ${pose}/${_nouvelles.length} fermeture(s)`);
         }catch(e){
@@ -10853,7 +10879,10 @@ const addClosure=(options,okCb,koCb)=>{
         // Le diff du modèle, lui, ne dépend d'aucune classe CSS : si rien n'a été créé
         // alors qu'on a demandé des fermetures, ce n'est pas un succès, quoi qu'en dise
         // le DOM. Les deux garde-fous tombent rarement ensemble.
-        else if(!_nouvelles.length && segments.length){ koCb&&koCb([t('applyNothingWritten')], bilan); }
+        // Branche désormais VIVANTE : le SDK a accepté des fermetures (segsPoses), le modèle est
+        // lisible, et pourtant rien n'y est apparu. Diff illisible (null) : on ne conclut rien de
+        // plus que le DOM — bilan.objets vaut null et le dit.
+        else if(_nouvelles && !_nouvelles.length){ koCb&&koCb([t('applyNothingWritten')], bilan); }
         else{okCb&&okCb(v, bilan);}
     },r=>{
         // Une promesse rejetée laisse les fermetures en attente dans l'éditeur : les
@@ -11055,7 +11084,10 @@ const _queueTotalClosures=(entries)=>{
             });
             return;
         }
-        const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
+        // Les segments écartés pour conflit de sens (un CSV les garde dans segIds) ne partiront
+        // pas : les compter annonçait plus de fermetures qu'il n'en sera posé.
+        const conflit=new Set((e.excludedSegs||[]).map(c=>Number(c.sid)));
+        const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid))||conflit.has(Number(sid));
         e.segIds.forEach(sid=>{
             if(skip(sid)) return;
             e.closures.forEach((_,ci)=>{if(!excl.has(`${sid}:${ci}`))total++;});
@@ -15891,8 +15923,13 @@ const buildQueueCard=(entry,idx)=>{
         input.select();
         const confirm = () => {
             const val = input.value.trim() || current;
+            // ⚠️ Le MOTIF est publié sur la carte ; le libellé n'est que le titre de la carte.
+            // Le crayon réécrivait le motif à chaque sortie du champ, même sans rien taper :
+            // un lot de zone partait avec « ✏️ Marathon · Lot 2/5 » comme motif public (audit
+            // du 25/09/2026). Le motif ne suit que si le texte a CHANGÉ et que le libellé
+            // ÉTAIT le motif (entrée Configurer ou CSV).
+            if(val !== current && current === entry.config.reason) entry.config.reason = val;
             entry.label = val;
-            entry.config.reason = val;
             const newSpan = document.createElement('span');
             newSpan.className = 'wct-qcard-label';
             newSpan.style.cssText = 'flex:1;font-size:1em;font-weight:700;color:var(--wct-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
@@ -15945,8 +15982,8 @@ const buildQueueCard=(entry,idx)=>{
                 entry.closures.forEach((cl,closureIdx)=>{
                     const rowKey=`${tm.id}:${closureIdx}`;
                     if(entry.excludedRows.has(rowKey)) return;
-                    const s=cl.start instanceof Date ? cl.start : new Date(cl.start.replace(' ','T')+'Z');
-                    const e=cl.end   instanceof Date ? cl.end   : new Date(cl.end.replace(' ','T')+'Z');
+                    const s=_dateLocale(cl.start);
+                    const e=_dateLocale(cl.end);
                     const overlap=exist.some(c=>dateTimeOverlaps({startDate:s,endDate:e},{startDate:new Date(c.startDate),endDate:new Date(c.endDate)}));
                     // ⚠️ Sans le calque Fermetures, la liste des fermetures existantes est vide, donc
 // aucun chevauchement ne peut etre detecte. Afficher un rond VERT « OK » serait alors
@@ -16001,8 +16038,8 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
                 const rowKey=`${sid}:${closureIdx}`;
                 if(entry.excludedRows.has(rowKey)) return; // ligne supprimée
                 // cl.start / cl.end sont des Date (config manuelle) ou des chaînes UTC (import CSV)
-                const s=cl.start instanceof Date ? cl.start : new Date(cl.start.replace(' ','T')+'Z');
-                const e=cl.end instanceof Date ? cl.end : new Date(cl.end.replace(' ','T')+'Z');
+                const s=_dateLocale(cl.start);
+                const e=_dateLocale(cl.end);
                 const tr=tris[closureIdx], nsid=Number(sid);
                 const nullSeg=entry.nullSegs?.has(nsid);
                 const recentSeg=!nullSeg&&entry.recentSegs?.has(nsid);
@@ -16915,7 +16952,12 @@ const connectOverlay=ov=>{
         // waitMapLoaded bloque jusqu'a 10 s sans que rien ne bouge a l'ecran, de quoi
         // croire son clic perdu. Meme raison pour le bouton Vider ci-dessus.
         if(_applyRunning) return;
-        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)))return;
+        // Modifications non enregistrées dans WME : save() les emporte avec les fermetures, et
+        // undoAll() les défait si Waze refuse. On le DIT avant, sans l'interdire — enregistrer à
+        // part est un choix de l'éditeur (audit du 25/09/2026).
+        let enAttente=0;
+        try{ enAttente=Number(sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
+        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(enAttente?t('confirmApplyPending',enAttente):'')))return;
         await applyQueue();
     });
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
