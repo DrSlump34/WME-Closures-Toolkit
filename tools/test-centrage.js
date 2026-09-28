@@ -146,5 +146,21 @@ verifie('la dimension la plus contraignante l emporte',
         _zoomPourTaille(0.001, 0.5, 1900, 900, 1, 22, 0) < _zoomPourTaille(0.001, 0.001, 1900, 900, 1, 22, 0));
 
 // ═════════════════════════════════════════════════════════════════════════════
+titre('Mercator : la latitude compte (28/09/2026)');
+
+// En Mercator, dLat degrés à la latitude φ occupent dLat / cos φ « degrés de longitude » à l écran.
+// Hauteur réelle en pixels au zoom z : dLat / cos φ × 256 × 2^z / 360.
+const hautPx = (dLat, lat, z) => dLat / Math.cos(lat * Math.PI / 180) * 256 * Math.pow(2, z) / 360;
+const largPx = (dLon, z) => dLon * 256 * Math.pow(2, z) / 360;
+// Une commune haute et étroite du Gard (0,03° × 0,10°, centre 44° N) dans 920 × 800 px libres.
+const zNim = _zoomPourTaille(0.03, 0.10, 920, 800, 1, 22, 0, 44);
+verifie('à 44° N, l emprise haute TIENT en hauteur (pixels Mercator)', hautPx(0.10, 44, zNim) <= 800,
+        'zoom ' + zNim + ' : ' + Math.round(hautPx(0.10, 44, zNim)) + ' px pour 800');
+verifie('et c est le zoom le plus proche qui tient', hautPx(0.10, 44, zNim + 1) > 800 || largPx(0.03, zNim + 1) > 920);
+verifie('à l équateur, la latitude ne change rien', _zoomPourTaille(0.03, 0.10, 920, 800, 1, 22, 0, 0) === _zoomPourTaille(0.03, 0.10, 920, 800, 1, 22, 0));
+verifie('sans latitude (ancien appel), le calcul est inchangé', _zoomPourTaille(0.02, 0.007, 1900, 900, 1, 22, 0) === zTotal);
+verifie('latitude extrême : zoom fini', Number.isFinite(_zoomPourTaille(0.03, 0.10, 920, 800, 1, 22, 0, 89.99)));
+
+// ═════════════════════════════════════════════════════════════════════════════
 console.log('\n' + (ko === 0 ? 'TOUT PASSE' : 'ECHECS') + ' : ' + ok + ' ok, ' + ko + ' ko\n');
 process.exit(ko === 0 ? 0 : 1);

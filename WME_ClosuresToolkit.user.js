@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.21.00
+// @version      1.21.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -12498,7 +12498,7 @@ const traceFocus = (trackId) => {
         // ⚠️ Le zoom se calcule sur la zone VISIBLE, pas sur le canevas entier : cadrer
         // une trace sur toute la largeur de la carte en laisse la moitié sous le panneau.
         // Et le décalage n'est plus une soustraction de 620 px en dur — voir _zoneVisible.
-        const zoom = _zoomPourBBox(maxLon - minLon, maxLat - minLat, 1, 17, 1);
+        const zoom = _zoomPourBBox(maxLon - minLon, maxLat - minLat, 1, 17, 1, (minLat + maxLat) / 2);
         _centrerSurZoneVisibleOL((minLon + maxLon) / 2, (minLat + maxLat) / 2, zoom);
     } catch(e) { console.error('WCT trace focus:', e); }
 };
@@ -12794,9 +12794,14 @@ const _getMapFreeZone = () => {
 };
 // Niveau de zoom auquel une emprise (en degrés) tient dans une surface (en pixels).
 // `retrait` recule d'un cran pour laisser une marge autour de l'objet cadré.
+// `latMoy` : la latitude du centre. ⚠️ En Mercator, un degré de latitude occupe 1/cos φ fois plus
+// de pixels qu'un degré de longitude (×1,39 à 44° N, ×1,52 à 49° N) : comptés comme des degrés de
+// longitude, une emprise haute débordait en France d'autant (relevé le 28/09/2026). Sans latitude
+// (ancien appel), le calcul reste l'ancien.
 // Fonction PURE : ni DOM, ni SDK. Éprouvée par tools/test-centrage.js.
-const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait) => {
-    const dl = Math.max(dLon, 1e-6), dt = Math.max(dLat, 1e-6);
+const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait, latMoy) => {
+    const k = Number.isFinite(latMoy) ? 1 / Math.max(Math.cos(latMoy * Math.PI / 180), 0.05) : 1;
+    const dl = Math.max(dLon, 1e-6), dt = Math.max(dLat * k, 1e-6);
     const w = Math.max(largeurPx, 200), h = Math.max(hauteurPx, 200);
     const z = Math.floor(Math.min(Math.log2((w * 360) / (dl * 256)),
                                   Math.log2((h * 360) / (dt * 256)))) - (retrait || 0);
@@ -12805,9 +12810,9 @@ const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait) 
 // Le même, mesuré sur ce qui reste visible à l'écran. ⚠️ Calculer le zoom sur le
 // canevas entier fait déborder l'objet sous le panneau : il « tient » sur une largeur
 // dont l'éditeur ne voit qu'une partie.
-const _zoomPourBBox = (dLon, dLat, zMin, zMax, retrait) => {
+const _zoomPourBBox = (dLon, dLat, zMin, zMax, retrait, latMoy) => {
     const { freeWidth, mapH } = _getMapFreeZone();
-    return _zoomPourTaille(dLon, dLat, freeWidth, mapH, zMin, zMax, retrait);
+    return _zoomPourTaille(dLon, dLat, freeWidth, mapH, zMin, zMax, retrait, latMoy);
 };
 // Extrait les coordonnées WGS84 [[lon,lat],...] d'un objet segment (SDK ou legacy)
 const _getSegCoords=(seg)=>{
@@ -12849,7 +12854,7 @@ const _covFocusGap = (zone) => {
             if(lat < minLat) minLat = lat; if(lat > maxLat) maxLat = lat;
         }));
         const zoom = _zoomPourBBox(Math.max(maxLon - minLon, 0.0005),
-                                   Math.max(maxLat - minLat, 0.0005), 1, 18, 1);
+                                   Math.max(maxLat - minLat, 0.0005), 1, 18, 1, (minLat + maxLat) / 2);
         _centrerSurZoneVisibleOL((minLon + maxLon) / 2, (minLat + maxLat) / 2, zoom);
     } catch(e){ console.error('WCT coverage focus:', e); }
 };
@@ -13235,7 +13240,7 @@ const _lotFocus = (lot) => {
     const b = lot.bbox;
     const cLon = (b.minLon+b.maxLon)/2, cLat = (b.minLat+b.maxLat)/2;
     const zoom = _zoomPourBBox(Math.max(b.maxLon-b.minLon, 0.001),
-                               Math.max(b.maxLat-b.minLat, 0.001), 15, 17);
+                               Math.max(b.maxLat-b.minLat, 0.001), 15, 17, 0, cLat);
     _centrerSurZoneVisible(cLon, cLat, zoom);
 };
 // Charge TOUTE une emprise en la parcourant vue par vue, et attend chaque chargement.
@@ -13349,7 +13354,7 @@ const _lotPermalink = (lot) => {
     if(!lot?.segIds?.length) return;
     const b=lot.bbox, cLon=(b.minLon+b.maxLon)/2, cLat=(b.minLat+b.maxLat)/2;
     const zoom=_zoomPourBBox(Math.max(b.maxLon-b.minLon,0.001),
-                             Math.max(b.maxLat-b.minLat,0.001), 15, 17);
+                             Math.max(b.maxLat-b.minLat,0.001), 15, 17, 0, cLat);
     const env=new URLSearchParams(location.search).get('env')||'row';
     const url=`https://www.waze.com/editor?env=${env}&lat=${cLat}&lon=${cLon}&zoomLevel=${zoom}&segments=${lot.segIds.join(',')}`;
     const ok=()=>showToast(t('lotPermaCopied',lot.segIds.length),3000,'#43a047');
@@ -14067,7 +14072,7 @@ const _zoneEnterEdit = () => {
         const bb = _polyBBoxOf(rings);
         _centrerSurZoneVisible((bb.minLon + bb.maxLon) / 2, (bb.minLat + bb.maxLat) / 2,
             _zoomPourBBox(Math.max(bb.maxLon - bb.minLon, 0.0002),
-                          Math.max(bb.maxLat - bb.minLat, 0.0002), 1, 18, 1));
+                          Math.max(bb.maxLat - bb.minLat, 0.0002), 1, 18, 1, (bb.minLat + bb.maxLat) / 2));
     } catch(e){ log('zone cadrage avant édition: ' + e.message); }
     // ⚠️⚠️ Le conteneur va dans le body et N'EST PAS POSITIONNÉ. C'est capital, et ça a
     // coûté deux versions : `position: fixed` **crée un contexte d'empilement**, et les

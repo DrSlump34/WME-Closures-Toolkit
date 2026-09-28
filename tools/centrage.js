@@ -25,7 +25,7 @@ function extraire(debut) {
 
 const code = [
     extraire('const _decalageVisible = (zone, ext, zoomActuel, zoomCible) => {'),
-    extraire('const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait) => {')
+    extraire('const _zoomPourTaille = (dLon, dLat, largeurPx, hauteurPx, zMin, zMax, retrait, latMoy) => {')
 ].join('\n');
 
 let api;
