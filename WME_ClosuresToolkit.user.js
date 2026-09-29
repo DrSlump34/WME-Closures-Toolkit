@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.21.02
+// @version      1.21.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -708,6 +708,8 @@ GM_addStyle(`
 .wct-prev-chevron { font-size:0.9em; flex-shrink:0; }
 .wct-prev-box { text-align:start; margin-top:0.5em; max-height:130px; overflow-y:auto; border:1px solid var(--wct-border); border-radius:var(--wct-radius); background:var(--wct-bg2,#f7fafc); padding:5px 8px; font-size:0.833em; line-height:1.5; }
 .wct-prev-head { font-weight:700; color:var(--wct-blue); margin-bottom:3px; position:sticky; top:-5px; background:inherit; padding:2px 0; }
+/* Aucune cible : le compte des créneaux reste lisible, mais rien n'est « à appliquer » */
+.wct-prev-head.wct-prev-nosel { color:var(--wct-text2); font-weight:600; }
 .wct-prev-row { font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--wct-text2); white-space:nowrap; }
 .wct-prev-more { color:var(--wct-grey); font-style:italic; margin-top:3px; }
 /* Le jour férié, dans la ligne qui le porte : une annotation sur l'occurrence, pas une
@@ -1785,6 +1787,7 @@ const D = {
             fillForm:'Remplissez le formulaire\u2026',
             closuresN: n => `${n} fermeture(s) configur\u00E9e(s)`,
             previewHead: n => `${n} fermeture(s) \u00E0 appliquer\u00A0:`,
+            previewHeadNoSel: n => `Aperçu : ${n} créneau(x) prévu(s), aucun segment sélectionné`,
             previewMore: n => `\u2026 et ${n} autre(s)`,
             previewHoliday:'jour férié',
             // Confirms
@@ -2380,6 +2383,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             fillForm:'Fill in the form\u2026',
             closuresN: n => `${n} closure(s) configured`,
             previewHead: n => `${n} closure(s) to apply:`,
+            previewHeadNoSel: n => `Preview: ${n} time slot(s) planned, no segment selected`,
             previewMore: n => `\u2026 and ${n} more`,
             previewHoliday:'public holiday',
             confirmClear:'Clear the queue?',
@@ -2977,6 +2981,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fillForm:'מלא את הטופס…',
             closuresN: n => `${n} חסימות הוגדרו`,
             previewHead: n => `${n} חסימות ליישום:`,
+            previewHeadNoSel: n => `תצוגה מקדימה: ${n} חלונות זמן מתוכננים, לא נבחר אף מקטע`,
             previewMore: n => `… ועוד ${n}`,
             previewHoliday:'חג',
             confirmClear:'לנקות את התור?',
@@ -3568,6 +3573,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fillForm:'Compila il modulo…',
             closuresN: n => `${n} chiusura/e configurate`,
             previewHead: n => `${n} chiusura/e da applicare:`,
+            previewHeadNoSel: n => `Anteprima: ${n} fascia/e oraria/e prevista/e, nessun segmento selezionato`,
             previewMore: n => `… e altre ${n}`,
             previewHoliday:'giorno festivo',
             confirmClear:'Svuotare la coda?',
@@ -4160,6 +4166,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fillForm:'Formular ausf\u00FCllen\u2026',
             closuresN: n => `${n} Sperrung(en) eingerichtet`,
             previewHead: n => `${n} anzuwendende Sperrung(en):`,
+            previewHeadNoSel: n => `Vorschau: ${n} geplante(s) Zeitfenster, kein Segment ausgewählt`,
             previewMore: n => `\u2026 und ${n} weitere`,
             previewHoliday:'Feiertag',
             confirmClear:'Warteschlange leeren?',
@@ -4751,6 +4758,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             fillForm:'Rellena el formulario…',
             closuresN: n => `${n} cierre(s) configurado(s)`,
             previewHead: n => `${n} cierre(s) a aplicar:`,
+            previewHeadNoSel: n => `Vista previa: ${n} franja(s) prevista(s), ningún segmento seleccionado`,
             previewMore: n => `… y ${n} más`,
             previewHoliday:'festivo',
             confirmClear:'¿Vaciar la cola?',
@@ -5342,6 +5350,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             fillForm:'Preencha o formulário…',
             closuresN: n => `${n} bloqueio(s) configurado(s)`,
             previewHead: n => `${n} bloqueio(s) a aplicar:`,
+            previewHeadNoSel: n => `Pré-visualização: ${n} horário(s) previsto(s), nenhum segmento selecionado`,
             previewMore: n => `… e mais ${n}`,
             previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
@@ -5933,6 +5942,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             fillForm:'Preencha o formulário…',
             closuresN: n => `${n} corte(s) configurado(s)`,
             previewHead: n => `${n} corte(s) a aplicar:`,
+            previewHeadNoSel: n => `Pré-visualização: ${n} horário(s) previsto(s), nenhum segmento selecionado`,
             previewMore: n => `… e mais ${n}`,
             previewHoliday:'feriado',
             confirmClear:'Limpar a fila?',
@@ -10717,6 +10727,20 @@ const renderContPane=()=>{
 // reconstruit le innerHTML a CHAQUE frappe, un etat porte par le DOM se rouvrirait tout seul.
 // (C'est la difference avec la File d'attente, qui n'est re-rendue qu'a la demande.)
 let _prevCollapsed=false;
+// 🔴 Sans segment ni virage visé, rien n'est « à appliquer » : l'aperçu compte les créneaux
+// du FORMULAIRE (par défaut ce soir 21:00 → 05:00), et l'éditeur lisait « 1 fermeture(s) à
+// appliquer » au-dessus d'une file vide, qu'il prenait pour un reste d'import (29/09/2026).
+// Le titre dit alors « créneau prévu, aucun segment sélectionné », en gris. Le compte des
+// créneaux est gardé (_prevN) pour réécrire le titre au changement de sélection sans
+// relancer buildClosureList : refreshCfgGate l'appelle à chaque sélection.
+let _prevN=0;
+const _prevACible=()=>hasSel()||!!_currentTurns;
+const _prevTete=n=>(n&&!_prevACible())?t('previewHeadNoSel',n):t('previewHead',n);
+const _prevMajTete=()=>{
+    const h=document.querySelector('#wct-small-prev .wct-prev-head'); if(!h) return;
+    if(h.firstChild&&h.firstChild.nodeType===3) h.firstChild.textContent=_prevTete(_prevN);
+    h.classList.toggle('wct-prev-nosel',!!_prevN&&!_prevACible());
+};
 const refreshSmallPreview=async()=>{
     const el=$id('wct-small-prev');if(!el)return;
     const rc=await buildClosureList();
@@ -10725,6 +10749,7 @@ const refreshSmallPreview=async()=>{
     if(rc.perime) return;
     if(rc.error){el.innerHTML=`<span style="color:var(--wct-red)">${rc.error}</span>`;return;}
     const n=rc.list.length;
+    _prevN=n;
     // Rien a lister : pas de chevron, il n'y a rien a replier.
     if(!n){ el.innerHTML=`<div class="wct-prev-head">${t('previewHead',0)}</div>`; return; }
     // Métadonnées communes à toutes les occurrences (config globale), façon AC
@@ -10756,7 +10781,8 @@ const refreshSmallPreview=async()=>{
     const past=rc.pastRangeEnd
         ? `<div class="wct-prev-past">${escHtml(t('warnPastRange',rc.pastRangeStart,rc.pastRangeEnd))}</div>`
         : '';
-    el.innerHTML=`<div class="wct-prev-head wct-prev-toggle" title="${escHtml(t('tipPrevToggle'))}">${t('previewHead',n)}<span class="wct-prev-chevron">${_prevCollapsed?'&#x25B6;':'&#x25BC;'}</span></div>`
+    const sansCible=!_prevACible();
+    el.innerHTML=`<div class="wct-prev-head wct-prev-toggle${sansCible?' wct-prev-nosel':''}" title="${escHtml(t('tipPrevToggle'))}">${escHtml(_prevTete(n))}<span class="wct-prev-chevron">${_prevCollapsed?'&#x25B6;':'&#x25BC;'}</span></div>`
         + past
         + `<div class="wct-prev-rows"${_prevCollapsed?' style="display:none"':''}>${rows}${more}</div>`;
 };
@@ -14532,6 +14558,9 @@ const renderPolyBanner = () => {
 const refreshCfgGate = () => {
     const pane = $id('wct-pane-cfg'); if(!pane) return;
     const pret = hasSel();
+    // Le titre de l'aperçu dépend de la sélection (« à appliquer » ou « aucun segment
+    // sélectionné ») : on le réécrit ici, seul point de passage de chaque changement.
+    _prevMajTete();
     // ⚠️ La zone SURVIT à la validation : on peut vouloir enchaîner deux fermetures
     // sur le même périmètre, ou l'exporter APRÈS l'avoir mise en file. Elle ne
     // disparaît que lorsque l'éditeur défait lui-même la sélection sur la carte —
