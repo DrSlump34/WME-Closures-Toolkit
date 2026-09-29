@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.21.01
+// @version      1.21.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1896,9 +1896,10 @@ const D = {
             csvChoixTitre: (l,n) => `Fichier de fermetures : ${l} ligne(s), ${n} segment(s)`,
             csvChoixSel: '🧲 Sélectionner les segments',
             csvChoixFile: 'Ajouter à la file',
-            tipCsvChoixSel: 'Sélectionne les segments du fichier sur la carte. Vous réglez ensuite la fermeture dans Configurer (dates, MTE, source) et vous validez.',
+            tipCsvChoixSel: 'Sélectionne les segments du fichier sur la carte, et eux seuls : les dates, le motif, le sens et le MTE des lignes ne sont pas repris. Vous réglez ensuite la fermeture dans Configurer (dates, MTE, source) et vous validez.',
             tipCsvChoixFile: 'Met les fermetures du fichier dans la file telles quelles, avec leurs dates et leur MTE. Elles ne se reconfigurent pas ensuite.',
-            csvChoixAide: 'Sélectionner est le bon choix pour choisir le MTE dans la liste : à l’import, les MTE ne sont pas encore chargés.',
+            csvChoixAide: 'Sélectionner ne reprend que les segments : les dates et le motif du fichier sont à régler dans Configurer. C’est le bon choix pour choisir le MTE dans la liste : à l’import, les MTE ne sont pas encore chargés.',
+            csvChoixAideDiff: (n) => `Les lignes portent ${n} réglages différents (dates, motif, sens ou MTE) : « Ajouter à la file » les garde ligne par ligne. Sélectionner ne reprendrait que les segments, sous un seul réglage.`,
             csvSelManquants: (m,n) => `${m} segment(s) du fichier sur ${n} introuvable(s) dans la zone inventoriée : supprimés, fusionnés ou trop loin de la position indiquée.`,
             bilanEcartes: n => `↷ ${n} écarté(s), rien à y fermer`,
             applyNothingWritten:'Aucune fermeture n\u2019a \u00E9t\u00E9 enregistr\u00E9e : rien n\u2019a \u00E9t\u00E9 cr\u00E9\u00E9 dans l\u2019\u00E9diteur.',
@@ -2488,9 +2489,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             csvChoixTitre: (l,n) => `Closure file: ${l} row(s), ${n} segment(s)`,
             csvChoixSel: '🧲 Select the segments',
             csvChoixFile: 'Add to the queue',
-            tipCsvChoixSel: 'Selects the file’s segments on the map. You then set the closure in Configure (dates, MTE, source) and validate.',
+            tipCsvChoixSel: 'Selects the file’s segments on the map, and nothing else: the rows’ dates, reason, direction and MTE are not kept. You then set the closure in Configure (dates, MTE, source) and validate.',
             tipCsvChoixFile: 'Puts the file’s closures in the queue as they are, with their dates and MTE. They cannot be reconfigured afterwards.',
-            csvChoixAide: 'Select is the right choice to pick the MTE from the list: at import time, MTEs are not loaded yet.',
+            csvChoixAide: 'Select only keeps the segments: the file’s dates and reason are to be set in Configure. It is the right choice to pick the MTE from the list: at import time, MTEs are not loaded yet.',
+            csvChoixAideDiff: (n) => `The rows carry ${n} different settings (dates, reason, direction or MTE): “Add to the queue” keeps them row by row. Select would only keep the segments, under a single setting.`,
             csvSelManquants: (m,n) => `${m} of ${n} segment(s) from the file not found in the inventoried area: deleted, merged or too far from the given position.`,
             bilanEcartes: n => `↷ ${n} skipped, nothing to close there`,
             applyNothingWritten:'No closure was saved: nothing was created in the editor.',
@@ -3084,9 +3086,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvChoixTitre: (l,n) => `קובץ חסימות: ${l} שורות, ${n} מקטעים`,
             csvChoixSel: '🧲 בחירת המקטעים',
             csvChoixFile: 'הוספה לתור',
-            tipCsvChoixSel: 'בוחר את מקטעי הקובץ במפה. לאחר מכן מגדירים את החסימה בלשונית ההגדרה (תאריכים, MTE, מקור) ומאשרים.',
+            tipCsvChoixSel: 'בוחר את מקטעי הקובץ במפה, ורק אותם: התאריכים, הסיבה, הכיוון וה־MTE של השורות אינם נשמרים. לאחר מכן מגדירים את החסימה בלשונית ההגדרה (תאריכים, MTE, מקור) ומאשרים.',
             tipCsvChoixFile: 'מכניס את חסימות הקובץ לתור כפי שהן, עם התאריכים וה־MTE שלהן. לא ניתן להגדיר אותן מחדש אחר כך.',
-            csvChoixAide: 'בחירה היא האפשרות הנכונה כדי לבחור MTE מהרשימה: בזמן הייבוא ה־MTE עדיין לא נטענו.',
+            csvChoixAide: 'בחירה שומרת רק את המקטעים: את התאריכים והסיבה מהקובץ יש להגדיר בלשונית ההגדרה. זו האפשרות הנכונה כדי לבחור MTE מהרשימה: בזמן הייבוא ה־MTE עדיין לא נטענו.',
+            csvChoixAideDiff: (n) => `השורות נושאות ${n} הגדרות שונות (תאריכים, סיבה, כיוון או MTE): „הוספה לתור” שומרת אותן שורה אחר שורה. בחירה הייתה שומרת רק את המקטעים, תחת הגדרה אחת.`,
             csvSelManquants: (m,n) => `${m} מתוך ${n} מקטעים מהקובץ לא נמצאו באזור שנסרק: נמחקו, אוחדו או רחוקים מדי מהמיקום שצוין.`,
             bilanEcartes: n => `↷ ${n} דולגו, אין מה לחסום בהם`,
             applyNothingWritten:'\u05DC\u05D0 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D0\u05E3 \u05D7\u05E1\u05D9\u05DE\u05D4: \u05DC\u05D0 \u05E0\u05D5\u05E6\u05E8 \u05D3\u05D1\u05E8 \u05D1\u05E2\u05D5\u05E8\u05DA.',
@@ -3674,9 +3677,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvChoixTitre: (l,n) => `File di chiusure: ${l} riga/e, ${n} segmento/i`,
             csvChoixSel: '🧲 Seleziona i segmenti',
             csvChoixFile: 'Aggiungi alla coda',
-            tipCsvChoixSel: 'Seleziona sulla mappa i segmenti del file. Poi imposti la chiusura in Configura (date, MTE, fonte) e convalidi.',
+            tipCsvChoixSel: 'Seleziona sulla mappa i segmenti del file, e solo quelli: date, motivo, senso e MTE delle righe non vengono ripresi. Poi imposti la chiusura in Configura (date, MTE, fonte) e convalidi.',
             tipCsvChoixFile: 'Mette in coda le chiusure del file così come sono, con le loro date e il loro MTE. Non si possono riconfigurare dopo.',
-            csvChoixAide: 'Seleziona è la scelta giusta per scegliere l’MTE dall’elenco: all’importazione gli MTE non sono ancora caricati.',
+            csvChoixAide: 'Seleziona riprende solo i segmenti: date e motivo del file vanno impostati in Configura. È la scelta giusta per scegliere l’MTE dall’elenco: all’importazione gli MTE non sono ancora caricati.',
+            csvChoixAideDiff: (n) => `Le righe portano ${n} impostazioni diverse (date, motivo, senso o MTE): «Aggiungi alla coda» le conserva riga per riga. Seleziona riprenderebbe solo i segmenti, con un’unica impostazione.`,
             csvSelManquants: (m,n) => `${m} segmento/i del file su ${n} non trovato/i nell’area inventariata: eliminati, uniti o troppo lontani dalla posizione indicata.`,
             bilanEcartes: n => `↷ ${n} saltato/i, nulla da chiudere`,
             applyNothingWritten:'Nessuna chiusura \u00E8 stata salvata: nulla \u00E8 stato creato nell\u2019editor.',
@@ -4265,9 +4269,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvChoixTitre: (l,n) => `Sperrungsdatei: ${l} Zeile(n), ${n} Segment(e)`,
             csvChoixSel: '🧲 Segmente auswählen',
             csvChoixFile: 'Zur Warteschlange',
-            tipCsvChoixSel: 'Wählt die Segmente der Datei auf der Karte aus. Danach stellst du die Sperrung unter Konfigurieren ein (Daten, MTE, Quelle) und bestätigst.',
+            tipCsvChoixSel: 'Wählt die Segmente der Datei auf der Karte aus, und nur sie: Daten, Grund, Richtung und MTE der Zeilen werden nicht übernommen. Danach stellst du die Sperrung unter Konfigurieren ein (Daten, MTE, Quelle) und bestätigst.',
             tipCsvChoixFile: 'Legt die Sperrungen der Datei unverändert in die Warteschlange, mit ihren Daten und ihrem MTE. Sie lassen sich danach nicht mehr umkonfigurieren.',
-            csvChoixAide: 'Auswählen ist die richtige Wahl, um das MTE aus der Liste zu wählen: beim Import sind die MTE noch nicht geladen.',
+            csvChoixAide: 'Auswählen übernimmt nur die Segmente: Daten und Grund der Datei stellst du unter Konfigurieren ein. Es ist die richtige Wahl, um das MTE aus der Liste zu wählen: beim Import sind die MTE noch nicht geladen.',
+            csvChoixAideDiff: (n) => `Die Zeilen tragen ${n} verschiedene Einstellungen (Daten, Grund, Richtung oder MTE): „Zur Warteschlange“ behält sie Zeile für Zeile. Auswählen würde nur die Segmente übernehmen, mit einer einzigen Einstellung.`,
             csvSelManquants: (m,n) => `${m} von ${n} Segment(en) der Datei im erfassten Bereich nicht gefunden: gelöscht, zusammengeführt oder zu weit von der angegebenen Position.`,
             bilanEcartes: n => `↷ ${n} übersprungen, dort nichts zu sperren`,
             applyNothingWritten:'Es wurde keine Sperrung gespeichert: im Editor wurde nichts erstellt.',
@@ -4855,9 +4860,10 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvChoixTitre: (l,n) => `Archivo de cierres: ${l} fila(s), ${n} segmento(s)`,
             csvChoixSel: '🧲 Seleccionar los segmentos',
             csvChoixFile: 'Añadir a la cola',
-            tipCsvChoixSel: 'Selecciona en el mapa los segmentos del archivo. Luego ajustas el cierre en Configurar (fechas, MTE, fuente) y validas.',
+            tipCsvChoixSel: 'Selecciona en el mapa los segmentos del archivo, y solo ellos: las fechas, el motivo, el sentido y el MTE de las filas no se conservan. Luego ajustas el cierre en Configurar (fechas, MTE, fuente) y validas.',
             tipCsvChoixFile: 'Pone en la cola los cierres del archivo tal cual, con sus fechas y su MTE. Después no se pueden reconfigurar.',
-            csvChoixAide: 'Seleccionar es la opción adecuada para elegir el MTE de la lista: al importar, los MTE aún no están cargados.',
+            csvChoixAide: 'Seleccionar solo conserva los segmentos: las fechas y el motivo del archivo se ajustan en Configurar. Es la opción adecuada para elegir el MTE de la lista: al importar, los MTE aún no están cargados.',
+            csvChoixAideDiff: (n) => `Las filas llevan ${n} ajustes diferentes (fechas, motivo, sentido o MTE): «Añadir a la cola» los conserva fila por fila. Seleccionar solo conservaría los segmentos, con un único ajuste.`,
             csvSelManquants: (m,n) => `${m} de ${n} segmento(s) del archivo no encontrado(s) en la zona inventariada: eliminados, fusionados o demasiado lejos de la posición indicada.`,
             bilanEcartes: n => `↷ ${n} omitido(s), nada que cerrar`,
             applyNothingWritten:'No se guard\u00F3 ning\u00FAn cierre: no se cre\u00F3 nada en el editor.',
@@ -5445,9 +5451,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             csvChoixTitre: (l,n) => `Arquivo de bloqueios: ${l} linha(s), ${n} segmento(s)`,
             csvChoixSel: '🧲 Selecionar os segmentos',
             csvChoixFile: 'Adicionar à fila',
-            tipCsvChoixSel: 'Seleciona no mapa os segmentos do arquivo. Depois você ajusta o bloqueio em Configurar (datas, MTE, fonte) e valida.',
+            tipCsvChoixSel: 'Seleciona no mapa os segmentos do arquivo, e só eles: as datas, o motivo, o sentido e o MTE das linhas não são mantidos. Depois você ajusta o bloqueio em Configurar (datas, MTE, fonte) e valida.',
             tipCsvChoixFile: 'Coloca os bloqueios do arquivo na fila como estão, com suas datas e seu MTE. Eles não podem ser reconfigurados depois.',
-            csvChoixAide: 'Selecionar é a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvChoixAide: 'Selecionar só mantém os segmentos: as datas e o motivo do arquivo são ajustados em Configurar. É a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvChoixAideDiff: (n) => `As linhas trazem ${n} ajustes diferentes (datas, motivo, sentido ou MTE): “Adicionar à fila” os mantém linha por linha. Selecionar só manteria os segmentos, com um único ajuste.`,
             csvSelManquants: (m,n) => `${m} de ${n} segmento(s) do arquivo não encontrado(s) na área inventariada: excluídos, mesclados ou longe demais da posição indicada.`,
             bilanEcartes: n => `↷ ${n} ignorado(s), nada a bloquear`,
             applyNothingWritten:'Nenhum bloqueio foi salvo: nada foi criado no editor.',
@@ -6035,9 +6042,10 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             csvChoixTitre: (l,n) => `Ficheiro de cortes: ${l} linha(s), ${n} segmento(s)`,
             csvChoixSel: '🧲 Selecionar os segmentos',
             csvChoixFile: 'Adicionar à fila',
-            tipCsvChoixSel: 'Seleciona no mapa os segmentos do ficheiro. Depois ajusta o corte em Configurar (datas, MTE, fonte) e valida.',
+            tipCsvChoixSel: 'Seleciona no mapa os segmentos do ficheiro, e só esses: as datas, o motivo, o sentido e o MTE das linhas não são mantidos. Depois ajusta o corte em Configurar (datas, MTE, fonte) e valida.',
             tipCsvChoixFile: 'Coloca os cortes do ficheiro na fila tal como estão, com as suas datas e o seu MTE. Não podem ser reconfigurados depois.',
-            csvChoixAide: 'Selecionar é a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvChoixAide: 'Selecionar só mantém os segmentos: as datas e o motivo do ficheiro ajustam-se em Configurar. É a escolha certa para escolher o MTE na lista: na importação, os MTE ainda não estão carregados.',
+            csvChoixAideDiff: (n) => `As linhas trazem ${n} definições diferentes (datas, motivo, sentido ou MTE): «Adicionar à fila» mantém-nas linha a linha. Selecionar só manteria os segmentos, com uma única definição.`,
             csvSelManquants: (m,n) => `${m} de ${n} segmento(s) do ficheiro não encontrado(s) na área inventariada: eliminados, fundidos ou demasiado longe da posição indicada.`,
             bilanEcartes: n => `↷ ${n} ignorado(s), nada a cortar`,
             applyNothingWritten:'Nenhum corte foi guardado: nada foi criado no editor.',
@@ -17181,12 +17189,22 @@ const _impNomType = (ty) => ty === 'csv' ? t('impTypeCsv') : ty === 'trace' ? t(
 // file reprend le MTE du fichier sans pouvoir le changer ensuite — et à l'import les
 // MTE ne sont pas chargés : l'éditeur ne pouvait plus rien y faire (23/09/2026).
 // Un CSV de VIRAGES garde son chemin : il n'y a pas de segments à sélectionner.
+// 🔴 Sélectionner ne garde du fichier que les SEGMENTS : dates, motif, sens et MTE de
+// chaque ligne sont jetés, et l'éditeur pose un réglage unique. Quand les lignes n'ont
+// pas toutes le même réglage (ponts fermés à 16 h, 19 h, route à 22 h — 29/09/2026),
+// ce réglage unique en écrase plusieurs : « Ajouter à la file » devient le bouton plein
+// et l'aide dit ce que Sélectionner perdrait.
+// Nombre de réglages distincts portés par les lignes (tout sauf segments et position).
+const _csvReglages = (adds) => new Set(adds.map(it => { const c = it.closure;
+    return [c.startDate, c.endDate, c.reason, c.direction, c.permanent, c.eventId || ''].join('\u0001'); })).size;
 const _impCsvChoix = async (f) => {
     const texte = await _impLireTout(f);
     const items = parseCSV(texte);
     const adds = (items || []).filter(it => it.action === 'add' && it.closure.isValid && it.closure.segIDs.length);
     if(!adds.length || _sweepRunning){ handleCSV([f]); _impVersOnglet('cfg'); return; }
     const ids = new Set(adds.flatMap(it => it.closure.segIDs.map(Number).filter(Boolean)));
+    const nReglages = _csvReglages(adds);
+    const fileDabord = nReglages > 1;
     // Emprise à inventorier : les positions portées par le fichier, élargies d'environ
     // 1 km — une ligne ne porte que le CENTRE de ses segments.
     const lo = adds.map(it => it.closure.lonlat.lon), la = adds.map(it => it.closure.lonlat.lat);
@@ -17195,12 +17213,12 @@ const _impCsvChoix = async (f) => {
     const el = _zonePanelShow(
         '<div class="wct-zp-head">' + escHtml(t('csvChoixTitre', adds.length, ids.size)) + '</div>' +
         '<div class="wct-zp-btns">' +
-          '<button type="button" class="wct-btn wct-btn-primary wct-btn-sm" id="wct-csv-sel" title="' +
+          '<button type="button" class="wct-btn' + (fileDabord ? '' : ' wct-btn-primary') + ' wct-btn-sm" id="wct-csv-sel" title="' +
             escHtml(t('tipCsvChoixSel')) + '">' + escHtml(t('csvChoixSel')) + '</button>' +
-          '<button type="button" class="wct-btn wct-btn-sm" id="wct-csv-file" title="' +
+          '<button type="button" class="wct-btn' + (fileDabord ? ' wct-btn-primary' : '') + ' wct-btn-sm" id="wct-csv-file" title="' +
             escHtml(t('tipCsvChoixFile')) + '">' + escHtml(t('csvChoixFile')) + '</button>' +
         '</div>' +
-        '<div class="wct-zp-hint">' + escHtml(t('csvChoixAide')) + '</div>');
+        '<div class="wct-zp-hint">' + escHtml(fileDabord ? t('csvChoixAideDiff', nReglages) : t('csvChoixAide')) + '</div>');
     el.querySelector('#wct-csv-sel')?.addEventListener('click', () => {
         _zonePanelHide(); _impVersOnglet('cfg');
         _polyProcessRings(null, { ids, bbox });
