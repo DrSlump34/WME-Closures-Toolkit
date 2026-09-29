@@ -9,16 +9,18 @@ dozens or hundreds of segments have to be closed on a recurring schedule.
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![WME Closures Toolkit](capture_1.20.00_normal.png)
+![WME Closures Toolkit](capture_1.21.03_normal.png)
 
 Draw an area and it stays on the map. Pick it back up whenever you like: drag a corner,
 right-click one to delete it, click a hollow dot to insert one.
 
 ![Editing an area outline](capture_1.07.01_zone.png)
 
-Drop any file into the Import tab — the content decides where it goes:
+Drop any file into the Import tab — the content decides where it goes. A closure CSV asks
+whether to select its segments or to queue its rows as they are; when the rows carry different
+dates, queuing them is the main choice:
 
-![Import tab](capture_1.14.02_import.png)
+![Importing a closure CSV](capture_1.21.03_import.png)
 
 ## Features
 
