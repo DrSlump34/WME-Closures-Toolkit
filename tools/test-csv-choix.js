@@ -71,7 +71,7 @@ const lancer = async (source, csv) => {
     chk('MTE différent d\'une ligne à l\'autre : « Ajouter à la file » est plein', r.file && !r.sel, r.html);
 
     console.log('— témoin : Sélectionner forcé en plein —');
-    const mutant = code.replace('const fileDabord = nReglages > 1;', 'const fileDabord = false;');
+    const mutant = code.replace('const fileDabord = nReglages > 1 || avecRec;', 'const fileDabord = false;');
     if (mutant === code) { ko++; console.log('  ECHEC mutation non appliquée (le code a changé ?)'); }
     else {
         r = await lancer(mutant, GARD);

@@ -42,7 +42,7 @@ chk('addClosure ne décide plus sur le réglage global seul', !/if\(closeNodes==
 const aq = extrait('const applyQueue=', '\nconst ');
 chk('applyQueue passe le mode de l\'entrée', /closeNodes:e\.config\.closeNodes\?\?closeNodes/.test(aq));
 chk('applyQueue passe les nœuds de l\'entrée', /nodesInside:\(e\.config\.closeNodes\?\?closeNodes\)===NODE_CL\.inside\?_noeudsDe\(e\):null/.test(aq));
-chk('makeEntry garde le mode choisi', /config:\{\.\.\.cfg,closeNodes:cfg\.closeNodes\?\?closeNodes\}/.test(txt));
+chk('makeEntry garde le mode choisi', /config:\{\.\.\.cfg,closeNodes:cfg\.closeNodes\?\?closeNodes[,}]/.test(txt));   // [,}] : d'autres champs peuvent suivre (holidayIso, 1.22.00)
 chk('plus aucune lecture de la clé morte nodesClosed', !/nodesClosed/.test(txt));
 
 console.log('\n' + ok + ' ok, ' + ko + ' échec(s)');

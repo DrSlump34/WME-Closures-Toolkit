@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.21.03
+// @version      1.22.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1951,6 +1951,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} ligne(s) \u00ab\u00a0remove\u00a0\u00bb ignor\u00e9e(s)\u00a0: WCT pose des fermetures, il n\u2019en supprime pas.`,
             csvBigConfirm: (seg,rows) => `⚠️ Ce fichier contient ${seg} segments répartis sur ${rows} lignes. L’import de gros volumes peut ralentir le navigateur, et WME ne fermera que les segments chargés dans la vue courante. Continuer ?`,
             csvImportCancelled:'Import annulé.',
+            csvRecErr:(l,m) => `⚠️ Ligne ${l} : récurrence non dépliée — ${m}`,
+            csvRecVide:l => `ℹ️ Ligne ${l} : aucune fermeture à venir dans la période (tout est passé, ou aucun jour retenu).`,
+            csvRecDetail:(n,j,h) => `${n} fermeture(s) · jours ${j} · ${h}`,
+            csvRecSansFeries:'sauf jours fériés',
+            csvRecOcc:n => `(dont ${n} fermeture(s) dépliée(s) depuis des lignes à récurrence)`,
+            csvRecNoCountry:'jours fériés demandés, mais pays inconnu : remplissez la colonne pays (ex. FR).',
+            csvRecHolidaysKo:'la liste des jours fériés n’a pas pu être obtenue — la ligne n’est pas posée, plutôt que de fermer un jour férié.',
+            csvChoixAideRec:'Le fichier porte des récurrences (jours, heures, jours fériés) : « Ajouter à la file » les déplie ligne par ligne. Sélectionner ne reprendrait que les segments.',
             sweepTitle:'Sélectionner les segments du tracé (balaie la carte)',
             sweepProgress: (done,total,n) => `Balayage… ${done}/${total} — ${n} segment(s)`,
             sweepDone: n => `✅ ${n} segment(s) sélectionné(s) le long du tracé.`,
@@ -2545,6 +2553,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u201cremove\u201d row(s) skipped: WCT sets closures, it does not delete them.`,
             csvBigConfirm: (seg,rows) => `⚠️ This file contains ${seg} segments across ${rows} rows. Importing large volumes can slow the browser down, and WME will only close segments loaded in the current view. Continue?`,
             csvImportCancelled:'Import cancelled.',
+            csvRecErr:(l,m) => `⚠️ Row ${l}: recurrence not expanded — ${m}`,
+            csvRecVide:l => `ℹ️ Row ${l}: no upcoming closure in the period (all past, or no day kept).`,
+            csvRecDetail:(n,j,h) => `${n} closure(s) · days ${j} · ${h}`,
+            csvRecSansFeries:'except public holidays',
+            csvRecOcc:n => `(including ${n} closure(s) expanded from recurring rows)`,
+            csvRecNoCountry:'public holidays requested, but the country is unknown: fill in the country column (e.g. FR).',
+            csvRecHolidaysKo:'the public holiday list could not be obtained — the row is not placed, rather than closing on a holiday.',
+            csvChoixAideRec:'The file carries recurrences (days, hours, public holidays): “Add to the queue” expands them row by row. Select would only keep the segments.',
             sweepTitle:'Select track segments (pans the map)',
             sweepProgress: (done,total,n) => `Sweeping… ${done}/${total} — ${n} segment(s)`,
             sweepDone: n => `✅ ${n} segment(s) selected along the track.`,
@@ -3143,6 +3159,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u05e9\u05d5\u05e8\u05d5\u05ea \u201cremove\u201d \u05d3\u05d5\u05dc\u05d2\u05d5: WCT \u05de\u05e6\u05d9\u05d1 \u05d7\u05e1\u05d9\u05de\u05d5\u05ea \u05d5\u05d0\u05d9\u05e0\u05d5 \u05de\u05d5\u05d7\u05e7 \u05d0\u05d5\u05ea\u05df.`,
             csvBigConfirm: (seg,rows) => `⚠️ קובץ זה מכיל ${seg} מקטעים ב-${rows} שורות. ייבוא כמויות גדולות עלול להאט את הדפדפן, ו-WME יחסום רק מקטעים הטעונים בתצוגה הנוכחית. להמשיך?`,
             csvImportCancelled:'הייבוא בוטל.',
+            csvRecErr:(l,m) => `⚠️ שורה ${l}: החזרתיות לא נפרסה — ${m}`,
+            csvRecVide:l => `ℹ️ שורה ${l}: אין חסימה עתידית בתקופה (הכול עבר, או שלא נבחר אף יום).`,
+            csvRecDetail:(n,j,h) => `${n} חסימות · ימים ${j} · ${h}`,
+            csvRecSansFeries:'למעט חגים',
+            csvRecOcc:n => `(מתוכן ${n} חסימות שנפרסו משורות חוזרות)`,
+            csvRecNoCountry:'התבקש דילוג על חגים, אך המדינה אינה ידועה: מלאו את עמודת המדינה (למשל FR).',
+            csvRecHolidaysKo:'לא ניתן היה לקבל את רשימת החגים — השורה לא הוצבה, כדי לא לחסום ביום חג.',
+            csvChoixAideRec:'הקובץ מכיל חזרתיות (ימים, שעות, חגים): „הוספה לתור” פורסת אותה שורה אחר שורה. בחירה הייתה שומרת רק את המקטעים.',
             sweepTitle:'בחר מקטעי מסלול (מזיז את המפה)',
             sweepProgress: (done,total,n) => `סורק… ${done}/${total} — ${n} מקטעים`,
             sweepDone: n => `✅ ${n} מקטעים נבחרו לאורך המסלול.`,
@@ -3735,6 +3759,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} riga/e \u201cremove\u201d ignorata/e: WCT crea chiusure, non le elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Questo file contiene ${seg} segmenti su ${rows} righe. Importare grandi volumi può rallentare il browser, e WME chiuderà solo i segmenti caricati nella vista attuale. Continuare?`,
             csvImportCancelled:'Importazione annullata.',
+            csvRecErr:(l,m) => `⚠️ Riga ${l}: ricorrenza non espansa — ${m}`,
+            csvRecVide:l => `ℹ️ Riga ${l}: nessuna chiusura futura nel periodo (tutto passato, o nessun giorno scelto).`,
+            csvRecDetail:(n,j,h) => `${n} chiusura/e · giorni ${j} · ${h}`,
+            csvRecSansFeries:'festivi esclusi',
+            csvRecOcc:n => `(di cui ${n} chiusura/e espanse da righe ricorrenti)`,
+            csvRecNoCountry:'festivi richiesti, ma il paese è sconosciuto: compila la colonna del paese (es. FR).',
+            csvRecHolidaysKo:'impossibile ottenere l’elenco dei festivi — la riga non viene posata, piuttosto che chiudere in un giorno festivo.',
+            csvChoixAideRec:'Il file contiene ricorrenze (giorni, orari, festivi): «Aggiungi alla coda» le espande riga per riga. Seleziona riprenderebbe solo i segmenti.',
             sweepTitle:'Seleziona i segmenti del tracciato (sposta la mappa)',
             sweepProgress: (done,total,n) => `Scansione… ${done}/${total} — ${n} segmento/i`,
             sweepDone: n => `✅ ${n} segmento/i selezionati lungo il tracciato.`,
@@ -4328,6 +4360,14 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} \u201eremove\u201c-Zeile(n) \u00fcbersprungen: WCT setzt Sperrungen, l\u00f6scht aber keine.`,
             csvBigConfirm: (seg,rows) => `⚠️ Diese Datei enthält ${seg} Segmente in ${rows} Zeilen. Der Import großer Mengen kann den Browser verlangsamen, und WME schließt nur Segmente, die in der aktuellen Ansicht geladen sind. Fortfahren?`,
             csvImportCancelled:'Import abgebrochen.',
+            csvRecErr:(l,m) => `⚠️ Zeile ${l}: Wiederholung nicht aufgelöst — ${m}`,
+            csvRecVide:l => `ℹ️ Zeile ${l}: keine künftige Sperrung im Zeitraum (alles vorbei oder kein Tag gewählt).`,
+            csvRecDetail:(n,j,h) => `${n} Sperrung(en) · Tage ${j} · ${h}`,
+            csvRecSansFeries:'außer Feiertagen',
+            csvRecOcc:n => `(davon ${n} Sperrung(en) aus Wiederholungszeilen aufgelöst)`,
+            csvRecNoCountry:'Feiertage verlangt, aber das Land ist unbekannt: fülle die Länderspalte aus (z. B. FR).',
+            csvRecHolidaysKo:'Die Feiertagsliste war nicht abrufbar — die Zeile wird nicht gesetzt, statt an einem Feiertag zu sperren.',
+            csvChoixAideRec:'Die Datei enthält Wiederholungen (Tage, Uhrzeiten, Feiertage): „Zur Warteschlange“ löst sie Zeile für Zeile auf. Auswählen würde nur die Segmente übernehmen.',
             sweepTitle:'Segmente des Tracks auswählen (verschiebt die Karte)',
             sweepProgress: (done,total,n) => `Abtastung… ${done}/${total} — ${n} Segment(e)`,
             sweepDone: n => `✅ ${n} Segment(e) entlang des Tracks ausgewählt.`,
@@ -4920,6 +4960,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} fila(s) \u201cremove\u201d omitida(s): WCT crea cierres, no los elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este archivo contiene ${seg} segmentos en ${rows} filas. Importar grandes volúmenes puede ralentizar el navegador, y WME solo cerrará los segmentos cargados en la vista actual. ¿Continuar?`,
             csvImportCancelled:'Importación cancelada.',
+            csvRecErr:(l,m) => `⚠️ Fila ${l}: recurrencia no desplegada — ${m}`,
+            csvRecVide:l => `ℹ️ Fila ${l}: ningún cierre futuro en el periodo (todo pasado, o ningún día elegido).`,
+            csvRecDetail:(n,j,h) => `${n} cierre(s) · días ${j} · ${h}`,
+            csvRecSansFeries:'salvo festivos',
+            csvRecOcc:n => `(de ellos ${n} cierre(s) desplegados de filas recurrentes)`,
+            csvRecNoCountry:'se piden festivos, pero el país es desconocido: rellena la columna del país (p. ej. FR).',
+            csvRecHolidaysKo:'no se pudo obtener la lista de festivos — la fila no se coloca, antes que cerrar en un festivo.',
+            csvChoixAideRec:'El archivo lleva recurrencias (días, horas, festivos): «Añadir a la cola» las despliega fila por fila. Seleccionar solo conservaría los segmentos.',
             sweepTitle:'Seleccionar los segmentos de la traza (desplaza el mapa)',
             sweepProgress: (done,total,n) => `Barriendo… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) seleccionado(s) a lo largo de la traza.`,
@@ -5512,6 +5560,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} linha(s) \u201cremove\u201d ignorada(s): o WCT cria bloqueios, n\u00e3o os exclui.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este arquivo contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode deixar o navegador lento, e o WME só vai bloquear os segmentos carregados na visualização atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
+            csvRecErr:(l,m) => `⚠️ Linha ${l}: recorrência não expandida — ${m}`,
+            csvRecVide:l => `ℹ️ Linha ${l}: nenhum bloqueio futuro no período (tudo passado, ou nenhum dia escolhido).`,
+            csvRecDetail:(n,j,h) => `${n} bloqueio(s) · dias ${j} · ${h}`,
+            csvRecSansFeries:'exceto feriados',
+            csvRecOcc:n => `(dos quais ${n} bloqueio(s) expandidos de linhas recorrentes)`,
+            csvRecNoCountry:'feriados pedidos, mas o país é desconhecido: preencha a coluna do país (ex. FR).',
+            csvRecHolidaysKo:'não foi possível obter a lista de feriados — a linha não é colocada, em vez de bloquear num feriado.',
+            csvChoixAideRec:'O arquivo traz recorrências (dias, horários, feriados): “Adicionar à fila” as expande linha por linha. Selecionar só manteria os segmentos.',
             sweepTitle:'Selecionar os segmentos do trajeto (move o mapa)',
             sweepProgress: (done,total,n) => `Varrendo… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
@@ -6104,6 +6160,14 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             csvRemoveSkipped: n => `\u2139\uFE0F ${n} linha(s) \u201cremove\u201d ignorada(s): o WCT cria cortes, n\u00e3o os elimina.`,
             csvBigConfirm: (seg,rows) => `⚠️ Este ficheiro contém ${seg} segmentos em ${rows} linhas. Importar grandes volumes pode tornar o navegador lento, e o WME só vai cortar os segmentos carregados na vista atual. Continuar?`,
             csvImportCancelled:'Importação cancelada.',
+            csvRecErr:(l,m) => `⚠️ Linha ${l}: recorrência não expandida — ${m}`,
+            csvRecVide:l => `ℹ️ Linha ${l}: nenhum corte futuro no período (tudo passado, ou nenhum dia escolhido).`,
+            csvRecDetail:(n,j,h) => `${n} corte(s) · dias ${j} · ${h}`,
+            csvRecSansFeries:'exceto feriados',
+            csvRecOcc:n => `(dos quais ${n} corte(s) expandidos de linhas recorrentes)`,
+            csvRecNoCountry:'feriados pedidos, mas o país é desconhecido: preencha a coluna do país (ex. FR).',
+            csvRecHolidaysKo:'não foi possível obter a lista de feriados — a linha não é colocada, em vez de cortar num feriado.',
+            csvChoixAideRec:'O ficheiro traz recorrências (dias, horas, feriados): «Adicionar à fila» expande-as linha a linha. Selecionar só manteria os segmentos.',
             sweepTitle:'Selecionar os segmentos do trajeto (desloca o mapa)',
             sweepProgress: (done,total,n) => `A varrer… ${done}/${total} — ${n} segmento(s)`,
             sweepDone: n => `✅ ${n} segmento(s) selecionado(s) ao longo do trajeto.`,
@@ -6539,7 +6603,7 @@ const buildHelpHTML = () => {
             <tr><td><b>#1, #2…</b></td><td>Número da entrada na fila.</td></tr>
             <tr><td><b>↷ Ignorados</b></td><td>Antes do envio, o WCT ignora os segmentos já cortados nesse horário e os sem sentido aberto, e indica-o no resumo. Se o Waze ainda assim recusar um lote, o WCT divide-o para perder só o segmento com problema, indicado pelo seu ID.</td></tr>
             </table>` }) },
-        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) : WCT vous propose de <b>sélectionner</b> les segments — vous réglez ensuite la fermeture, MTE compris — ou de les <b>ajouter à la file</b> tels quels. Virages (format WCT) : ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format): WCT offers to <b>select</b> the segments — you then set the closure, MTE included — or to <b>add them to the queue</b> as they are. Turns (WCT format): added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, it:`<p><b>Un unico punto di ingresso per tutti i file.</b> Trascinalo qui: WCT ne riconosce il formato, lo elabora e ti porta dove prosegue il lavoro.</p><table class="wct-help-table"><tr><td><b>CSV di chiusure</b></td><td>Segmenti (formato Advanced Closures): WCT propone di <b>selezionare</b> i segmenti — poi imposti la chiusura, MTE compreso — oppure di <b>aggiungerli alla coda</b> così come sono. Svolte (formato WCT): aggiunte alla <b>coda</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Le <b>linee</b> diventano <b>tracciati</b>; un <b>poligono</b> diventa un’<b>area</b> di selezione. Se il file contiene entrambi, WCT ti chiede quale intendevi.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Diventa un’<b>area</b> di selezione.</td></tr><tr><td><b>Preset WCT</b></td><td>Un file esportato dalla scheda 💾 Preset — si <b>aggiungono</b> ai tuoi, nulla viene cancellato.</td></tr></table><p style="margin-top:6px">I punti di ingresso abituali restano validi: trascinare un tracciato direttamente nella scheda 🗺️ Tracciati, o un’area tramite <b>⬆️ Area</b>, funziona ancora.</p><p style="margin-top:6px"><i>Un file non riconosciuto viene rifiutato dicendolo, con l’elenco dei formati accettati — non succede nulla in silenzio.</i></p>`, he:`<p><b>נקודת כניסה אחת לכל הקבצים.</b> גררו אותו לכאן: WCT מזהה את הפורמט, מטפל בו, ומעביר אתכם למקום שבו העבודה נמשכת.</p><table class="wct-help-table"><tr><td><b>CSV של חסימות</b></td><td>מקטעים (פורמט Advanced Closures): WCT מציע <b>לבחור</b> את המקטעים — ואז מגדירים את החסימה, כולל MTE — או <b>להוסיף אותם לתור</b> כפי שהם. פניות (פורמט WCT): נוספות ל<b>תור</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>קווים</b> הופכים ל<b>מסלולים</b>; <b>מצולע</b> הופך ל<b>אזור</b> בחירה. אם הקובץ מכיל את שניהם, WCT שואל למה התכוונתם.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>הופך ל<b>אזור</b> בחירה.</td></tr><tr><td><b>תבניות WCT</b></td><td>קובץ שיוצא מלשונית 💾 תבניות — הן <b>מתווספות</b> לשלכם, שום דבר לא נמחק.</td></tr></table><p style="margin-top:6px">נקודות הכניסה הרגילות נשארות: גרירת מסלול ישירות ללשונית 🗺️ מסלולים, או אזור דרך <b>⬆️ אזור</b>, עדיין עובדות.</p><p style="margin-top:6px"><i>קובץ שאינו מזוהה נדחה בקול, עם רשימת הפורמטים הנתמכים — שום דבר לא קורה בשקט.</i></p>`, de:`<p><b>Ein einziger Einstiegspunkt für alle Dateien.</b> Lege die Datei hier ab: WCT erkennt das Format, verarbeitet sie und bringt dich dorthin, wo es weitergeht.</p><table class="wct-help-table"><tr><td><b>Sperrungs-CSV</b></td><td>Segmente (Format Advanced Closures): WCT bietet an, die Segmente <b>auszuwählen</b> — danach stellst du die Sperrung ein, MTE inklusive — oder sie unverändert <b>in die Warteschlange</b> zu legen. Abbieger (Format WCT): kommen in die <b>Warteschlange</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linien</b> werden zu <b>Tracks</b>; ein <b>Polygon</b> wird zu einem Auswahl-<b>Bereich</b>. Enthält die Datei beides, fragt WCT, was du meinst.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Wird zu einem Auswahl-<b>Bereich</b>.</td></tr><tr><td><b>WCT-Vorlagen</b></td><td>Aus dem Reiter 💾 Vorlagen exportierte Datei — sie <b>ergänzen</b> deine, nichts wird gelöscht.</td></tr></table><p style="margin-top:6px">Die gewohnten Einstiegspunkte bleiben: einen Track direkt im Reiter 🗺️ Tracks ablegen oder einen Bereich über <b>⬆️ Bereich</b> laden funktioniert weiterhin.</p><p style="margin-top:6px"><i>Eine nicht erkannte Datei wird mit Hinweis abgelehnt, samt Liste der unterstützten Formate — nichts passiert stillschweigend.</i></p>`, es:`<p><b>Un único punto de entrada para todos los archivos.</b> Suéltalo aquí: WCT reconoce su formato, lo procesa y te lleva donde sigue el trabajo.</p><table class="wct-help-table"><tr><td><b>CSV de cierres</b></td><td>Segmentos (formato Advanced Closures): WCT propone <b>seleccionar</b> los segmentos — luego ajustas el cierre, MTE incluido — o <b>añadirlos a la cola</b> tal cual. Giros (formato WCT): añadidos a la <b>cola</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Las <b>líneas</b> se convierten en <b>trazas</b>; un <b>polígono</b> se convierte en una <b>zona</b> de selección. Si el archivo contiene ambos, WCT te pregunta cuál querías.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Se convierte en una <b>zona</b> de selección.</td></tr><tr><td><b>Preajustes WCT</b></td><td>Archivo exportado desde la pestaña 💾 Preajustes — <b>se suman</b> a los tuyos, no se borra nada.</td></tr></table><p style="margin-top:6px">Los puntos de entrada habituales siguen ahí: soltar una traza directamente en la pestaña 🗺️ Trazas, o una zona con <b>⬆️ Zona</b>, sigue funcionando.</p><p style="margin-top:6px"><i>Un archivo no reconocido se rechaza avisando, con la lista de formatos aceptados — nada ocurre en silencio.</i></p>`, 'pt-BR':`<p><b>Um único ponto de entrada para todos os arquivos.</b> Solte-o aqui: o WCT reconhece o formato, processa o arquivo e leva você aonde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de bloqueios</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois você ajusta o bloqueio, MTE incluído — ou <b>adicioná-los à fila</b> como estão. Conversões (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> viram <b>trajetos</b>; um <b>polígono</b> vira uma <b>área</b> de seleção. Se o arquivo tiver os dois, o WCT pergunta qual você quer.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Vira uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Arquivo exportado da aba 💾 Predefinições — elas <b>se somam</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px">Os pontos de entrada habituais continuam: soltar um trajeto direto na aba 🗺️ Trajetos, ou uma área por <b>⬆️ Área</b>, ainda funciona.</p><p style="margin-top:6px"><i>Um arquivo não reconhecido é recusado com aviso, com a lista dos formatos aceitos — nada acontece em silêncio.</i></p>`, 'pt-PT':`<p><b>Um único ponto de entrada para todos os ficheiros.</b> Largue-o aqui: o WCT reconhece o formato, trata o ficheiro e leva-o para onde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de cortes</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois ajusta o corte, MTE incluído — ou <b>adicioná-los à fila</b> tal como estão. Viragens (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> tornam-se <b>trajetos</b>; um <b>polígono</b> torna-se uma <b>área</b> de seleção. Se o ficheiro contiver os dois, o WCT pergunta qual pretende.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Torna-se uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Ficheiro exportado a partir do separador 💾 Predefinições — <b>juntam-se</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px">Os pontos de entrada habituais mantêm-se: largar um trajeto diretamente no separador 🗺️ Trajetos, ou uma área através de <b>⬆️ Área</b>, continua a funcionar.</p><p style="margin-top:6px"><i>Um ficheiro não reconhecido é recusado com aviso, com a lista dos formatos aceites — nada acontece em silêncio.</i></p>` }) },
+        { id:'h4', title:t('helpH4'), body: _L({ fr:`<p><b>Un seul point d’entrée pour tous les fichiers.</b> Déposez-le ici : WCT reconnaît son format, le traite, et vous emmène là où la suite se passe.</p><table class="wct-help-table"><tr><td><b>CSV de fermetures</b></td><td>Segments (format Advanced Closures) : WCT vous propose de <b>sélectionner</b> les segments — vous réglez ensuite la fermeture, MTE compris — ou de les <b>ajouter à la file</b> tels quels. Virages (format WCT) : ajoutés à la <b>file d’attente</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Des <b>lignes</b> deviennent des <b>tracés</b> ; un <b>polygone</b> devient une <b>zone</b> de sélection. Si le fichier contient les deux, WCT vous demande lequel vous voulez.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Devient une <b>zone</b> de sélection.</td></tr><tr><td><b>Préréglages WCT</b></td><td>Fichier exporté depuis l’onglet 💾 Préréglages — ils <b>complètent</b> les vôtres, rien n’est effacé.</td></tr></table><p style="margin-top:6px"><b>CSV à récurrence (lignes <code>add-rec</code>).</b> Après les 11 colonnes d’Advanced Closures, quatre colonnes décrivent la récurrence : <b>jours</b> (1 = lundi … 7 = dimanche, ex. <code>12345</code>), <b>heures</b> (<code>07:30-18:00</code>, une nuit <code>21:00-06:00</code>, plusieurs plages séparées par <code>;</code>), <b>fériés</b> (<code>skip</code> pour les sauter) et <b>pays</b> (<code>FR</code>). Début et fin bornent la période : WCT la déplie comme ⚙️ Configurer, en <b>une seule entrée</b> de file. L’export de la file écrit ainsi toute entrée « Chaque jour » restée intacte. <i>Advanced Closures ignore ces lignes : il ne les lit pas, plutôt que de les lire comme une fermeture continue.</i></p><p style="margin-top:6px">Les points d’entrée habituels restent en place : déposer un tracé directement dans l’onglet 🗺️ Tracés, ou une zone par <b>⬆️ Zone</b>, fonctionne toujours.</p><p style="margin-top:6px"><i>Un fichier non reconnu est refusé en le disant, avec la liste des formats acceptés — il ne se passe rien en silence.</i></p>`, en:`<p><b>One entry point for every file.</b> Drop it here: WCT recognises its format, handles it, and takes you where the next step happens.</p><table class="wct-help-table"><tr><td><b>Closure CSV</b></td><td>Segments (Advanced Closures format): WCT offers to <b>select</b> the segments — you then set the closure, MTE included — or to <b>add them to the queue</b> as they are. Turns (WCT format): added to the <b>queue</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Lines</b> become <b>tracks</b>; a <b>polygon</b> becomes a selection <b>area</b>. If the file holds both, WCT asks which one you meant.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Becomes a selection <b>area</b>.</td></tr><tr><td><b>WCT presets</b></td><td>A file exported from the 💾 Presets tab — they <b>add to</b> yours, nothing is erased.</td></tr></table><p style="margin-top:6px"><b>Recurring CSV (<code>add-rec</code> rows).</b> After the 11 Advanced Closures columns, four columns describe the recurrence: <b>days</b> (1 = Monday … 7 = Sunday, e.g. <code>12345</code>), <b>hours</b> (<code>07:30-18:00</code>, a night <code>21:00-06:00</code>, several ranges separated by <code>;</code>), <b>holidays</b> (<code>skip</code> to skip them) and <b>country</b> (<code>FR</code>). Start and end bound the period: WCT expands it the way ⚙️ Configure does, into <b>a single</b> queue entry. Exporting the queue writes any untouched “Each day” entry this way. <i>Advanced Closures ignores these rows: it skips them rather than reading them as one continuous closure.</i></p><p style="margin-top:6px">The usual entry points remain: dropping a track straight into the 🗺️ Tracks tab, or an area through <b>⬆️ Area</b>, still works.</p><p style="margin-top:6px"><i>An unrecognised file is refused out loud, with the list of accepted formats — nothing happens silently.</i></p>`, it:`<p><b>Un unico punto di ingresso per tutti i file.</b> Trascinalo qui: WCT ne riconosce il formato, lo elabora e ti porta dove prosegue il lavoro.</p><table class="wct-help-table"><tr><td><b>CSV di chiusure</b></td><td>Segmenti (formato Advanced Closures): WCT propone di <b>selezionare</b> i segmenti — poi imposti la chiusura, MTE compreso — oppure di <b>aggiungerli alla coda</b> così come sono. Svolte (formato WCT): aggiunte alla <b>coda</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Le <b>linee</b> diventano <b>tracciati</b>; un <b>poligono</b> diventa un’<b>area</b> di selezione. Se il file contiene entrambi, WCT ti chiede quale intendevi.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Diventa un’<b>area</b> di selezione.</td></tr><tr><td><b>Preset WCT</b></td><td>Un file esportato dalla scheda 💾 Preset — si <b>aggiungono</b> ai tuoi, nulla viene cancellato.</td></tr></table><p style="margin-top:6px"><b>CSV ricorrente (righe <code>add-rec</code>).</b> Dopo le 11 colonne di Advanced Closures, quattro colonne descrivono la ricorrenza: <b>giorni</b> (1 = lunedì … 7 = domenica, es. <code>12345</code>), <b>orari</b> (<code>07:30-18:00</code>, una notte <code>21:00-06:00</code>, più fasce separate da <code>;</code>), <b>festivi</b> (<code>skip</code> per saltarli) e <b>paese</b> (<code>FR</code>). Inizio e fine delimitano il periodo: WCT lo espande come ⚙️ Configura, in <b>un’unica</b> voce della coda. L’esportazione della coda scrive così ogni voce «Ogni giorno» rimasta intatta. <i>Advanced Closures ignora queste righe: le salta invece di leggerle come una chiusura continua.</i></p><p style="margin-top:6px">I punti di ingresso abituali restano validi: trascinare un tracciato direttamente nella scheda 🗺️ Tracciati, o un’area tramite <b>⬆️ Area</b>, funziona ancora.</p><p style="margin-top:6px"><i>Un file non riconosciuto viene rifiutato dicendolo, con l’elenco dei formati accettati — non succede nulla in silenzio.</i></p>`, he:`<p><b>נקודת כניסה אחת לכל הקבצים.</b> גררו אותו לכאן: WCT מזהה את הפורמט, מטפל בו, ומעביר אתכם למקום שבו העבודה נמשכת.</p><table class="wct-help-table"><tr><td><b>CSV של חסימות</b></td><td>מקטעים (פורמט Advanced Closures): WCT מציע <b>לבחור</b> את המקטעים — ואז מגדירים את החסימה, כולל MTE — או <b>להוסיף אותם לתור</b> כפי שהם. פניות (פורמט WCT): נוספות ל<b>תור</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>קווים</b> הופכים ל<b>מסלולים</b>; <b>מצולע</b> הופך ל<b>אזור</b> בחירה. אם הקובץ מכיל את שניהם, WCT שואל למה התכוונתם.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>הופך ל<b>אזור</b> בחירה.</td></tr><tr><td><b>תבניות WCT</b></td><td>קובץ שיוצא מלשונית 💾 תבניות — הן <b>מתווספות</b> לשלכם, שום דבר לא נמחק.</td></tr></table><p style="margin-top:6px"><b>CSV חוזר (שורות <code>add-rec</code>).</b> אחרי 11 העמודות של Advanced Closures, ארבע עמודות מתארות את החזרתיות: <b>ימים</b> (1 = שני … 7 = ראשון, למשל <code>12345</code>), <b>שעות</b> (<code>07:30-18:00</code>, לילה <code>21:00-06:00</code>, כמה טווחים מופרדים ב־<code>;</code>), <b>חגים</b> (<code>skip</code> כדי לדלג) ו<b>מדינה</b> (<code>FR</code>). ההתחלה והסיום תוחמים את התקופה: WCT פורס אותה כמו ⚙️ הגדרה, ל<b>רשומה אחת</b> בתור. ייצוא התור כותב כך כל רשומת „כל יום” שלא שונתה. <i>Advanced Closures מתעלם משורות אלה: הוא מדלג עליהן במקום לקרוא אותן כחסימה רציפה.</i></p><p style="margin-top:6px">נקודות הכניסה הרגילות נשארות: גרירת מסלול ישירות ללשונית 🗺️ מסלולים, או אזור דרך <b>⬆️ אזור</b>, עדיין עובדות.</p><p style="margin-top:6px"><i>קובץ שאינו מזוהה נדחה בקול, עם רשימת הפורמטים הנתמכים — שום דבר לא קורה בשקט.</i></p>`, de:`<p><b>Ein einziger Einstiegspunkt für alle Dateien.</b> Lege die Datei hier ab: WCT erkennt das Format, verarbeitet sie und bringt dich dorthin, wo es weitergeht.</p><table class="wct-help-table"><tr><td><b>Sperrungs-CSV</b></td><td>Segmente (Format Advanced Closures): WCT bietet an, die Segmente <b>auszuwählen</b> — danach stellst du die Sperrung ein, MTE inklusive — oder sie unverändert <b>in die Warteschlange</b> zu legen. Abbieger (Format WCT): kommen in die <b>Warteschlange</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linien</b> werden zu <b>Tracks</b>; ein <b>Polygon</b> wird zu einem Auswahl-<b>Bereich</b>. Enthält die Datei beides, fragt WCT, was du meinst.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Wird zu einem Auswahl-<b>Bereich</b>.</td></tr><tr><td><b>WCT-Vorlagen</b></td><td>Aus dem Reiter 💾 Vorlagen exportierte Datei — sie <b>ergänzen</b> deine, nichts wird gelöscht.</td></tr></table><p style="margin-top:6px"><b>Wiederholungs-CSV (Zeilen <code>add-rec</code>).</b> Nach den 11 Spalten von Advanced Closures beschreiben vier Spalten die Wiederholung: <b>Tage</b> (1 = Montag … 7 = Sonntag, z. B. <code>12345</code>), <b>Uhrzeiten</b> (<code>07:30-18:00</code>, eine Nacht <code>21:00-06:00</code>, mehrere Zeitfenster mit <code>;</code> getrennt), <b>Feiertage</b> (<code>skip</code> zum Überspringen) und <b>Land</b> (<code>FR</code>). Beginn und Ende begrenzen den Zeitraum: WCT löst ihn wie ⚙️ Einrichten auf, in <b>einen einzigen</b> Eintrag der Warteschlange. Der Export der Warteschlange schreibt so jeden unveränderten „Wochentage“-Eintrag. <i>Advanced Closures ignoriert diese Zeilen: es überspringt sie, statt sie als durchgehende Sperrung zu lesen.</i></p><p style="margin-top:6px">Die gewohnten Einstiegspunkte bleiben: einen Track direkt im Reiter 🗺️ Tracks ablegen oder einen Bereich über <b>⬆️ Bereich</b> laden funktioniert weiterhin.</p><p style="margin-top:6px"><i>Eine nicht erkannte Datei wird mit Hinweis abgelehnt, samt Liste der unterstützten Formate — nichts passiert stillschweigend.</i></p>`, es:`<p><b>Un único punto de entrada para todos los archivos.</b> Suéltalo aquí: WCT reconoce su formato, lo procesa y te lleva donde sigue el trabajo.</p><table class="wct-help-table"><tr><td><b>CSV de cierres</b></td><td>Segmentos (formato Advanced Closures): WCT propone <b>seleccionar</b> los segmentos — luego ajustas el cierre, MTE incluido — o <b>añadirlos a la cola</b> tal cual. Giros (formato WCT): añadidos a la <b>cola</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td>Las <b>líneas</b> se convierten en <b>trazas</b>; un <b>polígono</b> se convierte en una <b>zona</b> de selección. Si el archivo contiene ambos, WCT te pregunta cuál querías.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Se convierte en una <b>zona</b> de selección.</td></tr><tr><td><b>Preajustes WCT</b></td><td>Archivo exportado desde la pestaña 💾 Preajustes — <b>se suman</b> a los tuyos, no se borra nada.</td></tr></table><p style="margin-top:6px"><b>CSV recurrente (filas <code>add-rec</code>).</b> Tras las 11 columnas de Advanced Closures, cuatro columnas describen la recurrencia: <b>días</b> (1 = lunes … 7 = domingo, p. ej. <code>12345</code>), <b>horas</b> (<code>07:30-18:00</code>, una noche <code>21:00-06:00</code>, varias franjas separadas por <code>;</code>), <b>festivos</b> (<code>skip</code> para saltarlos) y <b>país</b> (<code>FR</code>). Inicio y fin acotan el periodo: WCT lo despliega como ⚙️ Configurar, en <b>una sola</b> entrada de la cola. La exportación de la cola escribe así toda entrada «Cada día» intacta. <i>Advanced Closures ignora estas filas: las salta en vez de leerlas como un cierre continuo.</i></p><p style="margin-top:6px">Los puntos de entrada habituales siguen ahí: soltar una traza directamente en la pestaña 🗺️ Trazas, o una zona con <b>⬆️ Zona</b>, sigue funcionando.</p><p style="margin-top:6px"><i>Un archivo no reconocido se rechaza avisando, con la lista de formatos aceptados — nada ocurre en silencio.</i></p>`, 'pt-BR':`<p><b>Um único ponto de entrada para todos os arquivos.</b> Solte-o aqui: o WCT reconhece o formato, processa o arquivo e leva você aonde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de bloqueios</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois você ajusta o bloqueio, MTE incluído — ou <b>adicioná-los à fila</b> como estão. Conversões (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> viram <b>trajetos</b>; um <b>polígono</b> vira uma <b>área</b> de seleção. Se o arquivo tiver os dois, o WCT pergunta qual você quer.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Vira uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Arquivo exportado da aba 💾 Predefinições — elas <b>se somam</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px"><b>CSV recorrente (linhas <code>add-rec</code>).</b> Depois das 11 colunas do Advanced Closures, quatro colunas descrevem a recorrência: <b>dias</b> (1 = segunda … 7 = domingo, ex. <code>12345</code>), <b>horários</b> (<code>07:30-18:00</code>, uma noite <code>21:00-06:00</code>, várias faixas separadas por <code>;</code>), <b>feriados</b> (<code>skip</code> para pulá-los) e <b>país</b> (<code>FR</code>). Início e fim delimitam o período: o WCT o expande como ⚙️ Configurar, em <b>uma única</b> entrada da fila. A exportação da fila escreve assim toda entrada “Cada dia” intacta. <i>O Advanced Closures ignora essas linhas: pula-as em vez de lê-las como um bloqueio contínuo.</i></p><p style="margin-top:6px">Os pontos de entrada habituais continuam: soltar um trajeto direto na aba 🗺️ Trajetos, ou uma área por <b>⬆️ Área</b>, ainda funciona.</p><p style="margin-top:6px"><i>Um arquivo não reconhecido é recusado com aviso, com a lista dos formatos aceitos — nada acontece em silêncio.</i></p>`, 'pt-PT':`<p><b>Um único ponto de entrada para todos os ficheiros.</b> Largue-o aqui: o WCT reconhece o formato, trata o ficheiro e leva-o para onde o trabalho continua.</p><table class="wct-help-table"><tr><td><b>CSV de cortes</b></td><td>Segmentos (formato Advanced Closures): o WCT propõe <b>selecionar</b> os segmentos — depois ajusta o corte, MTE incluído — ou <b>adicioná-los à fila</b> tal como estão. Viragens (formato WCT): adicionadas à <b>fila</b>.</td></tr><tr><td><b>GPX · KML · KMZ<br>GeoJSON · Shapefile</b></td><td><b>Linhas</b> tornam-se <b>trajetos</b>; um <b>polígono</b> torna-se uma <b>área</b> de seleção. Se o ficheiro contiver os dois, o WCT pergunta qual pretende.</td></tr><tr><td><b>POLYGON(…) WKT</b></td><td>Torna-se uma <b>área</b> de seleção.</td></tr><tr><td><b>Predefinições WCT</b></td><td>Ficheiro exportado a partir do separador 💾 Predefinições — <b>juntam-se</b> às suas, nada é apagado.</td></tr></table><p style="margin-top:6px"><b>CSV recorrente (linhas <code>add-rec</code>).</b> Depois das 11 colunas do Advanced Closures, quatro colunas descrevem a recorrência: <b>dias</b> (1 = segunda … 7 = domingo, ex. <code>12345</code>), <b>horas</b> (<code>07:30-18:00</code>, uma noite <code>21:00-06:00</code>, várias faixas separadas por <code>;</code>), <b>feriados</b> (<code>skip</code> para os saltar) e <b>país</b> (<code>FR</code>). Início e fim delimitam o período: o WCT expande-o como ⚙️ Configurar, numa <b>única</b> entrada da fila. A exportação da fila escreve assim toda a entrada «Cada dia» intacta. <i>O Advanced Closures ignora estas linhas: salta-as em vez de as ler como um corte contínuo.</i></p><p style="margin-top:6px">Os pontos de entrada habituais mantêm-se: largar um trajeto diretamente no separador 🗺️ Trajetos, ou uma área através de <b>⬆️ Área</b>, continua a funcionar.</p><p style="margin-top:6px"><i>Um ficheiro não reconhecido é recusado com aviso, com a lista dos formatos aceites — nada acontece em silêncio.</i></p>` }) },
         { id:'h5', title:t('helpH5'), body: _L({ fr:`
             <p>Sauvegardez une configuration (horaires, jours, sens\u2026) pour la r\u00E9utiliser.</p>
             <ul style="margin:0;padding-inline-start:16px;line-height:1.7">
@@ -9536,7 +9600,10 @@ const renderTurnBanner = () => {
 //  QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 const makeEntry=(segIds,cfg,closures)=>{
-    return{segIds,config:{...cfg,closeNodes:cfg.closeNodes??closeNodes},closures,source:'cfg',
+    // holidayIso : le pays dont le calendrier a RÉELLEMENT filtré ces fermetures. L'export
+    // add-rec en a besoin pour que le fichier redonne les mêmes jours à l'import.
+    const holidayIso=(cfg.holidayMode&&cfg.holidayMode!=='none'&&_lastHolidayCall)?_lastHolidayCall.pays:'';
+    return{segIds,config:{...cfg,closeNodes:cfg.closeNodes??closeNodes,holidayIso},closures,source:'cfg',
         label:cfg.reason||t('defaultClosure'),
         detail:t('entryDetail',segIds.length,closures.length,dirStr(parseInt(cfg.direction)),cfg.starttime)};
 
@@ -11446,9 +11513,10 @@ const _entryLiveRows=(e)=>{
     return n;
 };
 // Génère un CSV au format WME Advanced Closures à partir d'un jeu d'entrées de file.
+const CSV_REC_HEADER=',days (1-7; add-rec),hours (hh:mm-hh:mm; add-rec),holidays (skip|none; add-rec),country (ISO; add-rec)';
 const _queueToCSV=(entries)=>{
     const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
-    let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)\n';
+    let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)'+CSV_REC_HEADER+'\n';
     entries.forEach(e=>{
         const dir=DIR_CSV[parseInt(e.config.direction)],it=e.config.ignoretraffic?'Yes':'No';
         const excl=e.excludedRows||new Set();
@@ -11461,6 +11529,16 @@ const _queueToCSV=(entries)=>{
             : e.csvCenter ? { lon:e.csvCenter.lon, lat:e.csvCenter.lat, zoom:e.csvZoom||zoom }
             : e.emprise ? { lon:(e.emprise.minLon+e.emprise.maxLon)/2, lat:(e.emprise.minLat+e.emprise.maxLat)/2, zoom:SWEEP_ZOOM }
             : { lon:center.lon, lat:center.lat, zoom };
+        // Récurrence intacte ⇒ UNE ligne add-rec, relue à l'identique par WCT (Advanced Closures
+        // l'ignore, voir CSV_REC_RE). Dès qu'une occurrence ou un segment a été retiré à la main,
+        // la récurrence ne décrit plus la file : on retombe sur une ligne par fermeture.
+        const rec=_recDeEntree(e);
+        if(rec&&!excl.size&&e.closures.length){
+            const d0=e.closures[0].start, d1=e.closures[e.closures.length-1].end;
+            const cs=d0 instanceof Date?dateToUTCStr(d0):d0, ce=d1 instanceof Date?dateToUTCStr(d1):d1;
+            csv+=`add-rec,${_csvQ(e.config.reason)},"${cs}","${ce}","${dir}",${it},"${e.segIds.join(';')}","lon=${pos.lon}&lat=${pos.lat}",${pos.zoom},${e.config.mteId||''},"WME Closures Toolkit","${rec.jours}","${rec.heures}",${rec.feries},${rec.pays||''}\n`;
+            return;
+        }
         e.closures.forEach((cl,ci)=>{
             // Une ligne CSV = une occurrence x l'ensemble de ses segments encore actifs.
             // Meme calcul que applyQueue : ce qu'on exporte doit etre ce qu'on appliquerait.
@@ -17068,6 +17146,23 @@ const CSV_WARN_SEGMENTS=2500;
 const CSV_RE=[/.*/,/.*/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
     /(^A to B$)|(^B to A$)|(^TWO WAY$)/,/(Yes)|(No)/,/^(\d+(;|$))+/,
     /(lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*))|(lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*))/,/^\d+$/,/.*/];
+// ─── LIGNES « add-rec » : UNE LIGNE, UNE RÉCURRENCE (1.22.00) ────────────────────────
+// Les 11 colonnes d'Advanced Closures, puis quatre de plus :
+//   11 jours   chiffres ISO des jours retenus, 1 = lundi … 7 = dimanche (« 12345 ») ; vide = tous
+//   12 heures  une plage HH:MM-HH:MM, ou plusieurs séparées par « ; » (« 08:00-12:00;13:30-17:30 ») ;
+//              une fin antérieure au début est une nuit (« 21:00-06:00 »)
+//   13 fériés  skip (sauter les jours fériés) ou none
+//   14 pays    code ISO 3166 (« FR »), ou pays-région (« AU-NSW ») : le calendrier des fériés
+// Début et fin (colonnes 2 et 3) bornent la PÉRIODE : WCT la déplie avec le moteur de Configurer
+// (WMECreneaux), une fermeture par jour retenu et par plage, puis rogne ce qui déborde.
+// ⚠️⚠️ POURQUOI « add-rec » ET PAS « add » : Advanced Closures lit les 11 premières colonnes et
+//    ignore le reste. Une ligne « add » à récurrence y serait lue comme UNE fermeture continue du
+//    premier au dernier jour — des semaines de route fermée jour et nuit au lieu de 7h30-18h en
+//    semaine. « add-rec » est ignoré par AC (il ne garde que add/remove) : il ne pose rien plutôt
+//    que de poser faux. Même choix que « add-turn » pour les virages.
+// Né de la passe Inforoutes du 30/09/2026 : 394 chantiers datés au jour, 13 000 lignes s'il avait
+// fallu écrire une ligne par jour — et autant d'entrées de file.
+const CSV_REC_RE=[/^[1-7]*$/,/^(\d{1,2}:\d{2}-\d{1,2}:\d{2})(;\d{1,2}:\d{2}-\d{1,2}:\d{2})*$/,/^(skip|none)?$/i,/^([A-Za-z]{2}(-[A-Za-z0-9]{1,3})?)?$/];
 // ⚠️ Le message reprend des CELLULES BRUTES du fichier importé (voir parseCSV et
 // parseTurnCSV, qui recopient la cellule fautive dans le compte rendu) : il DOIT être
 // échappé. Un CSV de fermetures partagé entre éditeurs — l'usage même de la fonction —
@@ -17082,6 +17177,20 @@ class CsvClosure{
         this.direction=r[4];this.permanent=r[5];this.segIDs=r[6].split(';').map(Number);
         this.zoom=parseInt(r[8]);this.eventId=(r[9]&&r[9]!=='')?r[9]:null;this.comment=r[10]||'';
         this.isValid=false;
+        // Récurrence : seulement sur une ligne « add-rec » (voir CSV_REC_RE). Une ligne « add »
+        // garde le sens d'Advanced Closures — une fermeture, du début à la fin — même si un
+        // fichier lui ajoute des colonnes.
+        this.creneau=null;
+        if(r[0]==='add-rec'){
+            const jours=String(r[11]||'').trim()||'1234567', heures=String(r[12]||'').trim();
+            if(!heures){this.err='heures manquantes';return;}
+            const days=[false,false,false,false,false,false,false];   // index 0 = dimanche, comme Date.getDay
+            for(const c of jours) days[Number(c)%7]=true;
+            this.creneau={jours,heures,days,
+                plages:heures.split(';').map(p=>p.split('-').map(h=>h.padStart(5,'0'))),
+                feries:String(r[13]||'none').toLowerCase()==='skip'?'skip':'none',
+                pays:String(r[14]||'').trim().toUpperCase()||null};
+        }
         let m=r[7].match(/lon=(-?\d+\.?\d*)&lat=(-?\d+\.?\d*)/);
         if(!m)m=r[7].match(/lat=(-?\d+\.?\d*)&lon=(-?\d+\.?\d*)/);
         if(!m){this.err='lonlat invalide';return;}
@@ -17224,16 +17333,21 @@ const _impNomType = (ty) => ty === 'csv' ? t('impTypeCsv') : ty === 'trace' ? t(
 // ce réglage unique en écrase plusieurs : « Ajouter à la file » devient le bouton plein
 // et l'aide dit ce que Sélectionner perdrait.
 // Nombre de réglages distincts portés par les lignes (tout sauf segments et position).
+// Une ligne « add-rec » compte à part : sa récurrence est un réglage que Sélectionner jetterait
+// (il ne garde que les segments), donc « Ajouter à la file » doit rester le bouton plein.
 const _csvReglages = (adds) => new Set(adds.map(it => { const c = it.closure;
-    return [c.startDate, c.endDate, c.reason, c.direction, c.permanent, c.eventId || ''].join('\u0001'); })).size;
+    return [c.startDate, c.endDate, c.reason, c.direction, c.permanent, c.eventId || '',
+            c.creneau ? [c.creneau.jours, c.creneau.heures, c.creneau.feries, c.creneau.pays || ''].join('|') : ''].join('\u0001'); })).size;
 const _impCsvChoix = async (f) => {
     const texte = await _impLireTout(f);
     const items = parseCSV(texte);
-    const adds = (items || []).filter(it => it.action === 'add' && it.closure.isValid && it.closure.segIDs.length);
+    const adds = (items || []).filter(it => (it.action === 'add' || it.action === 'add-rec') && it.closure.isValid && it.closure.segIDs.length);
     if(!adds.length || _sweepRunning){ handleCSV([f]); _impVersOnglet('cfg'); return; }
     const ids = new Set(adds.flatMap(it => it.closure.segIDs.map(Number).filter(Boolean)));
     const nReglages = _csvReglages(adds);
-    const fileDabord = nReglages > 1;
+    // Une récurrence (ligne add-rec) est perdue par Sélectionner, même seule dans le fichier.
+    const avecRec = adds.some(it => it.closure.creneau);
+    const fileDabord = nReglages > 1 || avecRec;
     // Emprise à inventorier : les positions portées par le fichier, élargies d'environ
     // 1 km — une ligne ne porte que le CENTRE de ses segments.
     const lo = adds.map(it => it.closure.lonlat.lon), la = adds.map(it => it.closure.lonlat.lat);
@@ -17247,7 +17361,7 @@ const _impCsvChoix = async (f) => {
           '<button type="button" class="wct-btn' + (fileDabord ? ' wct-btn-primary' : '') + ' wct-btn-sm" id="wct-csv-file" title="' +
             escHtml(t('tipCsvChoixFile')) + '">' + escHtml(t('csvChoixFile')) + '</button>' +
         '</div>' +
-        '<div class="wct-zp-hint">' + escHtml(fileDabord ? t('csvChoixAideDiff', nReglages) : t('csvChoixAide')) + '</div>');
+        '<div class="wct-zp-hint">' + escHtml(avecRec ? t('csvChoixAideRec') : fileDabord ? t('csvChoixAideDiff', nReglages) : t('csvChoixAide')) + '</div>');
     el.querySelector('#wct-csv-sel')?.addEventListener('click', () => {
         _zonePanelHide(); _impVersOnglet('cfg');
         _polyProcessRings(null, { ids, bbox });
@@ -17255,6 +17369,53 @@ const _impCsvChoix = async (f) => {
     el.querySelector('#wct-csv-file')?.addEventListener('click', () => {
         _zonePanelHide(); handleCSV([f]); _impVersOnglet('cfg');
     });
+};
+// ─── Récurrence d'une ligne add-rec → fermetures ─────────────────────────────
+// Rend {list:[{start,end}] (chaînes AAAA-MM-JJ HH:MM, heure locale), iso} ou {err}.
+// Le calendrier des fériés : colonne pays, sinon le pays du premier segment s'il est chargé.
+// ⛔ Jamais « pas de pays ⇒ pas de filtre » : une ligne « sauf fériés » qui fermerait le
+//    1er novembre est pire qu'une ligne refusée, qui se voit.
+const _csvDeplier=async(cl,dep)=>{
+    const c=cl.creneau; const d=dep||{};
+    let pays=c.pays;
+    if(c.feries==='skip'&&!pays){
+        const nom=(d.nomPays||getSegmentCountryName)(cl.segIDs[0]);
+        pays=nom?await (d.iso||resolveCountryIso)(nom):null;
+        if(!pays) return {err:'csvRecNoCountry'};
+    }
+    const [iso,region]=pays?[pays.slice(0,2),pays.length>2?pays:'']:[null,''];
+    const toutes=[];
+    for(const [st,et] of c.plages){
+        const r=await (d.moteur||WMECreneaux).generer({rangestart:cl.startDate.slice(0,10),rangeend:cl.endDate.slice(0,10),
+            starttime:st,endtime:et,timemode:'end',durday:'0',activeTab:'wct-tab-each',days:c.days,holidayMode:c.feries},
+            {max:2000,pays:()=>iso,feries:async(p,a,b)=>(d.feries||getHolidaysForRange)(iso,a,b,region)});
+        if(r.erreur) return {err:r.erreur.code,args:r.erreur.args};
+        if((r.avis||[]).some(a=>a.code==='holidaysUnavailable')) return {err:'csvRecHolidaysKo'};
+        toutes.push(...r.list);
+    }
+    // Rognées aux bornes de la ligne (le moteur raisonne en jours entiers), et sans ce qui est
+    // déjà passé : WME refuse une fermeture terminée, et une file pleine de refus ne dit rien.
+    const lire=x=>new Date(String(x).replace(' ','T'));
+    const s0=lire(cl.startDate), e0=lire(cl.endDate), now=d.maintenant||new Date();
+    const list=toutes.map(x=>({start:new Date(Math.max(x.start,s0)),end:new Date(Math.min(x.end,e0))}))
+        .filter(x=>x.end>x.start&&x.end>now).sort((a,b)=>a.start-b.start)
+        .map(x=>({start:dateToUTCStr(x.start),end:dateToUTCStr(x.end)}));
+    return {list,iso:pays};
+};
+// Réglage de récurrence d'une entrée de file, pour l'export en une ligne add-rec — ou null
+// quand le format ne sait pas le dire (Répéter, En continu, durée de plus d'un jour, « seulement
+// les fériés » / « + fériés ») : l'export retombe alors sur une ligne par fermeture.
+const _recDeEntree=(e)=>{
+    const c=e.config||{};
+    if(c.recCsv) return c.recCsv;   // entrée venue d'une ligne add-rec : on rend ce qu'on a lu
+    if(e.source==='turn'||(c.activeTab||'wct-tab-each')!=='wct-tab-each') return null;
+    if(c.timemode!=='end'||(parseInt(c.durday)||0)!==0) return null;
+    if(!['none','skip'].includes(c.holidayMode||'none')) return null;
+    const dj=Array.isArray(c.days)?c.days:[true,true,true,true,true,true,true];
+    const jours=[1,2,3,4,5,6,0].filter(i=>dj[i]).map(i=>i===0?7:i).join('');
+    const pays=(c.holidayMode==='skip')?(c.holidayRegion||c.holidayIso||''):'';
+    if(c.holidayMode==='skip'&&!pays) return null;
+    return {jours,heures:`${c.starttime}-${c.endtime}`,feries:c.holidayMode==='skip'?'skip':'none',pays};
 };
 const _impUnFichier = async (f) => {
     const texte = await _impLire(f);
@@ -17304,9 +17465,12 @@ const _impFichiers = async (files) => {
 };
 
 const parseCSV=text=>{
-    const rows=CSVtoArray(text).filter(r=>r.length>=1&&['add','remove'].includes(r[0]));
+    const rows=CSVtoArray(text).filter(r=>r.length>=1&&['add','add-rec','remove'].includes(r[0]));
     let fb='';
-    rows.forEach((r,l)=>r.forEach((cell,i)=>{if(i<CSV_RE.length&&!CSV_RE[i].test(cell))fb+=`L${l} c${i}: "${cell}"\n`;}));
+    rows.forEach((r,l)=>r.forEach((cell,i)=>{
+        if(i<CSV_RE.length&&!CSV_RE[i].test(cell))fb+=`L${l} c${i}: "${cell}"\n`;
+        else if(r[0]==='add-rec'&&i>=11&&i<11+CSV_REC_RE.length&&!CSV_REC_RE[i-11].test(String(cell).trim()))fb+=`L${l} c${i}: "${cell}"\n`;
+    }));
     if(fb){csvLog(fb);return null;}
     return rows.map((r,i)=>({action:r[0],closure:new CsvClosure(r,i)}));
 };
@@ -17359,7 +17523,7 @@ const parseTurnCSV=(rows)=>{
 const handleCSV=files=>{
     for(const f of files){
         const r=new FileReader();
-        r.onload=e=>{
+        r.onload=async e=>{
             const logEl=$id('wct-csv-log');
             if(logEl) logEl.style.display='block';
 
@@ -17383,8 +17547,8 @@ const handleCSV=files=>{
             // WCT n'en supprime pas. Mise en file, elle était posée comme un AJOUT — et, l'entrée
             // comblant ses trous par défaut, ce qu'on demandait de lever se retrouvait fermé.
             // Elle est écartée, et comptée dans le journal (audit du 25/09/2026).
-            const items=tout.filter(it=>it.action==='add');
-            const nRemove=tout.length-items.length;
+            const items=tout.filter(it=>it.action==='add'||it.action==='add-rec');
+            const nRemove=tout.filter(it=>it.action==='remove').length;
             // Garde-fou volume : avertir avant d'ajouter un très gros lot (freeze possible).
             const valid=items.filter(it=>it.closure.isValid);
             const totalSeg=valid.reduce((s,it)=>s+it.closure.segIDs.length,0);
@@ -17392,15 +17556,25 @@ const handleCSV=files=>{
                 if(logEl)logEl.innerHTML=t('csvImportCancelled');
                 return;
             }
-            let added=0,errors=0;
-            items.forEach(it=>{
-                if(!it.closure.isValid){errors++;return;}
+            let added=0,errors=0,nOcc=0;
+            for(const it of items){
+                if(!it.closure.isValid){errors++;continue;}
                 const cl=it.closure;
                 const dir=cl.direction==='A to B'?1:cl.direction==='B to A'?2:3;
                 const cfg={reason:cl.reason,direction:String(dir),ignoretraffic:cl.permanent==='Yes',mteId:cl.eventId||'',closeNodes};
-                const csvEntry={segIds:cl.segIDs,config:cfg,closures:[{start:cl.startDate,end:cl.endDate}],
+                let closures=[{start:cl.startDate,end:cl.endDate}];
+                let detail=dirStr(dir)+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16);
+                if(cl.creneau){
+                    const dp=await _csvDeplier(cl);
+                    if(dp.err){ errors++; csvLog(t('csvRecErr',it.closure.id+1,_creneauxTexte(dp.err,dp.args||[]))+'\n'); continue; }
+                    if(!dp.list.length){ csvLog(t('csvRecVide',it.closure.id+1)+'\n'); continue; }
+                    closures=dp.list; nOcc+=dp.list.length;
+                    cfg.recCsv={jours:cl.creneau.jours,heures:cl.creneau.heures,feries:cl.creneau.feries,pays:dp.iso||''};
+                    detail=dirStr(dir)+' · '+t('csvRecDetail',dp.list.length,cl.creneau.jours,cl.creneau.heures)+(cl.creneau.feries==='skip'?' · '+t('csvRecSansFeries'):'');
+                }
+                const csvEntry={segIds:cl.segIDs,config:cfg,closures,
                     label:cl.reason||'CSV',
-                    detail:dirStr(dir)+' · '+cl.startDate.slice(0,16)+' → '+cl.endDate.slice(0,16),
+                    detail,
                     source:'csv',
                     // Le fichier PORTE sa position : les colonnes lon/lat et zoom du format
                     // Advanced Closures. CsvClosure les lisait déjà (this.lonlat, this.zoom)
@@ -17412,9 +17586,11 @@ const handleCSV=files=>{
                 if(csvConflicts.length) csvEntry.excludedSegs=csvConflicts;
                 queue.push(csvEntry);
                 added++;
-            });
+            }
             renderQueue();
-            if(logEl) logEl.innerHTML=t('csvAdded',added,errors||0)+(nRemove?'<br>'+escHtml(t('csvRemoveSkipped',nRemove)):'');
+            // ⚠️ `+=`, pas `=` : les lignes refusées d'une récurrence viennent d'être écrites
+            //    dans ce même journal par csvLog, les écraser les ferait disparaître.
+            if(logEl) logEl.innerHTML+=t('csvAdded',added,errors||0)+(nOcc?' '+escHtml(t('csvRecOcc',nOcc)):'')+(nRemove?'<br>'+escHtml(t('csvRemoveSkipped',nRemove)):'');
         };
         r.readAsText(f);
     }

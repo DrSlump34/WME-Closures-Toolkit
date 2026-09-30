@@ -66,6 +66,12 @@ dates, queuing them is the main choice:
   machines; double-clicking the header restores automatic sizing.
 - **Search** — find existing closures across segments and turns, filter by partner.
 - **CSV export** — separate exports for segment closures and turn closures.
+- **Recurring CSV rows (`add-rec`)** — one row describes a whole schedule: after the 11 Advanced
+  Closures columns come *days* (`12345` = Monday to Friday), *hours* (`07:30-18:00`, a night
+  `21:00-06:00`, or several ranges `08:00-12:00;13:30-17:30`), *holidays* (`skip`) and *country*
+  (`FR`). WCT expands the row with the Configure engine into a single queue entry, and exporting
+  the queue writes an untouched *Each day* entry back as one such row. Advanced Closures ignores
+  `add-rec` rows instead of reading them as one continuous closure.
 - **Partner source** — record and display which partner a closure originates from.
 - **Major Traffic Event (MTE)** support.
 - **Public holidays, down to the region** — a recurrence can skip them, target only them, or add

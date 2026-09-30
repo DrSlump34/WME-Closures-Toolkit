@@ -62,7 +62,7 @@ chk('rien en file', seul.queue.length === 0, 'file : ' + seul.queue.length);
 chk('le journal compte les 2 lignes remove écartées', /csvRemoveSkipped\(2\)/.test(seul.log), seul.log);
 
 console.log('\n— Témoin : le filtre retiré, la ligne remove doit entrer en file —');
-const sansFiltre = code.replace(".filter(it=>it.action==='add')", '');
+const sansFiltre = code.replace(".filter(it=>it.action==='add'||it.action==='add-rec')", '');
 if (sansFiltre === code) { ko++; console.log('  ECHEC le témoin n\'a pas trouvé le filtre à retirer'); }
 else {
     const t = essai(sansFiltre);
