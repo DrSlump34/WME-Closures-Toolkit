@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.22.00
+// @version      1.22.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -7726,7 +7726,11 @@ const _trousLibres=(debut,fin,occupes)=>{
 // fermetures existantes — celles d'un autre éditeur ou d'un partenaire — on complète.
 // Un sens comblé porte `fenetresF` / `fenetresR` (liste de [debut, fin] muraux) ; sans
 // elles, il se ferme sur le créneau entier.
-const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler})=>{
+// `maintenant` (heure murale, ms) : les trous DÉJÀ FINIS sont écartés. Combler autour de fermetures
+// passées fabriquait des fenêtres terminées (D11 dans l'Aude, 30/09/2026 : trois fermetures d'une heure le
+// 28/09, une fermeture continue du 28/09 au 11/12) ; Waze refuse une fermeture terminée, et l'entrée
+// entière n'était pas posée. Absent ⇒ aucun filtre (les bancs rejouent des dates fixes).
+const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler,maintenant})=>{
     const r={plan:[],absents:[],sansSens:[],dejaFermes:[],partiels:[],sensBloques:0,combles:[],trous:0};
     const occupations=(sid,fwd)=>!existantes?[]:existantes.filter(c=>
         Number(c.segmentId)===sid && !!c.isForward===fwd).map(c=>[_versMurale(c.startDate),_versMurale(c.endDate)]);
@@ -7747,8 +7751,10 @@ const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler})=>{
         if(!veutF&&!veutR){ r.sansSens.push(sid); continue; }
         const bloqF=veutF&&occupe(sid,true), bloqR=veutR&&occupe(sid,false);
         // Combler : un sens occupé en partie reçoit ses trous au lieu d'être écarté.
-        const trF=(combler&&bloqF)?_trousLibres(debut,fin,occupations(sid,true)):null;
-        const trR=(combler&&bloqR)?_trousLibres(debut,fin,occupations(sid,false)):null;
+        const trF0=(combler&&bloqF)?_trousLibres(debut,fin,occupations(sid,true)):null;
+        const trR0=(combler&&bloqR)?_trousLibres(debut,fin,occupations(sid,false)):null;
+        const aVenir=w=>(w&&maintenant!=null)?w.filter(([,b])=>b>maintenant):w;
+        const trF=aVenir(trF0), trR=aVenir(trR0);
         const fwd=veutF&&(!bloqF||(trF&&trF.length>0)), rev=veutR&&(!bloqR||(trR&&trR.length>0));
         if(!fwd&&!rev){ r.dejaFermes.push(sid); continue; }
         const p={sid,fwd,rev};
@@ -10916,7 +10922,7 @@ const addClosure=(options,okCb,koCb)=>{
     const tri=_trierAFermer({ ids:segments, dir:direction, seg:getSegById,
         inverses:inv,
         existantes:getExistingClosures(segments),
-        debut:args.startDate, fin:args.endDate, combler:!!combler });
+        debut:args.startDate, fin:args.endDate, combler:!!combler, maintenant:_versMurale(new Date()) });
     segsAbsents=tri.absents.length;
     // Une fenêtre par trou quand le sens est comblé ; sinon le créneau demandé entier.
     // args.startDate/endDate sont déjà en heure murale, comme les fenêtres de _trierAFermer.
@@ -16157,7 +16163,7 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
         const tris=entry.closures.map(cl=>{
             const r=_trierAFermer({ ids:entry.segIds, dir:dirN, seg:getSegById, inverses,
                 existantes:existCl, debut:_versMurale(cl.start), fin:_versMurale(cl.end),
-                combler:entry.config.combler!==false });
+                combler:entry.config.combler!==false, maintenant:_versMurale(new Date()) });   // comme addClosure
             return { absents:new Set(r.absents), sansSens:new Set(r.sansSens),
                      deja:new Set(r.dejaFermes), partiels:new Set(r.partiels), combles:new Set(r.combles) };
         });

@@ -146,6 +146,18 @@ chk('combler : A>B ferme 10-12, deux trous en A>B, B>A entier', pc[9] && pc[9].f
 chk('... compte : 1 segment complete, 2 trous', rc.combles.includes(9) && rc.trous === 2);
 chk('combler : entierement couvert dans les deux sens -> toujours ecarte', rc.dejaFermes.includes(5));
 chk('combler : Vaugirard (A>B couvert tout le creneau) -> B>A seul, A>B partiel', pc[4] && !pc[4].fwd && pc[4].rev && rc.partiels.includes(4));
+// Trous DÉJÀ FINIS (D11, Aude, 30/09/2026) : une fermeture continue commencée le 28/09, trois fermetures
+// d'une heure ce jour-là. Combler fabriquait trois fenêtres terminées — Waze les refuse, l'entrée entière
+// tombait. Avec `maintenant`, seule la fenêtre qui court encore reste.
+S[10] = { isTwoWay: true, isAtoB: false, isBtoA: false };
+const ex10 = [fx(10, true, '2026-09-28 08:42', '2026-09-28 09:42'), fx(10, true, '2026-09-28 13:11', '2026-09-28 14:11'), fx(10, true, '2026-09-28 18:23', '2026-09-28 19:23')];
+const d10 = _versMurale('2026-09-28 07:00'), f10 = _versMurale('2026-12-11 18:00'), m10 = _versMurale('2026-09-30 16:00');
+const r10 = _trierAFermer({ ids: [10], dir: DIR.TWO, seg, inverses: new Set(), existantes: ex10, debut: d10, fin: f10, combler: true, maintenant: m10 });
+const p10 = r10.plan.find(p => p.sid === 10);
+chk('trous déjà finis écartés : une seule fenêtre A>B, qui finit le 11/12', p10 && p10.fenetresF && p10.fenetresF.length === 1 && p10.fenetresF[0][1] === f10, JSON.stringify(p10 && p10.fenetresF));
+chk('... et B>A, libre, reste fermé sur tout le créneau', p10 && p10.rev && !p10.fenetresR);
+const t10 = _trierAFermer({ ids: [10], dir: DIR.TWO, seg, inverses: new Set(), existantes: ex10, debut: d10, fin: f10, combler: true });
+chk('témoin : sans maintenant, les 4 fenêtres reviennent (dont 3 finies)', t10.plan[0].fenetresF.length === 4, JSON.stringify(t10.plan[0].fenetresF.length));
 const rs = _trierAFermer({ ids: [9], dir: DIR.TWO, seg, inverses: new Set(), existantes: ex9, debut, fin, combler: false });
 chk('SANS combler : A>B ecarte, B>A pose (comportement 1.19.01)', rs.plan.length === 1 && !rs.plan[0].fwd && rs.plan[0].rev && !rs.plan[0].fenetresF);
 
