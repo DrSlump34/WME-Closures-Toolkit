@@ -8,8 +8,8 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.22.01
-// @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0Jz4KICA8cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxMicgZmlsbD0nIzE1NjVjMCcvPgogIDxkZWZzPjxjbGlwUGF0aCBpZD0nYic+PHJlY3QgeD0nNicgeT0nMTgnIHdpZHRoPSc1MicgaGVpZ2h0PScxMicgcng9JzQnLz48L2NsaXBQYXRoPjwvZGVmcz4KICA8cmVjdCB4PSc2JyB5PScxOCcgd2lkdGg9JzUyJyBoZWlnaHQ9JzEyJyByeD0nNCcgZmlsbD0nd2hpdGUnLz4KICA8ZyBjbGlwLXBhdGg9J3VybCgjYiknPgogICAgPGxpbmUgeDE9JzEwJyB5MT0nMTgnIHgyPScyJyAgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzIyJyB5MT0nMTgnIHgyPScxNCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzM0JyB5MT0nMTgnIHgyPScyNicgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzQ2JyB5MT0nMTgnIHgyPSczOCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogICAgPGxpbmUgeDE9JzU4JyB5MT0nMTgnIHgyPSc1MCcgeTI9JzMwJyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPgogIDwvZz4KICA8cmVjdCB4PScxMicgeT0nMzAnIHdpZHRoPSc3JyBoZWlnaHQ9JzE0JyByeD0nMy41JyBmaWxsPSd3aGl0ZScvPgogIDxyZWN0IHg9JzQ1JyB5PSczMCcgd2lkdGg9JzcnIGhlaWdodD0nMTQnIHJ4PSczLjUnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNycgIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+CiAgPHJlY3QgeD0nNDAnIHk9JzQyJyB3aWR0aD0nMTcnIGhlaWdodD0nNicgcng9JzMnIGZpbGw9J3doaXRlJy8+Cjwvc3ZnPg==
+// @version      1.22.02
+// @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
 // @description:de Wiederkehrende Sperrungen für Segmente und Abbieger: Bereich zeichnen oder importieren, aus einem GPS-Track auswählen, in die Warteschlange stellen und im Paket anwenden
@@ -71,6 +71,15 @@ const SCRIPT_ID   = 'wmeClosuresToolkit';
 // deux finit toujours par mentir. Il est desormais LU dans le bloc de metadonnees.
 // Repli sur '?' plutot qu'une valeur figee : mieux vaut avouer qu'on ne sait pas.
 const VERSION     = (typeof GM_info !== 'undefined' && GM_info?.script?.version) || '?';
+// L'icone du script : la barriere du bouton de carte, detouree, la MEME partout (onglet Scripts,
+// titre du panneau, en-tete de la fenetre, bouton de carte, @icon). Choix de l'auteur, 01/10/2026.
+// ⚠️ Un clipPath par copie : avec un id commun, toutes renverraient a la premiere posee — celle de
+// l'onglet, cachee tant qu'il est ferme — et les rayures rouges disparaitraient ailleurs (vu sur WBC).
+let wctIcones = 0;
+const iconeWct = px => { const id = 'wct-ico-' + (++wctIcones);
+    return '<svg width="' + px + '" height="' + px + '" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+        '<defs><clipPath id="' + id + '"><rect x="0" y="13" width="68" height="14" rx="5"/></clipPath></defs>' +
+        '<rect x="0" y="13" width="68" height="14" rx="5" fill="#222"/><g clip-path="url(#' + id + ')"><line x1="10" y1="13" x2="0" y2="27" stroke="#e53935" stroke-width="5"/><line x1="24" y1="13" x2="14" y2="27" stroke="#e53935" stroke-width="5"/><line x1="38" y1="13" x2="28" y2="27" stroke="#e53935" stroke-width="5"/><line x1="52" y1="13" x2="42" y2="27" stroke="#e53935" stroke-width="5"/><line x1="66" y1="13" x2="56" y2="27" stroke="#e53935" stroke-width="5"/></g><rect x="8" y="27" width="8" height="18" rx="4" fill="#222"/><rect x="52" y="27" width="8" height="18" rx="4" fill="#222"/><rect x="2" y="43" width="20" height="7" rx="3.5" fill="#222"/><rect x="46" y="43" width="20" height="7" rx="3.5" fill="#222"/></svg>'; };
 // ─── Date helper ───────────────────────────────────────────────────────────
 class JDate extends Date {
     clone()       { return new JDate(this); }
@@ -268,6 +277,7 @@ GM_addStyle(`
     min-width: 0; white-space: nowrap; overflow: hidden;
 }
 .wct-hdr-version { font-size: 0.833em; opacity:.6; flex-shrink: 0; }
+.wct-hdr-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; flex-shrink: 0; }
 /* Le compteur de file est la seule piece sacrifiable de la ligne : le nom du script et le
    numero de version, eux, ne veulent rien dire tronques. C est donc lui qui absorbe la
    compression, avec des points de suspension pour que la troncature se VOIE. */
@@ -15437,7 +15447,7 @@ const buildOverlay=()=>{
     ov.dir = isRTL() ? 'rtl' : 'ltr';
     ov.innerHTML=`
     <div id="wct-hdr">
-        <div class="wct-hdr-title" title="${t('ovHdrTip')}">&#x1F6A7; WME Closures Toolkit <span class="wct-hdr-version">v${VERSION}</span>
+        <div class="wct-hdr-title" title="${t('ovHdrTip')}"><span class="wct-hdr-ico">${iconeWct(16)}</span>WME Closures Toolkit <span class="wct-hdr-version">v${VERSION}</span>
             <span id="wct-hdr-badge" style="font-size:0.917em;opacity:.75;margin-left:4px"></span>
         </div>
         <div class="wct-hdr-btns">
@@ -17656,21 +17666,7 @@ const doInjectFab=(silent)=>{
     wzBtn.id='wct-fab-btn';
     wzBtn.setAttribute('type','button');
     wzBtn.setAttribute('title','WME Closures Toolkit');
-    wzBtn.innerHTML=`<svg width="22" height="22" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs><clipPath id="wct-bar"><rect x="0" y="13" width="68" height="14" rx="5"/></clipPath></defs>
-  <rect x="0" y="13" width="68" height="14" rx="5" fill="#222"/>
-  <g clip-path="url(#wct-bar)">
-    <line x1="10" y1="13" x2="0"  y2="27" stroke="#e53935" stroke-width="5"/>
-    <line x1="24" y1="13" x2="14" y2="27" stroke="#e53935" stroke-width="5"/>
-    <line x1="38" y1="13" x2="28" y2="27" stroke="#e53935" stroke-width="5"/>
-    <line x1="52" y1="13" x2="42" y2="27" stroke="#e53935" stroke-width="5"/>
-    <line x1="66" y1="13" x2="56" y2="27" stroke="#e53935" stroke-width="5"/>
-  </g>
-  <rect x="8"  y="27" width="8" height="18" rx="4" fill="#222"/>
-  <rect x="52" y="27" width="8" height="18" rx="4" fill="#222"/>
-  <rect x="2"  y="43" width="20" height="7" rx="3.5" fill="#222"/>
-  <rect x="46" y="43" width="20" height="7" rx="3.5" fill="#222"/>
-</svg>`;
+    wzBtn.innerHTML=iconeWct(22);
 
     const badge=document.createElement('div');
     badge.id='wct-fab-badge';
@@ -17970,7 +17966,7 @@ const connectSidebar=()=>{
 
 const buildSidebar=()=>`
 <div id="wct-sidebar" dir="${isRTL()?'rtl':'ltr'}">
-    <h2>&#x1F6A7; WME Closures Toolkit <span style="font-size:11px;font-weight:400;color:var(--wct-grey)">v${VERSION}</span></h2>
+    <h2 style="display:flex;align-items:center;gap:6px">${iconeWct(18)}WME Closures Toolkit <span style="font-size:11px;font-weight:400;color:var(--wct-grey)">v${VERSION}</span></h2>
     <p class="wct-sb-hint">${t('sbHint')}</p>
     <div class="wct-toggle-row">
         <span style="font-size:13px;font-weight:600">${t('sbToggle')}</span>
@@ -18034,7 +18030,7 @@ const init=async()=>{
         const res=await sdk.Sidebar.registerScriptTab();
         const tabLabel=res.tabLabel;
         _sbPane=res.tabPane;
-        tabLabel.innerHTML='<span title="WME Closures Toolkit" style="font-size:16px">&#x1F6A7;</span>';
+        tabLabel.innerHTML='<span title="WME Closures Toolkit" style="display:inline-flex;vertical-align:middle">'+iconeWct(20)+'</span>';
         _sbPane.innerHTML=buildSidebar();
         await new Promise(r=>setTimeout(r,200));
         connectSidebar();
