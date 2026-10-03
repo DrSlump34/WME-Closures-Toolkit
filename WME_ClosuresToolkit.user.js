@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.22.02
+// @version      1.22.03
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -9363,9 +9363,24 @@ const buildClosureList=async()=>{
     };
 };
 
+/* Durée de chaque fermeture, « h:mm ». Un champ TEXTE et non <input type="time"> : celui-ci
+   saisit une HEURE, que le navigateur affiche en AM/PM selon sa langue — « 08:00 AM » pour
+   une durée de 8 h (Trexer0, Discuss t405542 #83). La valeur rangée reste « HH:MM », celle
+   des préréglages et des lecteurs qui font split(':'). Plafond 23:59 comme avant : les jours
+   vont dans « + jours ». Rend null pour une saisie illisible. */
+const normDuree=s=>{
+    const m=/^\s*(\d{1,2})(?:\s*[:hH.]\s*(\d{2}))?\s*$/.exec(String(s??''));
+    if(!m) return null;
+    const h=+m[1], mn=m[2]===undefined?0:+m[2];
+    if(h>23||mn>59) return null;
+    return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0');
+};
+// Pendant une frappe (« 8: »), les calculs lisent la dernière valeur valide du champ.
+const durTimeVal=()=>{const el=$id('wct-dur-time');return normDuree(el?.value)??el?.dataset.ok??'08:00';};
+
 const readConfig=()=>({
     rangestart:$id('wct-rangestart')?.value||'',rangeend:$id('wct-rangeend')?.value||'',
-    starttime:$id('wct-starttime')?.value||'21:00',durtime:$id('wct-dur-time')?.value||'08:00',
+    starttime:$id('wct-starttime')?.value||'21:00',durtime:durTimeVal(),
     durday:$id('wct-dur-day')?.value||'0',endtime:$id('wct-endtime')?.value||'05:00',
     timemode:($id('wct-mode-end')?.style.display!=='none')?'end':'dur',
     reason:$id('wct-reason')?.value||'',
@@ -9389,7 +9404,8 @@ const applyConfig=cfg=>{
     const set=(id,v)=>{if($id(id))$id(id).value=v;};
     const chk=(id,v)=>{if($id(id))$id(id).checked=v;};
     set('wct-rangestart',cfg.rangestart);set('wct-rangeend',cfg.rangeend);
-    set('wct-starttime',cfg.starttime);set('wct-dur-time',cfg.durtime);set('wct-dur-day',cfg.durday);
+    set('wct-starttime',cfg.starttime);set('wct-dur-day',cfg.durday);
+    {const d=normDuree(cfg.durtime),el=$id('wct-dur-time');if(d&&el){el.value=d;el.dataset.ok=d;}}
     if(cfg.endtime)set('wct-endtime',cfg.endtime);
     if(cfg.timemode){
         // Charger un préréglage impose SA bascule, et cela devient la préférence courante —
@@ -15525,7 +15541,7 @@ const buildOverlay=()=>{
                 <!-- Ligne inputs -->
                 <input id="wct-starttime" class="wct-input" type="time" title="${t('tipStartTime')}" value="21:00">
                 <div id="wct-mode-dur" style="display:flex">
-                  <input id="wct-dur-time" class="wct-input" type="time" title="${t('tipDurTime')}" value="08:00" style="width:100%"></div>
+                  <input id="wct-dur-time" class="wct-input" type="text" maxlength="5" placeholder="h:mm" autocomplete="off" spellcheck="false" title="${t('tipDurTime')}" value="08:00" data-ok="08:00" style="width:100%"></div>
                 <div id="wct-mode-end" style="display:none">
                   <input id="wct-endtime" class="wct-input" type="time" title="${t('tipEndTime')}" value="05:00" style="width:100%"></div>
                 <input id="wct-dur-day" class="wct-input" type="number" min="0" value="0">
@@ -16625,7 +16641,7 @@ const connectOverlay=ov=>{
         } else {
             // mode dur : overnight si heure début + durée h:mm dépasse minuit
             const[stH,stM]=($id('wct-starttime')?.value||'00:00').split(':').map(Number);
-            const[dH,dM]=($id('wct-dur-time')?.value||'00:00').split(':').map(Number);
+            const[dH,dM]=durTimeVal().split(':').map(Number);
             const endMin=(stH*60+stM)+(dH*60+dM);
             const overnightDur=endMin>=1440;
             n=extra+(overnightDur?1:0);
@@ -16641,6 +16657,19 @@ const connectOverlay=ov=>{
         }
         refreshSmallPreview();
     };
+    // Durée : remise au format à la sortie du champ, AVANT les écouteurs qui la lisent.
+    // Une saisie illisible n'est pas jetée en silence : le champ revient à la dernière
+    // valeur valide et se cadre de rouge jusqu'à la frappe suivante.
+    const durEl=$id('wct-dur-time');
+    durEl?.addEventListener('change',()=>{
+        const d=normDuree(durEl.value);
+        const ko=!d;
+        durEl.value=d||durEl.dataset.ok||'08:00';
+        if(d) durEl.dataset.ok=d;
+        durEl.style.borderColor=ko?'#d32f2f':'';
+        durEl.style.boxShadow=ko?'0 0 0 3px rgba(211,47,47,.2)':'';
+    });
+    durEl?.addEventListener('input',()=>{durEl.style.borderColor='';durEl.style.boxShadow='';});
     $id('wct-endtime')?.addEventListener('change',checkJpN);
     $id('wct-dur-time')?.addEventListener('change',checkJpN);
     $id('wct-starttime')?.addEventListener('change',checkJpN);
@@ -16789,7 +16818,7 @@ const connectOverlay=ov=>{
             const base=etMin>stMin?etMin-stMin:(1440-stMin+etMin);
             dur=base+xDays*1440;
         } else {
-            const dt=($id('wct-dur-time')?.value||'00:00').split(':').map(Number);
+            const dt=durTimeVal().split(':').map(Number);
             dur=xDays*1440+dt[0]*60+dt[1];
         }
         const msgs=[];
