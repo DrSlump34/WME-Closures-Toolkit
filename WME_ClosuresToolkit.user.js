@@ -7889,17 +7889,33 @@ const _trierAFermer=({ids,dir,seg,inverses,existantes,debut,fin,combler,maintena
 // segment non chargé faisait perdre TOUS les inversés. On ne lui passe donc que les segments
 // chargés, dans l'ordre de la liste. La référence reste le premier segment chargé — c'est pourquoi
 // _inversesDe ne FIGE le résultat que lorsque toute la liste est chargée.
-const _inversesListe=(ids)=>{
+// Asynchrone (SDK async). Rend une promesse du Set.
+const _inversesListe=async(ids)=>{
     const charges=ids.map(Number).filter(id=>getSegById(id));
     if(!charges.length) return new Set();
-    try{ return new Set((sdk.DataModel.Segments.getReversedSegments({segmentIds:charges})||[]).map(r=>Number(r.id))); }
+    try{ return new Set(((await sdk.DataModel.Segments.getReversedSegments({segmentIds:charges}))||[]).map(r=>Number(r.id))); }
     catch(e){ log('getReversedSegments: '+e.message); return new Set(); }
 };
+// Synchrone, pour le rendu de la file : la valeur FIGÉE de l'entrée (posée à la validation dans
+// Configurer, ou ici dès que toute la liste est chargée), sinon le dernier calcul fait pour les
+// segments chargés du moment. Un calcul part en arrière-plan quand ces segments ont changé, et la
+// file se redessine à son retour. ⚠️ Rangé à côté de l'entrée (WeakMap), pas DANS l'entrée : la
+// file est sauvegardée telle quelle.
+const _invCalc=new WeakMap();
 const _inversesDe=(entry)=>{
     if(Array.isArray(entry.inverses)) return new Set(entry.inverses.map(Number));
-    const set=_inversesListe(entry.segIds||[]);
-    if((entry.segIds||[]).length && entry.segIds.every(sid=>getSegById(sid))) entry.inverses=[...set];
-    return set;
+    const ids=entry.segIds||[];
+    const sig=ids.filter(id=>getSegById(id)).join(',');
+    const c=_invCalc.get(entry)||{};
+    if(c.sig!==sig && !c.enCours){
+        _invCalc.set(entry,{...c,enCours:true});
+        _inversesListe(ids).then(set=>{
+            if(ids.length && ids.every(sid=>getSegById(sid))) entry.inverses=[...set];
+            _invCalc.set(entry,{sig,set,enCours:false});
+            try{ renderQueue(); }catch(e){}
+        });
+    }
+    return new Set(c.set||[]);
 };
 // ─── Vérifie la compatibilité sens de circulation / direction de fermeture ──
 // Retourne les segments en conflit : [{sid, name, segDirLabel}]
@@ -7907,7 +7923,7 @@ const _inversesDe=(entry)=>{
 // quand l'appelant l'a déjà, évite de recalculer sur une autre liste.
 const getSegDirConflicts=(segIds,requestedDir,inverses)=>{
     if(requestedDir===DIR.TWO) return []; // double sens : toujours compatible
-    const inv=inverses||_inversesListe(segIds);
+    const inv=inverses||new Set();
     const conflicts=[];
     for(const sid of segIds){
         const seg=getSegById(sid);
@@ -7966,16 +7982,26 @@ const getTurnGeom=(nodeId,turn)=>{
         return {delta:Math.round(delta), arrow:sec.arrow, key:sec.key};
     }catch(e){ return null; }
 };
+// Virages par nœud, relus de façon asynchrone (SDK async) et gardés jusqu'au prochain
+// chargement de données : { tours, editable, fermables:Set(turnId) }. Les lectures sont
+// synchrones ; un nœud absent du cache se charge par _chargerVirages, puis on redessine.
+const _virages=new Map();
+const _chargerVirages=async(nodeId)=>{
+    const n=Number(nodeId);
+    let tours=[], editable=false;
+    try{ tours=(await sdk.DataModel.Turns.getTurnsThroughNode({nodeId:n}))||[]; }catch(e){}
+    try{ editable=!!(await sdk.DataModel.Turns.canEditTurnsThroughNode({nodeId:n})); }catch(e){}
+    const fermables=new Set();
+    for(const tn of tours){ try{ if(await sdk.DataModel.Turns.getById({turnId:tn.id})) fermables.add(tn.id); }catch(e){} }
+    const v={tours,editable,fermables};
+    _virages.set(n,v);
+    return v;
+};
+const _viragesManquants=nodeIds=>[...new Set(nodeIds.filter(Boolean).map(Number))].filter(n=>!_virages.has(n));
 // Virages partant du segment segId par le noeud nodeId.
-const getTurnsAtNode=(segId,nodeId)=>{
-    try{
-        return sdk.DataModel.Turns.getTurnsThroughNode({nodeId:Number(nodeId)})
-            .filter(tn=>Number(tn.fromSegmentId)===Number(segId));
-    }catch(e){ return []; }
-};
-const canEditTurnsAt=(nodeId)=>{
-    try{ return sdk.DataModel.Turns.canEditTurnsThroughNode({nodeId:Number(nodeId)}); }catch(e){ return false; }
-};
+const getTurnsAtNode=(segId,nodeId)=>
+    (_virages.get(Number(nodeId))?.tours||[]).filter(tn=>Number(tn.fromSegmentId)===Number(segId));
+const canEditTurnsAt=(nodeId)=>!!_virages.get(Number(nodeId))?.editable;
 // Un virage fermable doit exister dans le data model.
 // ⚠️ VERIFIE EN LIVE : getTurnsThroughNode renvoie AUSSI des virages fantomes —
 // typiquement les demi-tours d'un segment sur lui-meme — que getById ne trouve pas
@@ -7983,7 +8009,8 @@ const canEditTurnsAt=(nodeId)=>{
 // ... not found in data model »). On teste donc la presence reelle plutot que de
 // se fier a isUTurn, qui n'est qu'un symptome.
 const isTurnClosable=(turn)=>{
-    try{ return !!sdk.DataModel.Turns.getById({turnId:turn.id}); }catch(e){ return false; }
+    for(const v of _virages.values()) if(v.fermables.has(turn.id)) return true;
+    return false;
 };
 // Fermetures de virage deja posees, pour un virage donne.
 // L'objet TurnClosure ne porte PAS de turnId : le recoupement se fait donc sur le
@@ -8409,6 +8436,7 @@ const checkSelectionCountry=segIds=>{
 const waitMapLoaded=()=>_attendreCarte().then(async()=>{
     if(_applyAborted) return;
     await _wmeTout();
+    _virages.clear();
     if(!_sdkFermeturesLisibles()) await _rafraichirFermeturesApi();
 });
 const _attendreCarte=async()=>{
@@ -9603,6 +9631,16 @@ const renderTurnsPane = () => {
         const msg = (sel.objectType === 'segment' && sel.ids.length > 1) ? t('tnMultiSel') : t('tnNoSel');
         box.innerHTML = `<div class="wct-tn-hint">${escHtml(msg)}</div>`;
         _turnNodeId = null; _turnChecked.clear();
+        return;
+    }
+    // Les deux extrémités doivent être dans le cache des virages ; sinon, les charger et
+    // revenir (le volet se redessine seul).
+    const manq=_viragesManquants([seg.fromNodeId, seg.toNodeId]);
+    if(manq.length){
+        if(!box.dataset.wctChargeVir){
+            box.dataset.wctChargeVir='1';
+            Promise.all(manq.map(_chargerVirages)).finally(()=>{ delete box.dataset.wctChargeVir; renderTurnsPane(); });
+        }
         return;
     }
     // Une extremite n'est utilisable que si elle offre au moins un virage FERMABLE.
@@ -11047,7 +11085,7 @@ const showPreview=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
-const addClosure=(options,okCb,koCb)=>{
+const addClosure=async(options,okCb,koCb)=>{
     const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses,nodesInside}=options;
     // Les fermetures créées se comptent par ce que rend addClosure (la fermeture créée,
     // d'après la doc du SDK). Jusqu'à la 1.22.04, c'était un diff de `W.model` avant/après,
@@ -11079,7 +11117,7 @@ const addClosure=(options,okCb,koCb)=>{
     if(modeNoeuds===NODE_CL.inside){interieurs=nodesInside||_noeudsInterieurs(segments);}
     // Les segments à l'envers viennent de l'ENTRÉE (voir _inversesDe) : recalculés ici sur
     // `segments` — un lot, une moitié — ils changeraient de référence.
-    const inv=inverses||_inversesListe(segments);
+    const inv=inverses||await _inversesListe(segments);
     const args={description:reason,endDate:ed.valueOf()-edoff,fromNodeClosed:false,isForward:false,isPermanent:permanent,segmentId:0,startDate:sd.valueOf()-sdoff,trafficEventId:eventId||null};
     const loopErrors=[];
     // Trier AVANT d'écrire : ce qui est déjà fermé sur le créneau, ou n'a aucun sens
@@ -11095,18 +11133,20 @@ const addClosure=(options,okCb,koCb)=>{
     for(const {sid,fwd,rev,fenetresF,fenetresR} of tri.plan){
         args.segmentId=sid; const seg=getSegById(sid);
         if(interieurs){fromClosed=interieurs.has(Number(seg.fromNodeId));toClosed=interieurs.has(Number(seg.toNodeId));}
-        const poser=(sensAvant,noeud,fenetres,lib)=>{
+        // ⚠️ await DANS le try : en async, un refus du SDK est une promesse REJETÉE, que le
+        // catch ne verrait pas sans lui — le segment serait compté posé.
+        const poser=async(sensAvant,noeud,fenetres,lib)=>{
             for(const [a,b] of fenetres){
                 try{
-                    const cree = sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b});
+                    const cree = await sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b});
                     segsPoses.add(sid);
                     if(cree && cree.id != null) _creees.push(String(cree.id)); else _idsLisibles = false;
                 }
                 catch(e){ loopErrors.push(`seg ${sid} ${lib}: ${e.message}`); }
             }
         };
-        if(fwd) poser(true, fromClosed, fenetresF||pleine, 'fwd');
-        if(rev) poser(false, toClosed, fenetresR||pleine, 'rev');
+        if(fwd) await poser(true, fromClosed, fenetresF||pleine, 'fwd');
+        if(rev) await poser(false, toClosed, fenetresR||pleine, 'rev');
     }
     if(loopErrors.length>0){log('addClosure errors: '+loopErrors.join(' | '));}
     // ─── SOURCE (partenaire) : poser provider/attributions AVANT save() ───
@@ -11147,16 +11187,25 @@ const addClosure=(options,okCb,koCb)=>{
             // cosmétique. Si l'annulation elle-même échoue, le taire laisserait
             // l'éditeur croire que rien n'a été écrit alors que si.
             let annule = true;
-            try{ sdk.Editing.undoAll(); }catch(err){ annule = false; log('addClosure/undoAll: '+err.message); }
+            try{ await sdk.Editing.undoAll(); }catch(err){ annule = false; log('addClosure/undoAll: '+err.message); }
             koCb&&koCb([annule ? t('srcApplyFail') : t('srcApplyFailNoUndo')], bilan);
             return;
         }
     }
-    sdk.Editing.save().then(v=>{
+    let v;
+    try{ v=await sdk.Editing.save(); }
+    catch(r){
+        // Une promesse rejetée laisse les fermetures en attente dans l'éditeur : les
+        // défaire, sinon le prochain save() les renverrait avec le lot suivant.
+        try{ await sdk.Editing.undoAll(); }catch(e){ log('addClosure/undoAll apres refus: '+e.message); }
+        bilan.refusServeur=true; koCb&&koCb([r?.message||String(r)], bilan);
+        return;
+    }
+    {
         const er=document.querySelector('.error-list');
         // refusServeur : c'est Waze qui a dit non. Seul ce cas autorise applyQueue à
         // recouper le lot pour isoler le fautif (voir _poserParMoitie).
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();bilan.refusServeur=true;koCb&&koCb([msg], bilan);}
+        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();await _essai(()=>sdk.Editing.undoAll(),'addClosure/undoAll');bilan.refusServeur=true;koCb&&koCb([msg], bilan);}
         // ⚠️ CORROBORATION. `.error-list` est un nœud de l'interface de WAZE, pas un
         // contrat : le jour où cette classe est renommée, `er` vaut null et TOUT refus
         // deviendrait un succès annoncé — sur l'opération la plus coûteuse du script.
@@ -11168,12 +11217,7 @@ const addClosure=(options,okCb,koCb)=>{
         // plus que le DOM — bilan.objets vaut null et le dit.
         else if(_nouvelles && !_nouvelles.length){ koCb&&koCb([t('applyNothingWritten')], bilan); }
         else{okCb&&okCb(v, bilan);}
-    },r=>{
-        // Une promesse rejetée laisse les fermetures en attente dans l'éditeur : les
-        // défaire, sinon le prochain save() les renverrait avec le lot suivant.
-        try{ sdk.Editing.undoAll(); }catch(e){ log('addClosure/undoAll apres refus: '+e.message); }
-        bilan.refusServeur=true; koCb&&koCb([r?.message||String(r)], bilan);
-    });
+    }
 };
 // Re-résout les virages d'une entrée à partir de leur IDENTITÉ SÉMANTIQUE
 // (from → to via le nœud), et non du turn id stocké. Rend [{orig, id}] : `orig` est
@@ -11181,7 +11225,8 @@ const addClosure=(options,okCb,koCb)=>{
 // ⚠️ Indispensable pour l'import CSV : le turn id est un composite dérivé des
 // segments, il ne résout plus si le carrefour a été retracé depuis l'export.
 // Pour une entrée créée dans l'onglet Virages, la résolution retombe sur le même id.
-const _resolveTurnIds=(e)=>{
+const _resolveTurnIds=async(e)=>{
+    await _chargerVirages(e.turnNodeId);
     const out=[];
     const dispo=getTurnsAtNode(e.turnSegId,e.turnNodeId);
     (e.turnMeta||[]).forEach(tm=>{
@@ -11207,7 +11252,7 @@ const _resolveTurnIds=(e)=>{
 // Le parametre est optionnel : il faut l'OMETTRE, pas le passer a null. Sans ca,
 // chaque virage echouait, save() n'avait plus rien a sauver et remontait un
 // « InvalidStateError: Save is disabled » qui masquait la vraie cause.
-const addTurnClosure=(options,okCb,koCb)=>{
+const addTurnClosure=async(options,okCb,koCb)=>{
     const{turnIds,reason,startDate,endDate,permanent,eventId}=options;
     const sd=new Date(startDate),ed=new Date(endDate);
     const sdoff=sd.getTimezoneOffset()*60000;
@@ -11219,7 +11264,7 @@ const addTurnClosure=(options,okCb,koCb)=>{
     // qui compte les poses. Le cliche des identifiants ne sert qu'a le corroborer, et
     // deux mesures independantes ne tombent pas ensemble.
     let idsAvant=null;
-    try{ idsAvant=new Set(sdk.DataModel.TurnClosures.getAll().map(c=>String(c.id))); }
+    try{ idsAvant=new Set(((await sdk.DataModel.TurnClosures.getAll())||[]).map(c=>String(c.id))); }
     catch(e){ log('addTurnClosure/getAll avant: '+e.message); }
     const loopErrors=[];
     let poses=0;
@@ -11228,12 +11273,12 @@ const addTurnClosure=(options,okCb,koCb)=>{
         // Ne crediter QUE ce que le SDK rend. Un virage refuse — virage interdit, ou rang
         // insuffisant au regard de allowRoadClosureRank du pays — leve ici : le compter
         // comme pose afficherait « applique » sur une fermeture absente de la carte.
-        try{ if(sdk.DataModel.TurnClosures.addClosure(args)) poses++; }
+        try{ if(await sdk.DataModel.TurnClosures.addClosure({...args})) poses++; }
         catch(e){ loopErrors.push(`turn ${tid}: ${e.message}`); }
     }
     let objets=null;
     if(idsAvant){
-        try{ objets=sdk.DataModel.TurnClosures.getAll().filter(c=>!idsAvant.has(String(c.id))).length; }
+        try{ objets=((await sdk.DataModel.TurnClosures.getAll())||[]).filter(c=>!idsAvant.has(String(c.id))).length; }
         catch(e){ log('addTurnClosure/getAll apres: '+e.message); }
     }
     // FILET DE VERSION : si addClosure cesse un jour de rendre la fermeture creee, `poses`
@@ -11249,17 +11294,19 @@ const addTurnClosure=(options,okCb,koCb)=>{
     // Rien n'a ete pose : save() n'aurait rien a sauver et remonterait « Save is disabled »,
     // qui masque la vraie cause. On tranche avant, avec le motif.
     if(poses===0){ koCb&&koCb([cause||t('applyNothingWritten')], bilan); return; }
-    sdk.Editing.save().then(v=>{
-        const er=document.querySelector('.error-list');
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();sdk.Editing.undoAll();koCb&&koCb([msg], bilan);}
-        else{okCb&&okCb(v, bilan);}
-    },r=>{
+    let v;
+    try{ v=await sdk.Editing.save(); }
+    catch(r){
         // Jumeau du chemin des segments : une promesse rejetée laisse les fermetures de virage
         // EN ATTENTE dans l'éditeur. Sans undoAll, le save() du lot suivant les publiait alors
         // que cette carte affichait un échec (audit du 25/09/2026).
-        try{ sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }
+        try{ await sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }
         koCb&&koCb([r?.message||String(r)], bilan);
-    });
+        return;
+    }
+    const er=document.querySelector('.error-list');
+    if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();await _essai(()=>sdk.Editing.undoAll(),'addTurnClosure/undoAll');koCb&&koCb([msg], bilan);}
+    else{okCb&&okCb(v, bilan);}
 };
 // Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
 // Le retour visuel est immédiat : sans lui, le clic n'avait aucun effet perceptible
@@ -11544,7 +11591,7 @@ const applyQueue=async()=>{
                 // fichier est un composite dérivé des segments : il ne résout plus si le
                 // carrefour a été retracé depuis l'export. On repart donc de l'identité
                 // sémantique (from → to via le nœud), qui, elle, survit.
-                const resolus=_resolveTurnIds(e);
+                const resolus=await _resolveTurnIds(e);
                 if(!resolus.length){
                     failed+=e.turnIds.length*e.closures.length; totErreurs+=e.turnIds.length*e.closures.length; upd(done+failed);
                     logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'echec');
@@ -16100,7 +16147,7 @@ const buildQueueCard=(entry,idx)=>{
     }
     else try{
         const dirConflictIds=new Set(
-            getSegDirConflicts(entry.segIds,parseInt(entry.config.direction)).map(c=>c.sid)
+            getSegDirConflicts(entry.segIds,parseInt(entry.config.direction),_inversesDe(entry)).map(c=>c.sid)
         );
         const liveSegs=new Set(), liveOccs=new Set();
         entry.segIds.forEach(sid=>{
@@ -16260,7 +16307,7 @@ let stateIcon=_closuresLayerKo?'&#x26AA;':'&#x1F7E2;',stateTip=_closuresLayerKo?
         const existCl=getExistingClosures(entry.segIds);
         // Calculer les conflits directionnels une seule fois pour ce lot
         const dirConflictIds=new Set(
-            getSegDirConflicts(entry.segIds,parseInt(entry.config.direction)).map(c=>c.sid)
+            getSegDirConflicts(entry.segIds,parseInt(entry.config.direction),_inversesDe(entry)).map(c=>c.sid)
         );
         // Le MÊME tri que l'application (_trierAFermer), une fois par occurrence : une
         // pastille qui jugerait autrement que addClosure mentirait. L'ancien calcul
@@ -17010,7 +17057,7 @@ const connectOverlay=ov=>{
         if(!rc.list.length){showToast(t('errNone'),2500,'#e53935');return;}
         const cfg=readConfig();lastConfig=cfg;
         // Vérif compatibilité sens de circulation / direction de fermeture
-        const invSel=_inversesListe(sel.ids);
+        const invSel=await _inversesListe(sel.ids);
         const dirConflicts=getSegDirConflicts(sel.ids,parseInt(cfg.direction),invSel);
         const validIds=sel.ids.filter(id=>!dirConflicts.find(c=>c.sid===Number(id)));
         // Nœuds intérieurs sur TOUTE la sélection validée : les lots d'une zone et les moitiés
@@ -17710,7 +17757,7 @@ const handleCSV=files=>{
                     // en a besoin pour recadrer la carte. Voir applyQueue.
                     csvCenter:cl.lonlat, csvZoom:cl.zoom};
                 // Vérif compatibilité sens de circulation pour les lots CSV
-                const csvConflicts=getSegDirConflicts(cl.segIDs,dir);
+                const csvConflicts=getSegDirConflicts(cl.segIDs,dir,await _inversesListe(cl.segIDs));
                 if(csvConflicts.length) csvEntry.excludedSegs=csvConflicts;
                 queue.push(csvEntry);
                 added++;
@@ -18264,6 +18311,7 @@ const init=async()=>{
     try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:async()=>{
         await _wmeCarte();
         await _wmeModele();
+        _virages.clear();
         if(_sdkFermeturesLisibles()) return;
         _rafraichirFermeturesApi().then(rc=>{ if(rc && $id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter(); });
     }});}catch(e){}

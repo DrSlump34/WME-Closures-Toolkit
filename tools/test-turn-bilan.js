@@ -166,7 +166,8 @@ const OBJET = (i) => ({ id: 'c' + i });
         dit(r.undo === 1, 'undoAll() appele une fois', 'undo=' + r.undo);
         dit(String(r.errs[0]).includes('refus serveur'), 'le motif du rejet remonte', 'errs[0]=' + r.errs[0]);
         // TEMOIN : sans l undoAll du rejet, rien n est defait.
-        const ligne = "try{ sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }";
+        // Depuis l'étape async (04/10/2026), l'annulation est ATTENDUE.
+        const ligne = "try{ await sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }";
         const sans = bloc.replace(ligne, '');
         dit(sans !== bloc, 'TEMOIN : le correctif est trouve dans le bloc');
         const t2 = await jouer({ turnIds: [1, 2], rendu: OBJET, saveRejette: true, code: sans });

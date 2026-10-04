@@ -32,13 +32,14 @@ const CSV = [
     'remove,Travaux,2026-10-03 08:00,2026-10-03 18:00,A to B,No,331,lon=4.800000&lat=43.900000,17,,',
 ].join('\n');
 
-const essai = (source, csv = CSV) => {
+// Depuis l'étape async (04/10/2026), la lecture du fichier se termine APRÈS l'appel : on attend.
+const essai = async (source, csv = CSV) => {
     const queue = [], log = { style: {}, innerHTML: '' };
     const env = {
         $id: id => (id === 'wct-csv-log' ? log : null),
         t: (k, ...a) => k + '(' + a.join(',') + ')',
         escHtml: s => String(s),
-        queue, renderQueue: () => {}, getSegDirConflicts: () => [],
+        queue, renderQueue: () => {}, getSegDirConflicts: () => [], _inversesListe: async () => new Set(),
         DIR: { AtoB: 1, BtoA: 2, TWO: 3 }, dirStr: d => 'dir' + d, confirm: () => true,
         parseTurnCSV: () => ({ entries: [], errors: 0 }),
         closeNodes: 1,
@@ -47,17 +48,19 @@ const essai = (source, csv = CSV) => {
     const noms = Object.keys(env);
     const handleCSV = new Function(...noms, source + '; return handleCSV;')(...noms.map(n => env[n]));
     handleCSV([csv]);
+    for (let i = 0; i < 5; i++) await new Promise(r => setTimeout(r, 0));
     return { queue, log: log.innerHTML };
 };
 
+(async () => {
 console.log('\n— Fichier mixte : 1 add, 2 remove —');
-const r = essai(code);
+const r = await essai(code);
 chk('une seule entrée en file (la ligne add)', r.queue.length === 1, 'file : ' + r.queue.length);
 chk('c\'est bien la ligne add (segments 111;112)', r.queue[0] && String(r.queue[0].segIds) === '111,112', JSON.stringify(r.queue[0] && r.queue[0].segIds));
 chk('le journal compte les 2 lignes remove écartées', /csvRemoveSkipped\(2\)/.test(r.log), r.log);
 
 console.log('\n— Fichier sans aucune ligne add —');
-const seul = essai(code, CSV.split('\n').filter(l => !l.startsWith('add,')).join('\n'));
+const seul = await essai(code, CSV.split('\n').filter(l => !l.startsWith('add,')).join('\n'));
 chk('rien en file', seul.queue.length === 0, 'file : ' + seul.queue.length);
 chk('le journal compte les 2 lignes remove écartées', /csvRemoveSkipped\(2\)/.test(seul.log), seul.log);
 
@@ -65,9 +68,10 @@ console.log('\n— Témoin : le filtre retiré, la ligne remove doit entrer en f
 const sansFiltre = code.replace(".filter(it=>it.action==='add'||it.action==='add-rec')", '');
 if (sansFiltre === code) { ko++; console.log('  ECHEC le témoin n\'a pas trouvé le filtre à retirer'); }
 else {
-    const t = essai(sansFiltre);
+    const t = await essai(sansFiltre);
     chk('témoin : 3 entrées en file sans le filtre (le test sait voir le défaut)', t.queue.length === 3, 'file : ' + t.queue.length);
 }
 
 console.log('\n' + ok + ' ok, ' + ko + ' échec(s)');
 process.exit(ko ? 1 : 0);
+})();

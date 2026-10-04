@@ -34,22 +34,28 @@ const sdk = { DataModel: { Segments: { getReversedSegments: ({ segmentIds }) => 
     return segmentIds.filter(id => ORIENT[id] !== ref).map(id => ({ id }));
 } } } };
 const code = extrait('const _inversesListe=', '\n// ─── VIRAGES');
-const env = { sdk, log: () => {}, getSegById: id => SEGS[id] || null, getSegName: id => 'rue ' + id, DIR: { AtoB: 1, BtoA: 2, TWO: 3 } };
+// 04/10/2026 (SDK async) : _inversesListe rend une promesse ; _inversesDe, synchrone pour le rendu,
+// calcule en arrière-plan, fige l'entrée au retour, puis redessine la file.
+const env = { sdk, log: () => {}, getSegById: id => SEGS[id] || null, getSegName: id => 'rue ' + id, DIR: { AtoB: 1, BtoA: 2, TWO: 3 }, renderQueue: () => {} };
 const noms = Object.keys(env);
 const { _inversesListe, _inversesDe, getSegDirConflicts } =
     new Function(...noms, code + '; return { _inversesListe, _inversesDe, getSegDirConflicts };')(...noms.map(n => env[n]));
+const attendre = () => new Promise(r => setTimeout(r, 0));
+(async () => {
 
 console.log('\n— Témoin : la doublure suit la doc (la référence est le 1er segment) —');
-chk('liste [1,2,3] : seul 2 est à rebours', String([..._inversesListe([1, 2, 3])]) === '2');
-chk('sous-liste [2,3] : c\'est 3 qui passe à rebours — la chaîne a basculé', String([..._inversesListe([2, 3])]) === '3');
+chk('liste [1,2,3] : seul 2 est à rebours', String([...await _inversesListe([1, 2, 3])]) === '2');
+chk('sous-liste [2,3] : c\'est 3 qui passe à rebours — la chaîne a basculé', String([...await _inversesListe([2, 3])]) === '3');
 
 console.log('\n— Un segment hors du modèle ne fait pas tout perdre —');
-chk('[1,2,99,3] : 2 reste à rebours malgré le segment 99 non chargé', String([..._inversesListe([1, 2, 99, 3])]) === '2');
+chk('[1,2,99,3] : 2 reste à rebours malgré le segment 99 non chargé', String([...await _inversesListe([1, 2, 99, 3])]) === '2');
 let leve = false; try { sdk.DataModel.Segments.getReversedSegments({ segmentIds: [1, 2, 99, 3] }); } catch (e) { leve = true; }
 chk('TÉMOIN : le SDK appelé sur la liste brute lève', leve);
 
 console.log('\n— Le calcul de l\'entrée —');
 const entry = { segIds: [1, 2, 3] };
+_inversesDe(entry);                  // lance le calcul en arrière-plan
+await attendre();
 const inv = _inversesDe(entry);
 chk('calculé sur la liste entière : {2}', String([...inv]) === '2');
 chk('figé dans l\'entrée (toute la liste est chargée)', Array.isArray(entry.inverses) && String(entry.inverses) === '2');
@@ -58,25 +64,27 @@ _inversesDe(entry);
 chk('relu sans rappeler le SDK', appelsSdk === avant, 'appels ' + avant + ' → ' + appelsSdk);
 const partielle = { segIds: [1, 2, 99] };
 _inversesDe(partielle);
+await attendre();
 chk('liste en partie hors du modèle : pas figée (recalculée après recadrage)', partielle.inverses === undefined);
 
 console.log('\n— Contrôle de compatibilité —');
 chk('A ⇒ B avec les inversés de l\'entrée : 3 (sens unique A ⇒ B) compatible',
     getSegDirConflicts([2, 3], 1, inv).length === 0);
 chk('témoin : recalculé sur la sous-liste [2,3], 3 serait un faux conflit',
-    getSegDirConflicts([2, 3], 1).length === 1);
+    getSegDirConflicts([2, 3], 1, await _inversesListe([2, 3])).length === 1);
 
 console.log('\n— Branchements dans le fichier —');
 const nAppels = (txt.match(/getReversedSegments\(/g) || []).length;
 chk('un seul appel à getReversedSegments dans le code (dans _inversesListe)', nAppels === 1, 'appels : ' + nAppels);
 const ac = extrait('const addClosure=', '\nconst _poserParMoitie');
-chk('addClosure lit les inversés de l\'appelant', /const inv=inverses\|\|_inversesListe\(segments\)/.test(ac) && /inverses:inv,/.test(ac));
+chk('addClosure lit les inversés de l\'appelant', /const inv=inverses\|\|await _inversesListe\(segments\)/.test(ac) && /inverses:inv,/.test(ac));
 const aq = extrait('const applyQueue=', '\nconst ');
 chk('applyQueue passe les inversés de l\'ENTRÉE à _poserParMoitie', /inverses:_inversesDe\(e\)/.test(aq));
 const pm = extrait('const _poserParMoitie=', '\nconst applyQueue');
 chk('les moitiés gardent les options (donc les inversés)', /\{\.\.\.opts,segments:segs\.slice\(0,m\)\}/.test(pm) && /\{\.\.\.opts,segments:reste\}/.test(pm));
 chk('l\'aperçu lit le même calcul', /const inverses=_inversesDe\(entry\);/.test(txt));
-chk('Configurer fige le sens sur la sélection entière', /const invSel=_inversesListe\(sel\.ids\);/.test(txt) && /entry\.inverses=\[\.\.\.invSel\];/.test(txt));
+chk('Configurer fige le sens sur la sélection entière', /const invSel=await _inversesListe\(sel\.ids\);/.test(txt) && /entry\.inverses=\[\.\.\.invSel\];/.test(txt));
 
 console.log('\n' + ok + ' ok, ' + ko + ' échec(s)');
 process.exit(ko ? 1 : 0);
+})();

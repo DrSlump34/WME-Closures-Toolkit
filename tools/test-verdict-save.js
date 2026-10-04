@@ -28,11 +28,15 @@ let ok = 0, ko = 0;
 const chk = (nom, cond, detail) => { if (cond) { ok++; console.log('  ok   ' + nom); }
     else { ko++; console.log('  ECHEC ' + nom + (detail !== undefined ? '\n        ' + detail : '')); } };
 
-const jouer = ({ rend }) => {
+// `rejette` : segments dont le SDK refuse la pose comme le fait le mode ASYNC — promesse rejetée,
+// pas exception. `source` : code d'addClosure à jouer (le témoin y retire l'await).
+const jouer = ({ rend, rejette = [], source = code }) => {
     const etat = { saves: 0, poses: 0 };
     const W = { model: {} };
     const sdk = {
-        DataModel: { RoadClosures: { addClosure: () => { etat.poses++; return rend ? { id: 'tmp' + etat.poses } : undefined; } } },
+        DataModel: { RoadClosures: { addClosure: (a) => {
+            if (rejette.includes(a.segmentId)) return Promise.reject(new Error('Not allowed to edit closures on segment ' + a.segmentId));
+            etat.poses++; return Promise.resolve(rend ? { id: 'tmp' + etat.poses } : undefined); } } },
         Editing: { save: () => { etat.saves++; return Promise.resolve('sauve'); }, undoAll: () => {} },
     };
     const env = {
@@ -43,7 +47,7 @@ const jouer = ({ rend }) => {
         _applyProviderTo: () => 0,
     };
     const noms = Object.keys(env);
-    const addClosure = new Function(...noms, code + '\nreturn addClosure;')(...noms.map(n => env[n]));
+    const addClosure = new Function(...noms, source + '\nreturn addClosure;')(...noms.map(n => env[n]));
     return new Promise(res => addClosure({
         segments: [11, 12], reason: 'Travaux', direction: 3,
         startDate: '2026-10-01 08:00', endDate: '2026-10-01 18:00', permanent: false, eventId: null,
@@ -63,6 +67,15 @@ const jouer = ({ rend }) => {
     chk('save() est QUAND MÊME appelé', b.saves === 1, 'saves=' + b.saves);
     chk('succès, sur la foi du SDK et du DOM', b.issue === 'ok', b.issue);
     chk('la vérification croisée se déclare NON FAITE (objets = null)', b.b.objets === null, b.b.objets);
+
+    console.log('\n— SDK async : un refus est une promesse REJETÉE, pas une exception —');
+    const c = await jouer({ rend: true, rejette: [12] });
+    chk('le segment refusé n\'est PAS compté posé (1 sur 2)', c.b.poses === 1, 'poses=' + c.b.poses);
+    chk('ses deux sens sont comptés en erreur', c.b.erreurs === 2, 'erreurs=' + c.b.erreurs);
+    const sansAwait = code.replace('const cree = await sdk.DataModel.RoadClosures.addClosure(', 'const cree = sdk.DataModel.RoadClosures.addClosure(');
+    chk('TÉMOIN : le remplacement a mordu', sansAwait !== code);
+    const cT = await jouer({ rend: true, rejette: [12], source: sansAwait });
+    chk('TÉMOIN : sans await, le segment refusé passe pour posé (2 sur 2)', cT.b.poses === 2, 'poses=' + cT.b.poses);
 
     console.log('\n— Témoin : l\'ancien critère (diff du modèle) n\'aurait jamais enregistré —');
     const ancien = txt.includes('if(!segsPoses.size){');
