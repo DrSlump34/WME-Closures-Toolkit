@@ -66,7 +66,8 @@ const API = [
     chk('une nouvelle lecture est lancée', b.etat.appels === avant + 1);
 
     console.log('\n— Témoin : sans le contrôle de la vue, la lecture périmée serait servie —');
-    const sansControle = blocRepli.replace('_fcApi.objets && _fcApi.cle === _cleVue()', '_fcApi.objets');
+    // Ciblé sur _fermeturesChargees : le même contrôle existe aussi dans _fermeturesPretes.
+    const sansControle = blocRepli.replace('if(_fcApi.objets && _fcApi.cle === _cleVue()) return', 'if(_fcApi.objets) return');
     chk('TÉMOIN : le remplacement a mordu', sansControle !== blocRepli);
     const c = monter(sansControle, { lisible: false, apiObjets: API });
     await c._rafraichirFermeturesApi();
