@@ -1476,7 +1476,11 @@ const isRTL = () => RTL_LANGS.includes(_lang);
 // « he », mais d'anciens navigateurs renvoient encore le code hérité « iw » : les deux mènent à 'he'.
 const detectLang = () => {
     try {
-        const l = (W?.userscripts?.state?.locale || document.documentElement.lang || navigator.language || 'en').toLowerCase();
+        // Langue de WME par le SDK (`W` disparaît le 24/11/2026). Avant l'initialisation du
+        // SDK, l'attribut lang de la page la porte aussi.
+        let wl = '';
+        try { wl = sdk?.Settings?.getLocale?.()?.localeCode || ''; } catch(e) {}
+        const l = (wl || document.documentElement.lang || navigator.language || 'en').toLowerCase();
         if (l.startsWith('pt')) return l.includes('br') ? 'pt-BR' : 'pt-PT';
         if (l.startsWith('he') || l.startsWith('iw')) return 'he';
         return LANGS.map(x => x.code).find(code => !code.includes('-') && l.startsWith(code)) || 'en';
@@ -7558,16 +7562,9 @@ const CSVtoArray=text=>{
     return b;
 };
 // ═══════════════════════════════════════════════════════════════════════════
-//  SELECTION — via selectedFeatureIds (confirmé par debug)
+//  SELECTION — par le SDK (`W.selectionManager` disparaît le 24/11/2026)
 // ═══════════════════════════════════════════════════════════════════════════
 const getSelection=()=>{
-    try {
-        const ids=W.selectionManager.selectedFeatureIds;
-        if(ids&&ids.length>0){
-            const segIds=ids.filter(f=>typeof f==='string'&&f.startsWith('segment:')).map(f=>parseInt(f.replace('segment:','')));
-            if(segIds.length>0) return {ids:segIds,objectType:'segment'};
-        }
-    } catch(e){}
     try {
         const sel=sdk.Editing.getSelection();
         if(sel&&sel.ids&&sel.ids.length>0) return sel;
@@ -8310,7 +8307,7 @@ const checkSelectionCountry=segIds=>{
 const waitMapLoaded=()=>new Promise(resolve=>{
     // _applyAborted coupe l'attente immédiatement : sans cela, un Stop cliqué pendant
     // le chargement de la carte restait sans effet visible jusqu'à 10 s.
-    let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||(!sdk.State.isMapLoading()&&(W?.app?.attributes?.pendingOperations?.length||0)===0)||n>100){clearInterval(iv);resolve();}},100);
+    let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||!sdk.State.isMapLoading()||n>100){clearInterval(iv);resolve();}},100);
 });
 // ═══════════════════════════════════════════════════════════════════════════
 //  MISE A JOUR DISPONIBLE (GreasyFork)
@@ -9842,7 +9839,7 @@ const updateActionBtns=()=>{
 //
 // La liste des partenaires est servie PAR EMPRISE (bbox) : les partenaires de Nice
 // ne sont pas ceux du Mans. Elle n'est nulle part dans W — seul cet appel la donne.
-const PARTNERS_URL = env => `/${env}-Descartes/app/Partners`;
+const PARTNERS_URL = env => _descartesBase(env) + '/app/Partners';
 const PARTNER_CHANNEL = 'WME_PARTNER_EDITOR';
 const PARTNER_USER_CHANNEL = 'PARTNER';
 // Capacite : {ok:bool, reason:'api'|'schema'|null}  (0.87.01 : 'flag'/'feature' retires,
@@ -9852,9 +9849,19 @@ const PARTNER_USER_CHANNEL = 'PARTNER';
 // de fonctionner : une fermeture ne doit JAMAIS partir avec une source a moitie posee.
 let _srcCap = {ok:false, reason:'init', checked:false};
 const _wmeEnv = () => {
-    try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || (W?.Config?.server?.baseUrl?.match(/\/(\w+)-Descartes/)||[])[1] || 'row'; }
+    // Région du serveur par le SDK : row, usa ou il (`W.Config` disparaît le 24/11/2026).
+    try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || sdk?.Settings?.getRegionCode?.() || 'row'; }
     catch(e){ return 'row'; }
 };
+// Chemin de l'API Features du serveur courant. WME le donnait par `W.Config.paths.features`,
+// qui disparaît le 24/11/2026 ; le SDK n'a pas d'équivalent (ticket 569300354). On le
+// reconstruit donc depuis la région : `/row-Descartes` et `/il-Descartes`, sans préfixe
+// en Amérique du Nord.
+// ⚠️ Mesuré le 04/10/2026 : en Amérique du Nord le chemin est `/Descartes/app/Features`
+// (200) et `/usa-Descartes/…` rend 404 — les chemins `/${env}-Descartes` écrits en dur
+// plus bas étaient donc faux là-bas.
+const _descartesBase = env => (env === 'usa' || env === 'na') ? '/Descartes' : '/' + env + '-Descartes';
+const _featuresPath = () => _descartesBase(_wmeEnv()) + '/app/Features';
 // Le schema du modele porte-t-il encore la Source ? Si WME renomme ou retire ces
 // champs, on le detecte ICI plutot qu'en silence a l'ecriture.
 const _srcSchemaOk = () => {
@@ -9956,15 +9963,17 @@ const refreshMTE=()=>{
     const sel=$id('wct-mtesel');
     if(!sel) return;
     let events=[];
-    try{ events=W.model.majorTrafficEvents.getObjectArray(); }catch(e){}
+    // SDK : { id, names:[{ value }] }. ⚠️ Vide tant que le panneau Événements de WME n'a
+    // pas été ouvert une fois (ticket SDK 533467151) — `W.model` avait la même limite.
+    try{ events=sdk.DataModel.MajorTrafficEvents.getAll()||[]; }catch(e){}
     const current=sel.value;
     sel.innerHTML='';
     const noneOpt=document.createElement('option');
     noneOpt.value=''; noneOpt.textContent=t(events.length?'mteNone':'mteEmpty');
     sel.appendChild(noneOpt);
     events.forEach(ev=>{
-        const id=ev.attributes.id;
-        const name=ev.attributes.names?.[0]?.value||ev.attributes.uniqueName||id;
+        const id=ev.id;
+        const name=ev.names?.[0]?.value||id;
         const opt=document.createElement('option');
         opt.value=id; opt.textContent=name;
         sel.appendChild(opt);
@@ -10241,7 +10250,7 @@ const fetchZoneClosures = async (km) => {
         const bbox = _zoneBbox(km);
         // zoomLevel : purement indicatif pour le serveur, on ne charge pas de segments.
         const z = km<=5 ? 15 : km<=20 ? 13 : 12;
-        const url = `/${_wmeEnv()}-Descartes/app/Features?bbox=${bbox}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
+        const url = `${_featuresPath()}?bbox=${bbox}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
         const r = await fetch(url, {credentials:'include'});
         if(!r.ok) return {ok:false, erreur:'HTTP '+r.status};
         const j = await r.json();
@@ -12698,17 +12707,17 @@ const _covBBox = (pts) => {
     return { minLat, maxLat, minLon, maxLon };
 };
 // Segments WME chargés dont l'emprise recoupe la bbox du tracé (+marge).
-// Lit la géométrie sur attributes.geoJSONGeometry (WGS84 [lon,lat]) — confirmé terrain.
+// Lit la géométrie GeoJSON des segments du SDK (WGS84 [lon,lat]).
 // Renvoie [{ id, edges:[[[lat,lon],[lat,lon]]], lonlat:[[lon,lat]], length, fromNode, toNode }]
 const _covCandidateSegments = (tb, marginDeg) => {
     let segs = [];
-    try { segs = W.model.segments.getObjectArray(); } catch(e){ return []; }
+    try { segs = sdk.DataModel.Segments.getAll(); } catch(e){ return []; }
     const bMinLat=tb.minLat-marginDeg, bMaxLat=tb.maxLat+marginDeg,
           bMinLon=tb.minLon-marginDeg, bMaxLon=tb.maxLon+marginDeg;
     const out = [];
     for(const s of segs){
-        const a = s.attributes;
-        const g = a && a.geoJSONGeometry;
+        const a = s;
+        const g = a && a.geometry;
         if(!g || g.type !== 'LineString' || !Array.isArray(g.coordinates) || g.coordinates.length < 2) continue;
         // bbox du segment + test d'intersection rapide
         let sMinLat=Infinity,sMaxLat=-Infinity,sMinLon=Infinity,sMaxLon=-Infinity;
@@ -12728,7 +12737,7 @@ const _covCandidateSegments = (tb, marginDeg) => {
             : edges.reduce((s2,e)=>{ const lat0=e[0][0]*Math.PI/180, mLon=Math.cos(lat0)*111320;
                 return s2 + Math.hypot((e[1][1]-e[0][1])*mLon, (e[1][0]-e[0][0])*110540); }, 0);
         out.push({ id: Number(a.id), edges, lonlat: g.coordinates, length: len,
-                   fromNode: a.fromNodeID ?? null, toNode: a.toNodeID ?? null });
+                   fromNode: a.fromNodeId ?? null, toNode: a.toNodeId ?? null });
     }
     return out;
 };
@@ -12817,7 +12826,9 @@ const _estVisible = (e) => {
     return r.width > 1 && r.height > 1;
 };
 const _rectCarte = () => {
-    const c = W.map?.div || document.getElementById('map')
+    let vp = null;
+    try { vp = sdk?.Map?.getMapViewportElement?.() || null; } catch(e) {}
+    const c = vp || document.getElementById('map')
               || document.querySelector('.wm-map') || document.body;
     return c.getBoundingClientRect();
 };
@@ -13459,7 +13470,7 @@ const _lotSelect = async (trackId, lotIdx) => {
         if(!ids.length){
             // La protection a posé une sélection de travail : la retirer, sinon l'éditeur
             // reste avec une sélection qu'il n'a pas demandée et que rien n'explique.
-            try { W.selectionManager.unselectAll(); } catch(e){}
+            try { sdk.Editing.clearSelection(); } catch(e){}
             _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return;
         }
         sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
@@ -13486,7 +13497,7 @@ const _lotSelect = async (trackId, lotIdx) => {
         // Un échec doit se dire là où le geste a eu lieu.
         _sweepRunning = false;
         log('lotSelect error: '+e.message);
-        try { W.selectionManager.unselectAll(); } catch(e2){}
+        try { sdk.Editing.clearSelection(); } catch(e2){}
         _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotError', e.message))}</span>`);
         showToast(t('lotError', e.message), 5000, '#c62828');
     }
@@ -13703,7 +13714,7 @@ const _polyTiles = (bb, tileKm) => {
 // Un appel d'inventaire. ⚠️ Le chemin vient de W.Config.paths, JAMAIS écrit en dur
 // (il diffère entre ROW et NA).
 const _polyFetchTile = async (bb) => {
-    const base = W?.Config?.paths?.features || '/row-Descartes/app/Features';
+    const base = _featuresPath();
     const url = base + '?bbox=' + [bb.minLon, bb.minLat, bb.maxLon, bb.maxLat].map(v => v.toFixed(6)).join(',')
         + '&language=' + (_lang || 'en') + '&v=2&apiV2=true&roadClosures=false&zoomLevel=17'
         + '&roadTypes=1,2,3,4,5,6,7,8,9,10,15,16,17,18,19,20,22';
@@ -13718,9 +13729,8 @@ const _polyFetchTile = async (bb) => {
 const _polyFromModel = () => {
     let out = [];
     try {
-        out = W.model.segments.getObjectArray().map(s => ({
-            id: Number(s.attributes.id), geometry: s.attributes.geoJSONGeometry,
-            roadType: s.attributes.roadType
+        out = sdk.DataModel.Segments.getAll().map(s => ({
+            id: Number(s.id), geometry: s.geometry, roadType: s.roadType
         })).filter(s => s.geometry && Array.isArray(s.geometry.coordinates));
     } catch(e){}
     return out;
@@ -13768,7 +13778,7 @@ const _repliSubiDoitCesser = (e) => !!(e.replie && !e.voulu && e.selection && e.
 const _polyLoadAndSelect = async (retenus) => {
     const dansLeModele = () => {
         const set = new Set();
-        try { W.model.segments.getObjectArray().forEach(s => set.add(Number(s.attributes.id))); } catch(e){}
+        try { sdk.DataModel.Segments.getAll().forEach(s => set.add(Number(s.id))); } catch(e){}
         return set;
     };
     // ⚠️ setSelection est tout ou rien : un seul id absent du modèle et l'appel ENTIER
@@ -14274,7 +14284,7 @@ const _zoneExitEdit = (garder) => {
 // Défait la sélection posée par une zone. ⚠️ setSelection(null) ne vide pas de façon
 // fiable (vérifié en live) — unselectAll, si.
 const _zoneOublierSelection = () => {
-    try { W.selectionManager.unselectAll(); }
+    try { sdk.Editing.clearSelection(); }
     catch(e){ try { sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
 };
 
@@ -18166,7 +18176,6 @@ const init=async()=>{
         }catch(e){ log('onSel/turnsPane: '+e.message); }
     };
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
-    try{W.selectionManager.events.register('selectionchanged',null,onSel);}catch(e){}
     setInterval(onSel,500);
     onSel();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
