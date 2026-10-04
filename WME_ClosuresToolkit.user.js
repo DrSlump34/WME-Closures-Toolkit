@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.24.01
+// @version      1.24.02
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -7761,8 +7761,12 @@ const _rafraichirFermeturesApi = async () => {
 // ⚠️ Essai de la 1.24.00 en bêta (04/10/2026) : juste après le chargement de la page, l'emprise du
 // miroir n'était pas encore connue, la lecture de l'API sortait sans rien faire, et la recherche
 // rendait « aucun résultat » tant que la carte n'avait pas rechargé de données.
+// ⚠️ 1.24.01, encore « aucun résultat » : relevé TROP TÔT au démarrage, avant que les fermetures ne
+// soient chargées, getAll() ne lève pas, il rend []. Le miroir concluait « lisible, rien » et ne
+// passait jamais par l'API. Le modèle est donc RELU ici avant de conclure (≈ 0,1 s pour 460 segments).
 const _fermeturesPretes=async()=>{
-    if(!_wme.ext) await _wmeCarte();
+    await _wmeCarte();
+    await _wmeModele();
     if(!_sdkFermeturesLisibles() && !(_fcApi.objets && _fcApi.cle === _cleVue())) await _rafraichirFermeturesApi();
 };
 const _fermeturesChargees=()=>{
@@ -18348,6 +18352,14 @@ const init=async()=>{
             if(queue.length) renderQueue();
         });
     }});}catch(e){}
+    // Le premier relevé du miroir a lieu au démarrage, souvent AVANT la fin du chargement de la carte,
+    // et le chargement en cours ne réémet pas « wme-map-data-loaded » pour nous : on relit tout une
+    // fois la carte chargée.
+    _attendreCarte().then(async()=>{
+        try{ await _fermeturesPretes(); }catch(e){ log('relecture après démarrage : '+e.message); }
+        _virages.clear();
+        try{ if(queue.length) renderQueue(); }catch(e){}
+    });
     setInterval(_selTour,500);
     _selTour();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
