@@ -18160,7 +18160,12 @@ const init=async()=>{
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
     // Fermetures relues par l'API Features à chaque chargement de données, tant que le SDK
     // ne sait pas les lire (voir _fermeturesChargees, ticket SDK 566467873).
-    try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:()=>{ if(!_sdkFermeturesLisibles()) _rafraichirFermeturesApi(); }});}catch(e){}
+    // Le filtre « Partenaire » de la Recherche se reconstruit ensuite : ouvert avant que la
+    // lecture arrive, il ne proposait que « Tous » et « Aucun » (essai du 04/10/2026, Paris).
+    try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:()=>{
+        if(_sdkFermeturesLisibles()) return;
+        _rafraichirFermeturesApi().then(rc=>{ if(rc && $id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter(); });
+    }});}catch(e){}
     setInterval(onSel,500);
     onSel();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
