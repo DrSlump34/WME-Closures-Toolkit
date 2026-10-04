@@ -22,7 +22,8 @@ const chk = (nom, cond, detail) => { if (cond) { ok++; console.log('  ok   ' + n
 // par WCT) : rcLisible dit si getAll() du SDK a pu lire, ext est l'emprise de la vue.
 const monter = (bloc, { lisible, apiObjets }) => {
     const etat = { appels: 0, urls: [] };
-    const _wme = { ext: [2.33, 48.85, 2.35, 48.86], zoom: 17, rcLisible: !!lisible,
+    // segs : segments chargés (seules leurs fermetures sont gardées, comme dans le modèle de WME).
+    const _wme = { ext: [2.33, 48.85, 2.35, 48.86], zoom: 17, rcLisible: !!lisible, segs: new Map([[10, {}], [11, {}]]),
                    rc: lisible ? [{ id: 's1', segmentId: 1, attributions: [{ credit: 'Ville de Paris' }] }] : null };
     const fetch = async (url) => { etat.appels++; etat.urls.push(url);
         return { ok: true, json: async () => ({ roadClosures: { objects: apiObjets } }) }; };
@@ -49,7 +50,8 @@ const API = [
     const b = monter(blocRepli, { lisible: false, apiObjets: API });
     chk('null (« pas pu regarder »), pas [] (« rien »)', b._fermeturesChargees() === null);
     chk('une lecture de l\'API est lancée', b.etat.appels === 1, b.etat.appels);
-    chk('l\'emprise de la vue est dans l\'URL', /bbox=2\.33000,48\.85000,2\.35000,48\.86000/.test(b.etat.urls[0]), b.etat.urls[0]);
+    // 1.24.04 : l'emprise lue est la vue élargie d'un quart de chaque côté.
+    chk('la vue ÉLARGIE est dans l\'URL', /bbox=2\.32500,48\.84750,2\.35500,48\.86250/.test(b.etat.urls[0]), b.etat.urls[0]);
     chk('les fermetures sont demandées', /roadClosures=true/.test(b.etat.urls[0]));
 
     console.log('\n— SDK qui lève, lecture API faite pour CETTE vue —');
@@ -59,7 +61,19 @@ const API = [
     chk('forme SDK (segmentId, isForward)', rb && rb[0].segmentId === 10 && rb[1].isForward === false);
     chk('le provider de l\'API est gardé', rb && rb[0]._provider === 'Ville de Paris' && rb[1]._provider === null);
 
-    console.log('\n— La carte a bougé : la lecture ne vaut plus —');
+    console.log('\n— Petit déplacement, la vue tient dans l\'emprise lue : la lecture vaut encore —');
+    b._wme.ext = [2.331, 48.851, 2.351, 48.861];
+    const avantPetit = b.etat.appels;
+    const rp = b._fermeturesChargees();
+    chk('la lecture est encore servie', Array.isArray(rp) && rp.length === 2, JSON.stringify(rp));
+    chk('sans nouvel appel', b.etat.appels === avantPetit);
+    console.log('\n— Fermeture d\'un segment non chargé : écartée —');
+    b._wme.segs.delete(11);
+    const rs = b._fermeturesChargees();
+    chk('seule la fermeture du segment chargé reste', Array.isArray(rs) && rs.length === 1 && rs[0].segmentId === 10);
+    b._wme.segs.set(11, {});
+
+    console.log('\n— La carte a bougé hors de l\'emprise lue : la lecture ne vaut plus —');
     b._wme.ext = [2.40, 48.80, 2.42, 48.81];
     const avant = b.etat.appels;
     chk('null, plutôt qu\'une lecture d\'une autre vue', b._fermeturesChargees() === null);
@@ -67,7 +81,7 @@ const API = [
 
     console.log('\n— Témoin : sans le contrôle de la vue, la lecture périmée serait servie —');
     // Ciblé sur _fermeturesChargees : le même contrôle existe aussi dans _fermeturesPretes.
-    const sansControle = blocRepli.replace('if(_fcApi.objets && _fcApi.cle === _cleVue()) return', 'if(_fcApi.objets) return');
+    const sansControle = blocRepli.replace('if(_vueCouverte()) return _fcApi.objets', 'if(_fcApi.objets) return _fcApi.objets');
     chk('TÉMOIN : le remplacement a mordu', sansControle !== blocRepli);
     const c = monter(sansControle, { lisible: false, apiObjets: API });
     await c._rafraichirFermeturesApi();

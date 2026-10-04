@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.24.03
+// @version      1.24.04
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -7738,21 +7738,30 @@ const _noeudsDe=e=>Array.isArray(e.nodesInside) ? new Set(e.nodesInside.map(Numb
 // le 24/11/2026 : il passe désormais par l'API Features, sur l'emprise de la vue, relue à
 // chaque chargement de données (_rafraichirFermeturesApi). Les objets ont la forme de l'API,
 // comme ceux de `W.model` avant — d'où _apiToClosure, inchangé.
-let _fcApi = { objets:null, cle:'' };
-const _cleVue = () => { try{ return (_wme.ext||[]).map(v=>Number(v).toFixed(5)).join(','); }catch(e){ return ''; } };
+// La lecture porte sur la vue ÉLARGIE d'un quart de chaque côté, et reste valable tant que la vue
+// tient dedans. ⚠️ 1.24.03 (prod, 04/10) : exigée à l'emprise EXACTE, la moindre variation de la
+// vue l'invalidait — la fin de déplacement qui suit une recherche rebâtissait alors le filtre
+// Partenaire sur « rien » (4 choix avant la recherche, 2 après).
+let _fcApi = { objets:null, bbox:null };
+const _empriseLue = e => { const dx = (e[2]-e[0])*0.25, dy = (e[3]-e[1])*0.25; return [e[0]-dx, e[1]-dy, e[2]+dx, e[3]+dy]; };
+const _vueCouverte = () => {
+    const e = _wme.ext, b = _fcApi.bbox;
+    return !!(e && b && _fcApi.objets && e[0] >= b[0] && e[1] >= b[1] && e[2] <= b[2] && e[3] <= b[3]);
+};
 const _sdkFermeturesLisibles = () => _wme.rcLisible;
 const _rafraichirFermeturesApi = async () => {
-    const cle = _cleVue();
-    if(!cle) return null;
+    const e = _wme.ext;
+    if(!Array.isArray(e) || e.length < 4) return null;
+    const bbox = _empriseLue(e.map(Number));
     try{
         const z = Math.round(_wme.zoom || 17);
-        const url = `${_featuresPath()}?bbox=${cle}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
+        const url = `${_featuresPath()}?bbox=${bbox.map(v=>v.toFixed(5)).join(',')}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
         const r = await fetch(url, {credentials:'include'});
         if(!r.ok) throw new Error('HTTP '+r.status);
         const j = await r.json();
         const rc = j?.roadClosures?.objects;
         if(!Array.isArray(rc)) throw new Error('forme inattendue');
-        _fcApi = { objets:rc, cle };
+        _fcApi = { objets:rc, bbox };
         return rc;
     }catch(e){ log('fermetures par l\'API Features : '+e.message); return null; }
 };
@@ -7767,12 +7776,13 @@ const _rafraichirFermeturesApi = async () => {
 const _fermeturesPretes=async()=>{
     await _wmeCarte();
     await _wmeModele();
-    if(!_sdkFermeturesLisibles() && !(_fcApi.objets && _fcApi.cle === _cleVue())) await _rafraichirFermeturesApi();
+    if(!_sdkFermeturesLisibles() && !_vueCouverte()) await _rafraichirFermeturesApi();
 };
 const _fermeturesChargees=()=>{
     if(_wme.rcLisible) return _wme.rc||[];
-    // La lecture de l'API ne vaut que pour la vue où elle a été faite.
-    if(_fcApi.objets && _fcApi.cle === _cleVue()) return _fcApi.objets.map(_apiToClosure);
+    // La lecture de l'API ne vaut que si la vue tient dans l'emprise lue. On n'en garde que les
+    // fermetures des segments CHARGÉS, comme le modèle de WME le faisait.
+    if(_vueCouverte()) return _fcApi.objets.filter(o=>_wme.segs.has(Number(o.segID))).map(_apiToClosure);
     log('fermetures chargées illisibles par le SDK'+(_fcApi.objets ? ' / lecture API faite sur une autre vue' : ' / pas encore de lecture API'));
     _rafraichirFermeturesApi();   // la lecture suivante l'aura
     return null;
@@ -18302,6 +18312,8 @@ const init=async()=>{
     // dépend ni du flag partenaire ni de l'API, donc il se rafraîchit toujours.
     try{ sdk.Events.on({eventName:'wme-map-move-end',eventHandler:async()=>{
         await _wmeCarte();
+        // Vue sortie de l'emprise lue : relire AVANT de rebâtir le filtre Partenaire.
+        if(!_sdkFermeturesLisibles() && !_vueCouverte()){ try{ await _rafraichirFermeturesApi(); }catch(e){} }
         if(_srcCap.ok) loadPartners().then(renderSourceSel);
         if($id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter();
     }}); }catch(e){ log('map-move-end non disponible: '+e.message); }
