@@ -10020,69 +10020,88 @@ const refreshMTE=()=>{
     if(current) sel.value=current;
 };
 // ═══════════════════════════════════════════════════════════════════════════
-//  POSITION DES CALQUES WCT DANS LA PILE OPENLAYERS
+//  CALQUES WCT — par le SDK
 // ═══════════════════════════════════════════════════════════════════════════
-// W.map.addLayer empile dans l'ordre d'ajout : tout calque ajouté APRÈS le nôtre
-// passe devant. Nos cinq calques (anneaux, tracés, trous de couverture, zone)
-// n'imposaient jamais leur position — ils dépendaient donc de l'ordre de
-// chargement des autres scripts.
-// ⚠️ Signalé par MisterLogik le 14/08/2026, et REPRODUIT chez lui : le même tracé
-// est délavé avec WME Color Highlights Mod actif et vif sans lui. Ce n'était donc
-// pas un manque de contraste — c'était un calque passé dessous.
-// Le SDK n'expose rien pour placer un calque dans la pile (vérifié dans sa doc et
-// dans WME Geometries, qui laisse le SDK décider). On reste donc en OpenLayers,
-// comme le reste de nos calques.
-// ⚠️ Remonter une seule fois ne suffit pas : un script chargé plus tard repasserait
-// devant. On se réabonne à l'événement « addlayer » de la carte pour refaire le
-// placement à CHAQUE calque ajouté, par qui que ce soit.
-const _wctLayers = new Set();
-// ⚠️⚠️ CETTE FONCTION N'A RIEN FAIT DU TOUT EN 1.12.00 NI EN 1.12.01, DEUX VERSIONS
-// PUBLIÉES. Elle lisait `W.map.layers.length` : W.map est une FAÇADE de WME, pas
-// l'objet OpenLayers, et elle n'a AUCUNE propriété `layers`. La première ligne levait
-// donc un TypeError à chaque appel, que le `catch` vide avalait — le correctif annoncé
-// sur les trois canaux n'a jamais placé un seul calque, et MisterLogik l'a constaté.
-// Mesuré dans WME le 14/08/2026 : W.map expose addLayer / getLayerIndex / setLayerIndex
-// / getLayersByName / events, et rien d'autre pour la pile. `moveLayerToTop` existe
-// mais NE REMONTE PAS le calque (index inchangé, vérifié), et appelé avec un nom il
-// lève. Le sommet s'obtient en demandant un index hors borne : OpenLayers le ramène à
-// la taille de la pile. Mesuré : setLayerIndex(l, 9999) → index 85 sur 86 calques.
-const WCT_LAYER_TOP = 9999;
-let _wctRaiseFailed = false;
-const _wctRaiseLayers = () => {
-    for(const l of _wctLayers){
-        if(!l || !l.map) continue;
-        try {
-            W.map.setLayerIndex(l, WCT_LAYER_TOP);
-            // ⚠️ Ne pas se contenter d'appeler : RELIRE. C'est le contrôle qui manquait —
-            // un placement qui échoue sans un mot est exactement ce qui a fait publier
-            // deux versions avec un correctif inerte. Signalé UNE SEULE fois : l'événement
-            // « addlayer » se déclenche souvent, un log par appel noierait la console.
-            if(W.map.getLayerIndex(l) < W.map.getLayerIndex(W.map.roadLayer) && !_wctRaiseFailed){
-                _wctRaiseFailed = true;
-                log('ordre des calques : '+l.name+' reste sous les routes (index '+W.map.getLayerIndex(l)+')');
-            }
-        } catch(e){
-            if(!_wctRaiseFailed){ _wctRaiseFailed = true; log('ordre des calques impossible : '+e.message); }
+// Jusqu'à la 1.22.04, nos calques (anneaux, tracés, trous de couverture, zone) étaient des
+// calques OpenLayers posés par `W.map.addLayer`, remontés à la main au-dessus des routes à
+// chaque calque ajouté par un autre script (MisterLogik, 14/08/2026 : un tracé délavé sous
+// WME Color Highlights Mod). `W` disparaît le 24/11/2026 (Discuss 413664) : ils passent
+// par le SDK. Le SDK a depuis gagné un z-index par calque (setLayerZIndex) : la profondeur
+// ne dépend plus de l'ordre d'ajout, plus besoin de se réabonner à « addlayer ».
+//
+// Un calque WCT range le STYLE de chaque objet dans ses propriétés ; une règle unique le
+// relit par le styleContext (exemple « context_style_layer » de la doc du SDK). C'est ce
+// qui reproduit le style par objet d'OpenLayers : deux tracés de couleurs différentes,
+// l'anneau blanc sous l'anneau rouge pointillé.
+// ⚠️ Le SDK REFUSE TOUT LE LOT sur une géométrie multiple (DiaLog 29/09, BAN 27/09) : les
+// Multi* et GeometryCollection sont découpées. Un lot refusé pour une autre raison est
+// rejoué objet par objet, pour ne perdre que le fautif — comme le try par objet d'avant.
+const _WCT_STYLE_DEF = { strokeColor:'#000000', strokeWidth:2, strokeOpacity:1, strokeDashstyle:'solid',
+                         strokeLinecap:'round', fillColor:'#000000', fillOpacity:0, pointRadius:4 };
+const _wctStyleCtx = {}, _wctStyleTpl = {};
+Object.keys(_WCT_STYLE_DEF).forEach(k => {
+    _wctStyleCtx['wct_' + k] = ({ feature }) => {
+        const v = feature?.properties?._st?.[k];
+        return (v === undefined || v === null) ? _WCT_STYLE_DEF[k] : v;
+    };
+    _wctStyleTpl[k] = '${wct_' + k + '}';
+});
+const _wctSimples = g => {
+    if(!g) return [];
+    switch(g.type){
+        case 'MultiLineString': return g.coordinates.map(c => ({ type:'LineString', coordinates:c }));
+        case 'MultiPolygon':    return g.coordinates.map(c => ({ type:'Polygon', coordinates:c }));
+        case 'MultiPoint':      return g.coordinates.map(c => ({ type:'Point', coordinates:c }));
+        case 'GeometryCollection': return (g.geometries || []).flatMap(_wctSimples);
+        default: return [g];
+    }
+};
+// Au-dessus des routes, des lieux et des fermetures de WME (mesuré le 04/10/2026 :
+// routes 2065, segments 2305, lieux 2285, fermetures 6365).
+const _wctZIndex = () => {
+    let z = 0;
+    for(const n of ['roads', 'segments', 'venues', 'closures']){
+        try{ z = Math.max(z, Number(sdk.Map.getLayerZIndex({ layerName:n })) || 0); }catch(e){}
+    }
+    return (z || 6000) + 100;
+};
+let _wctCoucheN = 0;
+// Un calque WCT : ajouter(objets), restyler(fn), setVisibility(bool), detruire().
+// Un objet = { geometry: GeoJSON en WGS84, style: {...}, poly?: bool }.
+const creerCoucheWct = (nom) => {
+    // Nom unique à chaque création : un calque retiré puis recréé ne réutilise pas le sien.
+    const layerName = nom + '_' + (++_wctCoucheN);
+    sdk.Map.addLayer({ layerName, styleContext:_wctStyleCtx, styleRules:[{ style:_wctStyleTpl }] });
+    try{ sdk.Map.setLayerZIndex({ layerName, zIndex:_wctZIndex() }); }
+    catch(e){ log('calque ' + nom + ' : z-index impossible : ' + e.message); }
+    const objets = [];
+    let n = 0, vivant = true;
+    const pousser = (liste) => {
+        const feats = [];
+        liste.forEach(o => _wctSimples(o.geometry).forEach(g =>
+            feats.push({ type:'Feature', id:layerName + '_' + (++n), geometry:g, properties:{ _st:o.style } })));
+        if(!feats.length) return 0;
+        try{ sdk.Map.addFeaturesToLayer({ layerName, features:feats }); return feats.length; }
+        catch(e){
+            let ok = 0;
+            feats.forEach(f => { try{ sdk.Map.addFeatureToLayer({ layerName, feature:f }); ok++; }catch(e2){} });
+            log('calque ' + nom + ' : ' + (feats.length - ok) + ' objet(s) refusé(s) sur ' + feats.length + ' (' + e.message + ')');
+            return ok;
         }
-    }
+    };
+    return {
+        layerName, objets,
+        ajouter(liste){ if(!vivant) return 0; objets.push(...liste); return pousser(liste); },
+        restyler(fn){
+            if(!vivant) return;
+            objets.forEach(o => { o.style = fn(o); });
+            try{ sdk.Map.removeAllFeaturesFromLayer({ layerName }); }catch(e){}
+            pousser(objets);
+        },
+        setVisibility(v){ try{ sdk.Map.setLayerVisibility({ layerName, visibility:!!v }); }catch(e){} },
+        detruire(){ if(!vivant) return; vivant = false; try{ sdk.Map.removeLayer({ layerName }); }catch(e){} },
+    };
 };
-let _wctRaiseHooked = false;
-// Ajoute un calque WCT et le maintient au-dessus. Remplace W.map.addLayer :
-// passer par lui est le seul moyen de ne pas réintroduire le défaut au calque suivant.
-const wctAddLayer = (layer) => {
-    W.map.addLayer(layer);
-    _wctLayers.add(layer);
-    if(!_wctRaiseHooked){
-        // setLayerIndex ne déclenche pas « addlayer » : pas de boucle.
-        try { W.map.events.register('addlayer', null, _wctRaiseLayers); _wctRaiseHooked = true; }
-        catch(e){ log('raise hook: '+e.message); }
-    }
-    _wctRaiseLayers();
-    return layer;
-};
-// Un calque détruit doit sortir du jeu, sinon on garderait une référence morte
-// et setLayerIndex lèverait à chaque ajout de calque tiers.
-const wctForgetLayer = (layer) => { if(layer) _wctLayers.delete(layer); };
 // ═══════════════════════════════════════════════════════════════════════════
 //  SEARCH (onglet Recherche)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -10090,37 +10109,31 @@ const wctForgetLayer = (layer) => { if(layer) _wctLayers.delete(layer); };
 // Deux anneaux superposés : blanc plein dessous, rouge pointillé dessus. Les tirets
 // rouges laissent voir le blanc entre eux → effet barrière de chantier, vectoriel donc
 // net à tous les zooms, et qui grandit avec la carte comme un vrai objet géographique.
-// On passe par OpenLayers brut (comme le calque Tracés), pas par le SDK.
+// Calque WCT (SDK), comme les tracés.
 const SRC_RING_RADIUS_M = 18;
 let _srcRingLayer = null;
 const _srcClearRings = () => {
-    try{
-        if(_srcRingLayer){ wctForgetLayer(_srcRingLayer); W.map.removeLayer(_srcRingLayer); _srcRingLayer.destroy(); }
-    }catch(e){}
+    try{ if(_srcRingLayer) _srcRingLayer.detruire(); }catch(e){}
     _srcRingLayer = null;
 };
 const _srcDrawRings = (nodes) => {
     _srcClearRings();
     if(!nodes.length) return;
     try{
-        const proj4326=new OpenLayers.Projection('EPSG:4326');
-        const projMap=W.map.getProjectionObject();
-        const feats=[];
+        const objets=[];
         nodes.forEach(([lon,lat])=>{
-            const ctr=new OpenLayers.Geometry.Point(lon,lat);
-            ctr.transform(proj4326,projMap);
-            // La projection de WME est en mercator : un « mètre » y vaut cos(lat) mètre réel.
-            // Sans cette correction, le cercle serait ~39 % trop grand dans le Sud et pire au Nord.
-            const rad=SRC_RING_RADIUS_M/Math.cos(lat*Math.PI/180);
-            const ring=()=>OpenLayers.Geometry.Polygon.createRegularPolygon(ctr.clone(),rad,48,0);
-            feats.push(new OpenLayers.Feature.Vector(ring(),null,
-                {strokeColor:'#ffffff',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeLinecap:'butt'}));
-            feats.push(new OpenLayers.Feature.Vector(ring(),null,
-                {strokeColor:'#e53935',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeDashstyle:'12 12',strokeLinecap:'butt'}));
+            // Cercle de SRC_RING_RADIUS_M mètres RÉELS, construit en degrés (48 côtés) : la
+            // longitude se resserre en cos(lat), la latitude non.
+            const dLon=SRC_RING_RADIUS_M/(111320*Math.cos(lat*Math.PI/180)), dLat=SRC_RING_RADIUS_M/110540;
+            const pts=[];
+            for(let i=0;i<=48;i++){ const a=2*Math.PI*i/48; pts.push([lon+dLon*Math.cos(a), lat+dLat*Math.sin(a)]); }
+            pts[48]=pts[0].slice();
+            const geometry={type:'Polygon',coordinates:[pts]};
+            objets.push({geometry,style:{strokeColor:'#ffffff',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeLinecap:'butt'}});
+            objets.push({geometry,style:{strokeColor:'#e53935',strokeWidth:6,strokeOpacity:1,fillOpacity:0,strokeDashstyle:'12 12',strokeLinecap:'butt'}});
         });
-        _srcRingLayer=new OpenLayers.Layer.Vector('WCT_SRC_RINGS',{displayInLayerSwitcher:false});
-        _srcRingLayer.addFeatures(feats);
-        wctAddLayer(_srcRingLayer);
+        _srcRingLayer=creerCoucheWct('WCT_SRC_RINGS');
+        _srcRingLayer.ajouter(objets);
     }catch(e){ log('src rings: '+e.message); }
 };
 // Nœud commun à deux segments (celui que traverse le virage). null si introuvable.
@@ -12388,74 +12401,35 @@ const parseShapefile = async (filename, arrayBuffer) => {
 const _traceBuildOL = (trackId, sampledPts, color, width, opacity) => {
     if(!sampledPts || sampledPts.length === 0) return null;
     try {
-        const proj4326 = new OpenLayers.Projection('EPSG:4326');
-        const projMap  = W.map.getProjectionObject();
-        const olPts    = sampledPts.map(([lat, lon]) => {
-            const pt = new OpenLayers.Geometry.Point(lon, lat);
-            pt.transform(proj4326, projMap);
-            return pt;
-        });
-        const line    = new OpenLayers.Geometry.LineString(olPts);
-        const style   = _traceStyle(color, width, false, opacity);
-        const feature = new OpenLayers.Feature.Vector(line, null, style);
-        const layer   = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
-        layer.addFeatures([feature]);
-        wctAddLayer(layer);
-        return layer;
+        const coords = sampledPts.map(([lat, lon]) => [lon, lat]);
+        // Un tracé d'un seul point n'est pas une ligne : un point, pour ne pas faire refuser le lot.
+        const geometry = coords.length > 1 ? { type:'LineString', coordinates:coords } : { type:'Point', coordinates:coords[0] };
+        const couche = creerCoucheWct('WCT_TRACE_' + trackId);
+        couche.ajouter([{ geometry, style:_traceStyle(color, width, false, opacity), poly:false }]);
+        return couche;
     } catch(e) {
         return null;
     }
 };
-// Construit un layer OL depuis des features GeoJSON reprojetées (WGS84 [lon,lat])
-// Style intelligent : LineString → trait plein, Polygon → contour seul sans remplissage
+// Calque depuis des features GeoJSON reprojetées (WGS84 [lon,lat]).
+// Style : LineString → trait plein, Polygon → contour et voile léger.
 const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, width, opacity) => {
     if(!geoFeatures || geoFeatures.length === 0) return null;
     try {
-        const proj4326 = new OpenLayers.Projection('EPSG:4326');
-        const projMap  = W.map.getProjectionObject();
-        const olFeatures = [];
-        // Subsampler les features si trop nombreuses (performance)
+        // Sous-échantillonner les features si trop nombreuses (performance)
         const step = geoFeatures.length > maxFeatures ? Math.ceil(geoFeatures.length / maxFeatures) : 1;
-
-        const toOLPt = ([lon, lat]) => {
-            const pt = new OpenLayers.Geometry.Point(lon, lat);
-            pt.transform(proj4326, projMap);
-            return pt;
-        };
-
-        const buildRing = (coordArr) => new OpenLayers.Geometry.LinearRing(coordArr.map(toOLPt));
-        const buildLine = (coordArr) => new OpenLayers.Geometry.LineString(coordArr.map(toOLPt));
-
+        const objets = [];
         geoFeatures.forEach((feat, idx) => {
             if(idx % step !== 0) return;
-            const type   = feat.type;
-            const coords = feat.coordinates;
-            const isPolygon = type === 'Polygon' || type === 'MultiPolygon';
-            const styleFeature = _traceStyle(color, width, isPolygon, opacity);
-
-            try {
-                let geom = null;
-                if(type === 'LineString') {
-                    geom = buildLine(coords);
-                } else if(type === 'MultiLineString') {
-                    const lines = coords.map(buildLine);
-                    geom = new OpenLayers.Geometry.Collection(lines);
-                } else if(type === 'Polygon') {
-                    const rings = coords.map(buildRing);
-                    geom = new OpenLayers.Geometry.Polygon(rings);
-                } else if(type === 'MultiPolygon') {
-                    const polys = coords.map(rings => new OpenLayers.Geometry.Polygon(rings.map(buildRing)));
-                    geom = new OpenLayers.Geometry.Collection(polys);
-                }
-                if(geom) olFeatures.push(new OpenLayers.Feature.Vector(geom, null, styleFeature));
-            } catch(e) {}
+            const type = feat.type;
+            if(!['LineString','MultiLineString','Polygon','MultiPolygon'].includes(type) || !Array.isArray(feat.coordinates)) return;
+            const poly = type === 'Polygon' || type === 'MultiPolygon';
+            objets.push({ geometry:{ type, coordinates:feat.coordinates }, style:_traceStyle(color, width, poly, opacity), poly });
         });
-
-        if(olFeatures.length === 0) return null;
-        const layer = new OpenLayers.Layer.Vector('WCT_TRACE_' + trackId, { displayInLayerSwitcher: false });
-        layer.addFeatures(olFeatures);
-        wctAddLayer(layer);
-        return layer;
+        if(objets.length === 0) return null;
+        const couche = creerCoucheWct('WCT_TRACE_' + trackId);
+        if(!couche.ajouter(objets)){ couche.detruire(); return null; }
+        return couche;
     } catch(e) {
         return null;
     }
@@ -12570,7 +12544,7 @@ const traceRemoveTrack = (trackId) => {
     const idx = _traceTracks.findIndex(t => t.trackId === trackId);
     if(idx === -1) return;
     const trk = _traceTracks[idx];
-    if(trk.olLayer) { wctForgetLayer(trk.olLayer); W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
+    if(trk.olLayer) trk.olLayer.detruire();
     _traceTracks.splice(idx, 1);
     // Supprimer le fichier parent s'il n'a plus de tracks
     const fileId = trk.fileId;
@@ -12585,7 +12559,7 @@ const traceRemoveTrack = (trackId) => {
 const traceRemoveFile = (fileId) => {
     const toRemove = _traceTracks.filter(t => t.fileId === fileId);
     toRemove.forEach(trk => {
-        if(trk.olLayer) { wctForgetLayer(trk.olLayer); W.map.removeLayer(trk.olLayer); trk.olLayer.destroy(); }
+        if(trk.olLayer) trk.olLayer.detruire();
     });
     _traceTracks = _traceTracks.filter(t => t.fileId !== fileId);
     _traceFiles  = _traceFiles.filter(f => f.fileId !== fileId);
@@ -12599,14 +12573,7 @@ const traceRemoveFile = (fileId) => {
 // setters de couleur en portaient chacun leur copie.
 const _traceRestyle = (trk) => {
     if(!trk || !trk.olLayer) return;
-    trk.olLayer.features.forEach(ft => {
-        const isPolygon = ft.geometry && (
-            ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Polygon' ||
-            ft.geometry.CLASS_NAME === 'OpenLayers.Geometry.Collection'
-        );
-        ft.style = _traceStyle(trk.color, trk.width, isPolygon, trk.opacity);
-    });
-    trk.olLayer.redraw();
+    trk.olLayer.restyler(o => _traceStyle(trk.color, trk.width, o.poly, trk.opacity));
 };
 const traceSetColor = (trackId, color, garderPopup) => {
     const trk = _traceTracks.find(t => t.trackId === trackId);
@@ -12801,7 +12768,7 @@ const _covGroupByNode = (segObjs) => {
 // Efface le calque de trous
 const _covClearGaps = () => {
     if(_coverageLayer){
-        try { wctForgetLayer(_coverageLayer); W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){}
+        try { _coverageLayer.detruire(); } catch(e){}
         _coverageLayer = null;
     }
     const res = document.getElementById('wct-coverage-result');
@@ -12810,28 +12777,20 @@ const _covClearGaps = () => {
 // Dessine les SEGMENTS empruntés non sélectionnés (suit la géométrie réelle des routes)
 // magenta pointillé + halo blanc — calque dédié WCT_COVERAGE_GAPS
 const _covDrawGaps = (segObjs) => {
-    if(_coverageLayer){ try { wctForgetLayer(_coverageLayer); W.map.removeLayer(_coverageLayer); _coverageLayer.destroy(); } catch(e){} _coverageLayer = null; }
+    if(_coverageLayer){ try { _coverageLayer.detruire(); } catch(e){} _coverageLayer = null; }
     if(!segObjs || !segObjs.length) return;
     try {
-        const proj4326 = new OpenLayers.Projection('EPSG:4326');
-        const projMap  = W.map.getProjectionObject();
-        const feats = [];
+        const objets = [];
         segObjs.forEach(s => {
             // s.lonlat : [[lon,lat],...] — géométrie réelle du segment
             if(!Array.isArray(s.lonlat) || s.lonlat.length < 2) return;
-            const olPts = s.lonlat.map(([lon,lat]) => {
-                const pt = new OpenLayers.Geometry.Point(lon, lat); pt.transform(proj4326, projMap); return pt;
-            });
-            const line = new OpenLayers.Geometry.LineString(olPts);
-            feats.push(new OpenLayers.Feature.Vector(line.clone(), null,
-                { strokeColor:'#ffffff', strokeWidth:11, strokeOpacity:0.9, strokeLinecap:'round' }));
-            feats.push(new OpenLayers.Feature.Vector(line, null,
-                { strokeColor:'#d500f9', strokeWidth:5, strokeOpacity:1, strokeDashstyle:'dash', strokeLinecap:'round' }));
+            const geometry = { type:'LineString', coordinates:s.lonlat };
+            objets.push({ geometry, style:{ strokeColor:'#ffffff', strokeWidth:11, strokeOpacity:0.9, strokeLinecap:'round' } });
+            objets.push({ geometry, style:{ strokeColor:'#d500f9', strokeWidth:5, strokeOpacity:1, strokeDashstyle:'dash', strokeLinecap:'round' } });
         });
-        const layer = new OpenLayers.Layer.Vector('WCT_COVERAGE_GAPS', { displayInLayerSwitcher:false });
-        layer.addFeatures(feats);
-        wctAddLayer(layer);
-        _coverageLayer = layer;
+        const couche = creerCoucheWct('WCT_COVERAGE_GAPS');
+        couche.ajouter(objets);
+        _coverageLayer = couche;
     } catch(e){ console.error('WCT coverage draw:', e); }
 };
 // ═══════════════════════════════════════════════════════════════════════════
@@ -12958,15 +12917,15 @@ const _centrerSurZoneVisible = (lon, lat, zoomCible) => {
         try { sdk.Map.setMapCenter({ lonLat: { lon, lat }, zoomLevel: zoomCible }); } catch(e2){}
     }
 };
-// Même chose par OpenLayers. ⚠️ Indispensable pour les focus : setMapCenter du SDK ne
-// recentre PAS quand un segment est sélectionné (piège vérifié en live, cf. 0.84).
+// Même chose pour les focus. Jusqu'à la 1.22.04 elle passait par OpenLayers et `W.map`,
+// parce que setMapCenter du SDK ne recentrait pas avec un segment sélectionné (cf. 0.84).
+// Mesuré le 04/10/2026 (bêta v2.373) : il recentre à 0 m avec un segment sélectionné, et
+// la sélection reste. `W` disparaît le 24/11/2026 : le SDK, donc. Nom gardé pour ses appelants.
 const _centrerSurZoneVisibleOL = (lon, lat, zoom) => {
     try {
         const p = _pointVersZoneVisible(lon, lat, zoom);
-        const pt = new OpenLayers.Geometry.Point(p.lon, p.lat);
-        pt.transform(new OpenLayers.Projection('EPSG:4326'), W.map.getProjectionObject());
-        W.map.setCenter(new OpenLayers.LonLat(pt.x, pt.y), zoom);
-    } catch(e){ log('centrage OL sur la zone visible impossible: ' + e.message); }
+        sdk.Map.setMapCenter({ lonLat: { lon: p.lon, lat: p.lat }, zoomLevel: zoom });
+    } catch(e){ log('centrage sur la zone visible impossible: ' + e.message); }
 };
 // Dimensions de la zone visible, en pixels — sert aux calculs de niveau de zoom.
 // Conserve les clés de l'ancienne version : ses appelants n'ont pas à changer.
@@ -13958,13 +13917,10 @@ let _zoneEdit  = null;   // édition du contour en cours
 let _zoneTracage = false;
 
 // ── Conversions ──────────────────────────────────────────────────────────────
-// Le CALQUE travaille en mercator (géométries OpenLayers). Les POIGNÉES, elles, ne
-// passent par aucune projection : `sdk.Map.getPixelFromLonLat` prend du WGS84 et rend
+// Le CALQUE (SDK) et les POIGNÉES travaillent tous deux en WGS84 : `sdk.Map.getPixelFromLonLat` prend du WGS84 et rend
 // des pixels d'ÉCRAN, directement comparables à clientX/clientY (mesuré en live le
 // 31/07 : le centre de la carte rend exactement le centre du canevas). C'est la voie
 // de WNA, en production depuis des mois.
-const _zoneVers3857 = (lon, lat) => new OpenLayers.LonLat(lon, lat)
-    .transform(new OpenLayers.Projection('EPSG:4326'), W.map.getProjectionObject());
 
 // ── Le calque ────────────────────────────────────────────────────────────────
 // Trois états, trois couleurs, et un seul endroit qui en décide :
@@ -13978,7 +13934,7 @@ const ZONE_STYLES = {
 };
 let _zoneLayer = null;
 const _zoneClearLayer = () => {
-    try { if(_zoneLayer){ wctForgetLayer(_zoneLayer); W.map.removeLayer(_zoneLayer); _zoneLayer.destroy(); } } catch(e){}
+    try { if(_zoneLayer) _zoneLayer.detruire(); } catch(e){}
     _zoneLayer = null;
 };
 const _zoneDrawLayer = (rings, mode) => {
@@ -13986,16 +13942,13 @@ const _zoneDrawLayer = (rings, mode) => {
     if(!rings || !rings.length || !rings[0] || rings[0].length < 4) return;
     try {
         const st = ZONE_STYLES[mode] || ZONE_STYLES.valid;
-        // Anneau extérieur d'abord, trous ensuite : OpenLayers les creuse tout seul.
-        const anneau = (r) => new OpenLayers.Geometry.LinearRing(
-            r.map(([lon, lat]) => { const p = _zoneVers3857(lon, lat);
-                                    return new OpenLayers.Geometry.Point(p.lon, p.lat); }));
-        const poly = new OpenLayers.Geometry.Polygon(rings.map(anneau));
-        _zoneLayer = new OpenLayers.Layer.Vector('WCT_ZONE', { displayInLayerSwitcher:false });
-        _zoneLayer.addFeatures([ new OpenLayers.Feature.Vector(poly, null, {
+        // Anneau extérieur d'abord, trous ensuite : le polygone GeoJSON les creuse.
+        const ferme = r => { const a = r.map(p => [p[0], p[1]]); const f = a[0], l = a[a.length - 1];
+                             if(f[0] !== l[0] || f[1] !== l[1]) a.push(f.slice()); return a; };
+        _zoneLayer = creerCoucheWct('WCT_ZONE');
+        _zoneLayer.ajouter([{ geometry:{ type:'Polygon', coordinates:rings.map(ferme) }, style:{
             strokeColor: st.trait, strokeWidth: 3, strokeOpacity: 0.95, strokeDashstyle: st.tirets,
-            fillColor: st.trait, fillOpacity: 0.12 }) ]);
-        wctAddLayer(_zoneLayer);
+            fillColor: st.trait, fillOpacity: 0.12 } }]);
     } catch(e){ log('zone calque: ' + e.message); }
 };
 // Anneaux tels qu'ils sont en cours d'édition : le contour repris, plus les trous
