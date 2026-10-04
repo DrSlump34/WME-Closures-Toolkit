@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.23.00
+// @version      1.24.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -10508,6 +10508,13 @@ const runSearch=async()=>{
     }
     const F=_srcReadFilters();
     _srcBusy(true,F.zoneKm);
+    // Les nœuds des virages fermés dont les deux segments sont chargés passent dans le cache des
+    // virages AVANT le rendu : le bloc Virages y lit l'identifiant et l'angle de chaque virage.
+    if(wantTurn){
+        const nds=[];
+        (_wme.tc||[]).forEach(c=>{ const n=_sharedNode(getSegById(c.fromSegmentId),getSegById(c.toSegmentId)); if(n!=null) nds.push(n); });
+        try{ await Promise.all(_viragesManquants(nds).map(_chargerVirages)); }catch(e){ log('recherche, virages : '+e.message); }
+    }
     // ─── Source des fermetures : vue courante (modèle) ou zone (API Features) ───
     // ⚠️ En cas d'échec de l'API on RETOMBE sur la vue courante en le DISANT. Rendre
     // silencieusement 12 fermetures au lieu de 300 ferait croire à une zone vide.
@@ -18188,7 +18195,10 @@ const buildSidebar=()=>`
 //  INIT
 // ===========================================================================
 const init=async()=>{
-    sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME});
+    // Mode ASYNC (Discuss 412920) : seul mode au 01/01/2027. Toutes les méthodes du SDK rendent des
+    // promesses ; WCT les attend toutes et lit l'état de WME dans le miroir `_wme`. Une version de WME
+    // qui ne connaît pas encore ce mode (prod v2.370) l'ignore et rend des valeurs : les await passent.
+    sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME,mode:'async'});
     // Ce qui ne change pas pendant la session, relu une fois ; puis le premier relevé du miroir.
     try{ _wme.locale = (await sdk.Settings.getLocale())?.localeCode || ''; }catch(e){}
     try{ _wme.region = (await sdk.Settings.getRegionCode()) || ''; }catch(e){}
