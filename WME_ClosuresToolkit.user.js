@@ -7607,6 +7607,13 @@ const _wmeSelection = async () => {
     }catch(e){ _wme.sel = { ids:[], objectType:'none' }; }
 };
 const _wmeTout = async () => { await Promise.all([_wmeCarte(), _wmeSelection()]); await _wmeModele(); };
+// Geste isolé du SDK dont on n'attend rien, sinon de savoir qu'il a échoué. Il journalise
+// l'échec dans les DEUX modes : levé (synchrone) comme rejeté (async). Rend une promesse du
+// résultat (undefined si échec) : l'attendre quand l'ordre compte.
+const _essai = (fn, ctx) => {
+    try{ return Promise.resolve(fn()).catch(e => { log(ctx + ' : ' + (e && e.message)); return undefined; }); }
+    catch(e){ log(ctx + ' : ' + (e && e.message)); return Promise.resolve(undefined); }
+};
 // Pixels d'écran ⇄ WGS84, calculés sur l'emprise et le rectangle de la vue (Mercator). Mesuré le
 // 04/10/2026 contre getPixelFromLonLat / getLonLatFromPixel du SDK : moins de 0,5 px, 0 m d'écart.
 // Synchrone : le glisser d'une poignée ne peut pas attendre une promesse à chaque mouvement.
@@ -10129,10 +10136,10 @@ const _wctSimples = g => {
 };
 // Au-dessus des routes, des lieux et des fermetures de WME (mesuré le 04/10/2026 :
 // routes 2065, segments 2305, lieux 2285, fermetures 6365).
-const _wctZIndex = () => {
+const _wctZIndex = async () => {
     let z = 0;
     for(const n of ['roads', 'segments', 'venues', 'closures']){
-        try{ z = Math.max(z, Number(sdk.Map.getLayerZIndex({ layerName:n })) || 0); }catch(e){}
+        try{ z = Math.max(z, Number(await sdk.Map.getLayerZIndex({ layerName:n })) || 0); }catch(e){}
     }
     return (z || 6000) + 100;
 };
@@ -10142,35 +10149,48 @@ let _wctCoucheN = 0;
 const creerCoucheWct = (nom) => {
     // Nom unique à chaque création : un calque retiré puis recréé ne réutilise pas le sien.
     const layerName = nom + '_' + (++_wctCoucheN);
-    sdk.Map.addLayer({ layerName, styleContext:_wctStyleCtx, styleRules:[{ style:_wctStyleTpl }] });
-    try{ sdk.Map.setLayerZIndex({ layerName, zIndex:_wctZIndex() }); }
-    catch(e){ log('calque ' + nom + ' : z-index impossible : ' + e.message); }
+    // En async, le calque doit EXISTER avant qu'on y pose quoi que ce soit : toute opération
+    // attend `pret`, et elles s'enchaînent dans l'ordre (file).
+    const pret = (async () => {
+        await sdk.Map.addLayer({ layerName, styleContext:_wctStyleCtx, styleRules:[{ style:_wctStyleTpl }] });
+        try{ await sdk.Map.setLayerZIndex({ layerName, zIndex: await _wctZIndex() }); }
+        catch(e){ log('calque ' + nom + ' : z-index impossible : ' + e.message); }
+    })();
+    let file = pret.catch(e => log('calque ' + nom + ' : création impossible : ' + e.message));
+    const enFile = travail => (file = file.then(travail, travail));
     const objets = [];
     let n = 0, vivant = true;
-    const pousser = (liste) => {
+    const pousser = async (liste) => {
         const feats = [];
         liste.forEach(o => _wctSimples(o.geometry).forEach(g =>
             feats.push({ type:'Feature', id:layerName + '_' + (++n), geometry:g, properties:{ _st:o.style } })));
-        if(!feats.length) return 0;
-        try{ sdk.Map.addFeaturesToLayer({ layerName, features:feats }); return feats.length; }
+        if(!feats.length || !vivant) return 0;
+        try{ await sdk.Map.addFeaturesToLayer({ layerName, features:feats }); return feats.length; }
         catch(e){
             let ok = 0;
-            feats.forEach(f => { try{ sdk.Map.addFeatureToLayer({ layerName, feature:f }); ok++; }catch(e2){} });
+            for(const f of feats){ try{ await sdk.Map.addFeatureToLayer({ layerName, feature:f }); ok++; }catch(e2){} }
             log('calque ' + nom + ' : ' + (feats.length - ok) + ' objet(s) refusé(s) sur ' + feats.length + ' (' + e.message + ')');
             return ok;
         }
     };
     return {
         layerName, objets,
-        ajouter(liste){ if(!vivant) return 0; objets.push(...liste); return pousser(liste); },
+        // Rend une promesse du nombre d'objets posés.
+        ajouter(liste){ if(!vivant) return Promise.resolve(0); objets.push(...liste); return enFile(() => pousser(liste)); },
         restyler(fn){
-            if(!vivant) return;
+            if(!vivant) return Promise.resolve();
             objets.forEach(o => { o.style = fn(o); });
-            try{ sdk.Map.removeAllFeaturesFromLayer({ layerName }); }catch(e){}
-            pousser(objets);
+            return enFile(async () => {
+                try{ await sdk.Map.removeAllFeaturesFromLayer({ layerName }); }catch(e){}
+                return pousser(objets);
+            });
         },
-        setVisibility(v){ try{ sdk.Map.setLayerVisibility({ layerName, visibility:!!v }); }catch(e){} },
-        detruire(){ if(!vivant) return; vivant = false; try{ sdk.Map.removeLayer({ layerName }); }catch(e){} },
+        setVisibility(v){ return enFile(() => _essai(() => sdk.Map.setLayerVisibility({ layerName, visibility:!!v }), 'calque ' + nom)); },
+        detruire(){
+            if(!vivant) return Promise.resolve();
+            vivant = false;
+            return enFile(() => _essai(() => sdk.Map.removeLayer({ layerName }), 'calque ' + nom));
+        },
     };
 };
 // ═══════════════════════════════════════════════════════════════════════════
@@ -12499,7 +12519,7 @@ const _traceBuildOLFromFeatures = (trackId, geoFeatures, color, maxFeatures, wid
         });
         if(objets.length === 0) return null;
         const couche = creerCoucheWct('WCT_TRACE_' + trackId);
-        if(!couche.ajouter(objets)){ couche.detruire(); return null; }
+        couche.ajouter(objets).then(nb => { if(!nb) log('tracé ' + trackId + ' : aucun objet posé'); });
         return couche;
     } catch(e) {
         return null;
