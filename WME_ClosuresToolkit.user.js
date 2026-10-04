@@ -7663,12 +7663,44 @@ const _noeudsDe=e=>Array.isArray(e.nodesInside) ? new Set(e.nodesInside.map(Numb
 // (visite du pape, 4 lots sur 4 en échec, 0 fermeture posée). Repli sur le modèle, dont
 // les attributs ont la forme de l'API — d'où _apiToClosure.
 // null ≠ [] : « je n'ai pas pu regarder » n'est pas « il n'y a rien ».
+// ⚠️ 04/10/2026 : getAll() LÈVE TOUJOURS en bêta v2.373 (ticket SDK 566467873, P0) — à Paris,
+// 418 fermetures sur 862 n'ont pas d'attributions. Le repli sur `W.model` disparaît avec `W`
+// le 24/11/2026 : il passe désormais par l'API Features, sur l'emprise de la vue, relue à
+// chaque chargement de données (_rafraichirFermeturesApi). Les objets ont la forme de l'API,
+// comme ceux de `W.model` avant — d'où _apiToClosure, inchangé.
+let _fcApi = { objets:null, cle:'' };
+const _cleVue = () => { try{ return sdk.Map.getMapExtent().map(v=>Number(v).toFixed(5)).join(','); }catch(e){ return ''; } };
+const _sdkFermeturesLisibles = () => { try{ sdk.DataModel.RoadClosures.getAll(); return true; }catch(e){ return false; } };
+const _rafraichirFermeturesApi = async () => {
+    const cle = _cleVue();
+    if(!cle) return null;
+    try{
+        let z = 17; try{ z = Math.round(sdk.Map.getZoomLevel()); }catch(e){}
+        const url = `${_featuresPath()}?bbox=${cle}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
+        const r = await fetch(url, {credentials:'include'});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const j = await r.json();
+        const rc = j?.roadClosures?.objects;
+        if(!Array.isArray(rc)) throw new Error('forme inattendue');
+        _fcApi = { objets:rc, cle };
+        return rc;
+    }catch(e){ log('fermetures par l\'API Features : '+e.message); return null; }
+};
 const _fermeturesChargees=()=>{
     try{ return sdk.DataModel.RoadClosures.getAll(); }
     catch(e){
-        try{ return (W?.model?.roadClosures?.getObjectArray?.()||[]).map(o=>_apiToClosure(o.attributes||o)); }
-        catch(e2){ log('fermetures chargées illisibles : '+e.message+' / '+e2.message); return null; }
+        // La lecture de l'API ne vaut que pour la vue où elle a été faite.
+        if(_fcApi.objets && _fcApi.cle === _cleVue()) return _fcApi.objets.map(_apiToClosure);
+        log('fermetures chargées illisibles : '+e.message+(_fcApi.objets ? ' / lecture API faite sur une autre vue' : ' / pas encore de lecture API'));
+        _rafraichirFermeturesApi();   // la lecture suivante l'aura
+        return null;
     }
+};
+// Nom de la source d'une fermeture du SDK : le crédit de ses attributions (« Ville de Paris »,
+// « WazeClosures »…), qui est le `provider` de l'API. Mesuré le 04/10/2026.
+const _creditDe = c => {
+    const a = (c?.attributions||[]).find(x => x && typeof x.credit === 'string' && x.credit.trim());
+    return a ? a.credit : null;
 };
 const getExistingClosures=segIds=>{
     const all=_fermeturesChargees();
@@ -8304,7 +8336,10 @@ const checkSelectionCountry=segIds=>{
     if(countries.length>1) return {ok:false,country:null,countries};
     return {ok:true,country:countries[0],countries};
 };
-const waitMapLoaded=()=>new Promise(resolve=>{
+const waitMapLoaded=()=>_attendreCarte().then(async()=>{
+    if(!_applyAborted && !_sdkFermeturesLisibles()) await _rafraichirFermeturesApi();
+});
+const _attendreCarte=()=>new Promise(resolve=>{
     // _applyAborted coupe l'attente immédiatement : sans cela, un Stop cliqué pendant
     // le chargement de la carte restait sans effet visible jusqu'à 10 s.
     let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||!sdk.State.isMapLoading()||n>100){clearInterval(iv);resolve();}},100);
@@ -9947,7 +9982,10 @@ const _applyProviderTo = (nouvellesCles, partnerId) => {
     if(!p) return 0;
     let n=0;
     for(const k of nouvellesCles){
-        const o=W.model?.roadClosures?.objects?.[k];
+        // Le SDK ne pose pas de Source (addClosure : « attributions … populated based on the
+        // logged-in user »). Seul `W.model` le permet : quand il disparaît, _srcSchemaOk tombe
+        // et la Source se grise avec sa cause.
+        const o=(typeof W!=='undefined') ? W.model?.roadClosures?.objects?.[k] : null;
         if(!o?.attributes) continue;
         o.attributes.provider = p.name;
         o.attributes.attributions = [{
@@ -10159,26 +10197,13 @@ const _srcMatch=(cl,F,mteField)=>{
 // présents dans les fermetures chargées : pas d'API, et jamais un choix qui ne
 // rendrait rien.
 const SRC_PARTNER_NONE = '__none__';
-const _providerOf = (id, kind) => {
-    try{
-        const repo = kind==='turn' ? W?.model?.turnClosures : W?.model?.roadClosures;
-        const a = repo?.objects?.[String(id)]?.attributes;
-        if(!a) return null;
-        const p = a.provider;
-        return (typeof p === 'string' && p.trim()) ? p : null;
-    }catch(e){ return null; }
-};
-// Partenaires distincts présents dans la vue (segments + virages).
+// Partenaires distincts présents dans la vue (segments + virages). La source vient des
+// attributions du SDK, ou du `provider` de l'API quand on lit par le repli.
 const _partnersInView = () => {
     const set=new Set();
-    try{
-        for(const repo of [W?.model?.roadClosures, W?.model?.turnClosures]){
-            for(const o of Object.values(repo?.objects||{})){
-                const p=o?.attributes?.provider;
-                if(typeof p==='string' && p.trim()) set.add(p);
-            }
-        }
-    }catch(e){}
+    const ajoute=p=>{ if(typeof p==='string' && p.trim()) set.add(p); };
+    try{ (_fermeturesChargees()||[]).forEach(c=>ajoute(c._provider ?? _creditDe(c))); }catch(e){}
+    try{ sdk.DataModel.TurnClosures.getAll().forEach(c=>ajoute(_creditDe(c))); }catch(e){}
     return [...set].sort((a,b)=>a.localeCompare(b));
 };
 const refreshSrcPartnerFilter = () => {
@@ -10392,7 +10417,7 @@ const _srcBlockSegments=(resEl,F,zone)=>{
     else{
         // Via _fermeturesChargees : getAll() du SDK lève sur une fermeture sans attributions,
         // et la recherche en vue courante rendait alors zéro résultat sans rien dire.
-        try{ all=(_fermeturesChargees()||[]).map(c=>({...c,_provider:_providerOf(c.id,'seg')})); }catch(e){}
+        try{ all=(_fermeturesChargees()||[]).map(c=>({...c,_provider:c._provider ?? _creditDe(c)})); }catch(e){}
     }
     const matched=all.filter(cl=>_srcMatch(cl,F,'trafficEventId')
         && _srcPartnerMatch(cl._provider??null, F.partner));
@@ -10556,7 +10581,7 @@ const _srcBlockTurns=(resEl,F,zone)=>{
     // ne rien montrer que des virages sans nœud ni angle. À revoir si le besoin apparaît.
     let all=[];
     if(zone){ all=zone.turns; }
-    else{ try{ all=sdk.DataModel.TurnClosures.getAll().map(c=>({...c,_provider:_providerOf(c.id,'turn')})); }catch(e){} }
+    else{ try{ all=sdk.DataModel.TurnClosures.getAll().map(c=>({...c,_provider:_creditDe(c)})); }catch(e){} }
     // ⚠️ L'auteur a confirmé qu'on ne peut PAS mettre de Source sur un virage : _provider
     // vaut donc null, le filtre « Aucun » les prend et un filtre par partenaire ne les
     // rend pas — c'est correct, ne pas « améliorer ».
@@ -10920,18 +10945,19 @@ const showPreview=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 const addClosure=(options,okCb,koCb)=>{
     const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses,nodesInside}=options;
-    // Cliché des fermetures AVANT la boucle : le SDK ne rend pas les objets qu'il crée,
-    // le diff est donc le seul moyen de retrouver les nôtres.
+    // Les fermetures créées se comptent par ce que rend addClosure (la fermeture créée,
+    // d'après la doc du SDK). Jusqu'à la 1.22.04, c'était un diff de `W.model` avant/après,
+    // qui disparaît avec `W` le 24/11/2026.
     // ⚠️ Pris SYSTÉMATIQUEMENT depuis la 1.02.00, et plus seulement quand une Source est
     // demandée. Motif : sans lui, le rappel de succès créditait `activeSegs.length`, soit
     // le nombre de segments DEMANDÉS — jamais le nombre réellement écrit. Un segment
     // absent du data model est sauté en silence trois lignes plus bas, et le bilan
     // affichait quand même « ✅ 868 sur 868 » pendant que des rues restaient ouvertes à
     // la circulation. Le compte doit être MESURÉ, pas supposé.
-    // ⚠️ `W.model.roadClosures.objects` n'est pas un contrat : s'il disparaît un jour, le
-    // diff n'est plus LISIBLE — ce qui n'est pas « rien de créé ». Voir _nouvelles.
-    const _modeleLisible = !!W?.model?.roadClosures?.objects;
-    const _clesAvant = new Set(Object.keys(W?.model?.roadClosures?.objects||{}));
+    // ⚠️ Une valeur rendue sans identifiant rend le compte ILLISIBLE — ce qui n'est pas
+    // « rien de créé ». Voir _nouvelles.
+    const _creees = [];
+    let _idsLisibles = true;
     // Ce que la boucle a vraiment fait, en SEGMENTS (unité du compteur de progression :
     // un segment à double sens produit deux fermetures, les deux comptent pour un).
     const segsPoses = new Set();   // au moins une fermeture partie pour ce segment
@@ -10967,7 +10993,11 @@ const addClosure=(options,okCb,koCb)=>{
         if(interieurs){fromClosed=interieurs.has(Number(seg.fromNodeId));toClosed=interieurs.has(Number(seg.toNodeId));}
         const poser=(sensAvant,noeud,fenetres,lib)=>{
             for(const [a,b] of fenetres){
-                try{ sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b}); segsPoses.add(sid); }
+                try{
+                    const cree = sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b});
+                    segsPoses.add(sid);
+                    if(cree && cree.id != null) _creees.push(String(cree.id)); else _idsLisibles = false;
+                }
                 catch(e){ loopErrors.push(`seg ${sid} ${lib}: ${e.message}`); }
             }
         };
@@ -10979,11 +11009,10 @@ const addClosure=(options,okCb,koCb)=>{
     // Hors SDK. Si quoi que ce soit cloche ici, on ANNULE tout plutôt que d'envoyer des
     // fermetures sans la source demandée : l'utilisateur a explicitement choisi un
     // partenaire, une pose silencieusement incomplète serait une fausse attribution.
-    // Le diff, calculé UNE fois. ⚠️ Il DOIT être pris avant save() : après, les objets
-    // temporaires reçoivent leur identifiant serveur et les clés ne correspondent plus.
-    // null = diff illisible (modèle interne changé) ; [] = lisible et rien de créé.
-    const _nouvelles = _modeleLisible && W?.model?.roadClosures?.objects
-        ? Object.keys(W.model.roadClosures.objects).filter(k=>!_clesAvant.has(k)) : null;
+    // Identifiants des fermetures créées, pris AVANT save() : après, les objets temporaires
+    // reçoivent leur identifiant serveur.
+    // null = compte illisible (une valeur rendue sans identifiant) ; [] = lisible et rien de créé.
+    const _nouvelles = _idsLisibles ? _creees : null;
     // Bilan remonté aux deux rappels : ce qui a été demandé, ce qui a été fait, ce qui
     // manque. C'est lui qui permet à applyQueue d'afficher un compte vrai.
     const bilan = { demandes:segments.length, poses:segsPoses.size, absents:segsAbsents,
@@ -18176,6 +18205,9 @@ const init=async()=>{
         }catch(e){ log('onSel/turnsPane: '+e.message); }
     };
     try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
+    // Fermetures relues par l'API Features à chaque chargement de données, tant que le SDK
+    // ne sait pas les lire (voir _fermeturesChargees, ticket SDK 566467873).
+    try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:()=>{ if(!_sdkFermeturesLisibles()) _rafraichirFermeturesApi(); }});}catch(e){}
     setInterval(onSel,500);
     onSel();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —

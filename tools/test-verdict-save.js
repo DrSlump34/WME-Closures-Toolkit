@@ -1,12 +1,15 @@
 // Le verdict d'enregistrement d'addClosure : save() est appelé dès que le SDK a ACCEPTÉ des
-// fermetures, même si le modèle interne de WME est devenu illisible.
+// fermetures, même si le compte des fermetures créées est illisible.
 //
 // Audit du 25/09/2026 : « rien à écrire » se jugeait sur le diff de W.model.roadClosures.objects,
 // qui n'est pas un contrat. Le jour où ce chemin change, le diff vaut vide, et CHAQUE lot sortait
 // « posé » sans que save() soit jamais appelé. La vérification croisée d'après save() était, elle,
 // une branche morte (le diff vide avait déjà fait sortir la fonction).
 //
-// addClosure et le tri sont extraits du fichier réel ; SDK, W et le DOM sont des doublures.
+// 04/10/2026 (retrait de `W`) : le compte ne vient plus d'un diff de W.model mais de ce que rend
+// addClosure (la fermeture créée, d'après la doc du SDK). « Illisible » = une valeur rendue sans id.
+//
+// addClosure et le tri sont extraits du fichier réel ; SDK et DOM sont des doublures.
 const fs = require('fs');
 const SRC = require('path').join(__dirname, '..', 'WME_ClosuresToolkit.user.js');
 const txt = fs.readFileSync(SRC, 'utf8');
@@ -25,12 +28,11 @@ let ok = 0, ko = 0;
 const chk = (nom, cond, detail) => { if (cond) { ok++; console.log('  ok   ' + nom); }
     else { ko++; console.log('  ECHEC ' + nom + (detail !== undefined ? '\n        ' + detail : '')); } };
 
-const jouer = ({ modele }) => {
+const jouer = ({ rend }) => {
     const etat = { saves: 0, poses: 0 };
-    const objets = {};
-    const W = modele ? { model: { roadClosures: { objects: objets } } } : { model: {} };
+    const W = { model: {} };
     const sdk = {
-        DataModel: { RoadClosures: { addClosure: () => { etat.poses++; if (modele) objets['tmp' + etat.poses] = {}; } } },
+        DataModel: { RoadClosures: { addClosure: () => { etat.poses++; return rend ? { id: 'tmp' + etat.poses } : undefined; } } },
         Editing: { save: () => { etat.saves++; return Promise.resolve('sauve'); }, undoAll: () => {} },
     };
     const env = {
@@ -50,14 +52,14 @@ const jouer = ({ modele }) => {
 
 (async () => {
     console.log('\n— Modèle lisible (le cas d\'aujourd\'hui) —');
-    const a = await jouer({ modele: true });
+    const a = await jouer({ rend: true });
     chk('save() appelé une fois', a.saves === 1, 'saves=' + a.saves);
     chk('succès', a.issue === 'ok', a.issue);
     chk('4 fermetures demandées au SDK (2 segments × 2 sens)', a.poses === 4, a.poses);
     chk('la vérification croisée a compté 4 objets', a.b.objets === 4, a.b.objets);
 
-    console.log('\n— Modèle interne illisible (le jour où WME le change) —');
-    const b = await jouer({ modele: false });
+    console.log('\n— Le SDK ne rend rien (le jour où le contrat change) —');
+    const b = await jouer({ rend: false });
     chk('save() est QUAND MÊME appelé', b.saves === 1, 'saves=' + b.saves);
     chk('succès, sur la foi du SDK et du DOM', b.issue === 'ok', b.issue);
     chk('la vérification croisée se déclare NON FAITE (objets = null)', b.b.objets === null, b.b.objets);
