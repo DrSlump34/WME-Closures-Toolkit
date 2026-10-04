@@ -1479,7 +1479,7 @@ const detectLang = () => {
         // Langue de WME par le SDK (`W` disparaît le 24/11/2026). Avant l'initialisation du
         // SDK, l'attribut lang de la page la porte aussi.
         let wl = '';
-        try { wl = sdk?.Settings?.getLocale?.()?.localeCode || ''; } catch(e) {}
+        wl = _wme.locale || '';
         const l = (wl || document.documentElement.lang || navigator.language || 'en').toLowerCase();
         if (l.startsWith('pt')) return l.includes('br') ? 'pt-BR' : 'pt-PT';
         if (l.startsWith('he') || l.startsWith('iw')) return 'he';
@@ -7562,14 +7562,77 @@ const CSVtoArray=text=>{
     return b;
 };
 // ═══════════════════════════════════════════════════════════════════════════
-//  SELECTION — par le SDK (`W.selectionManager` disparaît le 24/11/2026)
+//  MIROIR DE WME — lectures synchrones sur un SDK asynchrone
+// ═══════════════════════════════════════════════════════════════════════════
+// En mode 'async' (opt-in depuis la bêta v2.373, SEUL mode au 01/01/2027, Discuss 412920),
+// TOUTES les méthodes du SDK rendent des promesses, sauf Events.on/once/off. Or WCT lit l'état
+// de WME dans du code synchrone et fréquent : getSegById (24 appels), onSel toutes les 500 ms,
+// les poignées de zone à chaque mouvement de souris. Ce miroir tient cet état ; il est relu de
+// façon asynchrone à chaque événement de WME (déplacement, chargement de données, sélection) et
+// après chaque geste de WCT qui le change (waitMapLoaded). Le code synchrone lit le miroir.
+// ⚠️ En async, un appel qui échoue REJETTE sa promesse au lieu de lever : un try/catch autour
+// d'un appel NON attendu ne voit plus rien (piège payé sur PEU, updateVenue). D'où les await.
+const _wme = { segs:new Map(), adresses:new Map(), sel:{ ids:[], objectType:'none' },
+               centre:null, zoom:null, ext:null, vp:null,
+               rc:null, rcLisible:false, tc:[], mte:[], locale:'', region:'' };
+let _wmeGen = 0;
+const _wmeCarte = async () => {
+    try{
+        const [c, z, e] = await Promise.all([sdk.Map.getMapCenter(), sdk.Map.getZoomLevel(), sdk.Map.getMapExtent()]);
+        _wme.centre = c; _wme.zoom = z; _wme.ext = e;
+    }catch(e){ log('miroir, carte : ' + e.message); }
+};
+const _wmeModele = async () => {
+    const g = ++_wmeGen;
+    let segs = [], rc = null, rcLisible = false, tc = [], mte = [];
+    try{ segs = (await sdk.DataModel.Segments.getAll()) || []; }catch(e){ log('miroir, segments : ' + e.message); }
+    const adresses = new Map();
+    for(const sg of segs){
+        try{ adresses.set(Number(sg.id), await sdk.DataModel.Segments.getAddress({ segmentId:Number(sg.id) })); }catch(e){}
+    }
+    // getAll() des fermetures LÈVE sur une fermeture sans attributions (ticket SDK 566467873) :
+    // rcLisible le dit, et _fermeturesChargees se replie alors sur l'API Features.
+    try{ rc = await sdk.DataModel.RoadClosures.getAll(); rcLisible = true; }catch(e){ rcLisible = false; }
+    try{ tc = (await sdk.DataModel.TurnClosures.getAll()) || []; }catch(e){}
+    try{ mte = (await sdk.DataModel.MajorTrafficEvents.getAll()) || []; }catch(e){}
+    if(g !== _wmeGen) return false;     // un relevé plus récent a commencé : le sien fera foi
+    _wme.segs = new Map(segs.map(sg => [Number(sg.id), sg]));
+    _wme.adresses = adresses; _wme.rc = rc; _wme.rcLisible = rcLisible; _wme.tc = tc; _wme.mte = mte;
+    return true;
+};
+const _wmeSelection = async () => {
+    try{
+        const sl = await sdk.Editing.getSelection();
+        _wme.sel = (sl && sl.ids && sl.ids.length) ? sl : { ids:[], objectType:'none' };
+    }catch(e){ _wme.sel = { ids:[], objectType:'none' }; }
+};
+const _wmeTout = async () => { await Promise.all([_wmeCarte(), _wmeSelection()]); await _wmeModele(); };
+// Pixels d'écran ⇄ WGS84, calculés sur l'emprise et le rectangle de la vue (Mercator). Mesuré le
+// 04/10/2026 contre getPixelFromLonLat / getLonLatFromPixel du SDK : moins de 0,5 px, 0 m d'écart.
+// Synchrone : le glisser d'une poignée ne peut pas attendre une promesse à chaque mouvement.
+const _mercX = lon => lon * Math.PI / 180;
+const _mercY = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+const _versPixel = (lon, lat) => {
+    const e = _wme.ext, v = _wme.vp;
+    if(!e || !v) return null;
+    const r = v.getBoundingClientRect();
+    return { x: r.left + (_mercX(lon) - _mercX(e[0])) / (_mercX(e[2]) - _mercX(e[0])) * r.width,
+             y: r.top  + (_mercY(e[3]) - _mercY(lat)) / (_mercY(e[3]) - _mercY(e[1])) * r.height };
+};
+const _versLonLat = (x, y) => {
+    const e = _wme.ext, v = _wme.vp;
+    if(!e || !v) return null;
+    const r = v.getBoundingClientRect();
+    const Y = _mercY(e[3]) - (y - r.top) / r.height * (_mercY(e[3]) - _mercY(e[1]));
+    return { lon: e[0] + (x - r.left) / r.width * (e[2] - e[0]),
+             lat: (2 * Math.atan(Math.exp(Y)) - Math.PI / 2) * 180 / Math.PI };
+};
+// ═══════════════════════════════════════════════════════════════════════════
+//  SELECTION — par le miroir (`W.selectionManager` disparaît le 24/11/2026)
 // ═══════════════════════════════════════════════════════════════════════════
 const getSelection=()=>{
-    try {
-        const sel=sdk.Editing.getSelection();
-        if(sel&&sel.ids&&sel.ids.length>0) return sel;
-    } catch(e){}
-    return {ids:[],objectType:'none'};
+    const sl=_wme.sel;
+    return (sl&&sl.ids&&sl.ids.length>0) ? sl : {ids:[],objectType:'none'};
 };
 const hasSel=()=>{const s=getSelection();return s.ids.length>0&&s.objectType==='segment';};
 // Bascule une pastille de jour. ⚠️ Passer par ici et non par classList.toggle seul :
@@ -7619,7 +7682,7 @@ const _clavierPourCliquables = (racine) => {
 // ═══════════════════════════════════════════════════════════════════════════
 //  WME HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
-const getSegById=id=>sdk.DataModel.Segments.getById({segmentId:Number(id)});
+const getSegById=id=>_wme.segs.get(Number(id))||null;
 // Emprise {minLon,minLat,maxLon,maxLat} des segments CHARGÉS parmi `ids`, ou null.
 // Relevée à la validation d'une sélection manuelle : c'est le seul moment où l'on sait
 // où sont les segments. Sans elle, « Appliquer » travaillait sur la vue du moment — une
@@ -7638,7 +7701,7 @@ const _empriseDe=ids=>{
     return mnLon===Infinity?null:{minLon:mnLon,minLat:mnLat,maxLon:mxLon,maxLat:mxLat};
 };
 const getSegName=id=>{
-    try{const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});if(addr?.street&&!addr.street.isEmpty)return addr.street.name;}catch(e){}
+    const addr=_wme.adresses.get(Number(id));if(addr?.street&&!addr.street.isEmpty)return addr.street.name;
     return 'No name';
 };
 const getNodeList=segIds=>{
@@ -7669,13 +7732,13 @@ const _noeudsDe=e=>Array.isArray(e.nodesInside) ? new Set(e.nodesInside.map(Numb
 // chaque chargement de données (_rafraichirFermeturesApi). Les objets ont la forme de l'API,
 // comme ceux de `W.model` avant — d'où _apiToClosure, inchangé.
 let _fcApi = { objets:null, cle:'' };
-const _cleVue = () => { try{ return sdk.Map.getMapExtent().map(v=>Number(v).toFixed(5)).join(','); }catch(e){ return ''; } };
-const _sdkFermeturesLisibles = () => { try{ sdk.DataModel.RoadClosures.getAll(); return true; }catch(e){ return false; } };
+const _cleVue = () => { try{ return (_wme.ext||[]).map(v=>Number(v).toFixed(5)).join(','); }catch(e){ return ''; } };
+const _sdkFermeturesLisibles = () => _wme.rcLisible;
 const _rafraichirFermeturesApi = async () => {
     const cle = _cleVue();
     if(!cle) return null;
     try{
-        let z = 17; try{ z = Math.round(sdk.Map.getZoomLevel()); }catch(e){}
+        const z = Math.round(_wme.zoom || 17);
         const url = `${_featuresPath()}?bbox=${cle}&language=${_lang}&v=2&apiV2=true&roadClosures=true&zoomLevel=${z}`;
         const r = await fetch(url, {credentials:'include'});
         if(!r.ok) throw new Error('HTTP '+r.status);
@@ -7687,14 +7750,12 @@ const _rafraichirFermeturesApi = async () => {
     }catch(e){ log('fermetures par l\'API Features : '+e.message); return null; }
 };
 const _fermeturesChargees=()=>{
-    try{ return sdk.DataModel.RoadClosures.getAll(); }
-    catch(e){
-        // La lecture de l'API ne vaut que pour la vue où elle a été faite.
-        if(_fcApi.objets && _fcApi.cle === _cleVue()) return _fcApi.objets.map(_apiToClosure);
-        log('fermetures chargées illisibles : '+e.message+(_fcApi.objets ? ' / lecture API faite sur une autre vue' : ' / pas encore de lecture API'));
-        _rafraichirFermeturesApi();   // la lecture suivante l'aura
-        return null;
-    }
+    if(_wme.rcLisible) return _wme.rc||[];
+    // La lecture de l'API ne vaut que pour la vue où elle a été faite.
+    if(_fcApi.objets && _fcApi.cle === _cleVue()) return _fcApi.objets.map(_apiToClosure);
+    log('fermetures chargées illisibles par le SDK'+(_fcApi.objets ? ' / lecture API faite sur une autre vue' : ' / pas encore de lecture API'));
+    _rafraichirFermeturesApi();   // la lecture suivante l'aura
+    return null;
 };
 // Nom de la source d'une fermeture du SDK : le crédit de ses attributions (« Ville de Paris »,
 // « WazeClosures »…), qui est le `provider` de l'API. Mesuré le 04/10/2026.
@@ -7922,7 +7983,7 @@ const isTurnClosable=(turn)=>{
 // couple (fromSegmentId, toSegmentId), qui identifie le virage de facon unique a un noeud.
 const getExistingTurnClosures=(fromSegId,toSegId)=>{
     try{
-        return sdk.DataModel.TurnClosures.getAll().filter(c=>
+        return (_wme.tc||[]).filter(c=>
             Number(c.fromSegmentId)===Number(fromSegId) && Number(c.toSegmentId)===Number(toSegId));
     }catch(e){ return []; }
 };
@@ -7948,7 +8009,7 @@ const getSegPermalink=(sid)=>{
 // ═══════════════════════════════════════════════════════════════════════════
 const getSegmentCountry=id=>{
     try{
-        const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});
+        const addr=_wme.adresses.get(Number(id));
         return addr?.country?.abbr||null;
     }catch(e){return null;}
 };
@@ -7957,7 +8018,7 @@ const getSegmentCountry=id=>{
 // rend possible la correspondance de resolveCountryIso sans table écrite à la main.
 const getSegmentCountryName=id=>{
     try{
-        const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});
+        const addr=_wme.adresses.get(Number(id));
         return addr?.country?.name||null;
     }catch(e){return null;}
 };
@@ -7971,7 +8032,7 @@ const getSegmentCountryName=id=>{
 //    NB, NU). Ce nom sert donc à GUIDER l'œil, jamais à décider.
 const getSegmentStateName=id=>{
     try{
-        const addr=sdk.DataModel.Segments.getAddress({segmentId:Number(id)});
+        const addr=_wme.adresses.get(Number(id));
         return addr?.state?.name||null;
     }catch(e){return null;}
 };
@@ -8336,14 +8397,24 @@ const checkSelectionCountry=segIds=>{
     if(countries.length>1) return {ok:false,country:null,countries};
     return {ok:true,country:countries[0],countries};
 };
+// Après l'attente, le miroir est relu : c'est elle qui précède chaque lecture du modèle et
+// chaque écriture, après un recadrage.
 const waitMapLoaded=()=>_attendreCarte().then(async()=>{
-    if(!_applyAborted && !_sdkFermeturesLisibles()) await _rafraichirFermeturesApi();
+    if(_applyAborted) return;
+    await _wmeTout();
+    if(!_sdkFermeturesLisibles()) await _rafraichirFermeturesApi();
 });
-const _attendreCarte=()=>new Promise(resolve=>{
+const _attendreCarte=async()=>{
     // _applyAborted coupe l'attente immédiatement : sans cela, un Stop cliqué pendant
     // le chargement de la carte restait sans effet visible jusqu'à 10 s.
-    let n=0;const iv=setInterval(()=>{n++;if(_applyAborted||!sdk.State.isMapLoading()||n>100){clearInterval(iv);resolve();}},100);
-});
+    for(let n=0;n<=100;n++){
+        if(_applyAborted) return;
+        let charge=false;
+        try{ charge=await sdk.State.isMapLoading(); }catch(e){}
+        if(!charge) return;
+        await new Promise(r=>setTimeout(r,100));
+    }
+};
 // ═══════════════════════════════════════════════════════════════════════════
 //  MISE A JOUR DISPONIBLE (GreasyFork)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9885,7 +9956,7 @@ const PARTNER_USER_CHANNEL = 'PARTNER';
 let _srcCap = {ok:false, reason:'init', checked:false};
 const _wmeEnv = () => {
     // Région du serveur par le SDK : row, usa ou il (`W.Config` disparaît le 24/11/2026).
-    try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || sdk?.Settings?.getRegionCode?.() || 'row'; }
+    try{ return (location.pathname.match(/^\/(\w+)-editor/)||[])[1] || _wme.region || 'row'; }
     catch(e){ return 'row'; }
 };
 // Chemin de l'API Features du serveur courant. WME le donnait par `W.Config.paths.features`,
@@ -9933,7 +10004,7 @@ const loadPartners = async () => {
     if(!_srcCap.ok) return [];
     let b;
     try{
-        const e = sdk.Map.getMapExtent();               // [minLon,minLat,maxLon,maxLat]
+        const e = _wme.ext;                             // [minLon,minLat,maxLon,maxLat]
         b = Array.isArray(e) ? e : [e.left,e.bottom,e.right,e.top];
     }catch(err){ return _partners; }
     const key=_bboxKey(b);
@@ -10003,7 +10074,7 @@ const refreshMTE=()=>{
     let events=[];
     // SDK : { id, names:[{ value }] }. ⚠️ Vide tant que le panneau Événements de WME n'a
     // pas été ouvert une fois (ticket SDK 533467151) — `W.model` avait la même limite.
-    try{ events=sdk.DataModel.MajorTrafficEvents.getAll()||[]; }catch(e){}
+    events=_wme.mte||[];
     const current=sel.value;
     sel.innerHTML='';
     const noneOpt=document.createElement('option');
@@ -10173,7 +10244,7 @@ const _srcGetMte=id=>{
     if(_srcMteCache.has(id)) return _srcMteCache.get(id);
     let res={name:id,resolved:false};
     try{
-        const ev=sdk.DataModel.MajorTrafficEvents.getById({majorTrafficEventId:id});
+        const ev=(_wme.mte||[]).find(m=>String(m.id)===String(id));
         const nm=ev?.names?.[0]?.value;
         if(nm) res={name:nm,resolved:true};
     }catch(e){}
@@ -10216,7 +10287,7 @@ const _partnersInView = () => {
     const set=new Set();
     const ajoute=p=>{ if(typeof p==='string' && p.trim()) set.add(p); };
     try{ (_fermeturesChargees()||[]).forEach(c=>ajoute(c._provider ?? _creditDe(c))); }catch(e){}
-    try{ sdk.DataModel.TurnClosures.getAll().forEach(c=>ajoute(_creditDe(c))); }catch(e){}
+    (_wme.tc||[]).forEach(c=>ajoute(_creditDe(c)));
     return [...set].sort((a,b)=>a.localeCompare(b));
 };
 const refreshSrcPartnerFilter = () => {
@@ -10255,7 +10326,7 @@ const _srcPartnerMatch = (provider, want) => {
 // Pour « sauvegarder une zone », c'est l'ID qu'on réimporte, pas le nom.
 const ZONE_KM = [0, 5, 20, 50];       // 0 = vue courante
 const _zoneBbox = (km) => {
-    const c = sdk.Map.getMapCenter();
+    const c = _wme.centre;
     const dLat = (km/2)/110.574;
     const dLon = (km/2)/(111.32*Math.cos(c.lat*Math.PI/180));
     return [c.lon-dLon, c.lat-dLat, c.lon+dLon, c.lat+dLat].map(x=>x.toFixed(6)).join(',');
@@ -10594,7 +10665,7 @@ const _srcBlockTurns=(resEl,F,zone)=>{
     // ne rien montrer que des virages sans nœud ni angle. À revoir si le besoin apparaît.
     let all=[];
     if(zone){ all=zone.turns; }
-    else{ try{ all=sdk.DataModel.TurnClosures.getAll().map(c=>({...c,_provider:_creditDe(c)})); }catch(e){} }
+    else{ all=(_wme.tc||[]).map(c=>({...c,_provider:_creditDe(c)})); }
     // ⚠️ L'auteur a confirmé qu'on ne peut PAS mettre de Source sur un virage : _provider
     // vaut donc null, le filtre « Aucun » les prend et un filtre par partenaire ne les
     // rend pas — c'est correct, ne pas « améliorer ».
@@ -10770,7 +10841,7 @@ const _csvNoFormula=(s)=>{ const v=String(s??''); return /^[=+\-@\t\r]/.test(v) 
 
 const exportFoundSegsCSV=()=>{
     if(!_srcFoundSegs?.size){ showToast(t('srcNothingFound'),3000,'#f57c00'); return; }
-    const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
+    const center=_wme.centre,zoom=_wme.zoom;
     let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)\n';
     let n=0;
     _srcFoundSegs.forEach((entry,sid)=>{
@@ -11598,7 +11669,7 @@ const _entryLiveRows=(e)=>{
 // Génère un CSV au format WME Advanced Closures à partir d'un jeu d'entrées de file.
 const CSV_REC_HEADER=',days (1-7; add-rec),hours (hh:mm-hh:mm; add-rec),holidays (skip|none; add-rec),country (ISO; add-rec)';
 const _queueToCSV=(entries)=>{
-    const center=sdk.Map.getMapCenter(),zoom=sdk.Map.getZoomLevel();
+    const center=_wme.centre,zoom=_wme.zoom;
     let csv='header,reason,start date (yyyy-mm-dd hh:mm),end date (yyyy-mm-dd hh:mm),direction (A to B|B to A|TWO WAY),ignore trafic (Yes|No),segment IDs (id1;id2;...),lon/lat (like in a permalink: lon=xxx&lat=yyy),zoom (14 to 22),MTE id (empty cell if not),comment (optional)'+CSV_REC_HEADER+'\n';
     entries.forEach(e=>{
         const dir=DIR_CSV[parseInt(e.config.direction)],it=e.config.ignoretraffic?'Yes':'No';
@@ -11673,7 +11744,7 @@ const _turnsToCSV=(entries)=>{
             const p=_segEndAt(e.turnSegId,e.turnNodeId);
             if(p?.at){ lon=p.at[0].toFixed(6); lat=p.at[1].toFixed(6); }
         }catch(err){}
-        if(lon===''){ try{const c=sdk.Map.getMapCenter(); lon=c.lon; lat=c.lat;}catch(err){} }
+        if(lon===''){ try{const c=_wme.centre; lon=c.lon; lat=c.lat;}catch(err){} }
         (e.turnMeta||[]).forEach(tm=>{
             e.closures.forEach((cl,ci)=>{
                 // Respecter les lignes supprimees a la main dans la carte de file.
@@ -12707,7 +12778,7 @@ const _covBBox = (pts) => {
 // Renvoie [{ id, edges:[[[lat,lon],[lat,lon]]], lonlat:[[lon,lat]], length, fromNode, toNode }]
 const _covCandidateSegments = (tb, marginDeg) => {
     let segs = [];
-    try { segs = sdk.DataModel.Segments.getAll(); } catch(e){ return []; }
+    segs = [..._wme.segs.values()];
     const bMinLat=tb.minLat-marginDeg, bMaxLat=tb.maxLat+marginDeg,
           bMinLon=tb.minLon-marginDeg, bMaxLon=tb.maxLon+marginDeg;
     const out = [];
@@ -12815,7 +12886,7 @@ const _estVisible = (e) => {
 };
 const _rectCarte = () => {
     let vp = null;
-    try { vp = sdk?.Map?.getMapViewportElement?.() || null; } catch(e) {}
+    vp = _wme.vp || null;
     const c = vp || document.getElementById('map')
               || document.querySelector('.wm-map') || document.body;
     return c.getBoundingClientRect();
@@ -12899,8 +12970,8 @@ const _decalageVisible = (zone, ext, zoomActuel, zoomCible) => {
 // Point corrigé, prêt à être posé comme centre de carte.
 const _pointVersZoneVisible = (lon, lat, zoomCible) => {
     try {
-        const { dLon, dLat } = _decalageVisible(_zoneVisible(), sdk.Map.getMapExtent(),
-                                                sdk.Map.getZoomLevel(), zoomCible);
+        const { dLon, dLat } = _decalageVisible(_zoneVisible(), _wme.ext,
+                                                _wme.zoom, zoomCible);
         return { lon: lon + dLon, lat: lat + dLat };
     } catch(e){ return { lon, lat }; }
 };
@@ -13278,8 +13349,8 @@ const traceSweepSelect = async (fileId) => {
 
     _sweepRunning = true; _sweepAborted = false;
     _covClearGaps();
-    const savedCenter = sdk.Map.getMapCenter();
-    const savedZoom   = sdk.Map.getZoomLevel();
+    const savedCenter = _wme.centre;
+    const savedZoom   = _wme.zoom;
     _sweepShowProgress(0, slices.length, 0);
 
     const acc = _covNewAcc();
@@ -13717,7 +13788,7 @@ const _polyFetchTile = async (bb) => {
 const _polyFromModel = () => {
     let out = [];
     try {
-        out = sdk.DataModel.Segments.getAll().map(s => ({
+        out = [..._wme.segs.values()].map(s => ({
             id: Number(s.id), geometry: s.geometry, roadType: s.roadType
         })).filter(s => s.geometry && Array.isArray(s.geometry.coordinates));
     } catch(e){}
@@ -13766,7 +13837,7 @@ const _repliSubiDoitCesser = (e) => !!(e.replie && !e.voulu && e.selection && e.
 const _polyLoadAndSelect = async (retenus) => {
     const dansLeModele = () => {
         const set = new Set();
-        try { sdk.DataModel.Segments.getAll().forEach(s => set.add(Number(s.id))); } catch(e){}
+        _wme.segs.forEach((s, id) => set.add(id));
         return set;
     };
     // ⚠️ setSelection est tout ou rien : un seul id absent du modèle et l'appel ENTIER
@@ -13999,7 +14070,7 @@ const _zoneBadgeRefresh = () => {
     const a = _zoneAncre(rings);
     if(!a){ _zoneBadgeCacher(); return; }
     let p = null;
-    try { p = sdk.Map.getPixelFromLonLat({ lonLat: { lon: a[0], lat: a[1] } }); } catch(e){}
+    p = _versPixel(a[0], a[1]);
     if(!p){ _zoneBadgeCacher(); return; }
     let el = $id('wct-zone-badge');
     if(!el){
@@ -14041,7 +14112,7 @@ const _zoneSurvol = (ev) => {
     const rc = _rectCarte();
     if(ev.clientX < rc.left || ev.clientX > rc.right || ev.clientY < rc.top || ev.clientY > rc.bottom){ _zoneTipCacher(); return; }
     let g = null;
-    try { g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY }); } catch(e){}
+    g = _versLonLat(ev.clientX, ev.clientY);
     if(!g || !_polyPtIn(g.lon, g.lat, rings)){ _zoneTipCacher(); return; }
     let el = $id('wct-zone-tip');
     if(!el){
@@ -14118,8 +14189,9 @@ const _zoneDrawHandles = () => {
     const pts = _zoneEdit.points;
     let echec = '';
     const px = ([lon, lat]) => {
-        try { return sdk.Map.getPixelFromLonLat({ lonLat: { lon, lat } }); }
-        catch(e){ echec = echec || e.message; return null; }
+        const q = _versPixel(lon, lat);
+        if(!q) echec = echec || 'emprise de la carte inconnue';
+        return q;
     };
     pts.forEach((p, i) => {
         const q = px(p);
@@ -14171,7 +14243,7 @@ const _zoneStartDrag = (e, index) => {
         try {
             // Même repère que celui qui a servi à POSER la poignée, sinon elle fuit
             // sous le curseur : pixels d'écran, WGS84, aucune projection.
-            const g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY });
+            const g = _versLonLat(ev.clientX, ev.clientY);
             if(!g) return;
             _zoneEdit.points[index] = [g.lon, g.lat];
             _zoneMajEdition();
@@ -14376,8 +14448,7 @@ const _zoneInstallerDblClic = () => {
         const rc = _rectCarte();
         if(ev.clientX < rc.left || ev.clientX > rc.right || ev.clientY < rc.top || ev.clientY > rc.bottom) return;
         let g;
-        try { g = sdk.Map.getLonLatFromPixel({ x: ev.clientX, y: ev.clientY }); }
-        catch(e){ return; }
+        g = _versLonLat(ev.clientX, ev.clientY);
         if(!g || !_polyPtIn(g.lon, g.lat, rings)) return;
         ev.preventDefault(); ev.stopPropagation();
         if(!_polyDraft && _polyZone) _polyDraft = { rings: _polyZone.rings, origine:'trace' };
@@ -14474,7 +14545,7 @@ const _polyProcessRings = async (rings, parIds) => {
         if(cible.length > POLY_WARN_SEGMENTS && !confirm(t('polyBigConfirm', cible.length))){
             _sweepRunning = false; _sweepHideFooter(); return;
         }
-        const savedCenter = sdk.Map.getMapCenter(), savedZoom = sdk.Map.getZoomLevel();
+        const savedCenter = _wme.centre, savedZoom = _wme.zoom;
         const res = await _polyLoadAndSelect(cible);
         try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
         _polyZone = { rings, bbox, tous: retenus, ids: res.ids, groupes: res.groupes || [] };
@@ -14498,7 +14569,7 @@ const _polyProcessRings = async (rings, parIds) => {
 // Tracé à la main, puis traitement commun.
 const polyDrawAndSelect = async () => {
     if(_sweepRunning) return;
-    if(sdk.Map.getZoomLevel() < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
+    if((_wme.zoom||0) < POLY_ZOOM_MIN){ showToast(t('polyZoomIn'), 3500, '#f57c00'); return; }
     // ⚠️ L'état d'AVANT se rend en entier, drapeau compris : un panneau que l'éditeur avait
     // replié lui-même doit le rester après le tracé, et ne pas se rouvrir au premier segment.
     const etaitReplie = collapsed, etaitVoulu = _collapseVoulu;
@@ -14784,7 +14855,7 @@ const _polyApplyTypes = async () => {
     const cible = _polyZone.tous.filter(s => types.has(Number(s.roadType)));
     if(!cible.length){ showToast(t('polyTypesEmpty'), 3500, '#f57c00'); return; }
     _sweepRunning = true; _sweepAborted = false;
-    const savedCenter = sdk.Map.getMapCenter(), savedZoom = sdk.Map.getZoomLevel();
+    const savedCenter = _wme.centre, savedZoom = _wme.zoom;
     try {
         const res = await _polyLoadAndSelect(cible);
         try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
@@ -15994,7 +16065,7 @@ const buildQueueCard=(entry,idx)=>{
     const it=entry.config.ignoretraffic;
     const mteId=entry.config.mteId;
     let mteName=t('noMte');
-    if(mteId){try{mteName=sdk.DataModel.MajorTrafficEvents.getById({majorTrafficEventId:mteId})?.names?.[0]?.value||mteId;}catch(e){}}
+    if(mteId){mteName=(_wme.mte||[]).find(m=>String(m.id)===String(mteId))?.names?.[0]?.value||mteId;}
     // ── Compte net occurrences × segments (hors lignes supprimées + conflits de direction) ──
     // excludedRows contient des clés "sid:closureIdx". On déduit le nombre de
     // segments et d'occurrences réellement appliquables (état statique connu à l'affichage).
@@ -18044,6 +18115,11 @@ const buildSidebar=()=>`
 // ===========================================================================
 const init=async()=>{
     sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME});
+    // Ce qui ne change pas pendant la session, relu une fois ; puis le premier relevé du miroir.
+    try{ _wme.locale = (await sdk.Settings.getLocale())?.localeCode || ''; }catch(e){}
+    try{ _wme.region = (await sdk.Settings.getRegionCode()) || ''; }catch(e){}
+    try{ _wme.vp = (await sdk.Map.getMapViewportElement()) || null; }catch(e){}
+    await _wmeTout();
     await load();           // charge _langPref… (asynchrone : voir load())
     _lang=resolveLang();    // …qui décide si on suit WME ou une langue forcée
     // Sidebar
@@ -18100,7 +18176,7 @@ const init=async()=>{
     // empilerait, et le SDK n'offre pas de désabonnement. Le handler sort de lui-même
     // quand aucune édition n'est en cours.
     ['wme-map-move', 'wme-map-move-end'].forEach(ev => {
-        try { sdk.Events.on({ eventName: ev, eventHandler: () => { _zoneDrawHandles(); _zoneBadgeRefresh(); } }); }
+        try { sdk.Events.on({ eventName: ev, eventHandler: async () => { await _wmeCarte(); _zoneDrawHandles(); _zoneBadgeRefresh(); } }); }
         catch(e){ log('zone ' + ev + ': ' + e.message); }
     });
     // Infobulle au survol de la zone. L'écouteur sort en deux tests tant qu'aucune
@@ -18120,7 +18196,8 @@ const init=async()=>{
     // La liste dépend de l'emprise : la recharger quand la carte a fini de bouger.
     // Le filtre de RECHERCHE, lui, se rebâtit sur les fermetures chargées — il ne
     // dépend ni du flag partenaire ni de l'API, donc il se rafraîchit toujours.
-    try{ sdk.Events.on({eventName:'wme-map-move-end',eventHandler:()=>{
+    try{ sdk.Events.on({eventName:'wme-map-move-end',eventHandler:async()=>{
+        await _wmeCarte();
         if(_srcCap.ok) loadPartners().then(renderSourceSel);
         if($id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter();
     }}); }catch(e){ log('map-move-end non disponible: '+e.message); }
@@ -18157,17 +18234,21 @@ const init=async()=>{
             }
         }catch(e){ log('onSel/turnsPane: '+e.message); }
     };
-    try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:onSel});}catch(e){}
+    // Le miroir de la sélection se relit avant chaque tour de onSel.
+    const _selTour=async()=>{ await _wmeSelection(); onSel(); };
+    try{sdk.Events.on({eventName:'wme-selection-changed',eventHandler:_selTour});}catch(e){}
     // Fermetures relues par l'API Features à chaque chargement de données, tant que le SDK
     // ne sait pas les lire (voir _fermeturesChargees, ticket SDK 566467873).
     // Le filtre « Partenaire » de la Recherche se reconstruit ensuite : ouvert avant que la
     // lecture arrive, il ne proposait que « Tous » et « Aucun » (essai du 04/10/2026, Paris).
-    try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:()=>{
+    try{sdk.Events.on({eventName:'wme-map-data-loaded',eventHandler:async()=>{
+        await _wmeCarte();
+        await _wmeModele();
         if(_sdkFermeturesLisibles()) return;
         _rafraichirFermeturesApi().then(rc=>{ if(rc && $id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter(); });
     }});}catch(e){}
-    setInterval(onSel,500);
-    onSel();
+    setInterval(_selTour,500);
+    _selTour();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
     // le FAB étant docké dans le container natif, il suit le même empilement que les boutons WME.
 

@@ -18,20 +18,17 @@ let ok = 0, ko = 0;
 const chk = (nom, cond, detail) => { if (cond) { ok++; console.log('  ok   ' + nom); }
     else { ko++; console.log('  ECHEC ' + nom + (detail !== undefined ? '\n        ' + detail : '')); } };
 
+// Depuis l'étape async (04/10/2026), l'état de WME vient du MIROIR `_wme` (relu de façon asynchrone
+// par WCT) : rcLisible dit si getAll() du SDK a pu lire, ext est l'emprise de la vue.
 const monter = (bloc, { lisible, apiObjets }) => {
-    const etat = { ext: [2.33, 48.85, 2.35, 48.86], appels: 0, urls: [] };
-    const sdk = {
-        Map: { getMapExtent: () => etat.ext, getZoomLevel: () => 17 },
-        DataModel: { RoadClosures: { getAll: () => {
-            if (!lisible) throw new TypeError("Cannot read properties of null (reading 'map')");
-            return [{ id: 's1', segmentId: 1, attributions: [{ credit: 'Ville de Paris' }] }];
-        } } },
-    };
+    const etat = { appels: 0, urls: [] };
+    const _wme = { ext: [2.33, 48.85, 2.35, 48.86], zoom: 17, rcLisible: !!lisible,
+                   rc: lisible ? [{ id: 's1', segmentId: 1, attributions: [{ credit: 'Ville de Paris' }] }] : null };
     const fetch = async (url) => { etat.appels++; etat.urls.push(url);
         return { ok: true, json: async () => ({ roadClosures: { objects: apiObjets } }) }; };
-    const f = new Function('sdk', 'fetch', 'log', '_featuresPath', '_lang',
+    const f = new Function('_wme', 'fetch', 'log', '_featuresPath', '_lang',
         blocApi + '\n' + bloc + '\nreturn { _fermeturesChargees, _rafraichirFermeturesApi, _creditDe, _sdkFermeturesLisibles };');
-    return { ...f(sdk, fetch, () => {}, () => '/row-Descartes/app/Features', 'fr'), etat };
+    return { ...f(_wme, fetch, () => {}, () => '/row-Descartes/app/Features', 'fr'), etat, _wme };
 };
 const API = [
     { id: 'a1', segID: 10, reason: 'Travaux', closureStatus: 'ACTIVE', startDate: '2026-10-04 08:00',
@@ -63,7 +60,7 @@ const API = [
     chk('le provider de l\'API est gardé', rb && rb[0]._provider === 'Ville de Paris' && rb[1]._provider === null);
 
     console.log('\n— La carte a bougé : la lecture ne vaut plus —');
-    b.etat.ext = [2.40, 48.80, 2.42, 48.81];
+    b._wme.ext = [2.40, 48.80, 2.42, 48.81];
     const avant = b.etat.appels;
     chk('null, plutôt qu\'une lecture d\'une autre vue', b._fermeturesChargees() === null);
     chk('une nouvelle lecture est lancée', b.etat.appels === avant + 1);
@@ -73,7 +70,7 @@ const API = [
     chk('TÉMOIN : le remplacement a mordu', sansControle !== blocRepli);
     const c = monter(sansControle, { lisible: false, apiObjets: API });
     await c._rafraichirFermeturesApi();
-    c.etat.ext = [2.40, 48.80, 2.42, 48.81];
+    c._wme.ext = [2.40, 48.80, 2.42, 48.81];
     const rc = c._fermeturesChargees();
     chk('TÉMOIN : sans contrôle, la vue précédente est rendue (le défaut que le contrôle évite)', Array.isArray(rc) && rc.length === 2);
 
