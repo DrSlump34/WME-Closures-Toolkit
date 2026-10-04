@@ -50,8 +50,11 @@ const faire = (bboxKm, vueKm) => {
         _sweepSleep: () => Promise.resolve(),
         waitMapLoaded: () => Promise.resolve(),
     };
-    const f = new Function('sdk', 'SWEEP_ZOOM', 'SWEEP_SETTLE_MS', '_sweepAborted', '_sweepSleep', 'waitMapLoaded',
-        bloc + '\nreturn _chargerEmprise;')(ctx.sdk, ctx.SWEEP_ZOOM, 0, ctx._sweepAborted, ctx._sweepSleep, ctx.waitMapLoaded);
+    // Depuis l'étape async (04/10/2026), l'emprise de la vue est lue dans le miroir `_wme`, relu
+    // par waitMapLoaded ; la doublure la tient à jour comme le ferait ce relevé.
+    const _wme = { get ext() { return sdk.Map.getMapExtent(); } };
+    const f = new Function('sdk', 'SWEEP_ZOOM', 'SWEEP_SETTLE_MS', '_sweepAborted', '_sweepSleep', 'waitMapLoaded', '_wme',
+        bloc + '\nreturn _chargerEmprise;')(ctx.sdk, ctx.SWEEP_ZOOM, 0, ctx._sweepAborted, ctx._sweepSleep, ctx.waitMapLoaded, _wme);
     const bbox = { minLon: 0, minLat: 0, maxLon: bboxKm / 111.32, maxLat: bboxKm / 110.54 };
     const onVue = () => { etat.captages++; etat.vuesAuMomentDuCaptage.push(chargees.slice()); };
     return f(bbox, null, onVue).then(n => ({ ...etat, retour: n }));
@@ -79,8 +82,8 @@ const faire = (bboxKm, vueKm) => {
     const chargees = [];
     let vues = 0, captages = 0;
     const sdk = { Map: { setMapCenter: () => { vues++; }, getMapExtent: () => [0, 0, 0.02, 0.02] } };
-    const f2 = new Function('sdk', 'SWEEP_ZOOM', 'SWEEP_SETTLE_MS', '_sweepAborted', '_sweepSleep', 'waitMapLoaded',
-        bloc + '\nreturn _chargerEmprise;')(sdk, 16, 0, false, () => Promise.resolve(), () => Promise.resolve());
+    const f2 = new Function('sdk', 'SWEEP_ZOOM', 'SWEEP_SETTLE_MS', '_sweepAborted', '_sweepSleep', 'waitMapLoaded', '_wme',
+        bloc + '\nreturn _chargerEmprise;')(sdk, 16, 0, false, () => Promise.resolve(), () => Promise.resolve(), { ext: [0, 0, 0.02, 0.02] });
     await f2({ minLon: 0, minLat: 0, maxLon: 0.04, maxLat: 0.04 }, null, undefined);
     dit(captages === 0 && vues > 1, 'sans callback, aucun captage et l emprise est quand meme parcourue',
         vues + ' vues, ' + captages + ' captages');

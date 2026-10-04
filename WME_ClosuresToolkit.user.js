@@ -10547,7 +10547,7 @@ const runSearch=async()=>{
         const segIds=_srcFoundSegs
             ? [..._srcFoundSegs.keys()].map(Number).filter(id=>!isNaN(id) && getSegById(id))
             : [];
-        if(segIds.length) sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}});
+        if(segIds.length){ await sdk.Editing.setSelection({selection:{ids:segIds,objectType:'segment'}}); await _wmeSelection(); }
     }catch(e){ console.warn('WCT search select:',e); }
 };
 // ─── BLOC SEGMENTS ─────────────────────────────────────────────────────────
@@ -11583,7 +11583,7 @@ const applyQueue=async()=>{
                 try{
                     const p=_segEndAt(e.turnSegId,e.turnNodeId);
                     const at = p?.at ? {lon:p.at[0],lat:p.at[1]} : (e.turnLonLat||null);
-                    if(at) sdk.Map.setMapCenter({lonLat:at,zoomLevel:17});
+                    if(at) await sdk.Map.setMapCenter({lonLat:at,zoomLevel:17});
                 }catch(err){}
                 await waitMapLoaded();
                 if(_applyAborted) break;
@@ -13043,16 +13043,16 @@ const _pointVersZoneVisible = (lon, lat, zoomCible) => {
     } catch(e){ return { lon, lat }; }
 };
 // Centre la carte pour que le point tombe au milieu de ce qui reste visible.
-const _centrerSurZoneVisible = (lon, lat, zoomCible) => {
+const _centrerSurZoneVisible = async (lon, lat, zoomCible) => {
     const p = _pointVersZoneVisible(lon, lat, zoomCible);
     try {
-        if(zoomCible == null) sdk.Map.setMapCenter({ lonLat: p });
-        else sdk.Map.setMapCenter({ lonLat: p, zoomLevel: zoomCible });
+        if(zoomCible == null) await sdk.Map.setMapCenter({ lonLat: p });
+        else await sdk.Map.setMapCenter({ lonLat: p, zoomLevel: zoomCible });
     } catch(e){
         // Jamais d'échec silencieux qui laisse la carte immobile : on retombe sur le
         // centrage brut, quitte à ce que la cible finisse derrière une fenêtre.
         log('centrage sur la zone visible impossible: ' + e.message);
-        try { sdk.Map.setMapCenter({ lonLat: { lon, lat }, zoomLevel: zoomCible }); } catch(e2){}
+        try { await sdk.Map.setMapCenter({ lonLat: { lon, lat }, zoomLevel: zoomCible }); } catch(e2){}
     }
 };
 // Même chose pour les focus. Jusqu'à la 1.22.04 elle passait par OpenLayers et `W.map`,
@@ -13062,7 +13062,7 @@ const _centrerSurZoneVisible = (lon, lat, zoomCible) => {
 const _centrerSurZoneVisibleOL = (lon, lat, zoom) => {
     try {
         const p = _pointVersZoneVisible(lon, lat, zoom);
-        sdk.Map.setMapCenter({ lonLat: { lon: p.lon, lat: p.lat }, zoomLevel: zoom });
+        return _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: p.lon, lat: p.lat }, zoomLevel: zoom }), 'centrage sur la zone visible');
     } catch(e){ log('centrage sur la zone visible impossible: ' + e.message); }
 };
 // Dimensions de la zone visible, en pixels — sert aux calculs de niveau de zoom.
@@ -13119,7 +13119,7 @@ const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
         console.warn('WCT centerOnSegmentBbox:',e);
         try{
             const mid=coords[Math.floor(coords.length/2)];
-            sdk.Map.setMapCenter({lonLat:{lon:mid[0],lat:mid[1]},zoomLevel:15});
+            _essai(()=>sdk.Map.setMapCenter({lonLat:{lon:mid[0],lat:mid[1]},zoomLevel:15}),'centrage segment');
         }catch(e2){}
     }
 };
@@ -13243,10 +13243,10 @@ const _covFinalizeUsed = (acc, bornes) => Object.keys(acc.cnt).filter(id => {
 // et on ne protégerait plus RIEN — l'échec serait total au lieu d'être partiel.
 // 📌 traceSweepSelect faisait déjà ce geste (« garde en mémoire les segments déjà captés
 // hors vue »), sur le seul de ses trois chemins. Il est ici mis en commun.
-const _covProteger = (acc) => {
+const _covProteger = async (acc) => {
     const vus = Object.keys(acc.cnt).map(Number).filter(id => !!getSegById(id));
     if(!vus.length) return 0;
-    try { sdk.Editing.setSelection({selection:{ids:vus, objectType:'segment'}}); }
+    try { await sdk.Editing.setSelection({selection:{ids:vus, objectType:'segment'}}); }
     catch(e){ log('protection des segments captés : '+e.message); return 0; }
     return vus.length;
 };
@@ -13430,7 +13430,7 @@ const traceSweepSelect = async (fileId) => {
             if(_sweepAborted) break;
             const slice = pts.slice(slices[k][0], slices[k][1]+1);
             const mid = slice[Math.floor(slice.length/2)];
-            sdk.Map.setMapCenter({lonLat:{lon:mid[1], lat:mid[0]}, zoomLevel:SWEEP_ZOOM});
+            await sdk.Map.setMapCenter({lonLat:{lon:mid[1], lat:mid[0]}, zoomLevel:SWEEP_ZOOM});
             await _sweepSleep(SWEEP_SETTLE_MS);
             await waitMapLoaded();
             await _sweepSleep(120);
@@ -13450,7 +13450,7 @@ const traceSweepSelect = async (fileId) => {
                 // remède de la régression du 🧲 (cf. _covProteger). ⚠️ Ici il ne protège que
                 // les segments DÉJÀ au seuil : un segment à cheval sur deux tranches peut
                 // encore être déchargé avant d'être complet. Non corrigé, hors périmètre.
-                try { sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection: '+e.message); }
+                try { await sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection: '+e.message); }
             }
             baseGlobale += densifie.length;
             _sweepShowProgress(k+1, slices.length, selIds.length);
@@ -13463,11 +13463,12 @@ const traceSweepSelect = async (fileId) => {
         const recalcule = _covFinalizeUsed(acc, { debut:true, fin: !_sweepAborted });
         if(recalcule.length !== selIds.length){
             selIds = recalcule;
-            try { sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection (fin) : '+e.message); }
+            try { await sdk.Editing.setSelection({selection:{ids:selIds, objectType:'segment'}}); } catch(e){ log('sweep setSelection (fin) : '+e.message); }
         }
     }
     // Rendre la carte de départ (la sélection persiste indépendamment de la vue)
-    try { sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}); } catch(e){}
+    await _essai(()=>sdk.Map.setMapCenter({lonLat:{lon:savedCenter.lon, lat:savedCenter.lat}, zoomLevel:savedZoom}),'balayage, retour');
+    await _wmeSelection();
     const aborted = _sweepAborted;
     _sweepRunning = false;
     const color = aborted ? '#f57c00' : 'var(--wct-green,#2e7d32)';
@@ -13538,30 +13539,30 @@ const _lotFocus = (lot) => {
 // traceSweepSelect ; les deux chemins suivent enfin la même règle.
 const _chargerEmprise = async (bbox, onProgress, onVue) => {
     const cLon = (bbox.minLon + bbox.maxLon) / 2, cLat = (bbox.minLat + bbox.maxLat) / 2;
-    sdk.Map.setMapCenter({ lonLat: { lon: cLon, lat: cLat }, zoomLevel: SWEEP_ZOOM });
+    await sdk.Map.setMapCenter({ lonLat: { lon: cLon, lat: cLat }, zoomLevel: SWEEP_ZOOM });
     await _sweepSleep(SWEEP_SETTLE_MS);
     await waitMapLoaded();
-    const e = sdk.Map.getMapExtent();
+    const e = _wme.ext;
     const vueW = Math.max((e[2] - e[0]) * 0.8, 0.002), vueH = Math.max((e[3] - e[1]) * 0.8, 0.002);
     const nx = Math.max(1, Math.ceil((bbox.maxLon - bbox.minLon) / vueW));
     const ny = Math.max(1, Math.ceil((bbox.maxLat - bbox.minLat) / vueH));
     // ⚠️ Même quand tout tient dans une vue, il faut capter : sans cet appel, le seul cas
     // qui marchait avant deviendrait le seul à ne rien rendre.
-    if(nx === 1 && ny === 1){ if(onVue) onVue(); return 1; }
+    if(nx === 1 && ny === 1){ if(onVue) await onVue(); return 1; }
     const total = nx * ny;
     let fait = 0;
     for(let j = 0; j < ny; j++){
         for(let i = 0; i < nx; i++){
             if(_sweepAborted) return fait;
             const ii = (j % 2 === 0) ? i : (nx - 1 - i);   // serpentin : trajets minimaux
-            sdk.Map.setMapCenter({ lonLat: {
+            await sdk.Map.setMapCenter({ lonLat: {
                 lon: bbox.minLon + (ii + 0.5) * (bbox.maxLon - bbox.minLon) / nx,
                 lat: bbox.minLat + (j + 0.5) * (bbox.maxLat - bbox.minLat) / ny }, zoomLevel: SWEEP_ZOOM });
             await _sweepSleep(SWEEP_SETTLE_MS);
             await waitMapLoaded();
             await _sweepSleep(80);
             fait++;
-            if(onVue) onVue();                 // capter TANT QUE cette vue est chargée
+            if(onVue) await onVue();           // capter TANT QUE cette vue est chargée
             if(onProgress) onProgress(fait, total);
         }
     }
@@ -13583,23 +13584,25 @@ const _lotSelect = async (trackId, lotIdx) => {
         const acc     = _covNewAcc();
         const evalPts = _covDensify(lot.pts, COVERAGE_DENSIFY_M);
         const bbLot   = _covBBox(lot.pts);
-        const capter  = () => {
+        const capter  = async () => {
             const cand = _covCandidateSegments(bbLot, 0.0008);
             if(cand.length) _covAccumulate(evalPts, _covBuildIndex(cand), acc);
-            _covProteger(acc);   // sans ça, WME décharge ce qu'on vient de capter
+            await _covProteger(acc);   // sans ça, WME décharge ce qu'on vient de capter
         };
         await _chargerEmprise(lot.bbox, (f, n) => _sweepShowText(escHtml(t('lotLoading', lotIdx, trk.lots.length, f, n))), capter);
         await _sweepSleep(150);
-        capter();                         // dernière vue, après le délai de stabilisation
+        await capter();                   // dernière vue, après le délai de stabilisation
         const ids = _covFinalizeUsed(acc, { debut: lotIdx === 1, fin: lotIdx === trk.lots.length });
         _sweepRunning = false;
         if(!ids.length){
             // La protection a posé une sélection de travail : la retirer, sinon l'éditeur
             // reste avec une sélection qu'il n'a pas demandée et que rien n'explique.
-            try { sdk.Editing.clearSelection(); } catch(e){}
+            await _essai(()=>sdk.Editing.clearSelection(),'lot');
+            await _wmeSelection();
             _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotNone'))}</span>`); return;
         }
-        sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
+        await sdk.Editing.setSelection({selection:{ids, objectType:'segment'}});
+        await _wmeSelection();
         _currentLot = { trackId, lotIdx };
         lot.segIds = ids;            // mémoriser : débloque le bouton permalien du lot
         traceRenderTable();          // rafraîchir la ligne du lot (affiche 🔗)
@@ -13623,7 +13626,8 @@ const _lotSelect = async (trackId, lotIdx) => {
         // Un échec doit se dire là où le geste a eu lieu.
         _sweepRunning = false;
         log('lotSelect error: '+e.message);
-        try { sdk.Editing.clearSelection(); } catch(e2){}
+        await _essai(()=>sdk.Editing.clearSelection(),'lot');
+        await _wmeSelection();
         _sweepShowText(`<span style="color:var(--wct-red)">${escHtml(t('lotError', e.message))}</span>`);
         showToast(t('lotError', e.message), 5000, '#c62828');
     }
@@ -13909,26 +13913,28 @@ const _polyLoadAndSelect = async (retenus) => {
     };
     // ⚠️ setSelection est tout ou rien : un seul id absent du modèle et l'appel ENTIER
     // lève. D'où le repli sur ce qui est réellement chargé plutôt qu'une sélection perdue.
-    const selectionner = (ids) => {
+    // ⚠️ await DANS les try : en async, l'échec est une promesse rejetée, et le repli sur
+    // les segments chargés ne se déclencherait jamais.
+    const selectionner = async (ids) => {
         if(!ids.length) return [];
-        try { sdk.Editing.setSelection({ selection: { ids, objectType: 'segment' } }); return ids; }
+        try { await sdk.Editing.setSelection({ selection: { ids, objectType: 'segment' } }); return ids; }
         catch(e){
             const dispo = ids.filter(id => getSegById(id));
-            try { if(dispo.length) sdk.Editing.setSelection({ selection: { ids: dispo, objectType: 'segment' } }); }
+            try { if(dispo.length) await sdk.Editing.setSelection({ selection: { ids: dispo, objectType: 'segment' } }); }
             catch(e2){ log('poly setSelection: ' + e2.message); return []; }
             return dispo;
         }
     };
     let charges = dansLeModele();
-    const selectionnes = new Set(selectionner(retenus.filter(s => charges.has(s.id)).map(s => s.id)));
+    const selectionnes = new Set(await selectionner(retenus.filter(s => charges.has(s.id)).map(s => s.id)));
 
     // Taille RÉELLE d'une vue au zoom de chargement : relevée sur place, jamais devinée
     // — elle dépend de la taille de la fenêtre de l'utilisateur.
     const c0 = _polySegCentre(retenus[0]);
-    sdk.Map.setMapCenter({ lonLat: { lon: c0[0], lat: c0[1] }, zoomLevel: POLY_LOAD_ZOOM });
+    await sdk.Map.setMapCenter({ lonLat: { lon: c0[0], lat: c0[1] }, zoomLevel: POLY_LOAD_ZOOM });
     await _sweepSleep(SWEEP_SETTLE_MS);
     await waitMapLoaded();
-    const ex = sdk.Map.getMapExtent();
+    const ex = _wme.ext;
     // 75 % de la vue : un segment collé au bord n'est pas toujours chargé
     const vueW = Math.max((ex[2] - ex[0]) * 0.75, 0.002), vueH = Math.max((ex[3] - ex[1]) * 0.75, 0.002);
 
@@ -13947,14 +13953,14 @@ const _polyLoadAndSelect = async (retenus) => {
     for(let k = 0; k < aVisiter.length; k++){
         if(_sweepAborted) break;
         const g = aVisiter[k];
-        sdk.Map.setMapCenter({ lonLat: { lon: g.centre[0], lat: g.centre[1] }, zoomLevel: POLY_LOAD_ZOOM });
+        await sdk.Map.setMapCenter({ lonLat: { lon: g.centre[0], lat: g.centre[1] }, zoomLevel: POLY_LOAD_ZOOM });
         await _sweepSleep(SWEEP_SETTLE_MS);
         await waitMapLoaded();
         await _sweepSleep(120);
         if(_sweepAborted) break;
         charges = dansLeModele();
         retenus.forEach(s => { if(charges.has(s.id)) selectionnes.add(s.id); });
-        const poses = selectionner([...selectionnes]);
+        const poses = await selectionner([...selectionnes]);
         poses.forEach(id => selectionnes.add(id));
         _polyShowProgress(t('polyLoading', k + 1, aVisiter.length, selectionnes.size),
                           Math.round((k + 1) * 100 / aVisiter.length));
@@ -14404,9 +14410,10 @@ const _zoneExitEdit = (garder) => {
 };
 // Défait la sélection posée par une zone. ⚠️ setSelection(null) ne vide pas de façon
 // fiable (vérifié en live) — unselectAll, si.
-const _zoneOublierSelection = () => {
-    try { sdk.Editing.clearSelection(); }
-    catch(e){ try { sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
+const _zoneOublierSelection = async () => {
+    try { await sdk.Editing.clearSelection(); }
+    catch(e){ try { await sdk.Editing.setSelection({ selection: { ids: [], objectType: 'segment' } }); } catch(e2){} }
+    await _wmeSelection();
 };
 
 // ── Les trois panneaux ───────────────────────────────────────────────────────
@@ -14614,7 +14621,7 @@ const _polyProcessRings = async (rings, parIds) => {
         }
         const savedCenter = _wme.centre, savedZoom = _wme.zoom;
         const res = await _polyLoadAndSelect(cible);
-        try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
+        _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
         _polyZone = { rings, bbox, tous: retenus, ids: res.ids, groupes: res.groupes || [] };
         if(_currentTurns){ _currentTurns = null; renderTurnBanner(); }   // cible unique, cf. ci-dessus
         const stop = _sweepAborted;
@@ -14925,7 +14932,7 @@ const _polyApplyTypes = async () => {
     const savedCenter = _wme.centre, savedZoom = _wme.zoom;
     try {
         const res = await _polyLoadAndSelect(cible);
-        try { sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }); } catch(e){}
+        _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
         _polyZone.ids = res.ids; _polyZone.groupes = res.groupes || [];
         showToast(t('polyTypesApplied', res.ids.length, _polyZone.tous.length), 4000, '#43a047');
     } catch(e){
@@ -16108,7 +16115,7 @@ const _qcardAllerVoir = async (entry) => {
 
     const dispo = ids.filter(id => getSegById(id));
     if(!dispo.length){ showToast(t('qFocusNone'), 4000, '#f57c00'); return; }
-    try{ sdk.Editing.setSelection({selection:{ids:dispo, objectType:'segment'}}); }
+    try{ await sdk.Editing.setSelection({selection:{ids:dispo, objectType:'segment'}}); await _wmeSelection(); }
     catch(e){ log('qcard setSelection: '+e.message); }
     showToast(t('qFocusOk', dispo.length, ids.length - dispo.length), 4000,
               dispo.length === ids.length ? '#43a047' : '#f57c00');
@@ -17267,7 +17274,7 @@ const connectOverlay=ov=>{
         // undoAll() les défait si Waze refuse. On le DIT avant, sans l'interdire — enregistrer à
         // part est un choix de l'éditeur (audit du 25/09/2026).
         let enAttente=0;
-        try{ enAttente=Number(sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
+        try{ enAttente=Number(await sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
         if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(enAttente?t('confirmApplyPending',enAttente):'')))return;
         await applyQueue();
     });
