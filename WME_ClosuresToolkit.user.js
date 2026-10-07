@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.24.04
+// @version      1.24.05
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1905,6 +1905,7 @@ const D = {
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segment(s) sans sens ouvert à la circulation : rien à fermer`:'', b?`${b} segment(s) déjà fermé(s) sur ce créneau : laissé(s) tel(s) quel(s)`:'', c?`${c} segment(s) déjà fermé(s) dans un sens : fermé(s) dans l’autre seulement`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segment ${sid} refusé par Waze : ${m}`,
             applyAbsents: n => `${n} segment(s) non chargé(s) sur la carte, donc non fermé(s) : ramenez la carte sur l’entrée (🎯) puis réappliquez.`,
+            applyCsvVues: (n,k) => `${n} segment(s) hors de la vue de la ligne : retrouvés et posés en ${k} vue(s).`,
             lblCombler: 'Combler les trous',
             tipCombler: 'Si un segment est déjà fermé en partie sur le créneau, WCT ne pose que les morceaux manquants — avant, entre ou après les fermetures existantes — sans jamais y toucher. Décoché : le segment est simplement écarté.',
             applyComble: (n,t) => `\u25D0 ${n} segment(s) déjà fermé(s) en partie\u00A0: ${t} trou(s) comblé(s), fermetures existantes laissées telles quelles`,
@@ -2507,6 +2508,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segment(s) with no direction open to traffic: nothing to close`:'', b?`${b} segment(s) already closed at this time: left as is`:'', c?`${c} segment(s) already closed in one direction: closed in the other only`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segment ${sid} rejected by Waze: ${m}`,
             applyAbsents: n => `${n} segment(s) not loaded on the map, so not closed: bring the map back to the entry (🎯) and apply again.`,
+            applyCsvVues: (n,k) => `${n} segment(s) outside the line’s view: located and closed in ${k} view(s).`,
             lblCombler: 'Fill the gaps',
             tipCombler: 'If a segment is already partly closed during the time window, WCT only adds the missing pieces — before, between or after the existing closures — without ever touching them. Unticked: the segment is simply skipped.',
             applyComble: (n,t) => `\u25D0 ${n} segment(s) already partly closed: ${t} gap(s) filled, existing closures left as they are`,
@@ -3113,6 +3115,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} מקטעים ללא כיוון פתוח לתנועה: אין מה לחסום`:'', b?`${b} מקטעים כבר חסומים בזמן הזה: נשארו כפי שהם`:'', c?`${c} מקטעים כבר חסומים בכיוון אחד: נחסמו רק בכיוון השני`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `מקטע ${sid} נדחה על ידי Waze: ${m}`,
             applyAbsents: n => `${n} מקטעים לא נטענו במפה ולכן לא נחסמו: החזירו את המפה לרשומה (🎯) והחילו שוב.`,
+            applyCsvVues: (n,k) => `${n} מקטעים מחוץ לתצוגה של השורה: אותרו ונחסמו ב-${k} תצוגות.`,
             lblCombler: 'השלמת הפערים',
             tipCombler: 'אם מקטע כבר חסום חלקית בחלון הזמן, WCT מוסיף רק את החלקים החסרים — לפני, בין או אחרי החסימות הקיימות — בלי לגעת בהן. ללא סימון: המקטע פשוט מדולג.',
             applyComble: (n,t) => `\u25D0 ${n} מקטעים שכבר חסומים חלקית: ${t} פערים הושלמו, החסימות הקיימות נשארו כפי שהן`,
@@ -3713,6 +3716,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento/i senza direzione aperta al traffico: nulla da chiudere`:'', b?`${b} segmento/i già chiuso/i in questa fascia: lasciato/i com’è`:'', c?`${c} segmento/i già chiuso/i in una direzione: chiuso/i solo nell’altra`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segmento ${sid} rifiutato da Waze: ${m}`,
             applyAbsents: n => `${n} segmento/i non caricato/i sulla mappa, quindi non chiuso/i: riporta la mappa sulla voce (🎯) e applica di nuovo.`,
+            applyCsvVues: (n,k) => `${n} segmento/i fuori dalla vista della riga: ritrovato/i e chiuso/i in ${k} vista/e.`,
             lblCombler: 'Colmare i vuoti',
             tipCombler: 'Se un segmento è già chiuso in parte nella fascia, WCT aggiunge solo i pezzi mancanti — prima, tra o dopo le chiusure esistenti — senza mai toccarle. Non spuntato: il segmento viene semplicemente saltato.',
             applyComble: (n,t) => `\u25D0 ${n} segmento/i già chiuso/i in parte: ${t} vuoto/i colmato/i, chiusure esistenti lasciate com’erano`,
@@ -4314,6 +4318,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} Segment(e) ohne für den Verkehr offene Fahrtrichtung: nichts zu sperren`:'', b?`${b} Segment(e) in diesem Zeitraum bereits gesperrt: unverändert gelassen`:'', c?`${c} Segment(e) in einer Fahrtrichtung bereits gesperrt: nur in der anderen gesperrt`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segment ${sid} von Waze abgelehnt: ${m}`,
             applyAbsents: n => `${n} Segment(e) nicht auf der Karte geladen, daher nicht gesperrt: Karte zum Eintrag zurückholen (🎯) und erneut anwenden.`,
+            applyCsvVues: (n,k) => `${n} Segment(e) außerhalb der Ansicht der Zeile: gefunden und in ${k} Ansicht(en) gesperrt.`,
             lblCombler: 'Lücken füllen',
             tipCombler: 'Ist ein Segment im Zeitraum schon teilweise gesperrt, setzt WCT nur die fehlenden Stücke — davor, dazwischen oder danach — ohne die bestehenden Sperrungen anzufassen. Nicht angehakt: das Segment wird einfach übersprungen.',
             applyComble: (n,t) => `\u25D0 ${n} Segment(e) schon teilweise gesperrt: ${t} Lücke(n) gefüllt, bestehende Sperrungen unverändert`,
@@ -4914,6 +4919,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sin sentido abierto al tráfico: nada que cerrar`:'', b?`${b} segmento(s) ya cerrado(s) en esta franja: sin cambios`:'', c?`${c} segmento(s) ya cerrado(s) en un sentido: cerrado(s) solo en el otro`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segmento ${sid} rechazado por Waze: ${m}`,
             applyAbsents: n => `${n} segmento(s) no cargado(s) en el mapa, por tanto no cerrado(s): vuelve a llevar el mapa a la entrada (🎯) y aplica de nuevo.`,
+            applyCsvVues: (n,k) => `${n} segmento(s) fuera de la vista de la línea: localizado(s) y cerrado(s) en ${k} vista(s).`,
             lblCombler: 'Rellenar los huecos',
             tipCombler: 'Si un segmento ya está cerrado en parte en la franja, WCT solo añade los trozos que faltan — antes, entre o después de los cierres existentes — sin tocarlos nunca. Sin marcar: el segmento simplemente se omite.',
             applyComble: (n,t) => `\u25D0 ${n} segmento(s) ya cerrado(s) en parte: ${t} hueco(s) rellenado(s), cierres existentes sin cambios`,
@@ -5514,6 +5520,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sem sentido aberto ao trânsito: nada a bloquear`:'', b?`${b} segmento(s) já bloqueado(s) neste horário: mantido(s) como está(ão)`:'', c?`${c} segmento(s) já bloqueado(s) em um sentido: bloqueado(s) só no outro`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segmento ${sid} recusado pelo Waze: ${m}`,
             applyAbsents: n => `${n} segmento(s) não carregado(s) no mapa, portanto não bloqueado(s): leve o mapa de volta à entrada (🎯) e aplique de novo.`,
+            applyCsvVues: (n,k) => `${n} segmento(s) fora da vista da linha: localizado(s) e bloqueado(s) em ${k} vista(s).`,
             lblCombler: 'Preencher as lacunas',
             tipCombler: 'Se um segmento já está bloqueado em parte no horário, o WCT só adiciona os pedaços que faltam — antes, entre ou depois dos bloqueios existentes — sem nunca mexer neles. Desmarcado: o segmento é simplesmente ignorado.',
             applyComble: (n,t) => `\u25D0 ${n} segmento(s) já bloqueado(s) em parte: ${t} lacuna(s) preenchida(s), bloqueios existentes mantidos como estão`,
@@ -6114,6 +6121,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             applyEcartes: (a,b,c) => '↷ '+[a?`${a} segmento(s) sem sentido aberto ao trânsito: nada a cortar`:'', b?`${b} segmento(s) já cortado(s) neste horário: mantido(s) como está(ão)`:'', c?`${c} segmento(s) já cortado(s) num sentido: cortado(s) só no outro`:''].filter(Boolean).join(' · '),
             applyRefusSeg: (sid,m) => `Segmento ${sid} recusado pelo Waze: ${m}`,
             applyAbsents: n => `${n} segmento(s) não carregado(s) no mapa, portanto não cortado(s): leve o mapa de volta à entrada (🎯) e aplique de novo.`,
+            applyCsvVues: (n,k) => `${n} segmento(s) fora da vista da linha: localizado(s) e cortado(s) em ${k} vista(s).`,
             lblCombler: 'Preencher as lacunas',
             tipCombler: 'Se um segmento já está cortado em parte no horário, o WCT só adiciona os pedaços em falta — antes, entre ou depois dos cortes existentes — sem nunca lhes mexer. Desmarcado: o segmento é simplesmente ignorado.',
             applyComble: (n,t) => `\u25D0 ${n} segmento(s) já cortado(s) em parte: ${t} lacuna(s) preenchida(s), cortes existentes mantidos tal como estão`,
@@ -8471,6 +8479,24 @@ const _attendreCarte=async()=>{
         try{ charge=await sdk.State.isMapLoading(); }catch(e){}
         if(!charge) return;
         await new Promise(r=>setTimeout(r,100));
+    }
+};
+// Le chargement des données suit un recentrage avec un temps de retard, et isMapLoading() peut
+// encore dire « fini » avant qu'il n'ait commencé (1.24.04, veille crues du 07/10/2026 : des
+// segments DANS la vue lus « non chargés »). On relit donc le modèle jusqu'à ce que le compte
+// des segments attendus ne bouge plus d'un relevé au suivant — 3 s au plus. Sort tout de suite
+// quand ils sont tous là, ce qui est le cas ordinaire.
+const _attendreSegments=async(ids)=>{
+    const compte=()=>ids.reduce((n,sid)=>n+(getSegById(sid)?1:0),0);
+    let avant=compte();
+    for(let k=0;k<12&&avant<ids.length;k++){
+        if(_applyAborted) return;
+        await new Promise(r=>setTimeout(r,250));
+        await _attendreCarte();
+        await _wmeModele();
+        const apres=compte();
+        if(apres===avant&&k>=1) return;
+        avant=apres;
     }
 };
 // ═══════════════════════════════════════════════════════════════════════════
@@ -11473,6 +11499,11 @@ const _queueTotalClosures=(entries)=>{
 // quelques fautifs puis rend le reste comme refusé, avec le message de Waze.
 // Rend { demandes, poses, absents, sansSens, dejaFermes, sensBloques, refus:[{segs,msg}] }.
 const _POSE_BUDGET_PAR_FAUTIF = 3;
+// Somme de deux bilans de pose (forme rendue par _poserParMoitie) ; `a` peut être null.
+// Sert à la pose vue par vue d'une ligne CSV : une occurrence s'y pose en plusieurs fois.
+const _cumulPose=(a,b)=>!a?b:{ demandes:a.demandes+b.demandes, poses:a.poses+b.poses, absents:a.absents+b.absents,
+    sansSens:a.sansSens+b.sansSens, dejaFermes:a.dejaFermes+b.dejaFermes, sensBloques:a.sensBloques+b.sensBloques,
+    combles:a.combles+b.combles, trous:a.trous+b.trous, refus:[...a.refus,...b.refus] };
 const _poserParMoitie=async(opts,budget)=>{
     const segs=opts.segments;
     if(!budget) budget={ reste:1+2*Math.ceil(Math.log2(Math.max(2,segs.length)))*_POSE_BUDGET_PAR_FAUTIF };
@@ -11591,10 +11622,18 @@ const applyQueue=async()=>{
             // « ✅ 180 OK », parce que les segments absents du modèle sont sautés en
             // silence. Le recadrage existait déjà pour les lots de tracé et pour les
             // virages importés (turnLonLat) : il manquait ici, pour la même raison exacte.
+            // ⚠️ 1.24.05 : le centrage est ATTENDU, suivi du même délai que le balayage, puis le
+            // modèle est relu jusqu'à ce que le compte des segments de l'entrée ne bouge plus.
+            // En 1.24.04, l'appel n'était pas attendu et `isMapLoading()` disait encore « fini »
+            // avant que le chargement n'ait commencé : des segments DANS la vue sortaient « non
+            // chargés » (veille crues du 07/10/2026 : un second Appliquer, au même centre, en a
+            // trouvé 8 de plus). L'ancienne attente surveillait `pendingOperations` de `W`.
             else if(e.source==='csv' && e.csvCenter){
                 try{
-                    _centrerSurZoneVisibleOL(e.csvCenter.lon, e.csvCenter.lat, e.csvZoom||POLY_LOAD_ZOOM);
+                    await _centrerSurZoneVisibleOL(e.csvCenter.lon, e.csvCenter.lat, e.csvZoom||POLY_LOAD_ZOOM);
+                    await _sweepSleep(SWEEP_SETTLE_MS);
                     await waitMapLoaded();
+                    await _attendreSegments(e.segIds||[]);
                 }catch(err){ log('applyQueue/csvCenter: '+err.message); }
                 await _sweepSleep(150);
                 if(_applyAborted) break;
@@ -11671,20 +11710,26 @@ const applyQueue=async()=>{
             const dir=parseInt(e.config.direction);
             const excl=e.excludedRows||new Set();
             const skip=sid=>e.nullSegs?.has(Number(sid))||e.recentSegs?.has(Number(sid));
-            for(let closureIdx=0;closureIdx<e.closures.length;closureIdx++){
+            // Segments actifs pour une occurrence (hors lignes supprimées + segments défaillants)
+            const actifsDe=ci=>e.segIds.filter(sid=>!excl.has(`${sid}:${ci}`)&&!skip(sid));
+            // ─── Ligne CSV plus grande que la vue (1.24.05) ───
+            // vues = null : tout se pose sur la vue courante, comme avant. Sinon, les vues du
+            // pavage de la ligne ENTIÈRE, visitées une fois chacune ; dans chacune on pose, pour
+            // chaque occurrence, ce qui est chargé et pas encore posé. Deux sens seulement :
+            // les inversés d'un sens unique se calculent sur la liste chargée d'un coup, et une
+            // liste chargée par morceaux pourrait fermer une partie de la chaîne à l'envers.
+            let vues=null, noeudsLigne=null;
+            if(e.source==='csv' && e.csvCenter && dir===DIR.TWO){
+                try{
+                    const p=await _csvVues(e.csvCenter, e.segIds.filter(sid=>!skip(sid)));
+                    if(p){ vues=p.groupes; noeudsLigne=p.noeuds; logApply(TARGET_ICON.seg+' '+t('applyCsvVues',p.manquants,vues.length),'info'); }
+                }catch(err){ log('applyQueue/csvVues: '+err.message); }
                 if(_applyAborted) break;
+            }
+            // Décompte d'une occurrence posée. En mode ordinaire il suit chaque pose (la barre de
+            // progression avance) ; vue par vue, il attend la dernière vue, qui seule sait ce qui manque.
+            const compter=(closureIdx,b)=>{
                 const cl=e.closures[closureIdx];
-                // Segments actifs pour cette occurrence (hors lignes supprimées + segments défaillants)
-                const activeSegs=e.segIds.filter(sid=>!excl.has(`${sid}:${closureIdx}`)&&!skip(sid));
-                if(!activeSegs.length) continue;
-                await waitMapLoaded();
-                // Relire le drapeau : l'attente ci-dessus dure jusqu'à 10 s, et un Stop cliqué
-                // pendant celle-ci laissait partir une fermeture de plus.
-                if(_applyAborted) break;
-                // combler : coché par défaut ; une entrée d'avant la 1.20.00 (ou venue d'un
-                // CSV mis en file) n'a pas la clé et comble donc, comme le veut le défaut.
-                const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false,inverses:_inversesDe(e),
-                    closeNodes:e.config.closeNodes??closeNodes,nodesInside:(e.config.closeNodes??closeNodes)===NODE_CL.inside?_noeudsDe(e):null});
                 // ⚠️ On crédite ce qui a été POSÉ, pas ce qui a été demandé.
                 // Avant la 1.02.00 cette ligne faisait `done+=activeSegs.length`
                 // sans condition : un lot dont la carte n'avait chargé que 11
@@ -11716,6 +11761,49 @@ const applyQueue=async()=>{
                 if(manques) logApply(TARGET_ICON.seg+' '+t('applyAbsents',manques),'partiel');
                 if(ecartes||b.sensBloques) logApply(TARGET_ICON.seg+' '+t('applyEcartes',b.sansSens,b.dejaFermes,b.sensBloques),'info');
                 if(b.combles){ totCombles+=b.combles; logApply(TARGET_ICON.seg+' '+t('applyComble',b.combles,b.trous),'info'); }
+            };
+            // Nœuds intérieurs : ceux de la ligne ENTIÈRE (lue par l'API) quand elle se pose vue par vue
+            // — calculés sur la seule vue chargée, un carrefour à sa frontière resterait ouvert.
+            const noeudsEntree=()=>(noeudsLigne&&!Array.isArray(e.nodesInside))?noeudsLigne:_noeudsDe(e);
+            const bilans=e.closures.map(()=>null), faits=e.closures.map(()=>new Set());
+            for(let v=0;v<(vues?vues.length:1);v++){
+                if(_applyAborted) break;
+                if(vues){
+                    const g=vues[v];
+                    try{ await sdk.Map.setMapCenter({lonLat:{lon:g.centre[0],lat:g.centre[1]},zoomLevel:POLY_LOAD_ZOOM}); }
+                    catch(err){ log('applyQueue/vue: '+err.message); }
+                    await _sweepSleep(SWEEP_SETTLE_MS);
+                    await waitMapLoaded();
+                    await _attendreSegments(g.ids);
+                    if(_applyAborted) break;
+                }
+                for(let closureIdx=0;closureIdx<e.closures.length;closureIdx++){
+                    if(_applyAborted) break;
+                    const cl=e.closures[closureIdx];
+                    let activeSegs=actifsDe(closureIdx).filter(sid=>!faits[closureIdx].has(Number(sid)));
+                    if(vues) activeSegs=activeSegs.filter(sid=>getSegById(sid));
+                    if(!activeSegs.length) continue;
+                    activeSegs.forEach(sid=>faits[closureIdx].add(Number(sid)));
+                    await waitMapLoaded();
+                    // Relire le drapeau : l'attente ci-dessus dure jusqu'à 10 s, et un Stop cliqué
+                    // pendant celle-ci laissait partir une fermeture de plus.
+                    if(_applyAborted) break;
+                    // combler : coché par défaut ; une entrée d'avant la 1.20.00 (ou venue d'un
+                    // CSV mis en file) n'a pas la clé et comble donc, comme le veut le défaut.
+                    const b=await _poserParMoitie({segments:activeSegs,reason:e.config.reason,direction:dir,startDate:cl.start,endDate:cl.end,permanent:e.config.ignoretraffic,eventId:e.config.mteId||null,partnerId:e.config.partnerId||null,combler:e.config.combler!==false,inverses:_inversesDe(e),
+                        closeNodes:e.config.closeNodes??closeNodes,nodesInside:(e.config.closeNodes??closeNodes)===NODE_CL.inside?noeudsEntree():null});
+                    if(vues) bilans[closureIdx]=_cumulPose(bilans[closureIdx],b);
+                    else compter(closureIdx,b);
+                }
+            }
+            if(vues){
+                // Segments restés hors du modèle malgré les vues : absents, comme addClosure les
+                // compte. Pas après un Stop : une vue jamais visitée n'est pas une vue qui a échoué.
+                if(!_applyAborted) e.closures.forEach((_,ci)=>{
+                    const n=actifsDe(ci).filter(sid=>!faits[ci].has(Number(sid))).length;
+                    if(n) bilans[ci]=_cumulPose(bilans[ci],{demandes:n,poses:0,absents:n,sansSens:0,dejaFermes:0,sensBloques:0,combles:0,trous:0,refus:[]});
+                });
+                bilans.forEach((b,ci)=>{ if(b) compter(ci,b); });
             }
             clotureEntree(idxEntree);
             // Pause assistée entre les lots (sauf après le dernier, et jamais pour une
@@ -14013,6 +14101,63 @@ const _polySegCentre = (s) => {
     const c = s.geometry.coordinates;
     const m = c[Math.floor(c.length / 2)];
     return [m[0], m[1]];
+};
+
+// ── Ligne CSV plus grande que la vue (1.24.05) ───────────────────────────────
+// ⚠️ 07/10/2026, veille crues : une ligne de 78 segments (D8, 21 km), centrée sur son milieu ;
+// WCT n'a posé que ce que la vue chargeait, et 13 segments aux deux bouts sont restés ouverts.
+// Une ligne CSV porte UN lon/lat, pas son emprise : on retrouve les segments manquants par
+// l'API Features, en anneaux de tuiles autour du centre, puis on les charge vue par vue avec
+// le pavage des tracés (_polyPaver).
+const CSV_LOCATE_RINGS = 3;   // anneaux de tuiles de POLY_TILE_KM autour du centre : ±17,5 km
+const _csvLocaliser = async (centre, manquants) => {
+    const reste = new Set(manquants.map(Number)), trouves = new Map();
+    const kmLat = 1 / 110.574, kmLon = 1 / (111.320 * Math.cos(centre.lat * Math.PI / 180));
+    const w = POLY_TILE_KM * kmLon, h = POLY_TILE_KM * kmLat;
+    for(let r = 0; r <= CSV_LOCATE_RINGS && reste.size; r++){
+        for(let j = -r; j <= r && reste.size; j++) for(let i = -r; i <= r && reste.size; i++){
+            if(Math.max(Math.abs(i), Math.abs(j)) !== r) continue;   // le pourtour de l'anneau seulement
+            if(_applyAborted) return trouves;
+            const bb = { minLon: centre.lon + (i - 0.5) * w, minLat: centre.lat + (j - 0.5) * h,
+                         maxLon: centre.lon + (i + 0.5) * w, maxLat: centre.lat + (j + 0.5) * h };
+            let segs = [];
+            try{ segs = await _polyFetchTile(bb); }catch(err){ log('csv, localisation : ' + err.message); return trouves; }
+            for(const sg of segs){
+                const id = Number(sg.id);
+                if(reste.has(id) && sg.geometry && Array.isArray(sg.geometry.coordinates)){ trouves.set(id, sg); reste.delete(id); }
+            }
+        }
+    }
+    return trouves;
+};
+// Vues à visiter pour poser une ligne CSV : null si tous ses segments sont chargés (la vue
+// courante suffit, cas ordinaire) ou si aucun manquant n'a été retrouvé. Sinon
+// { groupes, noeuds, manquants } : le pavage de la ligne ENTIÈRE au zoom de chargement, et ses
+// nœuds intérieurs, calculés sur toute la ligne et non sur la vue.
+const _csvVues = async (centre, ids) => {
+    const manquants = ids.filter(sid => !getSegById(sid));
+    if(!manquants.length) return null;
+    const trouves = await _csvLocaliser(centre, manquants);
+    if(!trouves.size || _applyAborted) return null;
+    const retenus = [], deg = new Map();
+    for(const sid of ids){
+        const id = Number(sid), sg = getSegById(id), api = trouves.get(id);
+        const g = sg?.geometry || api?.geometry;
+        if(!(g && Array.isArray(g.coordinates) && g.coordinates.length)) continue;
+        retenus.push({ id, geometry: g });
+        for(const n of sg ? [sg.fromNodeId, sg.toNodeId] : [api.fromNodeID, api.toNodeID])
+            if(n) deg.set(Number(n), (deg.get(Number(n)) || 0) + 1);
+    }
+    // Taille RÉELLE d'une vue au zoom de chargement, relevée sur place (cf. _polyLoadAndSelect).
+    const c0 = _polySegCentre(retenus[0]);
+    await sdk.Map.setMapCenter({ lonLat: { lon: c0[0], lat: c0[1] }, zoomLevel: POLY_LOAD_ZOOM });
+    await _sweepSleep(SWEEP_SETTLE_MS);
+    await waitMapLoaded();
+    const ex = _wme.ext;
+    const vueW = Math.max((ex[2] - ex[0]) * 0.75, 0.002), vueH = Math.max((ex[3] - ex[1]) * 0.75, 0.002);
+    const groupes = _polyPaver(retenus, vueW, vueH);
+    log(`csv : ${manquants.length} segment(s) hors de la vue, ${trouves.size} retrouvé(s) par l'API → ${groupes.length} vue(s)`);
+    return { groupes, noeuds: new Set([...deg].filter(([, d]) => d > 1).map(([n]) => n)), manquants: manquants.length };
 };
 
 // ── Pavage d'une zone en lots de la taille d'une vue ──────────────────────────

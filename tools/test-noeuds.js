@@ -41,7 +41,9 @@ chk('addClosure lit les nœuds intérieurs de l\'appelant', /interieurs=nodesIns
 chk('addClosure ne décide plus sur le réglage global seul', !/if\(closeNodes===NODE_CL/.test(ac));
 const aq = extrait('const applyQueue=', '\nconst ');
 chk('applyQueue passe le mode de l\'entrée', /closeNodes:e\.config\.closeNodes\?\?closeNodes/.test(aq));
-chk('applyQueue passe les nœuds de l\'entrée', /nodesInside:\(e\.config\.closeNodes\?\?closeNodes\)===NODE_CL\.inside\?_noeudsDe\(e\):null/.test(aq));
+chk('applyQueue passe les nœuds de l\'entrée', /nodesInside:\(e\.config\.closeNodes\?\?closeNodes\)===NODE_CL\.inside\?noeudsEntree\(\):null/.test(aq));
+// 1.24.05 : une ligne CSV posée vue par vue prend les nœuds de la ligne ENTIÈRE ; sinon, ceux de l'entrée.
+chk('applyQueue retombe sur les nœuds de l\'entrée hors pose vue par vue', /const noeudsEntree=\(\)=>\(noeudsLigne&&!Array\.isArray\(e\.nodesInside\)\)\?noeudsLigne:_noeudsDe\(e\);/.test(aq));
 chk('makeEntry garde le mode choisi', /config:\{\.\.\.cfg,closeNodes:cfg\.closeNodes\?\?closeNodes[,}]/.test(txt));   // [,}] : d'autres champs peuvent suivre (holidayIso, 1.22.00)
 chk('plus aucune lecture de la clé morte nodesClosed', !/nodesClosed/.test(txt));
 
