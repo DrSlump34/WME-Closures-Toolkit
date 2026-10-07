@@ -9990,17 +9990,26 @@ const APPLY_ETAT={ encours:'⏳', ok:'✅', partiel:'⚠️', echec:'❌' };
 // différents — et un manque seul ne doit jamais donner « échec ».
 const _etatEntree=(ok,manques,erreurs)=>
     (erreurs>0&&ok===0) ? 'echec' : (erreurs>0||manques>0) ? 'partiel' : 'ok';
+// ⚠️ 1.24.05 : l'état est AUSSI retenu à côté de l'entrée, et renderQueue le remet. Depuis la
+// 1.24.00 (SDK async), le calcul des inversés finit en arrière-plan et redessine la file ; chaque
+// recentrage le relance. Écrit dans le DOM seul, l'état des cartes déjà traitées disparaissait :
+// seule la dernière gardait sa coche (veille crues du 07/10/2026, 4 entrées, 1 coche).
+// WeakMap et non champ de l'entrée : la file est sauvegardée telle quelle.
+let _etatsEntrees=new WeakMap();
+const _peindreEtat=(cel,etat,titre)=>{ cel.textContent=etat?APPLY_ETAT[etat]||'':''; cel.title=titre||''; };
 const _setEtatCarte=(idx,etat,titre)=>{
+    const e=queue[idx];
+    if(e){ if(etat) _etatsEntrees.set(e,{etat,titre}); else _etatsEntrees.delete(e); }
     const carte=document.querySelector(`#wct-queue-ul .wct-qcard[data-idx="${idx}"]`);
-    if(!carte) return;                       // file re-rendue entre-temps : rien à décorer
+    if(!carte) return;                       // file re-rendue entre-temps : renderQueue le remettra
     const cel=carte.querySelector('.wct-qcard-etat');
     if(!cel) return;
-    cel.textContent=etat?APPLY_ETAT[etat]||'':'';
-    cel.title=titre||'';
+    _peindreEtat(cel,etat,titre);
 };
 // Efface tous les états : au DÉBUT d'une application, jamais à la fin. Les garder après
 // coup est justement l'intérêt — c'est ce qui reste à l'écran quand tout est fini.
 const _resetEtatsCartes=()=>{
+    _etatsEntrees=new WeakMap();
     document.querySelectorAll('#wct-queue-ul .wct-qcard-etat').forEach(c=>{ c.textContent=''; c.title=''; });
 };
 const updateActionBtns=()=>{
@@ -16383,6 +16392,7 @@ const buildQueueCard=(entry,idx)=>{
         <span class="wct-badge" style="background:#f3e5f5;color:#6a1b9a" title="${escHtml(t('tipMte',mteName))}">${escHtml(mteName)}</span>
         <button class="wct-qcard-del" title="${t('tipDelBatch')}" style="color:var(--wct-red);background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">&#x2715;</button>
     `;
+    { const et=_etatsEntrees.get(entry); const cel=hdr.querySelector('.wct-qcard-etat'); if(et&&cel) _peindreEtat(cel,et.etat,et.titre); }
     // ── Logique édition inline du libellé ──
     hdr.querySelector('.wct-qcard-focus').addEventListener('click', e => {
         e.stopPropagation();
