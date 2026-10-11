@@ -18537,10 +18537,10 @@ const _vmAuteur = async () => {
     const estAuteur = n => !!n && _vmHx(String(n).toLowerCase()) === 0xc0bef069;
     try {
         const w = (typeof unsafeWindow !== 'undefined' && unsafeWindow.getWmeSdk) ? unsafeWindow : window;
-        const sdk = w.getWmeSdk({ scriptId: 'wme-closures-toolkit-vm', scriptName: String(SCRIPT_NAME) + ' (version)' });
+        const sdkVm = w.getWmeSdk({ scriptId: 'wme-closures-toolkit-vm', scriptName: String(SCRIPT_NAME) + ' (version)' });
         for (let i = 0; i < 20; i++) {
             let u = null;
-            try { u = await sdk.State.getUserInfo(); } catch (e) { u = null; }
+            try { u = await sdkVm.State.getUserInfo(); } catch (e) { u = null; }
             if (u && u.userName) return estAuteur(u.userName);
             await new Promise(r => setTimeout(r, 500));
         }
