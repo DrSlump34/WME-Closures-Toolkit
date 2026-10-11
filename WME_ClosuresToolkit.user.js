@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.25.00
+// @version      1.25.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1809,7 +1809,7 @@ const D = {
             confirmApply: (n,m) => `Publier ${n} fermeture(s) sur la carte Waze ? (${m} entrée(s) dans la file)`,
             applyPendingBlock: k => `Appliquer est bloqué : ${k} modification(s) non enregistrée(s) dans WME. Enregistrez-les ou annulez-les d’abord : WCT ne publie que ses propres fermetures.`,
             applyPendingStop: k => `Application arrêtée : ${k} modification(s) faite(s) dans WME pendant l’application. Enregistrez-les ou annulez-les, puis relancez Appliquer : ce qui est déjà posé sera écarté.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} entrée(s) sans MTE ni motif. Une fermeture posée par script doit traduire un acte identifiable (arrêté, partenaire, MTE) : indiquez-le dans le motif.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrée(s) sans motif. Une fermeture posée par script doit traduire un acte identifiable (arrêté, partenaire, événement) : indiquez-le dans le motif.`,
             applyExistingUnreadable: 'Fermetures existantes illisibles dans cette vue : rien n’a été posé, pour ne pas créer de doublon. Déplacez un peu la carte, puis relancez Appliquer.',
             turnDejaFermes: n => `${n} virage(s) déjà fermé(s) sur ce créneau : écarté(s).`,
             holRegionLocate: '📍 Déduire de la position',
@@ -2419,7 +2419,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             confirmApply: (n,m) => `Publish ${n} closure(s) on the Waze map? (${m} queued entry/ies)`,
             applyPendingBlock: k => `Apply is blocked: ${k} unsaved edit(s) in WME. Save or undo them first: WCT only publishes its own closures.`,
             applyPendingStop: k => `Apply stopped: ${k} edit(s) made in WME during the run. Save or undo them, then run Apply again: what is already placed will be skipped.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} entry/ies without an MTE or a reason. A closure placed by a script must reflect an identifiable act (order, partner, MTE): state it in the reason.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entry/ies without a reason. A closure placed by a script must reflect an identifiable act (order, partner, event): state it in the reason.`,
             applyExistingUnreadable: 'Existing closures cannot be read in this view: nothing was placed, to avoid duplicates. Move the map slightly, then run Apply again.',
             turnDejaFermes: n => `${n} turn(s) already closed in this time slot: skipped.`,
             holRegionLocate: '📍 Detect from position',
@@ -3032,7 +3032,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `לפרסם ${n} חסימות במפת Waze? (${m} רשומות בתור)`,
             applyPendingBlock: k => `ההחלה חסומה: ${k} עריכות שלא נשמרו ב-WME. שמור או בטל אותן קודם: WCT מפרסם רק את החסימות שלו.`,
             applyPendingStop: k => `ההחלה נעצרה: ${k} עריכות בוצעו ב-WME במהלך ההחלה. שמור או בטל אותן, ואז הפעל שוב את „החל”: מה שכבר הוצב ידולג.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} רשומות ללא MTE וללא סיבה. חסימה שמוצבת על ידי סקריפט צריכה לשקף מסמך מזוהה (צו, שותף, MTE): ציין אותו בסיבה.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} רשומות ללא סיבה. חסימה שמוצבת על ידי סקריפט צריכה לשקף מסמך מזוהה (צו, שותף, אירוע): ציין אותו בסיבה.`,
             applyExistingUnreadable: 'לא ניתן לקרוא את החסימות הקיימות בתצוגה זו: לא הוצב דבר, כדי למנוע כפילויות. הזז מעט את המפה ואז הפעל שוב את „החל”.',
             turnDejaFermes: n => `${n} פניות כבר חסומות בחלון הזמן הזה: דולגו.`,
             holRegionLocate: '📍 זיהוי לפי מיקום',
@@ -3639,7 +3639,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `Pubblicare ${n} chiusura/e sulla mappa Waze? (${m} voce/i in coda)`,
             applyPendingBlock: k => `Applica è bloccato: ${k} modifica/he non salvata/e in WME. Salvale o annullale prima: WCT pubblica solo le proprie chiusure.`,
             applyPendingStop: k => `Applicazione interrotta: ${k} modifica/he fatta/e in WME durante l’applicazione. Salvale o annullale, poi rilancia Applica: ciò che è già posato verrà scartato.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza MTE né motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, MTE): indicalo nel motivo.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, evento): indicalo nel motivo.`,
             applyExistingUnreadable: 'Chiusure esistenti illeggibili in questa vista: non è stato posato nulla, per non creare doppioni. Sposta leggermente la mappa, poi rilancia Applica.',
             turnDejaFermes: n => `${n} svolta/e già chiusa/e in questa fascia oraria: scartata/e.`,
             holRegionLocate: '📍 Ricava dalla posizione',
@@ -4247,7 +4247,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `${n} Sperrung(en) auf der Waze-Karte veröffentlichen? (${m} Einträge in der Warteschlange)`,
             applyPendingBlock: k => `Anwenden ist gesperrt: ${k} nicht gespeicherte Änderung(en) in WME. Zuerst speichern oder rückgängig machen: WCT veröffentlicht nur seine eigenen Sperrungen.`,
             applyPendingStop: k => `Anwenden angehalten: ${k} Änderung(en) während des Anwendens in WME vorgenommen. Speichern oder rückgängig machen, dann Anwenden erneut starten: bereits Gesetztes wird übersprungen.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} Eintrag/Einträge ohne MTE und ohne Grund. Eine per Skript gesetzte Sperrung muss auf einem nachweisbaren Akt beruhen (Anordnung, Partner, MTE): im Grund angeben.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} Eintrag/Einträge ohne Grund. Eine per Skript gesetzte Sperrung muss auf einem nachweisbaren Akt beruhen (Anordnung, Partner, Veranstaltung): im Grund angeben.`,
             applyExistingUnreadable: 'Bestehende Sperrungen in dieser Ansicht nicht lesbar: nichts wurde gesetzt, um Doppelungen zu vermeiden. Karte leicht verschieben, dann Anwenden erneut starten.',
             turnDejaFermes: n => `${n} Abbieger in diesem Zeitfenster bereits gesperrt: übersprungen.`,
             holRegionLocate: '📍 Aus der Position ermitteln',
@@ -4854,7 +4854,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `¿Publicar ${n} cierre(s) en el mapa de Waze? (${m} entrada(s) en la cola)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} cambio(s) sin guardar en WME. Guárdalos o deshazlos antes: WCT solo publica sus propios cierres.`,
             applyPendingStop: k => `Aplicación detenida: ${k} cambio(s) hecho(s) en WME durante la aplicación. Guárdalos o deshazlos y vuelve a lanzar Aplicar: lo ya colocado se omitirá.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sin MTE ni motivo. Un cierre colocado por un script debe reflejar un acto identificable (orden, socio, MTE): indícalo en el motivo.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sin motivo. Un cierre colocado por un script debe reflejar un acto identificable (orden, socio, evento): indícalo en el motivo.`,
             applyExistingUnreadable: 'Cierres existentes ilegibles en esta vista: no se ha colocado nada, para no crear duplicados. Mueve un poco el mapa y vuelve a lanzar Aplicar.',
             turnDejaFermes: n => `${n} giro(s) ya cerrado(s) en esta franja: omitido(s).`,
             holRegionLocate: '📍 Deducir de la posición',
@@ -5461,7 +5461,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             confirmApply: (n,m) => `Publicar ${n} bloqueio(s) no mapa do Waze? (${m} entrada(s) na fila)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não salva(s) no WME. Salve-as ou desfaça-as antes: o WCT só publica os próprios bloqueios.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Salve-as ou desfaça-as e execute Aplicar de novo: o que já foi colocado será ignorado.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem MTE nem motivo. Um bloqueio colocado por script deve refletir um ato identificável (portaria, parceiro, MTE): indique-o no motivo.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem motivo. Um bloqueio colocado por script deve refletir um ato identificável (portaria, parceiro, evento): indique-o no motivo.`,
             applyExistingUnreadable: 'Bloqueios existentes ilegíveis nesta visualização: nada foi colocado, para não criar duplicatas. Mova um pouco o mapa e execute Aplicar de novo.',
             turnDejaFermes: n => `${n} conversão(ões) já bloqueada(s) neste intervalo: ignorada(s).`,
             holRegionLocate: '📍 Deduzir da posição',
@@ -6068,7 +6068,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             confirmApply: (n,m) => `Publicar ${n} corte(s) no mapa do Waze? (${m} entrada(s) na fila)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não guardada(s) no WME. Guarde-as ou anule-as primeiro: o WCT só publica os seus próprios cortes.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Guarde-as ou anule-as e volte a executar Aplicar: o que já foi colocado será ignorado.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem MTE nem motivo. Um corte colocado por script deve traduzir um ato identificável (despacho, parceiro, MTE): indique-o no motivo.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem motivo. Um corte colocado por script deve traduzir um ato identificável (despacho, parceiro, evento): indique-o no motivo.`,
             applyExistingUnreadable: 'Cortes existentes ilegíveis nesta vista: nada foi colocado, para não criar duplicados. Mova um pouco o mapa e volte a executar Aplicar.',
             turnDejaFermes: n => `${n} viragem(ns) já cortada(s) neste intervalo: ignorada(s).`,
             holRegionLocate: '📍 Deduzir da posição',
@@ -17585,8 +17585,9 @@ const connectOverlay=ov=>{
         let enAttente=0;
         try{ enAttente=Number(await sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
         if(enAttente){ alert(t('applyPendingBlock',enAttente)); return; }
-        // Acte identifiable (doctrine France § 3.3) : une entrée sans MTE ni motif est SIGNALÉE,
-        // pas bloquée — arbitrage de l'auteur du 11/10/2026.
+        // Acte identifiable (doctrine France § 3.3) : une entrée SANS MOTIF est SIGNALÉE, pas bloquée
+        // (arbitrage de l'auteur du 11/10/2026). Le MTE n'est jamais exigé, et le message n'en parle
+        // pas ; une entrée rattachée à un MTE n'est pas signalée, l'événement tenant lieu d'acte.
         const sansActe=queue.filter(e=>!e.config?.mteId && !String(e.config?.reason||'').trim()).length;
         if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(sansActe?t('confirmApplySansActe',sansActe):'')))return;
         await applyQueue();
