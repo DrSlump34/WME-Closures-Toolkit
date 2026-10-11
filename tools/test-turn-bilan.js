@@ -33,6 +33,11 @@ if (deb < 0) { console.error('ECHEC : addTurnClosure introuvable'); process.exit
 const fin = src.indexOf('\n};', deb);
 if (fin < 0) { console.error('ECHEC : fin de addTurnClosure introuvable'); process.exit(1); }
 const bloc = src.slice(deb, fin + 3);
+// 1.25.00 : le garde des modifications en attente et l'heure murale sont extraits eux aussi.
+const extrait = (a, b) => { const i = src.indexOf(a); if (i < 0) { console.error('ECHEC : introuvable ' + a); process.exit(1); }
+    const j = src.indexOf(b, i + a.length); return src.slice(i, j + b.length); };
+const garde = extrait('const _attenteEtrangere=', '\n};');
+const murale = extrait('const _versMurale=', '\n};');
 for (const attendu of ['TurnClosures.addClosure', 'poses', 'bilan']) {
     if (!bloc.includes(attendu)) {
         console.error('ECHEC : le bloc extrait ne parle pas de ' + attendu);
@@ -43,7 +48,10 @@ for (const attendu of ['TurnClosures.addClosure', 'poses', 'bilan']) {
 // ── Bac a sable ────────────────────────────────────────────────────────────
 // `rendu` decide, pour chaque appel, ce que fait le SDK : un objet (pose reussie),
 // null/undefined (pas de retour), ou une exception (refus).
-const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLeve = false, saveRejette = false, code = bloc }) => {
+// virages : id -> [from, to], pour le recoupement des doublons (1.25.00).
+const VIRAGES = new Map([[1, [101, 201]], [2, [101, 202]], [3, [101, 203]]]);
+const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLeve = false, saveRejette = false, code = bloc,
+                 enAttente = 0, calqueKo = false }) => {
     const etat = { appels: 0, saveAppele: 0, undo: 0, journal: [] };
     let nAppels = 0;
     const sdk = {
@@ -65,13 +73,17 @@ const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLev
         Editing: {
             save: () => { etat.saveAppele++; return saveRejette ? Promise.reject(new Error('refus serveur')) : Promise.resolve('sauve'); },
             undoAll: () => { etat.undo++; },
+            getUnsavedChangesCount: () => enAttente,
         },
     };
+    const _virages = new Map([[9, { tours: [...VIRAGES].map(([id, [f, to]]) => ({ id, fromSegmentId: f, toSegmentId: to })) }]]);
     const document = { querySelector: () => null };
     const log = (m) => etat.journal.push(m);
     const t = (cle) => cle;
-    const f = new Function('sdk', 'document', 'log', 't',
-        code + '\nreturn addTurnClosure;')(sdk, document, log, t);
+    const boite = new Function('sdk', 'document', 'log', 't', '_virages', '_closuresLayerKo',
+        'let _applyAborted=false;\n' + murale + '\n' + garde + '\n' + code + '\nreturn { f:addTurnClosure, arrete:()=>_applyAborted };')(sdk, document, log, t, _virages, calqueKo);
+    const f = boite.f;
+    etat.arrete = boite.arrete;
     return new Promise(resolve => {
         f({ turnIds, reason: 'Travaux', startDate: new Date('2026-10-01T08:00:00'),
             endDate: new Date('2026-10-01T18:00:00'), permanent: false, eventId: null },
@@ -149,12 +161,65 @@ const OBJET = (i) => ({ id: 'c' + i });
         dit(r.issue === 'ko', 'et le lot reste en echec', 'issue=' + r.issue);
     }
 
-    // 6. getAll indisponible : la mesure primaire tient toujours.
+    // 6. getAll indisponible. Jusqu'a la 1.24.05, la pose partait quand meme. Depuis la 1.25.00
+    // (doctrine France § 3.3 : controler les doublons AVANT d'ecrire), rien n'est pose.
     {
         const r = await jouer({ turnIds: [1, 2], rendu: OBJET, getAllLeve: true });
-        dit(r.issue === 'ok', 'modele illisible : la pose est quand meme comptee', 'issue=' + r.issue);
+        dit(r.issue === 'ko', 'fermetures existantes illisibles : echec', 'issue=' + r.issue);
+        dit(r.appels === 0, 'AUCUN virage pose', 'appels=' + r.appels);
+        dit(r.saveAppele === 0, 'save() jamais appele', 'save=' + r.saveAppele);
+        dit(r.errs[0] === 'applyExistingUnreadable', 'le motif est dit', 'errs[0]=' + r.errs[0]);
+        const c = await jouer({ turnIds: [1, 2], rendu: OBJET, calqueKo: true });
+        dit(c.issue === 'ko' && c.appels === 0, 'calque Fermetures introuvable : rien n est pose non plus', 'issue=' + c.issue + ' appels=' + c.appels);
+    }
+
+    // 8. DOUBLONS (1.25.00) : un virage deja ferme sur le creneau est ecarte AVANT d'ecrire.
+    {
+        const exist = [{ id: 'e1', fromSegmentId: 101, toSegmentId: 202, startDate: '2026-10-01 12:00', endDate: '2026-10-01 14:00' }];
+        const r = await jouer({ turnIds: [1, 2, 3], rendu: OBJET, getAllAvant: exist });
+        dit(r.issue === 'ok', 'un virage deja ferme sur trois : succes', 'issue=' + r.issue);
+        dit(r.appels === 2, 'DEUX virages poses, le doublon ecarte', 'appels=' + r.appels);
+        dit(r.bilan.dejaFermes === 1, 'le bilan compte un deja ferme', 'dejaFermes=' + r.bilan.dejaFermes);
         dit(r.bilan.poses === 2, 'deux poses', 'poses=' + r.bilan.poses);
-        dit(r.bilan.objets === null, 'la corroboration se declare NON FAITE', 'objets=' + r.bilan.objets);
+        // Bout a bout = conflit : Waze refuse 08:00 / 08:00.
+        const bout = [{ id: 'e2', fromSegmentId: 101, toSegmentId: 201, startDate: '2026-10-01 06:00', endDate: '2026-10-01 08:00' }];
+        const b = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: bout });
+        dit(b.appels === 0 && b.bilan.dejaFermes === 1, 'bout a bout (fin 08:00 / debut 08:00) : ecarte', 'appels=' + b.appels);
+        // Creneau qui ne chevauche pas : pose normale.
+        const loin = [{ id: 'e3', fromSegmentId: 101, toSegmentId: 201, startDate: '2026-10-02 06:00', endDate: '2026-10-02 08:00' }];
+        const l = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: loin });
+        dit(l.appels === 1 && l.bilan.dejaFermes === 0, 'le lendemain : pose normale', 'appels=' + l.appels);
+        // Meme creneau, AUTRE virage du meme noeud (from identique, to different) : pose normale.
+        const autre = [{ id: 'e4', fromSegmentId: 101, toSegmentId: 999, startDate: '2026-10-01 08:00', endDate: '2026-10-01 18:00' }];
+        const a = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: autre });
+        dit(a.appels === 1, 'un autre virage ferme au meme noeud ne bloque rien', 'appels=' + a.appels);
+        // TEMOIN : sans le filtre, le doublon est repose.
+        const sans = bloc.replace('const aPoser=turnIds.filter(tid=>!dejaFermes.includes(tid));', 'const aPoser=turnIds;');
+        dit(sans !== bloc, 'TEMOIN : le filtre est trouve dans le bloc');
+        const t3 = await jouer({ turnIds: [1, 2, 3], rendu: OBJET, getAllAvant: exist, code: sans });
+        dit(t3.appels === 3, 'TEMOIN : sans le filtre, le doublon part', 'appels=' + t3.appels);
+    }
+
+    // 9. Tout est deja ferme : rien a ecrire, et ce n'est pas un echec.
+    {
+        const exist = [1, 2].map(i => ({ id: 'x' + i, fromSegmentId: 101, toSegmentId: 200 + i, startDate: '2026-10-01 08:00', endDate: '2026-10-01 18:00' }));
+        const r = await jouer({ turnIds: [1, 2], rendu: OBJET, getAllAvant: exist });
+        dit(r.issue === 'ok', 'tout deja ferme : succes', 'issue=' + r.issue);
+        dit(r.appels === 0 && r.saveAppele === 0, 'rien pose, save() jamais appele', 'appels=' + r.appels + ' save=' + r.saveAppele);
+    }
+
+    // 10. Modifications de l'editeur EN ATTENTE au moment de poser (1.25.00, doctrine § 3.1) :
+    // save() les publierait avec le lot, on arrete toute l'application sans rien ecrire.
+    {
+        const r = await jouer({ turnIds: [1, 2], rendu: OBJET, enAttente: 3 });
+        dit(r.issue === 'ko', 'modifications en attente : echec', 'issue=' + r.issue);
+        dit(r.appels === 0 && r.saveAppele === 0 && r.undo === 0, 'rien pose, ni save() ni undoAll()', `appels=${r.appels} save=${r.saveAppele} undo=${r.undo}`);
+        dit(r.errs[0] === 'applyPendingStop', 'le motif est dit', 'errs[0]=' + r.errs[0]);
+        dit(r.arrete() === true, 'toute l application est arretee', 'arrete=' + r.arrete());
+        const sans = bloc.replace('if(await _attenteEtrangere(koCb)) return;', '');
+        dit(sans !== bloc, 'TEMOIN : le garde est trouve dans le bloc');
+        const t4 = await jouer({ turnIds: [1, 2], rendu: OBJET, enAttente: 3, code: sans });
+        dit(t4.saveAppele === 1, 'TEMOIN : sans le garde, save() emporte les modifications de l editeur', 'save=' + t4.saveAppele);
     }
 
     // 7. save() rejete : les fermetures de virage restees EN ATTENTE doivent etre defaites.

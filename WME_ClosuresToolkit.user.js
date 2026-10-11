@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.24.05
+// @version      1.25.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -43,11 +43,10 @@
 // @connect      raw.githubusercontent.com
 // @connect      gist.githubusercontent.com
 // @connect      date.nager.at
-// @connect      cdn.jsdelivr.net
 // @connect      storage.googleapis.com
 // @connect      update.greasyfork.org
 // @connect      nominatim.openstreetmap.org
-// @homepageURL  https://greasyfork.org/scripts/581015-wme-closures-toolkit
+// @homepageURL  https://github.com/DrSlump34/WME-Closures-Toolkit
 // @supportURL   https://www.waze.com/discuss/t/script-wme-closures-toolkit/405542
 // @downloadURL  https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.user.js
 // @updateURL    https://update.greasyfork.org/scripts/581015/WME%20Closures%20Toolkit.meta.js
@@ -1751,7 +1750,7 @@ const D = {
             tipHolOnly:'Les fermetures ne seront propos\u00e9es QUE les jours f\u00e9ri\u00e9s \u2014 toutes les autres occurrences sont ignor\u00e9es.',
             tipHolAdd:'Ajoute les jours f\u00e9ri\u00e9s de la plage en suppl\u00e9ment des jours s\u00e9lectionn\u00e9s (union).',
             holRegionLabel:'Jours fériés : région',
-            tipHolRegion:'Ce pays a des jours fériés propres à certaines régions. La vôtre est déduite du chantier quand c’est possible ; vous pouvez toujours en choisir une autre, ou tout le pays.',
+            tipHolRegion:'Ce pays a des jours fériés propres à certaines régions. Choisissez la vôtre, ou tout le pays ; le bouton « 📍 Déduire de la position » la trouve à partir du segment sélectionné.',
             holRegionAll: n => `Tout le pays (${n} jours)`,
             holRegionOne: (c, n) => `${c} (${n} jours)`,
             holRegionAllNote: n => `(tout le pays, ${n} r\u00E9gions confondues)`,
@@ -1808,7 +1807,13 @@ const D = {
             confirmClear:'Vider la file\u00A0?',
             clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
             confirmApply: (n,m) => `Publier ${n} fermeture(s) sur la carte Waze ? (${m} entrée(s) dans la file)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} modification(s) non enregistrée(s) dans WME partiront avec les fermetures. Si Waze refuse l’enregistrement, elles seront annulées. Pour les garder à part, enregistrez-les (ou annulez-les) d’abord.`,
+            applyPendingBlock: k => `Appliquer est bloqué : ${k} modification(s) non enregistrée(s) dans WME. Enregistrez-les ou annulez-les d’abord : WCT ne publie que ses propres fermetures.`,
+            applyPendingStop: k => `Application arrêtée : ${k} modification(s) faite(s) dans WME pendant l’application. Enregistrez-les ou annulez-les, puis relancez Appliquer : ce qui est déjà posé sera écarté.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrée(s) sans MTE ni motif. Une fermeture posée par script doit traduire un acte identifiable (arrêté, partenaire, MTE) : indiquez-le dans le motif.`,
+            applyExistingUnreadable: 'Fermetures existantes illisibles dans cette vue : rien n’a été posé, pour ne pas créer de doublon. Déplacez un peu la carte, puis relancez Appliquer.',
+            turnDejaFermes: n => `${n} virage(s) déjà fermé(s) sur ce créneau : écarté(s).`,
+            holRegionLocate: '📍 Déduire de la position',
+            tipHolRegionLocate: 'Demande la région du segment sélectionné au service de géocodage d’OpenStreetMap (Nominatim), en lui envoyant sa position. Rien n’est envoyé sans ce clic.',
             confirmDel: n => `Supprimer \u00AB\u00A0${n}\u00A0\u00BB\u00A0?`,
             // Colonnes
             colId:'ID', colName:'Nom', colStart:'D\u00E9but', colEnd:'Fin', colState:'\u00C9tat',
@@ -2360,7 +2365,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipHolOnly:'Closures will be proposed ONLY on public holidays \u2014 all other occurrences are ignored.',
             tipHolAdd:'Adds public holidays in the range on top of the selected weekdays (union).',
             holRegionLabel:'Public holidays: region',
-            tipHolRegion:'This country has holidays specific to some regions. Yours is detected from the segment when possible; you can always pick another one, or the whole country.',
+            tipHolRegion:'This country has holidays specific to some regions. Pick yours, or the whole country; the “📍 Detect from position” button finds it from the selected segment.',
             holRegionAll: n => `Whole country (${n} days)`,
             holRegionOne: (c, n) => `${c} (${n} days)`,
             holRegionAllNote: n => `(whole country, ${n} regions combined)`,
@@ -2412,7 +2417,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             confirmClear:'Clear the queue?',
             clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
             confirmApply: (n,m) => `Publish ${n} closure(s) on the Waze map? (${m} queued entry/ies)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} unsaved edit(s) in WME will be saved with the closures. If Waze rejects the save, they will be undone. To keep them separate, save (or undo) them first.`,
+            applyPendingBlock: k => `Apply is blocked: ${k} unsaved edit(s) in WME. Save or undo them first: WCT only publishes its own closures.`,
+            applyPendingStop: k => `Apply stopped: ${k} edit(s) made in WME during the run. Save or undo them, then run Apply again: what is already placed will be skipped.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entry/ies without an MTE or a reason. A closure placed by a script must reflect an identifiable act (order, partner, MTE): state it in the reason.`,
+            applyExistingUnreadable: 'Existing closures cannot be read in this view: nothing was placed, to avoid duplicates. Move the map slightly, then run Apply again.',
+            turnDejaFermes: n => `${n} turn(s) already closed in this time slot: skipped.`,
+            holRegionLocate: '📍 Detect from position',
+            tipHolRegionLocate: 'Asks OpenStreetMap’s geocoding service (Nominatim) for the region of the selected segment, sending it its position. Nothing is sent without this click.',
             confirmDel: n => `Delete \u201C${n}\u201D?`,
             colId:'ID', colName:'Name', colStart:'Start', colEnd:'End', colState:'State',
             colIdTip:'Segment ID', colNameTip:'Segment name',
@@ -2961,7 +2972,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'חסימות יוצעו רק בחגים — כל שאר המופעים מתעלמים מהם.',
             tipHolAdd:'מוסיף את החגים שבטווח על גבי ימי השבוע הנבחרים (איחוד).',
             holRegionLabel:'חגים: אזור',
-            tipHolRegion:'במדינה זו יש חגים ייחודיים לאזורים מסוימים. האזור שלכם מזוהה מהמקטע כשניתן; תמיד אפשר לבחור אזור אחר, או את כל המדינה.',
+            tipHolRegion:'במדינה זו יש חגים ייחודיים לאזורים מסוימים. בחרו את האזור שלכם, או את כל המדינה; הכפתור „📍 זיהוי לפי מיקום” מוצא אותו לפי המקטע הנבחר.',
             holRegionAll: n => `כל המדינה (${n} ימים)`,
             holRegionOne: (c, n) => `${c} (${n} ימים)`,
             holRegionAllNote: n => `(כל המדינה, ${n} אזורים יחד)`,
@@ -3019,7 +3030,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'לנקות את התור?',
             clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
             confirmApply: (n,m) => `לפרסם ${n} חסימות במפת Waze? (${m} רשומות בתור)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} עריכות שלא נשמרו ב-WME יישמרו יחד עם החסימות. אם Waze ידחה את השמירה, הן יבוטלו. כדי לשמור אותן בנפרד, שמור (או בטל) אותן קודם.`,
+            applyPendingBlock: k => `ההחלה חסומה: ${k} עריכות שלא נשמרו ב-WME. שמור או בטל אותן קודם: WCT מפרסם רק את החסימות שלו.`,
+            applyPendingStop: k => `ההחלה נעצרה: ${k} עריכות בוצעו ב-WME במהלך ההחלה. שמור או בטל אותן, ואז הפעל שוב את „החל”: מה שכבר הוצב ידולג.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} רשומות ללא MTE וללא סיבה. חסימה שמוצבת על ידי סקריפט צריכה לשקף מסמך מזוהה (צו, שותף, MTE): ציין אותו בסיבה.`,
+            applyExistingUnreadable: 'לא ניתן לקרוא את החסימות הקיימות בתצוגה זו: לא הוצב דבר, כדי למנוע כפילויות. הזז מעט את המפה ואז הפעל שוב את „החל”.',
+            turnDejaFermes: n => `${n} פניות כבר חסומות בחלון הזמן הזה: דולגו.`,
+            holRegionLocate: '📍 זיהוי לפי מיקום',
+            tipHolRegionLocate: 'שולח את מיקום המקטע הנבחר לשירות הגיאוקידוד של OpenStreetMap (Nominatim) כדי למצוא את האזור שלו. דבר אינו נשלח ללא לחיצה זו.',
             confirmDel: n => `למחוק את “${n}”?`,
             colId:'מזהה', colName:'שם', colStart:'התחלה', colEnd:'סיום', colState:'מצב',
             colIdTip:'מזהה מקטע', colNameTip:'שם מקטע',
@@ -3568,7 +3585,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Le chiusure saranno proposte SOLO nei giorni festivi — tutte le altre occorrenze vengono ignorate.',
             tipHolAdd:'Aggiunge i giorni festivi dell’intervallo sopra i giorni della settimana selezionati (unione).',
             holRegionLabel:'Giorni festivi: regione',
-            tipHolRegion:'Questo paese ha giorni festivi propri di alcune regioni. La tua è dedotta dal segmento quando è possibile; puoi sempre sceglierne un’altra, o tutto il paese.',
+            tipHolRegion:'Questo paese ha giorni festivi propri di alcune regioni. Scegli la tua, o tutto il paese; il pulsante «📍 Ricava dalla posizione» la trova a partire dal segmento selezionato.',
             holRegionAll: n => `Tutto il paese (${n} giorni)`,
             holRegionOne: (c, n) => `${c} (${n} giorni)`,
             holRegionAllNote: n => `(tutto il paese, ${n} regioni insieme)`,
@@ -3620,7 +3637,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'Svuotare la coda?',
             clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
             confirmApply: (n,m) => `Pubblicare ${n} chiusura/e sulla mappa Waze? (${m} voce/i in coda)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} modifica/he non salvata/e in WME verranno salvate con le chiusure. Se Waze rifiuta il salvataggio, verranno annullate. Per tenerle separate, salvale (o annullale) prima.`,
+            applyPendingBlock: k => `Applica è bloccato: ${k} modifica/he non salvata/e in WME. Salvale o annullale prima: WCT pubblica solo le proprie chiusure.`,
+            applyPendingStop: k => `Applicazione interrotta: ${k} modifica/he fatta/e in WME durante l’applicazione. Salvale o annullale, poi rilancia Applica: ciò che è già posato verrà scartato.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza MTE né motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, MTE): indicalo nel motivo.`,
+            applyExistingUnreadable: 'Chiusure esistenti illeggibili in questa vista: non è stato posato nulla, per non creare doppioni. Sposta leggermente la mappa, poi rilancia Applica.',
+            turnDejaFermes: n => `${n} svolta/e già chiusa/e in questa fascia oraria: scartata/e.`,
+            holRegionLocate: '📍 Ricava dalla posizione',
+            tipHolRegionLocate: 'Chiede la regione del segmento selezionato al servizio di geocodifica di OpenStreetMap (Nominatim), inviandogli la sua posizione. Nulla viene inviato senza questo clic.',
             confirmDel: n => `Eliminare “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Inizio', colEnd:'Fine', colState:'Stato',
             colIdTip:'ID segmento', colNameTip:'Nome segmento',
@@ -4170,7 +4193,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Sperrungen werden AUSSCHLIESSLICH an Feiertagen vorgeschlagen \u2014 alle anderen Termine entfallen.',
             tipHolAdd:'F\u00FCgt die Feiertage im Zeitraum zus\u00E4tzlich zu den gew\u00E4hlten Wochentagen hinzu (Vereinigung).',
             holRegionLabel:'Feiertage: Region',
-            tipHolRegion:'Dieses Land hat Feiertage, die nur in bestimmten Regionen gelten. Ihre wird nach Möglichkeit aus dem Segment ermittelt; Sie können jederzeit eine andere Region oder das ganze Land wählen.',
+            tipHolRegion:'Dieses Land hat Feiertage, die nur in bestimmten Regionen gelten. Wählen Sie Ihre Region oder das ganze Land; die Schaltfläche „📍 Aus der Position ermitteln“ ermittelt sie aus dem ausgewählten Segment.',
             holRegionAll: n => `Ganzes Land (${n} Tage)`,
             holRegionOne: (c, n) => `${c} (${n} Tage)`,
             holRegionAllNote: n => `(ganzes Land, ${n} Regionen zusammen)`,
@@ -4222,7 +4245,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'Warteschlange leeren?',
             clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
             confirmApply: (n,m) => `${n} Sperrung(en) auf der Waze-Karte veröffentlichen? (${m} Einträge in der Warteschlange)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} nicht gespeicherte Änderung(en) in WME werden mit den Sperrungen gespeichert. Lehnt Waze das Speichern ab, werden sie rückgängig gemacht. Um sie getrennt zu halten, zuerst speichern (oder rückgängig machen).`,
+            applyPendingBlock: k => `Anwenden ist gesperrt: ${k} nicht gespeicherte Änderung(en) in WME. Zuerst speichern oder rückgängig machen: WCT veröffentlicht nur seine eigenen Sperrungen.`,
+            applyPendingStop: k => `Anwenden angehalten: ${k} Änderung(en) während des Anwendens in WME vorgenommen. Speichern oder rückgängig machen, dann Anwenden erneut starten: bereits Gesetztes wird übersprungen.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} Eintrag/Einträge ohne MTE und ohne Grund. Eine per Skript gesetzte Sperrung muss auf einem nachweisbaren Akt beruhen (Anordnung, Partner, MTE): im Grund angeben.`,
+            applyExistingUnreadable: 'Bestehende Sperrungen in dieser Ansicht nicht lesbar: nichts wurde gesetzt, um Doppelungen zu vermeiden. Karte leicht verschieben, dann Anwenden erneut starten.',
+            turnDejaFermes: n => `${n} Abbieger in diesem Zeitfenster bereits gesperrt: übersprungen.`,
+            holRegionLocate: '📍 Aus der Position ermitteln',
+            tipHolRegionLocate: 'Fragt den Geokodierungsdienst von OpenStreetMap (Nominatim) nach der Region des ausgewählten Segments und sendet ihm dafür dessen Position. Ohne diesen Klick wird nichts gesendet.',
             confirmDel: n => `\u201E${n}\u201C l\u00F6schen?`,
             colId:'ID', colName:'Name', colStart:'Beginn', colEnd:'Ende', colState:'Zustand',
             colIdTip:'Segment-ID', colNameTip:'Segmentname',
@@ -4771,7 +4800,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipHolOnly:'Los cierres se propondrán SOLO en los días festivos — el resto de ocurrencias se ignoran.',
             tipHolAdd:'Añade los festivos del periodo además de los días seleccionados (unión).',
             holRegionLabel:'Festivos: región',
-            tipHolRegion:'Este país tiene festivos propios de algunas regiones. La tuya se deduce del segmento cuando es posible; siempre puedes elegir otra, o todo el país.',
+            tipHolRegion:'Este país tiene festivos propios de algunas regiones. Elige la tuya, o todo el país; el botón «📍 Deducir de la posición» la encuentra a partir del segmento seleccionado.',
             holRegionAll: n => `Todo el pa\u00EDs (${n} d\u00EDas)`,
             holRegionOne: (c, n) => `${c} (${n} d\u00EDas)`,
             holRegionAllNote: n => `(todo el pa\u00EDs, ${n} regiones juntas)`,
@@ -4823,7 +4852,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'¿Vaciar la cola?',
             clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
             confirmApply: (n,m) => `¿Publicar ${n} cierre(s) en el mapa de Waze? (${m} entrada(s) en la cola)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} cambio(s) sin guardar en WME se guardarán con los cierres. Si Waze rechaza el guardado, se desharán. Para mantenerlos aparte, guárdalos (o deshazlos) antes.`,
+            applyPendingBlock: k => `Aplicar está bloqueado: ${k} cambio(s) sin guardar en WME. Guárdalos o deshazlos antes: WCT solo publica sus propios cierres.`,
+            applyPendingStop: k => `Aplicación detenida: ${k} cambio(s) hecho(s) en WME durante la aplicación. Guárdalos o deshazlos y vuelve a lanzar Aplicar: lo ya colocado se omitirá.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sin MTE ni motivo. Un cierre colocado por un script debe reflejar un acto identificable (orden, socio, MTE): indícalo en el motivo.`,
+            applyExistingUnreadable: 'Cierres existentes ilegibles en esta vista: no se ha colocado nada, para no crear duplicados. Mueve un poco el mapa y vuelve a lanzar Aplicar.',
+            turnDejaFermes: n => `${n} giro(s) ya cerrado(s) en esta franja: omitido(s).`,
+            holRegionLocate: '📍 Deducir de la posición',
+            tipHolRegionLocate: 'Pide la región del segmento seleccionado al servicio de geocodificación de OpenStreetMap (Nominatim), enviándole su posición. No se envía nada sin este clic.',
             confirmDel: n => `¿Eliminar “${n}”?`,
             colId:'ID', colName:'Nombre', colStart:'Inicio', colEnd:'Fin', colState:'Estado',
             colIdTip:'ID del segmento', colNameTip:'Nombre del segmento',
@@ -5372,7 +5407,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipHolOnly:'Os bloqueios serão propostos SOMENTE em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Adiciona os feriados do período aos dias da semana selecionados (união).',
             holRegionLabel:'Feriados: região',
-            tipHolRegion:'Este país tem feriados próprios de algumas regiões. A sua é deduzida do segmento quando possível; você sempre pode escolher outra, ou o país inteiro.',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua, ou o país inteiro; o botão “📍 Deduzir da posição” a encontra a partir do segmento selecionado.',
             holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
             holRegionOne: (c, n) => `${c} (${n} dias)`,
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es juntas)`,
@@ -5424,7 +5459,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Publicar ${n} bloqueio(s) no mapa do Waze? (${m} entrada(s) na fila)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} alteração(ões) não salva(s) no WME serão salvas com os bloqueios. Se o Waze recusar o salvamento, elas serão desfeitas. Para mantê-las à parte, salve-as (ou desfaça-as) antes.`,
+            applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não salva(s) no WME. Salve-as ou desfaça-as antes: o WCT só publica os próprios bloqueios.`,
+            applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Salve-as ou desfaça-as e execute Aplicar de novo: o que já foi colocado será ignorado.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem MTE nem motivo. Um bloqueio colocado por script deve refletir um ato identificável (portaria, parceiro, MTE): indique-o no motivo.`,
+            applyExistingUnreadable: 'Bloqueios existentes ilegíveis nesta visualização: nada foi colocado, para não criar duplicatas. Mova um pouco o mapa e execute Aplicar de novo.',
+            turnDejaFermes: n => `${n} conversão(ões) já bloqueada(s) neste intervalo: ignorada(s).`,
+            holRegionLocate: '📍 Deduzir da posição',
+            tipHolRegionLocate: 'Pede a região do segmento selecionado ao serviço de geocodificação do OpenStreetMap (Nominatim), enviando a posição dele. Nada é enviado sem este clique.',
             confirmDel: n => `Excluir “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -5973,7 +6014,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipHolOnly:'Os cortes serão propostos APENAS em feriados — todas as outras ocorrências são ignoradas.',
             tipHolAdd:'Acrescenta os feriados do período aos dias da semana selecionados (união).',
             holRegionLabel:'Feriados: região',
-            tipHolRegion:'Este país tem feriados próprios de algumas regiões. A sua é deduzida do segmento quando possível; pode sempre escolher outra, ou o país inteiro.',
+            tipHolRegion:'Este país tem feriados próprios de algumas regiões. Escolha a sua, ou o país inteiro; o botão «📍 Deduzir da posição» encontra-a a partir do segmento selecionado.',
             holRegionAll: n => `Todo o pa\u00EDs (${n} dias)`,
             holRegionOne: (c, n) => `${c} (${n} dias)`,
             holRegionAllNote: n => `(todo o pa\u00EDs, ${n} regi\u00F5es em conjunto)`,
@@ -6025,7 +6066,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Publicar ${n} corte(s) no mapa do Waze? (${m} entrada(s) na fila)`,
-            confirmApplyPending: k => `\n\n⚠️ ${k} alteração(ões) não guardada(s) no WME serão guardadas com os cortes. Se o Waze recusar a gravação, serão anuladas. Para as manter à parte, guarde-as (ou anule-as) antes.`,
+            applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não guardada(s) no WME. Guarde-as ou anule-as primeiro: o WCT só publica os seus próprios cortes.`,
+            applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Guarde-as ou anule-as e volte a executar Aplicar: o que já foi colocado será ignorado.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem MTE nem motivo. Um corte colocado por script deve traduzir um ato identificável (despacho, parceiro, MTE): indique-o no motivo.`,
+            applyExistingUnreadable: 'Cortes existentes ilegíveis nesta vista: nada foi colocado, para não criar duplicados. Mova um pouco o mapa e volte a executar Aplicar.',
+            turnDejaFermes: n => `${n} viragem(ns) já cortada(s) neste intervalo: ignorada(s).`,
+            holRegionLocate: '📍 Deduzir da posição',
+            tipHolRegionLocate: 'Pede a região do segmento selecionado ao serviço de geocodificação do OpenStreetMap (Nominatim), enviando-lhe a sua posição. Nada é enviado sem este clique.',
             confirmDel: n => `Eliminar “${n}”?`,
             colId:'ID', colName:'Nome', colStart:'Início', colEnd:'Fim', colState:'Estado',
             colIdTip:'ID do segmento', colNameTip:'Nome do segmento',
@@ -9277,6 +9324,12 @@ let _holRegionVoulue='';
 //   'manuel' : l'éditeur a touché le sélecteur, ou un préréglage l'a posée. On n'y
 //              touche plus, même pour « tout le pays » : c'est un choix, pas un vide.
 let _holRegionSource='auto';
+// La position du segment ne part au service de géocodage (Nominatim) QUE sur un clic de
+// l'éditeur (bouton « 📍 Déduire de la position »), le temps de la session. Jusqu'à la
+// 1.24.05, elle partait d'elle-même dès qu'un pays à fériés régionaux était sélectionné ;
+// la doctrine France (§ 3.1) veut qu'un envoi reste désactivé tant que l'éditeur ne l'a pas
+// activé (1.25.00). Ce que la table _regionParEtat a déjà retenu s'applique sans requête.
+let _regionAutoAutorisee=false;
 // Région déjà signalée comme étrangère au pays courant : le toast se dit UNE fois,
 // pas à chaque frappe — l'aperçu se régénère à chaque caractère saisi.
 let _holRegionEcartee='';
@@ -9368,6 +9421,7 @@ const resoudreRegionAuto=(paysIso, codesConnus)=>{
         return;
     }
     if(_regionEchecs.has(cle)) return;
+    if(!_regionAutoAutorisee) return;            // aucun envoi sans le clic de l'éditeur
     const pt=getSegPoint(sel.ids[0]);
     if(!pt) return;
     _regionEnCours=cle;
@@ -11156,8 +11210,24 @@ const showPreview=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
+// Modifications en attente qui ne viennent PAS de WCT : save() les publierait avec le lot, et
+// undoAll() les déferait sur un refus. Le clic Appliquer refuse déjà de partir s'il y en a ;
+// ce garde rattrape celles que l'éditeur fait PENDANT l'application (il peut éditer entre deux
+// lots). Appelé en tête de chaque pose : entre deux lots, WCT a tout enregistré ou tout défait,
+// donc le compte doit valoir 0. Sinon on arrête toute l'application, sans rien écrire
+// (doctrine France § 3.1, 1.25.00). Compte illisible : on n'arrête rien (comportement d'avant).
+const _attenteEtrangere=async(koCb)=>{
+    let n=0;
+    try{ n=Number(await sdk.Editing.getUnsavedChangesCount())||0; }
+    catch(e){ log('getUnsavedChangesCount: '+e.message); return false; }
+    if(!n) return false;
+    _applyAborted=true;
+    koCb&&koCb([t('applyPendingStop',n)],{});
+    return true;
+};
 const addClosure=async(options,okCb,koCb)=>{
     const{segments,reason,direction,startDate,endDate,permanent,eventId,partnerId,combler,inverses,nodesInside}=options;
+    if(await _attenteEtrangere(koCb)) return;
     // Les fermetures créées se comptent par ce que rend addClosure (la fermeture créée,
     // d'après la doc du SDK). Jusqu'à la 1.22.04, c'était un diff de `W.model` avant/après,
     // qui disparaît avec `W` le 24/11/2026.
@@ -11191,11 +11261,18 @@ const addClosure=async(options,okCb,koCb)=>{
     const inv=inverses||await _inversesListe(segments);
     const args={description:reason,endDate:ed.valueOf()-edoff,fromNodeClosed:false,isForward:false,isPermanent:permanent,segmentId:0,startDate:sd.valueOf()-sdoff,trafficEventId:eventId||null};
     const loopErrors=[];
+    // Fermetures existantes ILLISIBLES : jusqu'à la 1.24.05, le tri n'écartait rien et tout
+    // partait, le refus de Waze servant de seul filet contre les doublons. La doctrine France
+    // (§ 3.3) veut le contrôle des doublons AVANT d'écrire ⇒ une lecture de l'API, puis, si
+    // elles restent illisibles, rien n'est posé et l'éditeur est prévenu (1.25.00).
+    let existantes=getExistingClosures(segments);
+    if(!existantes){ await _rafraichirFermeturesApi(); existantes=getExistingClosures(segments); }
+    if(!existantes){ koCb&&koCb([t('applyExistingUnreadable')],{absents:0}); return; }
     // Trier AVANT d'écrire : ce qui est déjà fermé sur le créneau, ou n'a aucun sens
     // ouvert, n'entre pas dans l'enregistrement. Voir _trierAFermer.
     const tri=_trierAFermer({ ids:segments, dir:direction, seg:getSegById,
         inverses:inv,
-        existantes:getExistingClosures(segments),
+        existantes,
         debut:args.startDate, fin:args.endDate, combler:!!combler, maintenant:_versMurale(new Date()) });
     segsAbsents=tri.absents.length;
     // Une fenêtre par trou quand le sens est comblé ; sinon le créneau demandé entier.
@@ -11325,6 +11402,7 @@ const _resolveTurnIds=async(e)=>{
 // « InvalidStateError: Save is disabled » qui masquait la vraie cause.
 const addTurnClosure=async(options,okCb,koCb)=>{
     const{turnIds,reason,startDate,endDate,permanent,eventId}=options;
+    if(await _attenteEtrangere(koCb)) return;
     const sd=new Date(startDate),ed=new Date(endDate);
     const sdoff=sd.getTimezoneOffset()*60000;
     const edoff=ed.getTimezoneOffset()*60000;
@@ -11334,12 +11412,35 @@ const addTurnClosure=async(options,okCb,koCb)=>{
     // TurnClosures.addClosure REND la fermeture qu'il vient de creer : c'est ce retour
     // qui compte les poses. Le cliche des identifiants ne sert qu'a le corroborer, et
     // deux mesures independantes ne tombent pas ensemble.
-    let idsAvant=null;
-    try{ idsAvant=new Set(((await sdk.DataModel.TurnClosures.getAll())||[]).map(c=>String(c.id))); }
+    let idsAvant=null, existTC=null;
+    try{ existTC=(await sdk.DataModel.TurnClosures.getAll())||[]; idsAvant=new Set(existTC.map(c=>String(c.id))); }
     catch(e){ log('addTurnClosure/getAll avant: '+e.message); }
+    // DOUBLONS (doctrine France § 3.3, 1.25.00) : jusqu'à la 1.24.05, un virage déjà fermé sur le
+    // créneau était reposé, et seul le refus de Waze l'arrêtait. On l'écarte désormais AVANT
+    // d'écrire, comme _trierAFermer le fait pour les segments, bout à bout compris (Waze refuse
+    // 08:00 / 08:00). Une TurnClosure ne porte pas de turnId : on recoupe sur (from, to).
+    // ⚠️ Format des dates d'une TurnClosure du SDK : pris comme celui des RoadClosures (heure
+    // murale « AAAA-MM-JJ hh:mm »), NON VÉRIFIÉ en réel sur un virage fermé (11/10/2026).
+    // Existantes illisibles, ou calque Fermetures introuvable (rien n'est alors chargé) : rien
+    // n'est posé, l'éditeur est prévenu.
+    if(!existTC || _closuresLayerKo){
+        koCb&&koCb([t('applyExistingUnreadable')],{ demandes:turnIds.length, poses:0, erreurs:0, objets:null, cause:'' });
+        return;
+    }
+    const _virageParId=id=>{
+        for(const v of _virages.values()){ const tn=(v.tours||[]).find(x=>String(x.id)===String(id)); if(tn) return tn; }
+        return null;
+    };
+    const dejaFermes=turnIds.filter(tid=>{
+        const tn=_virageParId(tid);
+        if(!tn) return false;
+        return existTC.some(c=>Number(c.fromSegmentId)===Number(tn.fromSegmentId) && Number(c.toSegmentId)===Number(tn.toSegmentId)
+            && _versMurale(c.startDate)<=args.endDate && _versMurale(c.endDate)>=args.startDate);
+    });
+    const aPoser=turnIds.filter(tid=>!dejaFermes.includes(tid));
     const loopErrors=[];
     let poses=0;
-    for(const tid of turnIds){
+    for(const tid of aPoser){
         args.turnId=String(tid);
         // Ne crediter QUE ce que le SDK rend. Un virage refuse — virage interdit, ou rang
         // insuffisant au regard de allowRoadClosureRank du pays — leve ici : le compter
@@ -11356,12 +11457,15 @@ const addTurnClosure=async(options,okCb,koCb)=>{
     // tomberait a zero sans qu'aucun appel n'ait leve, et ce garde-fou contre les faux
     // succes fabriquerait de faux echecs. Quand la boucle n'a signale AUCUNE erreur, c'est
     // le diff du modele qui fait foi.
-    if(poses===0 && loopErrors.length===0 && turnIds.length>0 && objets>0) poses=Math.min(objets,turnIds.length);
+    if(poses===0 && loopErrors.length===0 && aPoser.length>0 && objets>0) poses=Math.min(objets,aPoser.length);
     if(loopErrors.length>0){log('addTurnClosure errors: '+loopErrors.join(' | '));}
     // Le motif du refus, debarrasse du prefixe technique : sans lui l'editeur lit un
     // compte partiel sans savoir ce qu'il doit corriger.
     const cause=loopErrors.length?String(loopErrors[0]).replace(/^turn \d+: /,''):'';
-    const bilan={ demandes:turnIds.length, poses, erreurs:loopErrors.length, objets, cause };
+    const bilan={ demandes:turnIds.length, poses, erreurs:loopErrors.length, objets, cause, dejaFermes:dejaFermes.length };
+    // Tout était déjà fermé sur le créneau : rien à écrire, et ce n'est pas un échec (même
+    // règle que les segments : une file ré-appliquée après un premier passage réussi).
+    if(!aPoser.length){ okCb&&okCb(null, bilan); return; }
     // Rien n'a ete pose : save() n'aurait rien a sauver et remonterait « Save is disabled »,
     // qui masque la vraie cause. On tranche avant, avec le motif.
     if(poses===0){ koCb&&koCb([cause||t('applyNothingWritten')], bilan); return; }
@@ -11677,7 +11781,7 @@ const applyQueue=async()=>{
                 // sémantique (from → to via le nœud), qui, elle, survit.
                 const resolus=await _resolveTurnIds(e);
                 if(!resolus.length){
-                    failed+=e.turnIds.length*e.closures.length; totErreurs+=e.turnIds.length*e.closures.length; upd(done+failed);
+                    failed+=e.turnIds.length*e.closures.length; totErreurs+=e.turnIds.length*e.closures.length; upd(done+failed+totEcartes);
                     logApply(TARGET_ICON.turn+' '+t('turnResolveFail',e.turnSegId,e.turnNodeId),'echec');
                     entryErreurs+=e.turnIds.length*e.closures.length;
                     clotureEntree(idxEntree);
@@ -11699,8 +11803,12 @@ const applyQueue=async()=>{
                                 // compter ferait afficher « ✅ appliqué » sur un carrefour resté
                                 // ouvert à la circulation.
                                 const poses=bilan?bilan.poses:ids.length;
-                                const manques=ids.length-poses;
-                                done+=poses; failed+=manques; totManques+=manques; upd(done+failed);
+                                // Virages déjà fermés sur le créneau, écartés AVANT d'écrire (1.25.00) :
+                                // ni posés ni manqués — comme les segments déjà fermés.
+                                const ecartes=bilan?.dejaFermes||0;
+                                const manques=ids.length-poses-ecartes;
+                                if(ecartes){ totEcartes+=ecartes; logApply(TARGET_ICON.turn+' '+t('turnDejaFermes',ecartes),'info'); }
+                                done+=poses; failed+=manques; totManques+=manques; upd(done+failed+totEcartes);
                                 entryOk+=poses; entryManques+=manques;
                                 const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;
                                 if(manques>0){
@@ -11710,7 +11818,7 @@ const applyQueue=async()=>{
                                 else logApply(TARGET_ICON.turn+' '+t('applyOk',e.config.reason,ls),'ok');
                                 res();
                             },
-                            (errs)=>{failed+=ids.length;entryErreurs+=ids.length;totErreurs+=ids.length;upd(done+failed);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
+                            (errs)=>{failed+=ids.length;entryErreurs+=ids.length;totErreurs+=ids.length;upd(done+failed+totEcartes);const ls=cl.start instanceof Date?formatDateDisplay(cl.start):cl.start;logApply(TARGET_ICON.turn+' '+t('applyErr',e.config.reason,ls,errs[0]||'error'),'echec');res();});
                     });
                 }
                 clotureEntree(idxEntree);
@@ -15904,6 +16012,7 @@ const buildOverlay=()=>{
                      texte qu'on césure. -->
                 <div id="wct-hol-region-lbl" style="font-size:0.833em;color:var(--wct-text2);font-style:italic;margin:-1px 0 2px"></div>
                 <select id="wct-hol-region" class="wct-select" title="${t('tipHolRegion')}"></select>
+                <button type="button" id="wct-hol-region-locate" class="wct-btn wct-btn-neutral wct-btn-sm" style="margin-top:0.333em" title="${t('tipHolRegionLocate')}">${t('holRegionLocate')}</button>
               </div>
               <div id="wct-holidays-warn" style="display:none;font-size:0.917em;color:var(--wct-orange);margin-top:0.333em;padding:0.333em 0.583em;background:#fff8e1;border-radius:var(--wct-radius);border:1px solid var(--wct-warn)"></div>
             </div>
@@ -17191,6 +17300,12 @@ const connectOverlay=ov=>{
     }
     // Subdivision : la valeur vit dans _holRegionVoulue, le <select> n'en est que le
     // reflet — il est reconstruit à chaque génération et perdrait le choix autrement.
+    // « 📍 Déduire de la position » : seul geste qui autorise l'envoi de la position à Nominatim.
+    // Il rend la main à la déduction (source « auto ») et relance l'aperçu, qui fait la requête.
+    $id('wct-hol-region-locate')?.addEventListener('click',()=>{
+        _regionAutoAutorisee=true; _holRegionSource='auto';
+        setTimeout(refreshSmallPreview,0);
+    });
     $id('wct-hol-region')?.addEventListener('change',e=>{
         _holRegionVoulue=e.target.value||'';
         _holRegionEcartee='';   // un choix explicite efface le souvenir d'un rejet
@@ -17461,12 +17576,19 @@ const connectOverlay=ov=>{
         // waitMapLoaded bloque jusqu'a 10 s sans que rien ne bouge a l'ecran, de quoi
         // croire son clic perdu. Meme raison pour le bouton Vider ci-dessus.
         if(_applyRunning) return;
-        // Modifications non enregistrées dans WME : save() les emporte avec les fermetures, et
-        // undoAll() les défait si Waze refuse. On le DIT avant, sans l'interdire — enregistrer à
-        // part est un choix de l'éditeur (audit du 25/09/2026).
+        // Modifications non enregistrées dans WME : save() les emporterait avec les fermetures, et
+        // undoAll() les déferait si Waze refuse. Jusqu'à la 1.24.05 on le DISAIT sans l'interdire ;
+        // la doctrine France (§ 3.1, octobre 2026) veut qu'un script ne touche jamais aux
+        // modifications en attente de l'éditeur ⇒ on REFUSE de partir tant qu'il y en a.
+        // Les modifications faites PENDANT l'application sont arrêtées par _attenteEtrangere.
+        // Compte illisible : on part quand même (comportement d'avant), et le journal le dit.
         let enAttente=0;
         try{ enAttente=Number(await sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
-        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(enAttente?t('confirmApplyPending',enAttente):'')))return;
+        if(enAttente){ alert(t('applyPendingBlock',enAttente)); return; }
+        // Acte identifiable (doctrine France § 3.3) : une entrée sans MTE ni motif est SIGNALÉE,
+        // pas bloquée — arbitrage de l'auteur du 11/10/2026.
+        const sansActe=queue.filter(e=>!e.config?.mteId && !String(e.config?.reason||'').trim()).length;
+        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(sansActe?t('confirmApplySansActe',sansActe):'')))return;
         await applyQueue();
     });
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
