@@ -6,6 +6,9 @@ management into a bulk operation: import a route, review it, queue it, apply it.
 Built for editors handling real-world events — races, rallies, marathons, roadworks — where
 dozens or hundreds of segments have to be closed on a recurring schedule.
 
+**The Apply button publishes the closures on the map.** It will not start while you have unsaved
+edits in WME, so it never saves or undoes anything but its own closures.
+
 [![Install from GreasyFork](https://img.shields.io/badge/install-GreasyFork-red)](https://greasyfork.org/scripts/581015)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
