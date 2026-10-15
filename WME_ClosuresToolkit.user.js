@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.25.06
+// @version      1.25.07
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -875,8 +875,8 @@ GM_addStyle(`
 }
 .wct-zpoi-m:hover { background: #fff; transform: translate(-50%,-50%) scale(1.3); }
 /* Pastille d'effacement accrochee a la zone, et infobulle de survol. Elles vivent
-   directement dans le body : aucun conteneur positionne, pour la meme raison que les
-   poignees ci-dessus. */
+   directement dans la couche de WCT (_coucheWct) : aucun conteneur positionne entre
+   elles et la couche, pour la meme raison que les poignees ci-dessus. */
 #wct-zone-badge {
     position: fixed; transform: translate(-50%,-50%);
     width: 22px; height: 22px; border-radius: 50%;
@@ -14424,6 +14424,21 @@ const _zoneRefreshLayer = () => {
 // ⚠️⚠️ Ces deux éléments vont DIRECTEMENT dans le body, sans conteneur positionné :
 // un parent positionné créerait un contexte d'empilement et les ferait passer sous la
 // carte — c'est exactement ce qui avait rendu les poignées invisibles (cf. 1.00.04).
+// Les éléments flottants de WCT (panneau, poignées, pastille, infobulle, arbitrage) vivent dans une COUCHE posée
+// dans la zone de carte de WME (.edit-area-main, niveau 1), pas sur <body> : à 9990 sur la page, le panneau
+// recouvrait le panneau « Calques » de WME, empilé au niveau 2 de cette zone (mesuré le 15/10/2026 ; aucun
+// z-index posé sur <body> ne passe dessous sans passer sous la carte). La couche est de taille NULLE : elle ne
+// prend aucun clic, et ses enfants gardent entre eux leurs z-index (poignées 9985 sous le panneau 9990, arbitrage
+// 9992). Elle ne recrée pas le défaut du 31/07 (poignées enfermées SOUS la carte) : elle est au-dessus de la carte,
+// dans la même zone qu'elle. Sans cette zone (WME changé), repli sur <body>. Même règle que WBC 0.16.08.
+const _coucheWct = () => {
+    const zone = document.querySelector('div.edit-area-main');
+    if(!zone) return document.body;
+    let c = $id('wct-couche');
+    if(!c){ c = make('div'); c.id = 'wct-couche'; c.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;z-index:1'; }
+    if(c.parentElement !== zone) zone.appendChild(c);
+    return c;
+};
 const _zoneBadgeCacher = () => { $id('wct-zone-badge')?.remove(); };
 const _zoneTipCacher   = () => { $id('wct-zone-tip')?.remove(); };
 
@@ -14456,7 +14471,7 @@ const _zoneBadgeRefresh = () => {
         // Le double-clic sur la pastille ne doit pas se propager à la carte : il
         // zoomerait pendant qu'on cherche à effacer.
         el.addEventListener('dblclick', ev => { ev.preventDefault(); ev.stopPropagation(); });
-        document.body.appendChild(el);
+        _coucheWct().appendChild(el);
     }
     el.style.left = Math.round(p.x) + 'px';
     el.style.top  = Math.round(p.y - 16) + 'px';
@@ -14492,7 +14507,7 @@ const _zoneSurvol = (ev) => {
         // Pose dans <body> : n'herite pas du dir de l'overlay, il faut le lui donner.
         el.dir = isRTL() ? 'rtl' : 'ltr';
         el.textContent = t('zoneRappel');
-        document.body.appendChild(el);
+        _coucheWct().appendChild(el);
     }
     el.style.left = Math.round(ev.clientX + 14) + 'px';
     el.style.top  = Math.round(ev.clientY + 16) + 'px';
@@ -14534,8 +14549,8 @@ const _zonePanelShow = (html) => {
         pane.scrollTop = 0;
         el.scrollIntoView?.({ block:'nearest' });
     } else {
-        el.dir = isRTL() ? 'rtl' : 'ltr';   // posé dans <body>, hors de l'overlay
-        document.body.appendChild(el);
+        el.dir = isRTL() ? 'rtl' : 'ltr';   // posé dans la couche de WCT, hors de l'overlay
+        _coucheWct().appendChild(el);
         _zonePanelPlace();
     }
     return el;
@@ -14653,7 +14668,8 @@ const _zoneEnterEdit = () => {
             _zoomPourBBox(Math.max(bb.maxLon - bb.minLon, 0.0002),
                           Math.max(bb.maxLat - bb.minLat, 0.0002), 1, 18, 1, (bb.minLat + bb.maxLat) / 2));
     } catch(e){ log('zone cadrage avant édition: ' + e.message); }
-    // ⚠️⚠️ Le conteneur va dans le body et N'EST PAS POSITIONNÉ. C'est capital, et ça a
+    // ⚠️⚠️ Le conteneur N'EST PAS POSITIONNÉ (depuis 1.25.07 il va dans la couche de WCT, voir _coucheWct,
+    // et non plus dans le body). C'est capital, et ça a
     // coûté deux versions : `position: fixed` **crée un contexte d'empilement**, et les
     // poignées s'y retrouvent enfermées — leur `z-index` ne vaut alors plus qu'à
     // l'intérieur de ce contexte, pendant que la carte de WME (`.edit-area-main`,
@@ -14662,7 +14678,7 @@ const _zoneEnterEdit = () => {
     // simplement recouvertes. WNA marche parce qu'il ne positionne pas ce conteneur.
     const zone = make('div');
     zone.id = 'wct-zone-poignees';
-    document.body.appendChild(zone);
+    _coucheWct().appendChild(zone);
     // ⚠️ Échap rend le tracé d'avant. Une sortie de secours qu'on ne connaît pas n'en
     // est pas une : elle est annoncée dans l'aide du panneau d'édition.
     // ⚠️ Deux sorties, pas une. Echap RENONCE (rend le trace d avant) ; Entree VALIDE.
@@ -16345,7 +16361,7 @@ const buildOverlay=()=>{
         </div>
     </div>
     `;
-    document.body.appendChild(ov);
+    _coucheWct().appendChild(ov);
     return ov;
 };
 
