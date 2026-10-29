@@ -38,6 +38,7 @@ const extrait = (a, b) => { const i = src.indexOf(a); if (i < 0) { console.error
     const j = src.indexOf(b, i + a.length); return src.slice(i, j + b.length); };
 const garde = extrait('const _attenteEtrangere=', '\n};');
 const murale = extrait('const _versMurale=', '\n};');
+const finie = extrait('const _fermetureFinie=', ';');
 for (const attendu of ['TurnClosures.addClosure', 'poses', 'bilan']) {
     if (!bloc.includes(attendu)) {
         console.error('ECHEC : le bloc extrait ne parle pas de ' + attendu);
@@ -81,7 +82,7 @@ const jouer = ({ turnIds, rendu, getAllAvant = [], getAllApres = null, getAllLev
     const log = (m) => etat.journal.push(m);
     const t = (cle) => cle;
     const boite = new Function('sdk', 'document', 'log', 't', '_virages', '_closuresLayerKo',
-        'let _applyAborted=false;\n' + murale + '\n' + garde + '\n' + code + '\nreturn { f:addTurnClosure, arrete:()=>_applyAborted };')(sdk, document, log, t, _virages, calqueKo);
+        'let _applyAborted=false;\n' + murale + '\n' + finie + '\n' + garde + '\n' + code + '\nreturn { f:addTurnClosure, arrete:()=>_applyAborted };')(sdk, document, log, t, _virages, calqueKo);
     const f = boite.f;
     etat.arrete = boite.arrete;
     return new Promise(resolve => {
@@ -193,6 +194,14 @@ const OBJET = (i) => ({ id: 'c' + i });
         const autre = [{ id: 'e4', fromSegmentId: 101, toSegmentId: 999, startDate: '2026-10-01 08:00', endDate: '2026-10-01 18:00' }];
         const a = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: autre });
         dit(a.appels === 1, 'un autre virage ferme au meme noeud ne bloque rien', 'appels=' + a.appels);
+        // Fermeture SUPPRIMEE sur le creneau : Waze la garde en FINISHED_EARLY_DUE_TO_DELETION, elle
+        // n'occupe plus rien. Une ACTIVE au meme creneau, elle, ecarte toujours.
+        const supp = [{ id: 'e5', fromSegmentId: 101, toSegmentId: 201, startDate: '2026-10-01 08:00', endDate: '2026-10-01 18:00', status: 'FINISHED_EARLY_DUE_TO_DELETION' }];
+        const sp = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: supp });
+        dit(sp.appels === 1 && sp.bilan.dejaFermes === 0, 'virage supprime sur le creneau : repose', 'appels=' + sp.appels + ' dejaFermes=' + sp.bilan.dejaFermes);
+        const act = [{ ...supp[0], status: 'ACTIVE' }];
+        const ac = await jouer({ turnIds: [1], rendu: OBJET, getAllAvant: act });
+        dit(ac.appels === 0 && ac.bilan.dejaFermes === 1, 'meme creneau ACTIVE : ecarte', 'appels=' + ac.appels);
         // TEMOIN : sans le filtre, le doublon est repose.
         const sans = bloc.replace('const aPoser=turnIds.filter(tid=>!dejaFermes.includes(tid));', 'const aPoser=turnIds;');
         dit(sans !== bloc, 'TEMOIN : le filtre est trouve dans le bloc');

@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.25.07
+// @version      1.25.08
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -7848,11 +7848,17 @@ const _creditDe = c => {
     const a = (c?.attributions||[]).find(x => x && typeof x.credit === 'string' && x.credit.trim());
     return a ? a.credit : null;
 };
+// Waze ne supprime jamais une fermeture : il la passe en FINISHED_EARLY_DUE_TO_DELETION, et le SDK
+// comme l'API Features la rendent encore. Une fermeture FINISHED* n'occupe plus son créneau ; sans ce
+// filtre, supprimer puis reposer au même créneau était écarté « déjà fermé ». Sans statut : en vigueur.
+const _fermetureFinie=c=>/^FINISHED/.test(String((c&&c.status)||''));
+// Fermetures EN VIGUEUR des segments donnés (juge de l'occupation : pose et pastilles de la file).
+// _fermeturesChargees, lui, garde tout : le filtre Partenaire de la Recherche en a besoin.
 const getExistingClosures=segIds=>{
     const all=_fermeturesChargees();
     if(!all) return null;
     const ids=new Set(segIds.map(Number));
-    return all.filter(c=>ids.has(Number(c.segmentId)));
+    return all.filter(c=>ids.has(Number(c.segmentId)) && !_fermetureFinie(c));
 };
 const dateTimeOverlaps=(a,b)=>new Date(a.startDate)<new Date(b.endDate)&&new Date(a.endDate)>new Date(b.startDate);
 // Heure MURALE en ms (l'heure locale lue comme si elle était UTC) : c'est ce que le
@@ -8093,9 +8099,10 @@ const isTurnClosable=(turn)=>{
 // Fermetures de virage deja posees, pour un virage donne.
 // L'objet TurnClosure ne porte PAS de turnId : le recoupement se fait donc sur le
 // couple (fromSegmentId, toSegmentId), qui identifie le virage de facon unique a un noeud.
+// Les fermetures FINISHED* (supprimees, terminees) n'occupent rien : voir _fermetureFinie.
 const getExistingTurnClosures=(fromSegId,toSegId)=>{
     try{
-        return (_wme.tc||[]).filter(c=>
+        return (_wme.tc||[]).filter(c=>!_fermetureFinie(c) &&
             Number(c.fromSegmentId)===Number(fromSegId) && Number(c.toSegmentId)===Number(toSegId));
     }catch(e){ return []; }
 };
@@ -11434,7 +11441,7 @@ const addTurnClosure=async(options,okCb,koCb)=>{
     const dejaFermes=turnIds.filter(tid=>{
         const tn=_virageParId(tid);
         if(!tn) return false;
-        return existTC.some(c=>Number(c.fromSegmentId)===Number(tn.fromSegmentId) && Number(c.toSegmentId)===Number(tn.toSegmentId)
+        return existTC.some(c=>!_fermetureFinie(c) && Number(c.fromSegmentId)===Number(tn.fromSegmentId) && Number(c.toSegmentId)===Number(tn.toSegmentId)
             && _versMurale(c.startDate)<=args.endDate && _versMurale(c.endDate)>=args.startDate);
     });
     const aPoser=turnIds.filter(tid=>!dejaFermes.includes(tid));

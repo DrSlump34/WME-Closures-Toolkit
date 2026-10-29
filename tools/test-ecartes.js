@@ -161,6 +161,46 @@ chk('témoin : sans maintenant, les 4 fenêtres reviennent (dont 3 finies)', t10
 const rs = _trierAFermer({ ids: [9], dir: DIR.TWO, seg, inverses: new Set(), existantes: ex9, debut, fin, combler: false });
 chk('SANS combler : A>B ecarte, B>A pose (comportement 1.19.01)', rs.plan.length === 1 && !rs.plan[0].fwd && rs.plan[0].rev && !rs.plan[0].fenetresF);
 
+// ── Fermeture SUPPRIMEE sur le creneau ──
+// Waze ne supprime pas une fermeture : il la passe en FINISHED_EARLY_DUE_TO_DELETION, et le SDK
+// comme l'API Features la rendent encore. La lecture des existantes (getExistingClosures,
+// getExistingTurnClosures) doit l'ignorer, sinon supprimer puis reposer sur le meme creneau est
+// ecarte « deja ferme ». Le temoin passe par la VRAIE lecture, puis par le vrai tri.
+console.log('\n— Fermeture supprimee sur le creneau : la nouvelle est posee —');
+const extraireSi = (a, b) => txt.includes(a) ? extraire(a, b) : '';
+const lectures = new Function('liste', 'tc', `
+    const _fermeturesChargees=()=>liste;
+    const _wme={ tc };
+    ${extraireSi('const _fermetureFinie=', ';')}
+    ${extraire('const getExistingClosures=segIds=>{', '\n};')}
+    ${extraire('const getExistingTurnClosures=(', '\n};')}
+    return { getExistingClosures, getExistingTurnClosures };`);
+for (const id of [11, 12, 13, 14, 15]) S[id] = { isTwoWay: true, isAtoB: false, isBtoA: false };
+const fs_ = (segmentId, status) => [true, false].map(isForward =>
+    ({ ...fx(segmentId, isForward, '2026-09-25 06:00', '2026-09-25 20:00'), status }));
+const lues = fs_(11, 'FINISHED_EARLY_DUE_TO_DELETION')
+    .concat(fs_(12, 'ACTIVE'), fs_(13, 'NOT_STARTED'), fs_(14, undefined),
+            fs_(15, 'FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES'));
+const tcLues = [
+    { fromSegmentId: 1, toSegmentId: 2, startDate: '2026-09-25 06:00', endDate: '2026-09-25 20:00', status: 'FINISHED_EARLY_DUE_TO_DELETION' },
+    { fromSegmentId: 1, toSegmentId: 3, startDate: '2026-09-25 06:00', endDate: '2026-09-25 20:00', status: 'ACTIVE' },
+];
+const L = lectures(lues, tcLues);
+const exD = L.getExistingClosures([11, 12, 13, 14, 15]);
+for (const comb of [false, true]) {
+    const rd = _trierAFermer({ ids: [11, 12, 13, 14, 15], dir: DIR.TWO, seg, inverses: new Set(), existantes: exD, debut, fin, combler: comb });
+    const pd = Object.fromEntries(rd.plan.map(p => [p.sid, p]));
+    const q = comb ? ' (combler)' : '';
+    chk('supprimee (FINISHED_EARLY_DUE_TO_DELETION) : posee dans les deux sens, creneau entier' + q,
+        pd[11] && pd[11].fwd && pd[11].rev && !pd[11].fenetresF && !pd[11].fenetresR && !rd.dejaFermes.includes(11),
+        JSON.stringify({ plan: pd[11], dejaFermes: rd.dejaFermes }));
+    chk('terminee pour chevauchement (FINISHED_EARLY_DUE_TO_OVERLAPPING_CLOSURES) : posee' + q, pd[15] && pd[15].fwd && pd[15].rev);
+    chk('ACTIVE, NOT_STARTED et sans statut : toujours ecartees' + q,
+        [12, 13, 14].every(id => rd.dejaFermes.includes(id) && !pd[id]), JSON.stringify(rd.dejaFermes));
+}
+chk('virage : fermeture supprimee ignoree', L.getExistingTurnClosures(1, 2).length === 0, JSON.stringify(L.getExistingTurnClosures(1, 2)));
+chk('virage : fermeture ACTIVE gardee', L.getExistingTurnClosures(1, 3).length === 1);
+
 // ── Pose par moities ──
 const mkAdd = (fautifs, log) => (opts, okCb, koCb) => {
     log.push(opts.segments.length);
