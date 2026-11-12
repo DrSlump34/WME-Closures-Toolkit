@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.26.05
+// @version      1.26.06
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1631,6 +1631,7 @@ const D = {
             srcSelOff_api:'Indisponible : la liste des partenaires n\u2019a pas pu \u00EAtre charg\u00E9e.',
             srcSelOff_schema:'Indisponible : WME a chang\u00E9 la structure des fermetures. WCT pr\u00E9f\u00E8re se taire plut\u00F4t que d\u2019attribuer une source de travers \u2014 signale-le \u00E0 l\u2019auteur.',
             srcSelOff_nopartner:'Indisponible ici : aucun partenaire pour ton compte dans cette vue. Déplace la carte sur la zone d’un partenaire, ou laisse « Aucune ».',
+            srcSelOff_nomodel:'Indisponible : le SDK de WME ne sait pas poser de Source, et WME retire aux scripts son modèle interne le 24/11/2026. Posez la Source avec le formulaire natif de WME.',
             srcApplyFail:'Source non pos\u00E9e : rien n\u2019a \u00E9t\u00E9 enregistr\u00E9. Une fermeture sans la source demand\u00E9e serait une fausse attribution.',
             srcApplyFailNoUndo:'❌ La Source n’a pas pu être posée ET l’annulation a échoué : vérifiez les fermetures de ce segment dans WME avant de recommencer.',
             // Recherche : filtre par partenaire
@@ -1814,6 +1815,11 @@ const D = {
             confirmApply: (n,m) => `Publier ${n} fermeture(s) sur la carte Waze ? (${m} entrée(s) dans la file)`,
             applyPendingBlock: k => `Appliquer est bloqué : ${k} modification(s) non enregistrée(s) dans WME. Enregistrez-les ou annulez-les d’abord : WCT ne publie que ses propres fermetures.`,
             applyPendingStop: k => `Application arrêtée : ${k} modification(s) faite(s) dans WME pendant l’application. Enregistrez-les ou annulez-les, puis relancez Appliquer : ce qui est déjà posé sera écarté.`,
+            applyPendingUnreadable: `Appliquer est bloqué : WCT ne parvient pas à lire le nombre de modifications non enregistrées dans WME. Sans ce compte, il ne peut pas garantir de n’enregistrer que ses propres fermetures : il n’écrit rien de plus. Rechargez WME, puis relancez Appliquer (ce qui est déjà posé sera écarté).`,
+            applyPileEcart: (n,k) => `Application arrêtée AVANT l’enregistrement : WME compte ${n} modification(s) en attente, alors que ce lot de WCT en a posé ${k}. Une édition faite pendant l’application s’est glissée dans la pile : WCT n’enregistre rien et n’annule rien. Les fermetures de ce lot attendent dans WME : vérifiez la pile, puis enregistrez ou annulez vous-même avec les boutons de WME. Relancez ensuite Appliquer : ce qui est déjà posé sera écarté.`,
+            applyPileIllisible: `Application arrêtée AVANT l’enregistrement : le nombre de modifications en attente dans WME est devenu illisible, WCT ne peut plus vérifier qu’il n’enregistrerait que ses fermetures. Il n’enregistre rien et n’annule rien. Les fermetures de ce lot attendent dans WME : enregistrez ou annulez vous-même avec les boutons de WME, puis relancez Appliquer.`,
+            applyPileEcartUndo: (n,k) => `Application arrêtée SANS annulation : ce lot a échoué, mais WME compte ${n} modification(s) en attente au lieu des ${k} posées par WCT. Tout défaire emporterait une édition qui n’est pas la sienne : WCT n’annule rien. Vérifiez la pile de WME, annulez vous-même ce qui doit l’être, puis relancez Appliquer.`,
+            applyPileIllisibleUndo: `Application arrêtée SANS annulation : ce lot a échoué, et le nombre de modifications en attente dans WME est illisible. Tout défaire pourrait emporter une édition qui n’est pas la sienne : WCT n’annule rien. Vérifiez la pile de WME, annulez vous-même ce qui doit l’être, puis relancez Appliquer.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} entrée(s) sans motif. Une fermeture posée par script doit traduire un acte identifiable (arrêté, partenaire, événement) : indiquez-le dans le motif.`,
             applyExistingUnreadable: 'Fermetures existantes illisibles dans cette vue : rien n’a été posé, pour ne pas créer de doublon. Déplacez un peu la carte, puis relancez Appliquer.',
             turnDejaFermes: n => `${n} virage(s) déjà fermé(s) sur ce créneau : écarté(s).`,
@@ -2095,6 +2101,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             tipPolyBannerFiltered:'Ces segments sont dans la zone mais leur type est décoché. Bouton 🛣️ Types pour les reprendre.',
             helpH14:'✏️ Zone (polygone)',
             helpH15:'💾 Ce que WCT retient',
+            helpH16:'🌐 Sources, données envoyées, limites',
             lotsAllDone:'✅ Tous les lots sont configurés. Vous pouvez appliquer la file.',
             lotPermaTitle:'Copier le permalien de ce lot (pour retrouver la sélection)',
             lotPermaCopied: n => `🔗 Permalien copié (${n} segments).`,
@@ -2253,6 +2260,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             srcSelOff_api:'Unavailable: the partner list could not be loaded.',
             srcSelOff_schema:'Unavailable: WME changed the closure structure. WCT would rather stay silent than attribute a source wrongly \u2014 please report it to the author.',
             srcSelOff_nopartner:'Unavailable here: no partner for your account in this view. Pan the map to a partner’s area, or leave "None".',
+            srcSelOff_nomodel:'Unavailable: the WME SDK cannot set a Source, and WME withdraws its internal model from scripts on 24/11/2026. Set the Source with WME’s native form.',
             srcApplyFail:'Source not applied: nothing was saved. A closure without the requested source would be a false attribution.',
             srcApplyFailNoUndo:'❌ The Source could not be set AND the rollback failed: check this segment’s closures in WME before trying again.',
             // Search: partner filter
@@ -2424,6 +2432,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             confirmApply: (n,m) => `Publish ${n} closure(s) on the Waze map? (${m} queued entry/ies)`,
             applyPendingBlock: k => `Apply is blocked: ${k} unsaved edit(s) in WME. Save or undo them first: WCT only publishes its own closures.`,
             applyPendingStop: k => `Apply stopped: ${k} edit(s) made in WME during the run. Save or undo them, then run Apply again: what is already placed will be skipped.`,
+            applyPendingUnreadable: `Apply is blocked: WCT cannot read the number of unsaved edits in WME. Without that count it cannot guarantee that it saves only its own closures, so it writes nothing more. Reload WME, then run Apply again (what is already placed will be skipped).`,
+            applyPileEcart: (n,k) => `Apply stopped BEFORE saving: WME counts ${n} pending edit(s), while this WCT batch placed ${k}. An edit made during the run slipped into the stack: WCT saves nothing and undoes nothing. This batch’s closures are waiting in WME: check the stack, then save or undo them yourself with WME’s buttons. Then run Apply again: what is already placed will be skipped.`,
+            applyPileIllisible: `Apply stopped BEFORE saving: the number of pending edits in WME has become unreadable, so WCT can no longer check that it would save only its closures. It saves nothing and undoes nothing. This batch’s closures are waiting in WME: save or undo them yourself with WME’s buttons, then run Apply again.`,
+            applyPileEcartUndo: (n,k) => `Apply stopped WITHOUT undoing: this batch failed, but WME counts ${n} pending edit(s) instead of the ${k} placed by WCT. Undoing everything would take away an edit that is not WCT’s: WCT undoes nothing. Check WME’s stack, undo yourself what needs undoing, then run Apply again.`,
+            applyPileIllisibleUndo: `Apply stopped WITHOUT undoing: this batch failed, and the number of pending edits in WME is unreadable. Undoing everything could take away an edit that is not WCT’s: WCT undoes nothing. Check WME’s stack, undo yourself what needs undoing, then run Apply again.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} entry/ies without a reason. A closure placed by a script must reflect an identifiable act (order, partner, event): state it in the reason.`,
             applyExistingUnreadable: 'Existing closures cannot be read in this view: nothing was placed, to avoid duplicates. Move the map slightly, then run Apply again.',
             turnDejaFermes: n => `${n} turn(s) already closed in this time slot: skipped.`,
@@ -2704,6 +2717,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPolyBannerFiltered:'These segments are inside the area but their type is unticked. Use 🛣️ Types to bring them back.',
             helpH14:'✏️ Area (polygon)',
             helpH15:'💾 What WCT remembers',
+            helpH16:'🌐 Sources, data sent, limits',
             lotsAllDone:'✅ All batches are configured. You can apply the queue.',
             lotPermaTitle:'Copy this batch’s permalink (to restore the selection)',
             lotPermaCopied: n => `🔗 Permalink copied (${n} segments).`,
@@ -2860,6 +2874,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'לא זמין: לא ניתן לטעון את רשימת השותפים.',
             srcSelOff_schema:'לא זמין: WME שינה את מבנה החסימה. WCT מעדיף לשתוק מאשר לייחס מקור בטעות — אנא דווח למחבר.',
             srcSelOff_nopartner:'לא זמין כאן: אין שותף לחשבונך בתצוגה זו. הזז את המפה לאזור של שותף, או השאר "ללא".',
+            srcSelOff_nomodel:'לא זמין: ה-SDK של WME אינו יודע להגדיר מקור, ו-WME מסיר מהסקריפטים את המודל הפנימי שלו ב-24/11/2026. הגדר את המקור בטופס המקורי של WME.',
             srcApplyFail:'המקור לא יושם: שום דבר לא נשמר. חסימה ללא המקור המבוקש הייתה ייחוס שגוי.',
             srcApplyFailNoUndo:'❌ לא ניתן היה להגדיר את המקור וגם הביטול נכשל: בדוק את החסימות של מקטע זה ב-WME לפני ניסיון נוסף.',
             // Search: partner filter
@@ -3037,6 +3052,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `לפרסם ${n} חסימות במפת Waze? (${m} רשומות בתור)`,
             applyPendingBlock: k => `ההחלה חסומה: ${k} עריכות שלא נשמרו ב-WME. שמור או בטל אותן קודם: WCT מפרסם רק את החסימות שלו.`,
             applyPendingStop: k => `ההחלה נעצרה: ${k} עריכות בוצעו ב-WME במהלך ההחלה. שמור או בטל אותן, ואז הפעל שוב את „החל”: מה שכבר הוצב ידולג.`,
+            applyPendingUnreadable: `ההחלה חסומה: WCT לא מצליח לקרוא את מספר העריכות שלא נשמרו ב-WME. בלי ספירה זו אין לו דרך להבטיח שישמור רק את החסימות שלו, ולכן הוא לא כותב דבר נוסף. טען מחדש את WME והפעל שוב את „החל” (מה שכבר הוצב ידולג).`,
+            applyPileEcart: (n,k) => `ההחלה נעצרה לפני השמירה: WME סופר ${n} עריכות ממתינות, בעוד שאצווה זו של WCT הציבה ${k}. עריכה שבוצעה במהלך ההחלה נכנסה לערימה: WCT לא שומר דבר ולא מבטל דבר. החסימות של אצווה זו ממתינות ב-WME: בדוק את הערימה, ואז שמור או בטל בעצמך בעזרת הכפתורים של WME. לאחר מכן הפעל שוב את „החל”: מה שכבר הוצב ידולג.`,
+            applyPileIllisible: `ההחלה נעצרה לפני השמירה: מספר העריכות הממתינות ב-WME הפך לבלתי קריא, ו-WCT כבר לא יכול לוודא שישמור רק את החסימות שלו. הוא לא שומר דבר ולא מבטל דבר. החסימות של אצווה זו ממתינות ב-WME: שמור או בטל בעצמך בעזרת הכפתורים של WME, ואז הפעל שוב את „החל”.`,
+            applyPileEcartUndo: (n,k) => `ההחלה נעצרה ללא ביטול: אצווה זו נכשלה, אך WME סופר ${n} עריכות ממתינות במקום ${k} שהציב WCT. ביטול הכול היה מוחק עריכה שאינה שלו: WCT לא מבטל דבר. בדוק את הערימה של WME, בטל בעצמך את מה שצריך, ואז הפעל שוב את „החל”.`,
+            applyPileIllisibleUndo: `ההחלה נעצרה ללא ביטול: אצווה זו נכשלה, ומספר העריכות הממתינות ב-WME אינו קריא. ביטול הכול עלול למחוק עריכה שאינה שלו: WCT לא מבטל דבר. בדוק את הערימה של WME, בטל בעצמך את מה שצריך, ואז הפעל שוב את „החל”.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} רשומות ללא סיבה. חסימה שמוצבת על ידי סקריפט צריכה לשקף מסמך מזוהה (צו, שותף, אירוע): ציין אותו בסיבה.`,
             applyExistingUnreadable: 'לא ניתן לקרוא את החסימות הקיימות בתצוגה זו: לא הוצב דבר, כדי למנוע כפילויות. הזז מעט את המפה ואז הפעל שוב את „החל”.',
             turnDejaFermes: n => `${n} פניות כבר חסומות בחלון הזמן הזה: דולגו.`,
@@ -3317,6 +3337,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPolyBannerFiltered:'מקטעים אלה נמצאים באזור אך הסוג שלהם אינו מסומן. לחץ 🛣️ סוגים כדי להחזירם.',
             helpH14:'✏️ אזור (מצולע)',
             helpH15:'💾 מה WCT זוכר',
+            helpH16:'🌐 מקורות, נתונים שנשלחים, מגבלות',
             lotsAllDone:'✅ כל המנות מוגדרות. תוכל להחיל את התור.',
             lotPermaTitle:'העתק את הקישור הקבוע של מנה זו (לשחזור הבחירה)',
             lotPermaCopied: n => `🔗 קישור קבוע הועתק (${n} מקטעים).`,
@@ -3473,6 +3494,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'Non disponibile: impossibile caricare la lista dei partner.',
             srcSelOff_schema:'Non disponibile: WME ha modificato la struttura delle chiusure. WCT preferisce tacere piuttosto che attribuire una fonte sbagliata — segnalalo all’autore.',
             srcSelOff_nopartner:'Non disponibile qui: nessun partner per il tuo account in questa vista. Sposta la mappa sull’area di un partner, oppure lascia "Nessuna".',
+            srcSelOff_nomodel:'Non disponibile: l’SDK di WME non sa impostare una Fonte, e WME toglie ai script il suo modello interno il 24/11/2026. Imposta la Fonte con il modulo nativo di WME.',
             srcApplyFail:'Fonte non applicata: nulla è stato salvato. Una chiusura senza la fonte richiesta sarebbe un’attribuzione falsa.',
             srcApplyFailNoUndo:'❌ Impossibile impostare la Sorgente E l’annullamento non è riuscito: controlla le chiusure di questo segmento in WME prima di riprovare.',
             // Search: partner filter
@@ -3644,6 +3666,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `Pubblicare ${n} chiusura/e sulla mappa Waze? (${m} voce/i in coda)`,
             applyPendingBlock: k => `Applica è bloccato: ${k} modifica/he non salvata/e in WME. Salvale o annullale prima: WCT pubblica solo le proprie chiusure.`,
             applyPendingStop: k => `Applicazione interrotta: ${k} modifica/he fatta/e in WME durante l’applicazione. Salvale o annullale, poi rilancia Applica: ciò che è già posato verrà scartato.`,
+            applyPendingUnreadable: `Applica è bloccato: WCT non riesce a leggere il numero di modifiche non salvate in WME. Senza questo conteggio non può garantire di salvare solo le proprie chiusure, quindi non scrive nient’altro. Ricarica WME, poi rilancia Applica (ciò che è già posato verrà scartato).`,
+            applyPileEcart: (n,k) => `Applicazione interrotta PRIMA del salvataggio: WME conta ${n} modifica/he in attesa, mentre questo lotto di WCT ne ha posate ${k}. Una modifica fatta durante l’applicazione è entrata nella pila: WCT non salva nulla e non annulla nulla. Le chiusure di questo lotto attendono in WME: controlla la pila, poi salva o annulla tu stesso con i pulsanti di WME. Poi rilancia Applica: ciò che è già posato verrà scartato.`,
+            applyPileIllisible: `Applicazione interrotta PRIMA del salvataggio: il numero di modifiche in attesa in WME è diventato illeggibile, WCT non può più verificare che salverebbe solo le sue chiusure. Non salva nulla e non annulla nulla. Le chiusure di questo lotto attendono in WME: salva o annulla tu stesso con i pulsanti di WME, poi rilancia Applica.`,
+            applyPileEcartUndo: (n,k) => `Applicazione interrotta SENZA annullare: questo lotto è fallito, ma WME conta ${n} modifica/he in attesa invece delle ${k} posate da WCT. Annullare tutto cancellerebbe una modifica che non è sua: WCT non annulla nulla. Controlla la pila di WME, annulla tu stesso ciò che serve, poi rilancia Applica.`,
+            applyPileIllisibleUndo: `Applicazione interrotta SENZA annullare: questo lotto è fallito, e il numero di modifiche in attesa in WME è illeggibile. Annullare tutto potrebbe cancellare una modifica che non è sua: WCT non annulla nulla. Controlla la pila di WME, annulla tu stesso ciò che serve, poi rilancia Applica.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, evento): indicalo nel motivo.`,
             applyExistingUnreadable: 'Chiusure esistenti illeggibili in questa vista: non è stato posato nulla, per non creare doppioni. Sposta leggermente la mappa, poi rilancia Applica.',
             turnDejaFermes: n => `${n} svolta/e già chiusa/e in questa fascia oraria: scartata/e.`,
@@ -3924,6 +3951,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPolyBannerFiltered:'Questi segmenti sono nell’area ma il loro tipo non è spuntato. Usa 🛣️ Tipi per riprenderli.',
             helpH14:'✏️ Area (poligono)',
             helpH15:'💾 Cosa ricorda WCT',
+            helpH16:'🌐 Fonti, dati inviati, limiti',
             lotsAllDone:'✅ Tutti i lotti sono configurati. Puoi applicare la coda.',
             lotPermaTitle:'Copia il permalink di questo lotto (per ripristinare la selezione)',
             lotPermaCopied: n => `🔗 Permalink copiato (${n} segmenti).`,
@@ -4081,6 +4109,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'Nicht verf\u00FCgbar: die Partnerliste konnte nicht geladen werden.',
             srcSelOff_schema:'Nicht verf\u00FCgbar: WME hat die Struktur der Sperrungen ge\u00E4ndert. WCT schweigt lieber, als eine Quelle falsch zuzuschreiben \u2014 bitte dem Autor melden.',
             srcSelOff_nopartner:'Hier nicht verfügbar: kein Partner für dein Konto in dieser Ansicht. Verschiebe die Karte in das Gebiet eines Partners, oder lass „Keine".',
+            srcSelOff_nomodel:'Nicht verfügbar: das WME-SDK kann keine Quelle setzen, und WME entzieht Skripten am 24.11.2026 sein internes Modell. Setze die Quelle im nativen Formular von WME.',
             srcApplyFail:'Quelle nicht gesetzt: nichts wurde gespeichert. Eine Sperrung ohne die gew\u00FCnschte Quelle w\u00E4re eine falsche Zuschreibung.',
             srcApplyFailNoUndo:'❌ Die Quelle konnte nicht gesetzt werden UND das Rückgängigmachen schlug fehl: prüfe die Sperrungen dieses Segments in WME, bevor du es erneut versuchst.',
             // Suche: Partnerfilter
@@ -4252,6 +4281,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `${n} Sperrung(en) auf der Waze-Karte veröffentlichen? (${m} Einträge in der Warteschlange)`,
             applyPendingBlock: k => `Anwenden ist gesperrt: ${k} nicht gespeicherte Änderung(en) in WME. Zuerst speichern oder rückgängig machen: WCT veröffentlicht nur seine eigenen Sperrungen.`,
             applyPendingStop: k => `Anwenden angehalten: ${k} Änderung(en) während des Anwendens in WME vorgenommen. Speichern oder rückgängig machen, dann Anwenden erneut starten: bereits Gesetztes wird übersprungen.`,
+            applyPendingUnreadable: `Anwenden ist gesperrt: WCT kann die Zahl der nicht gespeicherten Änderungen in WME nicht lesen. Ohne diese Zahl kann es nicht garantieren, nur seine eigenen Sperrungen zu speichern, und schreibt daher nichts mehr. WME neu laden, dann Anwenden erneut starten (bereits Gesetztes wird übersprungen).`,
+            applyPileEcart: (n,k) => `Anwenden VOR dem Speichern angehalten: WME zählt ${n} ausstehende Änderung(en), dieser WCT-Durchgang hat aber ${k} gesetzt. Eine während des Anwendens gemachte Änderung ist in den Stapel gerutscht: WCT speichert nichts und macht nichts rückgängig. Die Sperrungen dieses Durchgangs warten in WME: Stapel prüfen, dann selbst mit den Schaltflächen von WME speichern oder rückgängig machen. Danach Anwenden erneut starten: bereits Gesetztes wird übersprungen.`,
+            applyPileIllisible: `Anwenden VOR dem Speichern angehalten: die Zahl der ausstehenden Änderungen in WME ist unlesbar geworden, WCT kann nicht mehr prüfen, dass es nur seine Sperrungen speichern würde. Es speichert nichts und macht nichts rückgängig. Die Sperrungen dieses Durchgangs warten in WME: selbst mit den Schaltflächen von WME speichern oder rückgängig machen, dann Anwenden erneut starten.`,
+            applyPileEcartUndo: (n,k) => `Anwenden OHNE Rückgängigmachen angehalten: dieser Durchgang ist gescheitert, aber WME zählt ${n} ausstehende Änderung(en) statt der ${k} von WCT gesetzten. Alles rückgängig zu machen würde eine fremde Änderung mitnehmen: WCT macht nichts rückgängig. Stapel von WME prüfen, selbst rückgängig machen, was nötig ist, dann Anwenden erneut starten.`,
+            applyPileIllisibleUndo: `Anwenden OHNE Rückgängigmachen angehalten: dieser Durchgang ist gescheitert, und die Zahl der ausstehenden Änderungen in WME ist unlesbar. Alles rückgängig zu machen könnte eine fremde Änderung mitnehmen: WCT macht nichts rückgängig. Stapel von WME prüfen, selbst rückgängig machen, was nötig ist, dann Anwenden erneut starten.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} Eintrag/Einträge ohne Grund. Eine per Skript gesetzte Sperrung muss auf einem nachweisbaren Akt beruhen (Anordnung, Partner, Veranstaltung): im Grund angeben.`,
             applyExistingUnreadable: 'Bestehende Sperrungen in dieser Ansicht nicht lesbar: nichts wurde gesetzt, um Doppelungen zu vermeiden. Karte leicht verschieben, dann Anwenden erneut starten.',
             turnDejaFermes: n => `${n} Abbieger in diesem Zeitfenster bereits gesperrt: übersprungen.`,
@@ -4532,6 +4566,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             tipPolyBannerFiltered:'Diese Segmente liegen im Bereich, ihr Typ ist aber abgewählt. Über 🛣️ Typen zurückholen.',
             helpH14:'✏️ Bereich (Polygon)',
             helpH15:'💾 Was WCT sich merkt',
+            helpH16:'🌐 Quellen, gesendete Daten, Grenzen',
             lotsAllDone:'✅ Alle Pakete sind konfiguriert. Sie können die Warteschlange anwenden.',
             lotPermaTitle:'Permalink dieses Pakets kopieren (Auswahl wiederherstellen)',
             lotPermaCopied: n => `🔗 Permalink kopiert (${n} Segmente).`,
@@ -4688,6 +4723,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             srcSelOff_api:'No disponible: no se ha podido cargar la lista de socios.',
             srcSelOff_schema:'No disponible: WME ha cambiado la estructura de los cierres. WCT prefiere callar antes que atribuir mal una fuente \u2014 av\u00EDsale al autor.',
             srcSelOff_nopartner:'No disponible aquí: ningún socio para tu cuenta en esta vista. Mueve el mapa a la zona de un socio, o deja «Ninguna».',
+            srcSelOff_nomodel:'No disponible: el SDK de WME no sabe poner una Fuente, y WME retira a los scripts su modelo interno el 24/11/2026. Pon la Fuente con el formulario nativo de WME.',
             srcApplyFail:'Fuente no aplicada: no se ha guardado nada. Un cierre sin la fuente pedida ser\u00EDa una atribuci\u00F3n falsa.',
             srcApplyFailNoUndo:'❌ No se pudo aplicar la Fuente Y la anulación falló: revisa los cierres de este segmento en WME antes de volver a intentarlo.',
             // Busqueda: filtro por socio
@@ -4859,6 +4895,11 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmApply: (n,m) => `¿Publicar ${n} cierre(s) en el mapa de Waze? (${m} entrada(s) en la cola)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} cambio(s) sin guardar en WME. Guárdalos o deshazlos antes: WCT solo publica sus propios cierres.`,
             applyPendingStop: k => `Aplicación detenida: ${k} cambio(s) hecho(s) en WME durante la aplicación. Guárdalos o deshazlos y vuelve a lanzar Aplicar: lo ya colocado se omitirá.`,
+            applyPendingUnreadable: `Aplicar está bloqueado: WCT no consigue leer el número de cambios sin guardar en WME. Sin ese recuento no puede garantizar que solo guarde sus propios cierres, así que no escribe nada más. Recarga WME y vuelve a lanzar Aplicar (lo ya colocado se omitirá).`,
+            applyPileEcart: (n,k) => `Aplicación detenida ANTES de guardar: WME cuenta ${n} cambio(s) pendiente(s), mientras que este lote de WCT colocó ${k}. Un cambio hecho durante la aplicación se coló en la pila: WCT no guarda nada ni deshace nada. Los cierres de este lote esperan en WME: revisa la pila y guarda o deshaz tú mismo con los botones de WME. Luego vuelve a lanzar Aplicar: lo ya colocado se omitirá.`,
+            applyPileIllisible: `Aplicación detenida ANTES de guardar: el número de cambios pendientes en WME se ha vuelto ilegible, WCT ya no puede comprobar que solo guardaría sus cierres. No guarda nada ni deshace nada. Los cierres de este lote esperan en WME: guarda o deshaz tú mismo con los botones de WME y vuelve a lanzar Aplicar.`,
+            applyPileEcartUndo: (n,k) => `Aplicación detenida SIN deshacer: este lote falló, pero WME cuenta ${n} cambio(s) pendiente(s) en lugar de los ${k} colocados por WCT. Deshacerlo todo se llevaría un cambio que no es suyo: WCT no deshace nada. Revisa la pila de WME, deshaz tú mismo lo necesario y vuelve a lanzar Aplicar.`,
+            applyPileIllisibleUndo: `Aplicación detenida SIN deshacer: este lote falló, y el número de cambios pendientes en WME es ilegible. Deshacerlo todo podría llevarse un cambio que no es suyo: WCT no deshace nada. Revisa la pila de WME, deshaz tú mismo lo necesario y vuelve a lanzar Aplicar.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sin motivo. Un cierre colocado por un script debe reflejar un acto identificable (orden, socio, evento): indícalo en el motivo.`,
             applyExistingUnreadable: 'Cierres existentes ilegibles en esta vista: no se ha colocado nada, para no crear duplicados. Mueve un poco el mapa y vuelve a lanzar Aplicar.',
             turnDejaFermes: n => `${n} giro(s) ya cerrado(s) en esta franja: omitido(s).`,
@@ -5139,6 +5180,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             tipPolyBannerFiltered:'Estos segmentos están en la zona pero su tipo está desmarcado. Usa 🛣️ Tipos para recuperarlos.',
             helpH14:'✏️ Zona (polígono)',
             helpH15:'💾 Qué recuerda WCT',
+            helpH16:'🌐 Fuentes, datos enviados, límites',
             lotsAllDone:'✅ Todos los lotes están configurados. Puedes aplicar la cola.',
             lotPermaTitle:'Copiar el permalink de este lote (para recuperar la selección)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -5295,6 +5337,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos bloqueios. O WCT prefere se calar a atribuir uma fonte errada \u2014 avise o autor.',
             srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para sua conta nesta visão. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
+            srcSelOff_nomodel:'Indisponível: o SDK do WME não sabe definir uma Fonte, e o WME retira dos scripts o seu modelo interno em 24/11/2026. Defina a Fonte pelo formulário nativo do WME.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi salvo. Um bloqueio sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             srcApplyFailNoUndo:'❌ Não foi possível definir a Fonte E o desfazer falhou: verifique os bloqueios deste segmento no WME antes de tentar de novo.',
             // Pesquisa: filtro por parceiro
@@ -5466,6 +5509,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             confirmApply: (n,m) => `Publicar ${n} bloqueio(s) no mapa do Waze? (${m} entrada(s) na fila)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não salva(s) no WME. Salve-as ou desfaça-as antes: o WCT só publica os próprios bloqueios.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Salve-as ou desfaça-as e execute Aplicar de novo: o que já foi colocado será ignorado.`,
+            applyPendingUnreadable: `Aplicar está bloqueado: o WCT não consegue ler o número de alterações não salvas no WME. Sem essa contagem, ele não pode garantir que salva só os próprios bloqueios, então não escreve mais nada. Recarregue o WME e execute Aplicar de novo (o que já foi colocado será ignorado).`,
+            applyPileEcart: (n,k) => `Aplicação interrompida ANTES de salvar: o WME conta ${n} alteração(ões) pendente(s), enquanto este lote do WCT colocou ${k}. Uma alteração feita durante a aplicação entrou na pilha: o WCT não salva nada e não desfaz nada. Os bloqueios deste lote aguardam no WME: confira a pilha e salve ou desfaça você mesmo com os botões do WME. Depois execute Aplicar de novo: o que já foi colocado será ignorado.`,
+            applyPileIllisible: `Aplicação interrompida ANTES de salvar: o número de alterações pendentes no WME ficou ilegível, e o WCT não pode mais verificar que salvaria só os seus bloqueios. Ele não salva nada e não desfaz nada. Os bloqueios deste lote aguardam no WME: salve ou desfaça você mesmo com os botões do WME e execute Aplicar de novo.`,
+            applyPileEcartUndo: (n,k) => `Aplicação interrompida SEM desfazer: este lote falhou, mas o WME conta ${n} alteração(ões) pendente(s) em vez das ${k} colocadas pelo WCT. Desfazer tudo levaria uma alteração que não é dele: o WCT não desfaz nada. Confira a pilha do WME, desfaça você mesmo o que for preciso e execute Aplicar de novo.`,
+            applyPileIllisibleUndo: `Aplicação interrompida SEM desfazer: este lote falhou, e o número de alterações pendentes no WME está ilegível. Desfazer tudo poderia levar uma alteração que não é dele: o WCT não desfaz nada. Confira a pilha do WME, desfaça você mesmo o que for preciso e execute Aplicar de novo.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem motivo. Um bloqueio colocado por script deve refletir um ato identificável (portaria, parceiro, evento): indique-o no motivo.`,
             applyExistingUnreadable: 'Bloqueios existentes ilegíveis nesta visualização: nada foi colocado, para não criar duplicatas. Mova um pouco o mapa e execute Aplicar de novo.',
             turnDejaFermes: n => `${n} conversão(ões) já bloqueada(s) neste intervalo: ignorada(s).`,
@@ -5746,6 +5794,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipPolyBannerFiltered:'Esses segmentos estão na área, mas o tipo deles está desmarcado. Use 🛣️ Tipos para retomá-los.',
             helpH14:'✏️ Área (polígono)',
             helpH15:'💾 O que o WCT guarda',
+            helpH16:'🌐 Fontes, dados enviados, limites',
             lotsAllDone:'✅ Todos os lotes estão configurados. Você pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -5902,6 +5951,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             srcSelOff_api:'Indispon\u00EDvel: n\u00E3o foi poss\u00EDvel carregar a lista de parceiros.',
             srcSelOff_schema:'Indispon\u00EDvel: o WME mudou a estrutura dos cortes. O WCT prefere calar-se a atribuir mal uma fonte \u2014 avisa o autor.',
             srcSelOff_nopartner:'Indisponível aqui: nenhum parceiro para a sua conta nesta vista. Mova o mapa para a área de um parceiro, ou deixe "Nenhuma".',
+            srcSelOff_nomodel:'Indisponível: o SDK do WME não sabe definir uma Fonte, e o WME retira aos scripts o seu modelo interno a 24/11/2026. Defina a Fonte com o formulário nativo do WME.',
             srcApplyFail:'Fonte n\u00E3o aplicada: nada foi guardado. Um corte sem a fonte pedida seria uma atribui\u00E7\u00E3o falsa.',
             srcApplyFailNoUndo:'❌ Não foi possível definir a Fonte E a anulação falhou: verifique os cortes deste segmento no WME antes de tentar de novo.',
             // Pesquisa: filtro por parceiro
@@ -6073,6 +6123,11 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             confirmApply: (n,m) => `Publicar ${n} corte(s) no mapa do Waze? (${m} entrada(s) na fila)`,
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não guardada(s) no WME. Guarde-as ou anule-as primeiro: o WCT só publica os seus próprios cortes.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Guarde-as ou anule-as e volte a executar Aplicar: o que já foi colocado será ignorado.`,
+            applyPendingUnreadable: `Aplicar está bloqueado: o WCT não consegue ler o número de alterações não guardadas no WME. Sem essa contagem, não pode garantir que guarda apenas os seus próprios cortes, por isso não escreve mais nada. Recarregue o WME e volte a executar Aplicar (o que já foi colocado será ignorado).`,
+            applyPileEcart: (n,k) => `Aplicação interrompida ANTES de guardar: o WME conta ${n} alteração(ões) pendente(s), enquanto este lote do WCT colocou ${k}. Uma alteração feita durante a aplicação entrou na pilha: o WCT não guarda nada e não anula nada. Os cortes deste lote aguardam no WME: verifique a pilha e guarde ou anule você mesmo com os botões do WME. Depois volte a executar Aplicar: o que já foi colocado será ignorado.`,
+            applyPileIllisible: `Aplicação interrompida ANTES de guardar: o número de alterações pendentes no WME tornou-se ilegível, e o WCT já não consegue verificar que guardaria apenas os seus cortes. Não guarda nada e não anula nada. Os cortes deste lote aguardam no WME: guarde ou anule você mesmo com os botões do WME e volte a executar Aplicar.`,
+            applyPileEcartUndo: (n,k) => `Aplicação interrompida SEM anular: este lote falhou, mas o WME conta ${n} alteração(ões) pendente(s) em vez das ${k} colocadas pelo WCT. Anular tudo levaria uma alteração que não é dele: o WCT não anula nada. Verifique a pilha do WME, anule você mesmo o que for preciso e volte a executar Aplicar.`,
+            applyPileIllisibleUndo: `Aplicação interrompida SEM anular: este lote falhou, e o número de alterações pendentes no WME está ilegível. Anular tudo poderia levar uma alteração que não é dele: o WCT não anula nada. Verifique a pilha do WME, anule você mesmo o que for preciso e volte a executar Aplicar.`,
             confirmApplySansActe: k => `\n\n⚠️ ${k} entrada(s) sem motivo. Um corte colocado por script deve traduzir um ato identificável (despacho, parceiro, evento): indique-o no motivo.`,
             applyExistingUnreadable: 'Cortes existentes ilegíveis nesta vista: nada foi colocado, para não criar duplicados. Mova um pouco o mapa e volte a executar Aplicar.',
             turnDejaFermes: n => `${n} viragem(ns) já cortada(s) neste intervalo: ignorada(s).`,
@@ -6353,6 +6408,7 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             tipPolyBannerFiltered:'Estes segmentos estão na área, mas o seu tipo está desmarcado. Use 🛣️ Tipos para os retomar.',
             helpH14:'✏️ Área (polígono)',
             helpH15:'💾 O que o WCT guarda',
+            helpH16:'🌐 Fontes, dados enviados, limites',
             lotsAllDone:'✅ Todos os lotes estão configurados. Pode aplicar a fila.',
             lotPermaTitle:'Copiar o permalink deste lote (para recuperar a seleção)',
             lotPermaCopied: n => `🔗 Permalink copiado (${n} segmentos).`,
@@ -7310,7 +7366,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Qui peut attribuer&nbsp;?</b> Seuls les comptes ayant le <b>statut partenaire</b>, accordé par Waze — pas par WCT. Si le champ est grisé, l'infobulle en donne la raison exacte. C'est une relation de confiance : attribuer une fermeture à un partenaire, c'est affirmer qu'il en est la source.</p>
             <p style="margin-top:6px"><b>Si Waze change&nbsp;:</b> WCT vérifie au démarrage que tout est en place (statut, API, structure des données). Au moindre doute, le champ se désactive et l'explique, plutôt que de risquer une attribution de travers. Et si la pose échoue en cours de route, <b>rien n'est enregistré</b> : mieux vaut aucune fermeture qu'une fermeture faussement attribuée.</p>
-            <p style="margin-top:6px"><i>La Source ne s'applique pas aux virages : c'est un champ de fermeture de segment.</i></p>`, en:`
+            <p style="margin-top:6px"><i>La Source ne s'applique pas aux virages : c'est un champ de fermeture de segment.</i></p>
+            <p style="margin-top:6px"><b>Ce que WCT contrôle, et jusqu’à quand&nbsp;:</b> WCT ne vérifie pas lui-même votre droit d’attribuer. Il propose les partenaires que l’API <code>Partners</code> de Waze lui rend pour la zone affichée — la liste du formulaire natif, que Waze filtre selon votre compte (non vérifié sur un compte sans aucun droit partenaire). Le SDK de WME ne sait pas poser de Source : WCT l’écrit dans le modèle interne de WME, que WME retire aux scripts le <b>24/11/2026</b>. À partir de là, le champ se grise en le disant, et rien d’autre ne change : posez alors la Source avec le formulaire natif.</p>`, en:`
             <p>A closure can be <b>attributed to a partner</b> (a local authority, an operator…), exactly as WME's native form does. With no partner, it is an editor closure.</p>
             <table class="wct-help-table">
             <tr><td><b>Set</b></td><td><b>⚙️ Configure</b> tab, <b>Source (partner)</b> field. The list depends on the <b>area in view</b>: the partners of Nice are not those of Le Mans.</td></tr>
@@ -7318,7 +7375,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Who can attribute?</b> Only accounts with <b>partner status</b>, granted by Waze — not by WCT. If the field is greyed out, the tooltip gives the exact reason. It is a relationship of trust: attributing a closure to a partner asserts that they are its source.</p>
             <p style="margin-top:6px"><b>If Waze changes:</b> WCT checks at startup that everything is in place (status, API, data structure). At the slightest doubt the field disables itself and says why, rather than risk a wrong attribution. And if setting it fails midway, <b>nothing is saved</b>: better no closure than a falsely attributed one.</p>
-            <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>`, it:`
+            <p style="margin-top:6px"><i>Source does not apply to turns: it is a segment-closure field.</i></p>
+            <p style="margin-top:6px"><b>What WCT checks, and until when:</b> WCT does not check your right to attribute by itself. It offers the partners that Waze’s <code>Partners</code> API returns for the area in view — the native form’s list, which Waze filters by account (not verified on an account with no partner right at all). The WME SDK cannot set a Source: WCT writes it into WME’s internal model, which WME withdraws from scripts on <b>24/11/2026</b>. From then on the field greys out and says so, and nothing else changes: set the Source with the native form.</p>`, it:`
             <p>Una chiusura può essere <b>attribuita a un partner</b> (un ente locale, un gestore…), esattamente come fa il modulo nativo di WME. Senza partner, è una chiusura di editor.</p>
             <table class="wct-help-table">
             <tr><td><b>Impostare</b></td><td>Scheda <b>⚙️ Configura</b>, campo <b>Fonte (partner)</b>. L’elenco dipende dall’<b>area inquadrata</b>: i partner di Nizza non sono quelli di Milano.</td></tr>
@@ -7326,7 +7384,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Chi può attribuire?</b> Solo gli account con <b>stato di partner</b>, concesso da Waze — non da WCT. Se il campo è disattivato, il suggerimento ne dà il motivo esatto. È un rapporto di fiducia: attribuire una chiusura a un partner afferma che ne è la fonte.</p>
             <p style="margin-top:6px"><b>Se Waze cambia:</b> all’avvio WCT verifica che tutto sia al suo posto (stato, API, struttura dei dati). Al minimo dubbio il campo si disattiva da solo e dice perché, piuttosto che rischiare un’attribuzione sbagliata. E se l’impostazione fallisce a metà strada, <b>non viene salvato nulla</b>: meglio nessuna chiusura che una attribuita a torto.</p>
-            <p style="margin-top:6px"><i>La Fonte non si applica alle svolte: è un campo delle chiusure di segmento.</i></p>`, he:`
+            <p style="margin-top:6px"><i>La Fonte non si applica alle svolte: è un campo delle chiusure di segmento.</i></p>
+            <p style="margin-top:6px"><b>Cosa controlla WCT, e fino a quando:</b> WCT non verifica da sé il tuo diritto di attribuire. Propone i partner che l’API <code>Partners</code> di Waze gli restituisce per l’area visualizzata — l’elenco del modulo nativo, che Waze filtra in base all’account (non verificato su un account senza alcun diritto partner). L’SDK di WME non sa impostare una Fonte: WCT la scrive nel modello interno di WME, che WME toglie ai script il <b>24/11/2026</b>. Da allora il campo si disattiva dicendolo, e null’altro cambia: imposta la Fonte con il modulo nativo.</p>`, he:`
             <p>אפשר <b>לשייך חסימה לשותף</b> (רשות מקומית, מפעיל…), בדיוק כפי שעושה הטופס המובנה של WME. בלי שותף, מדובר בחסימה של עורך.</p>
             <table class="wct-help-table">
             <tr><td><b>הגדרה</b></td><td>לשונית <b>⚙️ הגדרה</b>, שדה <b>מקור (שותף)</b>. הרשימה תלויה ב<b>אזור שבתצוגה</b>: השותפים בחיפה אינם השותפים בתל אביב.</td></tr>
@@ -7334,7 +7393,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>מי יכול לשייך?</b> רק חשבונות בעלי <b>מעמד שותף</b>, שמוענק על ידי Waze — לא על ידי WCT. אם השדה מושבת, החלונית הצפה נותנת את הסיבה המדויקת. זו מערכת יחסים של אמון: שיוך חסימה לשותף מצהיר שהוא המקור שלה.</p>
             <p style="margin-top:6px"><b>אם Waze משתנה:</b> בהפעלה WCT בודק שהכול במקומו (מעמד, API, מבנה הנתונים). בכל ספק קל השדה משבית את עצמו ואומר מדוע, במקום להסתכן בשיוך שגוי. ואם ההגדרה נכשלת באמצע, <b>שום דבר לא נשמר</b>: מוטב בלי חסימה מאשר חסימה משויכת בטעות.</p>
-            <p style="margin-top:6px"><i>המקור אינו חל על פניות: זהו שדה של חסימות מקטעים.</i></p>`, de:`
+            <p style="margin-top:6px"><i>המקור אינו חל על פניות: זהו שדה של חסימות מקטעים.</i></p>
+            <p style="margin-top:6px"><b>מה WCT בודק, ועד מתי:</b> WCT אינו בודק בעצמו את זכותך לייחס. הוא מציע את השותפים שממשק <code>Partners</code> של Waze מחזיר לו עבור האזור המוצג — הרשימה של הטופס המקורי, ש-Waze מסנן לפי החשבון (לא נבדק בחשבון ללא שום זכות שותף). ה-SDK של WME אינו יודע להגדיר מקור: WCT כותב אותו במודל הפנימי של WME, ש-WME מסיר מהסקריפטים ב-<b>24/11/2026</b>. מאז השדה מושבת ואומר זאת, ושום דבר אחר אינו משתנה: הגדר את המקור בטופס המקורי.</p>`, de:`
             <p>Eine Sperrung kann einem <b>Partner zugeschrieben</b> werden (einer Gebietskörperschaft, einem Betreiber…), genau wie im nativen WME-Formular. Ohne Partner ist es eine Editor-Sperrung.</p>
             <table class="wct-help-table">
             <tr><td><b>Setzen</b></td><td>Reiter <b>⚙️ Einrichten</b>, Feld <b>Quelle (Partner)</b>. Die Liste hängt vom <b>angezeigten Gebiet</b> ab: die Partner von Nizza sind nicht die von Le Mans.</td></tr>
@@ -7342,7 +7402,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Wer darf zuschreiben?</b> Nur Konten mit <b>Partnerstatus</b>, den Waze vergibt — nicht WCT. Ist das Feld ausgegraut, nennt der Tooltip den genauen Grund. Es ist ein Vertrauensverhältnis: eine Sperrung einem Partner zuzuschreiben heißt zu behaupten, er sei ihre Quelle.</p>
             <p style="margin-top:6px"><b>Wenn Waze sich ändert:</b> WCT prüft beim Start, ob alles vorhanden ist (Status, API, Datenstruktur). Beim geringsten Zweifel deaktiviert sich das Feld und sagt warum, statt eine falsche Zuschreibung zu riskieren. Und schlägt das Setzen unterwegs fehl, wird <b>nichts gespeichert</b>: lieber keine Sperrung als eine falsch zugeschriebene.</p>
-            <p style="margin-top:6px"><i>Die Quelle gilt nicht für Abbieger: sie ist ein Feld der Segmentsperrung.</i></p>`, es:`
+            <p style="margin-top:6px"><i>Die Quelle gilt nicht für Abbieger: sie ist ein Feld der Segmentsperrung.</i></p>
+            <p style="margin-top:6px"><b>Was WCT prüft, und bis wann:</b> WCT prüft dein Recht zur Zuordnung nicht selbst. Es bietet die Partner an, die die <code>Partners</code>-API von Waze für den angezeigten Bereich liefert — die Liste des nativen Formulars, die Waze nach Konto filtert (nicht geprüft mit einem Konto ganz ohne Partnerrecht). Das WME-SDK kann keine Quelle setzen: WCT schreibt sie in das interne Modell von WME, das WME Skripten am <b>24.11.2026</b> entzieht. Ab dann wird das Feld mit Begründung ausgegraut, sonst ändert sich nichts: setze die Quelle dann im nativen Formular.</p>`, es:`
             <p>Un cierre puede <b>atribuirse a un socio</b> (un municipio, un operador…), igual que hace el formulario nativo de WME. Sin socio, es un cierre de editor.</p>
             <table class="wct-help-table">
             <tr><td><b>Poner</b></td><td>Pestaña <b>⚙️ Configurar</b>, campo <b>Fuente (socio)</b>. La lista depende de la <b>zona mostrada</b>: los socios de Niza no son los de Le Mans.</td></tr>
@@ -7350,7 +7411,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>¿Quién puede atribuir?</b> Solo las cuentas con <b>estado de socio</b>, concedido por Waze — no por WCT. Si el campo está atenuado, la descripción emergente da el motivo exacto. Es una relación de confianza: atribuir un cierre a un socio es afirmar que él es su fuente.</p>
             <p style="margin-top:6px"><b>Si Waze cambia:</b> WCT comprueba al arrancar que todo está en su sitio (estado, API, estructura de datos). A la mínima duda el campo se desactiva y lo explica, en lugar de arriesgar una atribución errónea. Y si la puesta falla a medias, <b>no se guarda nada</b>: mejor ningún cierre que uno mal atribuido.</p>
-            <p style="margin-top:6px"><i>La Fuente no se aplica a los giros: es un campo del cierre de segmento.</i></p>`, 'pt-BR':`
+            <p style="margin-top:6px"><i>La Fuente no se aplica a los giros: es un campo del cierre de segmento.</i></p>
+            <p style="margin-top:6px"><b>Qué controla WCT, y hasta cuándo:</b> WCT no comprueba por sí mismo tu derecho a atribuir. Propone los socios que la API <code>Partners</code> de Waze le devuelve para la zona visible — la lista del formulario nativo, que Waze filtra según la cuenta (no verificado con una cuenta sin ningún derecho de socio). El SDK de WME no sabe poner una Fuente: WCT la escribe en el modelo interno de WME, que WME retira a los scripts el <b>24/11/2026</b>. Desde entonces el campo se desactiva diciéndolo, y nada más cambia: pon la Fuente con el formulario nativo.</p>`, 'pt-BR':`
             <p>Um bloqueio pode ser <b>atribuído a um parceiro</b> (uma prefeitura, um operador…), igual ao formulário nativo do WME. Sem parceiro, é um bloqueio de editor.</p>
             <table class="wct-help-table">
             <tr><td><b>Definir</b></td><td>Aba <b>⚙️ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área exibida</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
@@ -7358,7 +7420,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>status de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esmaecido, a dica informa o motivo exato. É uma relação de confiança: atribuir um bloqueio a um parceiro é afirmar que ele é a sua fonte.</p>
             <p style="margin-top:6px"><b>Se o Waze mudar:</b> o WCT verifica na inicialização se tudo está no lugar (status, API, estrutura dos dados). À menor dúvida o campo se desativa e explica por quê, em vez de arriscar uma atribuição errada. E se a aplicação falhar no meio, <b>nada é salvo</b>: melhor nenhum bloqueio do que um falsamente atribuído.</p>
-            <p style="margin-top:6px"><i>A Fonte não se aplica às conversões: é um campo do bloqueio de segmento.</i></p>`, 'pt-PT':`
+            <p style="margin-top:6px"><i>A Fonte não se aplica às conversões: é um campo do bloqueio de segmento.</i></p>
+            <p style="margin-top:6px"><b>O que o WCT controla, e até quando:</b> o WCT não verifica sozinho o seu direito de atribuir. Ele oferece os parceiros que a API <code>Partners</code> do Waze devolve para a área exibida — a lista do formulário nativo, que o Waze filtra por conta (não verificado com uma conta sem nenhum direito de parceiro). O SDK do WME não sabe definir uma Fonte: o WCT a grava no modelo interno do WME, que o WME retira dos scripts em <b>24/11/2026</b>. A partir daí o campo fica desativado e diz por quê, e nada mais muda: defina a Fonte pelo formulário nativo.</p>`, 'pt-PT':`
             <p>Um corte pode ser <b>atribuído a um parceiro</b> (uma autarquia, um operador…), tal como faz o formulário nativo do WME. Sem parceiro, é um corte de editor.</p>
             <table class="wct-help-table">
             <tr><td><b>Definir</b></td><td>Separador <b>⚙️ Configurar</b>, campo <b>Fonte (parceiro)</b>. A lista depende da <b>área apresentada</b>: os parceiros de Nice não são os de Le Mans.</td></tr>
@@ -7366,7 +7429,8 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px"><b>Quem pode atribuir?</b> Apenas contas com <b>estatuto de parceiro</b>, concedido pelo Waze — não pelo WCT. Se o campo estiver esbatido, a dica indica o motivo exato. É uma relação de confiança: atribuir um corte a um parceiro é afirmar que ele é a sua fonte.</p>
             <p style="margin-top:6px"><b>Se o Waze mudar:</b> o WCT verifica no arranque se está tudo no lugar (estatuto, API, estrutura dos dados). À menor dúvida o campo desativa-se e explica porquê, em vez de arriscar uma atribuição errada. E se a aplicação falhar a meio, <b>nada é guardado</b>: melhor nenhum corte do que um falsamente atribuído.</p>
-            <p style="margin-top:6px"><i>A Fonte não se aplica às viragens: é um campo do corte de segmento.</i></p>` }) },
+            <p style="margin-top:6px"><i>A Fonte não se aplica às viragens: é um campo do corte de segmento.</i></p>
+            <p style="margin-top:6px"><b>O que o WCT controla, e até quando:</b> o WCT não verifica por si o seu direito de atribuir. Propõe os parceiros que a API <code>Partners</code> do Waze lhe devolve para a área visível — a lista do formulário nativo, que o Waze filtra por conta (não verificado com uma conta sem qualquer direito de parceiro). O SDK do WME não sabe definir uma Fonte: o WCT escreve-a no modelo interno do WME, que o WME retira aos scripts a <b>24/11/2026</b>. A partir daí o campo fica desativado e di-lo, e nada mais muda: defina a Fonte com o formulário nativo.</p>` }) },
         { id:'h14', title:t('helpH14'), body: _L({ fr:`
             <p>Fermer <b>tout un quartier</b> sans cliquer les segments un par un : on trace une zone sur la carte, WCT sélectionne ce qu'elle contient, puis la fermeture se règle comme d'habitude.</p>
             <table class="wct-help-table">
@@ -7529,6 +7593,15 @@ const buildHelpHTML = () => {
             </table>
             <p style="margin-top:6px">⚠️ Uma fila <b>muito grande</b> não é mantida: o painel avisa acima da fila e alerta antes de sair da página. Exporte-a em CSV — o separador 📥 Importar volta a lê-la.</p>
             <p style="margin-top:6px">Tudo o que é guardado fica no <b>seu navegador</b>, no armazenamento do gestor de scripts. Nada vai para um servidor. ⬇️ Predefinições gera um ficheiro JSON para partilhar.</p>` }) },
+        { id:'h16', title:t('helpH16'), body: _L({ fr:`
+            <p>WCT écrit sur la carte par le SDK de WME, et seulement quand vous cliquez <b>Appliquer</b> : ce bouton <b>publie</b> les fermetures, sans passer par le bouton Enregistrer de WME.</p><table class="wct-help-table"><tr><td><b>Vos modifications</b></td><td>L’enregistrement et l’annulation de WME portent sur <b>toute</b> la pile en attente. WCT ne part donc pas s’il y a des modifications non enregistrées, ou si leur nombre est illisible. Pendant l’application, il compte la pile avant et après chacune de ses poses ; juste avant d’enregistrer ou de tout défaire, il exige qu’elle ne contienne que ce qu’il y a mis. Sinon il <b>n’enregistre rien et n’annule rien</b> : il s’arrête, le dit, et c’est vous qui enregistrez ou annulez. Limite : une édition faite pendant les quelques millisecondes d’une pose serait comptée comme sienne — n’éditez pas pendant l’application.</td></tr><tr><td><b>Jours fériés</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), projet libre sous licence MIT : la liste des pays, puis les jours fériés d’un pays pour une année. Seuls le code du pays et l’année sont envoyés.</td></tr><tr><td><b>Région d’un segment</b></td><td>Service <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> de la Fondation OpenStreetMap — données © contributeurs OpenStreetMap, licence <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Seulement sur un clic sur 📍 Déduire de la position, dans les pays à fériés régionaux : la position du segment sélectionné, arrondie à 3 décimales (~100 m), et le nom du script ; la réponse est gardée, une requête par région.</td></tr><tr><td><b>Fraîcheur des segments</b></td><td>Flux public des assemblages de tuiles de Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), relu au plus toutes les 30 min : l’heure du dernier assemblage. Rien n’est envoyé.</td></tr><tr><td><b>Version</b></td><td>Au démarrage, WCT lit <code>version-min.json</code> sur GitHub (dépôt DrSlump34/WME-Closures-Toolkit) : une version retirée ou une copie modifiée ne démarre pas, et un bandeau le dit ; GitHub injoignable, le script démarre. Il lit aussi le <code>.meta.js</code> de GreasyFork pour la pastille de mise à jour. Rien n’est envoyé d’autre que la requête. Pour reconnaître son auteur, qui essaie ses versions avant de les publier, il compare votre pseudo WME à une empreinte, ou lit la session du forum Waze (même site) : rien n’en sort.</td></tr><tr><td><b>Préréglages par URL</b></td><td>Seulement sur votre demande : l’adresse que vous donnez.</td></tr><tr><td><b>Interfaces internes</b></td><td>Sans équivalent dans le SDK, sur le serveur de Waze avec votre session : l’API <code>Features</code> (fermetures existantes quand le SDK ne sait pas les lire, segments d’une ligne CSV hors de la vue), l’API <code>Partners</code> (partenaires de la zone, pour la Source), l’API <code>ElementHistory</code> (historique d’un segment modifié après le dernier assemblage, pour voir si seul son verrou a changé), et la boîte d’erreur de WME (<code>.error-list</code>) après l’enregistrement. Elles peuvent changer sans préavis : WCT s’arrête alors plutôt que d’écrire de travers.</td></tr></table><p style="margin-top:6px">Les fichiers que vous importez restent dans votre navigateur.</p>`, en:`
+            <p>WCT writes to the map through the WME SDK, and only when you click <b>Apply</b>: that button <b>publishes</b> the closures, without going through WME’s Save button.</p><table class="wct-help-table"><tr><td><b>Your edits</b></td><td>WME’s save and undo act on the <b>whole</b> pending stack. So WCT does not start if there are unsaved edits, or if their number cannot be read. During the run it counts the stack before and after each of its placements; right before saving or undoing everything, it requires the stack to hold only what it put there. Otherwise it <b>saves nothing and undoes nothing</b>: it stops, says so, and you save or undo yourself. Limit: an edit made during the few milliseconds of a placement would be counted as WCT’s — do not edit during the run.</td></tr><tr><td><b>Holidays</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), free project under the MIT licence: the list of countries, then a country’s public holidays for one year. Only the country code and the year are sent.</td></tr><tr><td><b>A segment’s region</b></td><td>The OpenStreetMap Foundation’s <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> service — data © OpenStreetMap contributors, <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a> licence. Only on a click on 📍 Detect from position, in countries with regional holidays: the selected segment’s position, rounded to 3 decimals (~100 m), and the script’s name; the answer is kept, one request per region.</td></tr><tr><td><b>Segment freshness</b></td><td>Waze’s public tile-build feed (storage.googleapis.com, <code>waze-tile-build-public</code>), read at most every 30 min: the time of the last build. Nothing is sent.</td></tr><tr><td><b>Version</b></td><td>At start-up WCT reads <code>version-min.json</code> on GitHub (repository DrSlump34/WME-Closures-Toolkit): a withdrawn version or a modified copy does not start, and a banner says so; GitHub unreachable, the script starts. It also reads GreasyFork’s <code>.meta.js</code> for the update badge. Nothing is sent but the request. To recognise its author, who tries versions before publishing them, it compares your WME username with a fingerprint, or reads the Waze forum session (same site): nothing leaves it.</td></tr><tr><td><b>Presets by URL</b></td><td>Only when you ask: the address you give.</td></tr><tr><td><b>Internal interfaces</b></td><td>With no SDK equivalent, on Waze’s server with your session: the <code>Features</code> API (existing closures when the SDK cannot read them, segments of a CSV row outside the view), the <code>Partners</code> API (partners of the area, for the Source), the <code>ElementHistory</code> API (history of a segment edited after the last build, to see whether only its lock changed), and WME’s error box (<code>.error-list</code>) after saving. They may change without notice: WCT then stops rather than write wrongly.</td></tr></table><p style="margin-top:6px">The files you import stay in your browser.</p>`, he:`
+            <p>WCT כותב למפה דרך ה-SDK של WME, ורק כשלוחצים על <b>החל</b>: הכפתור הזה <b>מפרסם</b> את החסימות, בלי לעבור דרך כפתור השמירה של WME.</p><table class="wct-help-table"><tr><td><b>העריכות שלך</b></td><td>השמירה והביטול של WME פועלים על <b>כל</b> ערימת העריכות הממתינות. לכן WCT לא מתחיל אם יש עריכות שלא נשמרו, או אם אי אפשר לקרוא את מספרן. במהלך ההחלה הוא סופר את הערימה לפני ואחרי כל הצבה שלו; רגע לפני שמירה או ביטול הכול הוא דורש שהיא תכיל רק את מה שהוא הכניס. אחרת הוא <b>לא שומר דבר ולא מבטל דבר</b>: הוא נעצר, אומר זאת, ואתה שומר או מבטל בעצמך. מגבלה: עריכה שתיעשה במהלך אלפיות השנייה של הצבה תיחשב כשלו — אל תערוך במהלך ההחלה.</td></tr><tr><td><b>חגים</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), פרויקט חופשי ברישיון MIT: רשימת המדינות, ואז החגים של מדינה לשנה אחת. נשלחים רק קוד המדינה והשנה.</td></tr><tr><td><b>האזור של מקטע</b></td><td>שירות <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> של קרן OpenStreetMap — נתונים © תורמי OpenStreetMap, רישיון <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. רק בלחיצה על 📍 זיהוי לפי מיקום, במדינות עם חגים אזוריים: מיקום המקטע הנבחר, מעוגל ל-3 ספרות אחרי הנקודה (~100 מ'), ושם הסקריפט; התשובה נשמרת, בקשה אחת לכל אזור.</td></tr><tr><td><b>עדכניות המקטעים</b></td><td>הפיד הציבורי של בניית האריחים של Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), נקרא לכל היותר כל 30 דקות: שעת הבנייה האחרונה. דבר אינו נשלח.</td></tr><tr><td><b>גרסה</b></td><td>בהפעלה WCT קורא את <code>version-min.json</code> ב-GitHub (מאגר DrSlump34/WME-Closures-Toolkit): גרסה שהוסרה או עותק ששונה לא מופעלים, ופס מודיע על כך; אם GitHub לא זמין, הסקריפט מופעל. הוא קורא גם את <code>.meta.js</code> של GreasyFork עבור תג העדכון. דבר אינו נשלח מלבד הבקשה. כדי לזהות את המחבר, שמנסה גרסאות לפני פרסומן, הוא משווה את שם המשתמש שלך ב-WME לטביעה, או קורא את הסשן של פורום Waze (אותו אתר): דבר אינו יוצא ממנו.</td></tr><tr><td><b>תבניות מכתובת</b></td><td>רק לבקשתך: הכתובת שאתה נותן.</td></tr><tr><td><b>ממשקים פנימיים</b></td><td>ללא מקבילה ב-SDK, בשרת של Waze עם הסשן שלך: ממשק <code>Features</code> (חסימות קיימות כשה-SDK לא יודע לקרוא אותן, מקטעים של שורת CSV מחוץ לתצוגה), ממשק <code>Partners</code> (שותפי האזור, עבור המקור), ממשק <code>ElementHistory</code> (היסטוריה של מקטע שנערך אחרי הבנייה האחרונה, כדי לבדוק אם רק הנעילה שלו השתנתה), ותיבת השגיאה של WME (<code>.error-list</code>) אחרי השמירה. הם עלולים להשתנות ללא הודעה: WCT ייעצר אז במקום לכתוב באופן שגוי.</td></tr></table><p style="margin-top:6px">הקבצים שאתה מייבא נשארים בדפדפן שלך.</p>`, it:`
+            <p>WCT scrive sulla mappa tramite l’SDK di WME, e solo quando clicchi <b>Applica</b>: quel pulsante <b>pubblica</b> le chiusure, senza passare dal pulsante Salva di WME.</p><table class="wct-help-table"><tr><td><b>Le tue modifiche</b></td><td>Il salvataggio e l’annullamento di WME agiscono su <b>tutta</b> la pila in attesa. WCT quindi non parte se ci sono modifiche non salvate, o se il loro numero è illeggibile. Durante l’applicazione conta la pila prima e dopo ogni sua posa; subito prima di salvare o annullare tutto, esige che contenga solo ciò che vi ha messo. Altrimenti <b>non salva nulla e non annulla nulla</b>: si ferma, lo dice, e sei tu a salvare o annullare. Limite: una modifica fatta durante i pochi millisecondi di una posa verrebbe contata come sua — non modificare durante l’applicazione.</td></tr><tr><td><b>Festivi</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), progetto libero con licenza MIT: l’elenco dei paesi, poi i festivi di un paese per un anno. Vengono inviati solo il codice del paese e l’anno.</td></tr><tr><td><b>Regione di un segmento</b></td><td>Servizio <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> della Fondazione OpenStreetMap — dati © contributori di OpenStreetMap, licenza <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Solo con un clic su 📍 Ricava dalla posizione, nei paesi con festivi regionali: la posizione del segmento selezionato, arrotondata a 3 decimali (~100 m), e il nome dello script; la risposta viene conservata, una richiesta per regione.</td></tr><tr><td><b>Aggiornamento dei segmenti</b></td><td>Feed pubblico delle compilazioni delle tile di Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), riletto al massimo ogni 30 min: l’ora dell’ultima compilazione. Non viene inviato nulla.</td></tr><tr><td><b>Versione</b></td><td>All’avvio WCT legge <code>version-min.json</code> su GitHub (repository DrSlump34/WME-Closures-Toolkit): una versione ritirata o una copia modificata non parte, e un banner lo dice; GitHub irraggiungibile, lo script parte. Legge anche il <code>.meta.js</code> di GreasyFork per il bollino di aggiornamento. Non viene inviato nulla oltre alla richiesta. Per riconoscere il suo autore, che prova le versioni prima di pubblicarle, confronta il tuo nome utente WME con un’impronta, o legge la sessione del forum Waze (stesso sito): nulla ne esce.</td></tr><tr><td><b>Preset da URL</b></td><td>Solo su tua richiesta: l’indirizzo che indichi.</td></tr><tr><td><b>Interfacce interne</b></td><td>Senza equivalente nell’SDK, sul server di Waze con la tua sessione: l’API <code>Features</code> (chiusure esistenti quando l’SDK non sa leggerle, segmenti di una riga CSV fuori vista), l’API <code>Partners</code> (partner dell’area, per la Fonte), l’API <code>ElementHistory</code> (cronologia di un segmento modificato dopo l’ultima compilazione, per vedere se è cambiato solo il blocco), e il riquadro d’errore di WME (<code>.error-list</code>) dopo il salvataggio. Possono cambiare senza preavviso: WCT allora si ferma invece di scrivere in modo errato.</td></tr></table><p style="margin-top:6px">I file che importi restano nel tuo browser.</p>`, de:`
+            <p>WCT schreibt über das WME-SDK auf die Karte, und nur, wenn du auf <b>Anwenden</b> klickst: diese Schaltfläche <b>veröffentlicht</b> die Sperrungen, ohne den Speichern-Knopf von WME.</p><table class="wct-help-table"><tr><td><b>Deine Änderungen</b></td><td>Speichern und Rückgängigmachen von WME wirken auf den <b>ganzen</b> Stapel ausstehender Änderungen. WCT startet daher nicht, wenn es ungespeicherte Änderungen gibt oder ihre Zahl unlesbar ist. Während des Anwendens zählt es den Stapel vor und nach jeder seiner Setzungen; direkt vor dem Speichern oder dem Rückgängigmachen verlangt es, dass er nur enthält, was es selbst hineingelegt hat. Sonst <b>speichert es nichts und macht nichts rückgängig</b>: es hält an, sagt es, und du speicherst oder machst selbst rückgängig. Grenze: eine Änderung während der wenigen Millisekunden einer Setzung würde ihm zugerechnet — bearbeite nichts während des Anwendens.</td></tr><tr><td><b>Feiertage</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), freies Projekt unter MIT-Lizenz: die Liste der Länder, dann die Feiertage eines Landes für ein Jahr. Gesendet werden nur Ländercode und Jahr.</td></tr><tr><td><b>Region eines Segments</b></td><td>Dienst <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> der OpenStreetMap Foundation — Daten © OpenStreetMap-Mitwirkende, Lizenz <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Nur bei einem Klick auf 📍 Aus der Position ermitteln, in Ländern mit regionalen Feiertagen: die Position des ausgewählten Segments, auf 3 Nachkommastellen gerundet (~100 m), und der Name des Skripts; die Antwort wird behalten, eine Anfrage pro Region.</td></tr><tr><td><b>Aktualität der Segmente</b></td><td>Öffentlicher Feed der Kachel-Builds von Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), höchstens alle 30 Min. gelesen: die Zeit des letzten Builds. Es wird nichts gesendet.</td></tr><tr><td><b>Version</b></td><td>Beim Start liest WCT <code>version-min.json</code> auf GitHub (Repository DrSlump34/WME-Closures-Toolkit): eine zurückgezogene Version oder eine veränderte Kopie startet nicht, ein Banner sagt es; ist GitHub nicht erreichbar, startet das Skript. Es liest auch die <code>.meta.js</code> von GreasyFork für das Update-Abzeichen. Außer der Anfrage wird nichts gesendet. Um seinen Autor zu erkennen, der Versionen vor der Veröffentlichung testet, vergleicht es deinen WME-Namen mit einem Fingerabdruck oder liest die Sitzung des Waze-Forums (gleiche Seite): nichts davon geht hinaus.</td></tr><tr><td><b>Vorlagen per URL</b></td><td>Nur auf deinen Wunsch: die Adresse, die du angibst.</td></tr><tr><td><b>Interne Schnittstellen</b></td><td>Ohne Entsprechung im SDK, auf dem Waze-Server mit deiner Sitzung: die <code>Features</code>-API (bestehende Sperrungen, wenn das SDK sie nicht lesen kann, Segmente einer CSV-Zeile außerhalb der Ansicht), die <code>Partners</code>-API (Partner des Bereichs, für die Quelle), die <code>ElementHistory</code>-API (Verlauf eines nach dem letzten Build bearbeiteten Segments, um zu sehen, ob nur seine Sperre geändert wurde) und das Fehlerfeld von WME (<code>.error-list</code>) nach dem Speichern. Sie können sich ohne Vorwarnung ändern: WCT hält dann an, statt falsch zu schreiben.</td></tr></table><p style="margin-top:6px">Die Dateien, die du importierst, bleiben in deinem Browser.</p>`, es:`
+            <p>WCT escribe en el mapa a través del SDK de WME, y solo cuando pulsas <b>Aplicar</b>: ese botón <b>publica</b> los cierres, sin pasar por el botón Guardar de WME.</p><table class="wct-help-table"><tr><td><b>Tus cambios</b></td><td>El guardado y el deshacer de WME actúan sobre <b>toda</b> la pila pendiente. Por eso WCT no arranca si hay cambios sin guardar, o si su número es ilegible. Durante la aplicación cuenta la pila antes y después de cada una de sus colocaciones; justo antes de guardar o deshacerlo todo, exige que solo contenga lo que él puso. Si no, <b>no guarda nada ni deshace nada</b>: se detiene, lo dice, y eres tú quien guarda o deshace. Límite: un cambio hecho durante los pocos milisegundos de una colocación se contaría como suyo — no edites durante la aplicación.</td></tr><tr><td><b>Festivos</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), proyecto libre con licencia MIT: la lista de países, luego los festivos de un país para un año. Solo se envían el código del país y el año.</td></tr><tr><td><b>Región de un segmento</b></td><td>Servicio <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> de la Fundación OpenStreetMap — datos © colaboradores de OpenStreetMap, licencia <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Solo con un clic en 📍 Deducir de la posición, en países con festivos regionales: la posición del segmento seleccionado, redondeada a 3 decimales (~100 m), y el nombre del script; la respuesta se guarda, una petición por región.</td></tr><tr><td><b>Actualidad de los segmentos</b></td><td>Feed público de compilaciones de teselas de Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), leído como mucho cada 30 min: la hora de la última compilación. No se envía nada.</td></tr><tr><td><b>Versión</b></td><td>Al arrancar, WCT lee <code>version-min.json</code> en GitHub (repositorio DrSlump34/WME-Closures-Toolkit): una versión retirada o una copia modificada no arranca, y un aviso lo dice; con GitHub inaccesible, el script arranca. También lee el <code>.meta.js</code> de GreasyFork para la pastilla de actualización. No se envía nada más que la petición. Para reconocer a su autor, que prueba versiones antes de publicarlas, compara tu nombre de usuario de WME con una huella, o lee la sesión del foro de Waze (mismo sitio): nada sale de ahí.</td></tr><tr><td><b>Preajustes por URL</b></td><td>Solo si lo pides: la dirección que indicas.</td></tr><tr><td><b>Interfaces internas</b></td><td>Sin equivalente en el SDK, en el servidor de Waze con tu sesión: la API <code>Features</code> (cierres existentes cuando el SDK no sabe leerlos, segmentos de una fila CSV fuera de la vista), la API <code>Partners</code> (socios de la zona, para la Fuente), la API <code>ElementHistory</code> (historial de un segmento editado tras la última compilación, para ver si solo cambió su bloqueo) y el cuadro de error de WME (<code>.error-list</code>) tras guardar. Pueden cambiar sin aviso: WCT se detiene entonces en vez de escribir mal.</td></tr></table><p style="margin-top:6px">Los archivos que importas se quedan en tu navegador.</p>`, 'pt-BR':`
+            <p>O WCT escreve no mapa pelo SDK do WME, e só quando você clica em <b>Aplicar</b>: esse botão <b>publica</b> os bloqueios, sem passar pelo botão Salvar do WME.</p><table class="wct-help-table"><tr><td><b>Suas alterações</b></td><td>Salvar e desfazer do WME agem sobre <b>toda</b> a pilha pendente. Por isso o WCT não começa se houver alterações não salvas, ou se o número delas estiver ilegível. Durante a aplicação, ele conta a pilha antes e depois de cada uma das suas colocações; logo antes de salvar ou desfazer tudo, exige que ela contenha só o que ele colocou. Senão ele <b>não salva nada e não desfaz nada</b>: para, avisa, e é você quem salva ou desfaz. Limite: uma alteração feita durante os poucos milissegundos de uma colocação seria contada como dele — não edite durante a aplicação.</td></tr><tr><td><b>Feriados</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), projeto livre sob licença MIT: a lista de países, depois os feriados de um país para um ano. Só o código do país e o ano são enviados.</td></tr><tr><td><b>Região de um segmento</b></td><td>Serviço <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> da Fundação OpenStreetMap — dados © colaboradores do OpenStreetMap, licença <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Só com um clique em 📍 Deduzir da posição, em países com feriados regionais: a posição do segmento selecionado, arredondada a 3 casas decimais (~100 m), e o nome do script; a resposta é guardada, uma solicitação por região.</td></tr><tr><td><b>Atualidade dos segmentos</b></td><td>Feed público de compilações de tiles do Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), lido no máximo a cada 30 min: a hora da última compilação. Nada é enviado.</td></tr><tr><td><b>Versão</b></td><td>Ao iniciar, o WCT lê <code>version-min.json</code> no GitHub (repositório DrSlump34/WME-Closures-Toolkit): uma versão retirada ou uma cópia modificada não inicia, e uma faixa avisa; com o GitHub inacessível, o script inicia. Ele também lê o <code>.meta.js</code> do GreasyFork para o selo de atualização. Nada é enviado além da solicitação. Para reconhecer o autor, que testa versões antes de publicá-las, compara seu nome de usuário do WME com uma impressão digital, ou lê a sessão do fórum do Waze (mesmo site): nada sai dali.</td></tr><tr><td><b>Predefinições por URL</b></td><td>Só a seu pedido: o endereço que você informa.</td></tr><tr><td><b>Interfaces internas</b></td><td>Sem equivalente no SDK, no servidor do Waze com a sua sessão: a API <code>Features</code> (bloqueios existentes quando o SDK não consegue lê-los, segmentos de uma linha CSV fora da vista), a API <code>Partners</code> (parceiros da área, para a Fonte), a API <code>ElementHistory</code> (histórico de um segmento editado após a última compilação, para ver se só o bloqueio mudou) e a caixa de erro do WME (<code>.error-list</code>) depois de salvar. Podem mudar sem aviso: o WCT então para em vez de escrever errado.</td></tr></table><p style="margin-top:6px">Os arquivos que você importa ficam no seu navegador.</p>`, 'pt-PT':`
+            <p>O WCT escreve no mapa através do SDK do WME, e só quando clica em <b>Aplicar</b>: esse botão <b>publica</b> os cortes, sem passar pelo botão Guardar do WME.</p><table class="wct-help-table"><tr><td><b>As suas alterações</b></td><td>Guardar e anular do WME atuam sobre <b>toda</b> a pilha pendente. Por isso o WCT não arranca se houver alterações não guardadas, ou se o seu número estiver ilegível. Durante a aplicação, conta a pilha antes e depois de cada uma das suas colocações; mesmo antes de guardar ou anular tudo, exige que ela contenha só o que ele lá pôs. Caso contrário <b>não guarda nada e não anula nada</b>: para, di-lo, e é você quem guarda ou anula. Limite: uma alteração feita durante os poucos milissegundos de uma colocação seria contada como dele — não edite durante a aplicação.</td></tr><tr><td><b>Feriados</b></td><td><a href="https://date.nager.at" target="_blank" style="color:#1976d2">Nager.Date</a> (date.nager.at), projeto livre sob licença MIT: a lista de países, depois os feriados de um país para um ano. Só são enviados o código do país e o ano.</td></tr><tr><td><b>Região de um segmento</b></td><td>Serviço <a href="https://nominatim.openstreetmap.org" target="_blank" style="color:#1976d2">Nominatim</a> da Fundação OpenStreetMap — dados © contribuidores do OpenStreetMap, licença <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#1976d2">ODbL 1.0</a>. Só com um clique em 📍 Deduzir da posição, em países com feriados regionais: a posição do segmento selecionado, arredondada a 3 casas decimais (~100 m), e o nome do script; a resposta é guardada, um pedido por região.</td></tr><tr><td><b>Atualidade dos segmentos</b></td><td>Feed público das compilações de mosaicos do Waze (storage.googleapis.com, <code>waze-tile-build-public</code>), lido no máximo a cada 30 min: a hora da última compilação. Nada é enviado.</td></tr><tr><td><b>Versão</b></td><td>Ao arrancar, o WCT lê <code>version-min.json</code> no GitHub (repositório DrSlump34/WME-Closures-Toolkit): uma versão retirada ou uma cópia modificada não arranca, e uma faixa di-lo; com o GitHub inacessível, o script arranca. Também lê o <code>.meta.js</code> do GreasyFork para o selo de atualização. Nada é enviado além do pedido. Para reconhecer o autor, que testa versões antes de as publicar, compara o seu nome de utilizador do WME com uma impressão digital, ou lê a sessão do fórum do Waze (mesmo site): nada sai daí.</td></tr><tr><td><b>Predefinições por URL</b></td><td>Só a seu pedido: o endereço que indica.</td></tr><tr><td><b>Interfaces internas</b></td><td>Sem equivalente no SDK, no servidor do Waze com a sua sessão: a API <code>Features</code> (cortes existentes quando o SDK não os consegue ler, segmentos de uma linha CSV fora da vista), a API <code>Partners</code> (parceiros da área, para a Fonte), a API <code>ElementHistory</code> (histórico de um segmento editado após a última compilação, para ver se só o bloqueio mudou) e a caixa de erro do WME (<code>.error-list</code>) depois de guardar. Podem mudar sem aviso: o WCT para então em vez de escrever errado.</td></tr></table><p style="margin-top:6px">Os ficheiros que importa ficam no seu navegador.</p>` }) },
     ];
     return sections.map(s => `
         <div class="wct-help-section">
@@ -8243,8 +8316,10 @@ const fetchRegionCodes=(lon,lat)=>new Promise(resolve=>{
     GM_xmlhttpRequest({
         method:'GET',
         // `zoom=8` cadre sur la subdivision ; `addressdetails=1` donne les clés ISO.
+        // Position ARRONDIE à 3 décimales (~100 m, audit du 01/11/2026) : la région se lit au
+        // niveau de la subdivision, la position exacte du segment n'a pas à sortir du navigateur.
         url:NOMINATIM_URL+'?format=json&addressdetails=1&zoom=8'
-            +'&lat='+encodeURIComponent(lat.toFixed(6))+'&lon='+encodeURIComponent(lon.toFixed(6)),
+            +'&lat='+encodeURIComponent(lat.toFixed(3))+'&lon='+encodeURIComponent(lon.toFixed(3)),
         // La politique demande un identifiant : « stock User-Agents will not do ».
         headers:{'User-Agent':SCRIPT_NAME+'/'+VERSION+' (WME userscript)'},
         timeout:10000,
@@ -8513,6 +8588,55 @@ const fetchLastTileBuild=()=>new Promise(resolve=>{
         ontimeout:()=>resolve(0),
     });
 });
+// ─── Modifié après l'assemblage : autre chose que le verrou ? (1.26.06) ─────
+// Proposé par checcoconf (Waze Italia, issue GitHub #1 du 12/11/2026), repris ici.
+// `updatedOn` avance aussi sur un simple changement de verrou (le déverrouillage qu'on demande
+// pour pouvoir poser la fermeture), qui ne change rien à ce que l'assemblage publie : ce segment
+// n'a pas à attendre le suivant. `updatedOn` ne dit pas CE qui a changé ; l'historique du segment,
+// si (API ElementHistory, celle du panneau « Historique » de WME). Format relevé le 12/11/2026 :
+// transactions.objects[] = {date (ms), actionType, objects[{objectType, objectID, actionType,
+// oldValue, newValue}]}, oldValue/newValue ne portant que les champs modifiés ; nextTransaction
+// = page suivante.
+// Rend true seulement si CHAQUE transaction postérieure à l'assemblage n'a touché, sur ce segment,
+// que lockRank. Historique illisible ou incomplet, création/suppression, nœud ou virage dans la
+// même transaction, tout autre champ : false, le segment reste signalé comme avant.
+const _verrouSeul=(avant,apres)=>{
+    if(!avant||!apres||typeof avant!=='object'||typeof apres!=='object') return false;
+    const cles=[...new Set([...Object.keys(avant),...Object.keys(apres)])]
+        .filter(k=>JSON.stringify(avant[k])!==JSON.stringify(apres[k]));
+    return cles.length===1&&cles[0]==='lockRank';
+};
+const _verrouSeulDepuis=async(segId,depuis)=>{
+    try{
+        const r=await fetch(`${_descartesBase(_wmeEnv())}/app/ElementHistory?objectID=${segId}&objectType=segment`,{credentials:'include'});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const tx=(await r.json())?.transactions, toutes=tx?.objects||[];
+        const recentes=toutes.filter(x=>Number(x.date)>depuis);
+        // Page entièrement postérieure à l'assemblage alors qu'il en reste : tout n'a pas été vu.
+        if(!recentes.length||(recentes.length===toutes.length&&tx.nextTransaction!=null)) return false;
+        return recentes.every(x=>{
+            const objs=x.objects||[];
+            const lui=objs.filter(o=>o.objectType==='segment'&&Number(o.objectID)===Number(segId));
+            return lui.length>0&&objs.every(o=>o.objectType==='segment')
+                &&lui.every(o=>(o.actionType??x.actionType)==='UPDATE'&&_verrouSeul(o.oldValue,o.newValue));
+        });
+    }catch(e){ log(`ElementHistory ${segId}: ${e.message}`); return false; }
+};
+// Segments de `ids` à faire attendre le prochain assemblage (ensemble des ids). Par paquets de 8 :
+// une zone retouchée en masse peut en présenter des centaines. Un segment absent du modèle n'a pas
+// de date : il n'y entre pas (il est déjà dans nullSegs).
+const _segsRecents=async(ids,lastTB)=>{
+    const out=new Set();
+    if(!(lastTB>0)) return out;
+    const cand=ids.map(Number).filter(id=>getSegById(id)?.modificationData?.updatedOn>lastTB);
+    for(let i=0;i<cand.length;i+=8){
+        const lot=cand.slice(i,i+8);
+        const ok=await Promise.all(lot.map(id=>_verrouSeulDepuis(id,lastTB)));
+        lot.forEach((id,k)=>{ if(!ok[k]) out.add(id); });
+    }
+    if(cand.length) log(`modifiés après l'assemblage : ${cand.length}, dont verrou seul : ${cand.length-out.size}`);
+    return out;
+};
 
 
 const checkSelectionCountry=segIds=>{
@@ -10151,6 +10275,11 @@ const _srcSchemaOk = () => {
 const probeSourceCap = async () => {
     _srcCap = {ok:false, reason:null, checked:true};
     try{
+        // Plus de modèle interne (`W` retiré de WME le 24/11/2026) : le SDK ne sait pas poser de
+        // Source (addClosure : « attributions … populated based on the logged-in user », relu le
+        // 01/11/2026 dans la doc du SDK, RoadClosures = addClosure, deleteClosure, getAll, getById).
+        // Le champ se grise avec ce motif, qui dit quoi faire ; rien d'autre ne change.
+        if(typeof W==='undefined' || !W || !W.model || !W.model.roadClosures){ _srcCap.reason='nomodel'; return _srcCap; }
         // Le schema du modele porte-t-il encore la Source ? Si WME renomme/retire ces champs.
         if(!_srcSchemaOk()){ _srcCap.reason='schema'; return _srcCap; }
         // ⚠️ On NE se fie PLUS au flag `partnerUser` (0.87.01) : verrou trop strict. Un editeur
@@ -10204,7 +10333,7 @@ const renderSourceSel = () => {
     const dispo = _srcCap.ok && hasPartners && !turnTarget;
     _grise(wrap, !dispo);
     const why = turnTarget ? t('srcSelTurn')
-              : !_srcCap.ok ? t('srcSelOff_'+(_srcCap.reason||'schema'))
+              : !_srcCap.ok ? (_srcCap.reason==='nomodel' ? t('srcSelOff_nomodel') : t('srcSelOff_'+(_srcCap.reason||'schema')))
               : !hasPartners ? t('srcSelOff_nopartner')
               : '';
     wrap.title = dispo ? t('tipSource') : why;
@@ -11222,19 +11351,63 @@ const showPreview=()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 //  ADD CLOSURE + APPLY QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
+// ─── LA PILE DE WME (doctrine France § 3.1 ; audit du 01/11/2026) ───────────────────────────
+// sdk.Editing.save() et sdk.Editing.undoAll() portent sur TOUTE la pile des modifications en
+// attente de WME, pas sur les seules fermetures de WCT. Le SDK n'offre ni « enregistrer ceci »
+// ni « défaire ceci » : la seule protection possible est de COMPTER. D'où trois règles :
+//  1. au clic Appliquer et en tête de chaque lot, la pile doit être vide (_attenteEtrangere) ;
+//  2. pendant le lot, WCT relit le compte avant et après chacune de ses poses : « attendu » est
+//     ce que la pile contient de son fait. Juste avant save() et juste avant undoAll(), le compte
+//     doit valoir exactement « attendu » ; sinon une édition de l'éditeur s'est glissée dans la
+//     pile, et WCT n'enregistre RIEN et ne défait RIEN : il s'arrête et l'explique, l'éditeur
+//     enregistre ou annule lui-même avec les boutons de WME ;
+//  3. un compte ILLISIBLE n'est pas zéro : c'est « je ne sais pas », et on s'arrête de même.
+// ⚠️ Ce que le compte ne voit pas, et qui est dit dans l'aide et la description : une édition
+// faite PENDANT l'appel addClosure lui-même (quelques millisecondes) serait mise au compte de
+// WCT ; et une édition qui remplacerait exactement une de ses poses laisserait le compte égal.
+// Non établi en réel : qu'une fermeture créée compte pour une modification. Les règles tiennent
+// dans les deux cas, puisque « attendu » est MESURÉ et non supposé.
+// Rend le nombre de modifications en attente, ou null s'il est illisible.
+const _compteEnAttente=async()=>{
+    try{
+        const v=await sdk.Editing.getUnsavedChangesCount();
+        return (typeof v==='number' && Number.isInteger(v) && v>=0) ? v : null;
+    }catch(e){ log('getUnsavedChangesCount: '+e.message); return null; }
+};
+// Arrêt sans toucher à la pile : ni save(), ni undoAll(). L'application entière s'arrête (le lot
+// suivant trouverait de toute façon la pile non vide) ; l'alerte dit à l'éditeur que des
+// fermetures de WCT peuvent l'attendre dans WME, le bilan le redit.
+const _arretPile=(koCb,msg,bilan)=>{
+    _applyAborted=true;
+    try{ alert(msg); }catch(e){}
+    koCb&&koCb([msg],bilan||{});
+};
+// Message d'arrêt selon le compte lu : illisible, ou différent de ce que WCT a posé.
+// `defaire` : l'arrêt retient un undoAll() (refus de Waze, Source impossible) et non un save().
+const _msgPile=(lu,attendu,defaire)=> lu===null
+    ? t(defaire?'applyPileIllisibleUndo':'applyPileIllisible')
+    : t(defaire?'applyPileEcartUndo':'applyPileEcart',lu,attendu);
+// Défaire le lot, SEULEMENT si la pile ne contient que lui. Rend 'fait' (défait), 'vide' (rien à
+// défaire), 'echec' (undoAll a levé) ou { lu } quand WCT s'abstient (pile différente ou illisible).
+const _defaireLot=async(attendu)=>{
+    const lu=await _compteEnAttente();
+    if(lu===0) return 'vide';
+    if(lu===null || lu!==attendu) return { lu };
+    try{ await sdk.Editing.undoAll(); return 'fait'; }
+    catch(e){ log('undoAll: '+e.message); return 'echec'; }
+};
 // Modifications en attente qui ne viennent PAS de WCT : save() les publierait avec le lot, et
 // undoAll() les déferait sur un refus. Le clic Appliquer refuse déjà de partir s'il y en a ;
 // ce garde rattrape celles que l'éditeur fait PENDANT l'application (il peut éditer entre deux
 // lots). Appelé en tête de chaque pose : entre deux lots, WCT a tout enregistré ou tout défait,
 // donc le compte doit valoir 0. Sinon on arrête toute l'application, sans rien écrire
-// (doctrine France § 3.1, 1.25.00). Compte illisible : on n'arrête rien (comportement d'avant).
+// (doctrine France § 3.1, 1.25.00). Compte illisible : on arrête aussi (1.26.04 ; avant, on
+// partait quand même).
 const _attenteEtrangere=async(koCb)=>{
-    let n=0;
-    try{ n=Number(await sdk.Editing.getUnsavedChangesCount())||0; }
-    catch(e){ log('getUnsavedChangesCount: '+e.message); return false; }
-    if(!n) return false;
+    const n=await _compteEnAttente();
+    if(n===0) return false;
     _applyAborted=true;
-    koCb&&koCb([t('applyPendingStop',n)],{});
+    koCb&&koCb([n===null ? t('applyPendingUnreadable') : t('applyPendingStop',n)],{});
     return true;
 };
 const addClosure=async(options,okCb,koCb)=>{
@@ -11290,19 +11463,34 @@ const addClosure=async(options,okCb,koCb)=>{
     // Une fenêtre par trou quand le sens est comblé ; sinon le créneau demandé entier.
     // args.startDate/endDate sont déjà en heure murale, comme les fenêtres de _trierAFermer.
     const pleine=[[args.startDate,args.endDate]];
+    // Pile de WME (voir _compteEnAttente) : `attendu` = ce qu'elle contient du fait de CE lot,
+    // mesuré pose par pose. Elle était vide en tête de lot (_attenteEtrangere) ; mais entre ce
+    // garde et la première pose, il y a eu des attentes (sens inversés, relecture de l'API).
+    // `arret` : null, ou le compte lu qui a fait arrêter (null = illisible), dans { lu }.
+    const pile={ attendu:0, arret:null };
     for(const {sid,fwd,rev,fenetresF,fenetresR} of tri.plan){
+        if(pile.arret) break;
         args.segmentId=sid; const seg=getSegById(sid);
         if(interieurs){fromClosed=interieurs.has(Number(seg.fromNodeId));toClosed=interieurs.has(Number(seg.toNodeId));}
         // ⚠️ await DANS le try : en async, un refus du SDK est une promesse REJETÉE, que le
         // catch ne verrait pas sans lui — le segment serait compté posé.
         const poser=async(sensAvant,noeud,fenetres,lib)=>{
             for(const [a,b] of fenetres){
+                if(pile.arret) return;
+                // Avant la pose : la pile doit valoir exactement ce que WCT y a mis. Sinon
+                // l'éditeur a édité pendant l'application : on ne pose plus rien.
+                const avant=await _compteEnAttente();
+                if(avant!==pile.attendu){ pile.arret={ lu:avant }; return; }
                 try{
                     const cree = await sdk.DataModel.RoadClosures.addClosure({...args,isForward:sensAvant,fromNodeClosed:noeud,startDate:a,endDate:b});
                     segsPoses.add(sid);
                     if(cree && cree.id != null) _creees.push(String(cree.id)); else _idsLisibles = false;
                 }
                 catch(e){ loopErrors.push(`seg ${sid} ${lib}: ${e.message}`); }
+                // Après la pose (réussie ou non) : ce qu'elle a laissé dans la pile est à WCT.
+                const apres=await _compteEnAttente();
+                if(apres===null){ pile.arret={ lu:null }; return; }
+                pile.attendu=apres;
             }
         };
         if(fwd) await poser(true, fromClosed, fenetresF||pleine, 'fwd');
@@ -11323,6 +11511,9 @@ const addClosure=async(options,okCb,koCb)=>{
                     erreurs:loopErrors.length, objets:_nouvelles?_nouvelles.length:null,
                     sansSens:tri.sansSens.length, dejaFermes:tri.dejaFermes.length,
                     sensBloques:tri.sensBloques, combles:tri.combles.length, trous:tri.trous };
+    // Une édition s'est glissée dans la pile pendant les poses, ou le compte est devenu
+    // illisible : ni save() ni undoAll() — les fermetures déjà posées attendent dans WME.
+    if(pile.arret){ _arretPile(koCb,_msgPile(pile.arret.lu,pile.attendu,false),bilan); return; }
     // Rien à écrire : ne PAS appeler save(). Si tout a été écarté pour une raison
     // légitime (déjà fermé, aucun sens ouvert), ce n'est pas un échec — c'est même le
     // cas d'une file ré-appliquée après un premier passage réussi.
@@ -11346,26 +11537,43 @@ const addClosure=async(options,okCb,koCb)=>{
             // une fermeture faussement attribuée à un partenaire n'est pas un détail
             // cosmétique. Si l'annulation elle-même échoue, le taire laisserait
             // l'éditeur croire que rien n'a été écrit alors que si.
-            let annule = true;
-            try{ await sdk.Editing.undoAll(); }catch(err){ annule = false; log('addClosure/undoAll: '+err.message); }
-            koCb&&koCb([annule ? t('srcApplyFail') : t('srcApplyFailNoUndo')], bilan);
+            // ⚠️ undoAll() défait TOUTE la pile : seulement si elle ne contient que ce lot.
+            const d = await _defaireLot(pile.attendu);
+            if(d && typeof d === 'object'){ _arretPile(koCb,_msgPile(d.lu,pile.attendu,true),bilan); return; }
+            koCb&&koCb([d !== 'echec' ? t('srcApplyFail') : t('srcApplyFailNoUndo')], bilan);
             return;
         }
+    }
+    // JUSTE AVANT save() : la pile doit valoir exactement ce que ce lot y a mis. Sinon save()
+    // publierait avec les fermetures une édition de l'éditeur (ou rien n'est lisible) : on
+    // n'enregistre pas, on ne défait pas, on s'arrête et on l'explique.
+    {
+        const lu=await _compteEnAttente();
+        if(lu!==pile.attendu){ _arretPile(koCb,_msgPile(lu,pile.attendu,false),bilan); return; }
     }
     let v;
     try{ v=await sdk.Editing.save(); }
     catch(r){
         // Une promesse rejetée laisse les fermetures en attente dans l'éditeur : les
-        // défaire, sinon le prochain save() les renverrait avec le lot suivant.
-        try{ await sdk.Editing.undoAll(); }catch(e){ log('addClosure/undoAll apres refus: '+e.message); }
+        // défaire, sinon le prochain save() les renverrait avec le lot suivant — mais
+        // seulement si la pile ne contient que ce lot (voir _defaireLot).
+        const d = await _defaireLot(pile.attendu);
+        if(d && typeof d === 'object'){ _arretPile(koCb,_msgPile(d.lu,pile.attendu,true),bilan); return; }
         bilan.refusServeur=true; koCb&&koCb([r?.message||String(r)], bilan);
         return;
     }
     {
+        // ⚠️ `.error-list` est un nœud de l'interface de WME (pas d'équivalent dans le SDK, déclaré
+        // dans l'aide) : c'est par lui que WME affiche un refus du serveur après save().
         const er=document.querySelector('.error-list');
         // refusServeur : c'est Waze qui a dit non. Seul ce cas autorise applyQueue à
         // recouper le lot pour isoler le fautif (voir _poserParMoitie).
-        if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();await _essai(()=>sdk.Editing.undoAll(),'addClosure/undoAll');bilan.refusServeur=true;koCb&&koCb([msg], bilan);}
+        if(er){
+            const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();
+            const d = await _defaireLot(pile.attendu);
+            if(d && typeof d === 'object'){ _arretPile(koCb,_msgPile(d.lu,pile.attendu,true),bilan); return; }
+            bilan.refusServeur=true;koCb&&koCb([msg], bilan);
+        }
         // ⚠️ CORROBORATION. `.error-list` est un nœud de l'interface de WAZE, pas un
         // contrat : le jour où cette classe est renommée, `er` vaut null et TOUT refus
         // deviendrait un succès annoncé — sur l'opération la plus coûteuse du script.
@@ -11452,13 +11660,20 @@ const addTurnClosure=async(options,okCb,koCb)=>{
     const aPoser=turnIds.filter(tid=>!dejaFermes.includes(tid));
     const loopErrors=[];
     let poses=0;
+    // Pile de WME : même règle que les segments (voir _compteEnAttente et addClosure).
+    const pile={ attendu:0, arret:null };
     for(const tid of aPoser){
         args.turnId=String(tid);
+        const avant=await _compteEnAttente();
+        if(avant!==pile.attendu){ pile.arret={ lu:avant }; break; }
         // Ne crediter QUE ce que le SDK rend. Un virage refuse — virage interdit, ou rang
         // insuffisant au regard de allowRoadClosureRank du pays — leve ici : le compter
         // comme pose afficherait « applique » sur une fermeture absente de la carte.
         try{ if(await sdk.DataModel.TurnClosures.addClosure({...args})) poses++; }
         catch(e){ loopErrors.push(`turn ${tid}: ${e.message}`); }
+        const apres=await _compteEnAttente();
+        if(apres===null){ pile.arret={ lu:null }; break; }
+        pile.attendu=apres;
     }
     let objets=null;
     if(idsAvant){
@@ -11475,24 +11690,39 @@ const addTurnClosure=async(options,okCb,koCb)=>{
     // compte partiel sans savoir ce qu'il doit corriger.
     const cause=loopErrors.length?String(loopErrors[0]).replace(/^turn \d+: /,''):'';
     const bilan={ demandes:turnIds.length, poses, erreurs:loopErrors.length, objets, cause, dejaFermes:dejaFermes.length };
+    // Jumeau des segments : une édition s'est glissée dans la pile, ou le compte est illisible.
+    if(pile.arret){ _arretPile(koCb,_msgPile(pile.arret.lu,pile.attendu,false),bilan); return; }
     // Tout était déjà fermé sur le créneau : rien à écrire, et ce n'est pas un échec (même
     // règle que les segments : une file ré-appliquée après un premier passage réussi).
     if(!aPoser.length){ okCb&&okCb(null, bilan); return; }
     // Rien n'a ete pose : save() n'aurait rien a sauver et remonterait « Save is disabled »,
     // qui masque la vraie cause. On tranche avant, avec le motif.
     if(poses===0){ koCb&&koCb([cause||t('applyNothingWritten')], bilan); return; }
+    // JUSTE AVANT save() : la pile ne doit contenir que ce lot (jumeau des segments).
+    {
+        const lu=await _compteEnAttente();
+        if(lu!==pile.attendu){ _arretPile(koCb,_msgPile(lu,pile.attendu,false),bilan); return; }
+    }
     let v;
     try{ v=await sdk.Editing.save(); }
     catch(r){
         // Jumeau du chemin des segments : une promesse rejetée laisse les fermetures de virage
         // EN ATTENTE dans l'éditeur. Sans undoAll, le save() du lot suivant les publiait alors
-        // que cette carte affichait un échec (audit du 25/09/2026).
-        try{ await sdk.Editing.undoAll(); }catch(e){ log('addTurnClosure/undoAll apres refus: '+e.message); }
+        // que cette carte affichait un échec (audit du 25/09/2026). Seulement si la pile ne
+        // contient que ce lot.
+        const d = await _defaireLot(pile.attendu);
+        if(d && typeof d === 'object'){ _arretPile(koCb,_msgPile(d.lu,pile.attendu,true),bilan); return; }
         koCb&&koCb([r?.message||String(r)], bilan);
         return;
     }
+    // `.error-list` : nœud de l'interface de WME, sans équivalent SDK (déclaré dans l'aide).
     const er=document.querySelector('.error-list');
-    if(er){const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();await _essai(()=>sdk.Editing.undoAll(),'addTurnClosure/undoAll');koCb&&koCb([msg], bilan);}
+    if(er){
+        const msg=er.querySelector('.description')?.textContent||'error';er.querySelector('.close-button')?.click();
+        const d = await _defaireLot(pile.attendu);
+        if(d && typeof d === 'object'){ _arretPile(koCb,_msgPile(d.lu,pile.attendu,true),bilan); return; }
+        koCb&&koCb([msg], bilan);
+    }
     else{okCb&&okCb(v, bilan);}
 };
 // Interruption demandée par l'utilisateur (bouton Stop ou touche Échap).
@@ -13367,12 +13597,13 @@ const centerOnSegmentBbox=(coords,zoomLevel=17)=>{
         const cLon=(minLon+maxLon)/2, cLat=(minLat+maxLat)/2;
         // Une seule pose : le décalage est calculé pour le zoom d'arrivée. L'ancienne
         // version centrait puis rectifiait 150 ms après — le saut se voyait.
-        _centrerSurZoneVisible(cLon,cLat,zoomLevel);
+        // Rendue : l'appelant qui veut l'ordre peut l'attendre (audit du 01/11/2026).
+        return _centrerSurZoneVisible(cLon,cLat,zoomLevel);
     }catch(e){
         console.warn('WCT centerOnSegmentBbox:',e);
         try{
             const mid=coords[Math.floor(coords.length/2)];
-            _essai(()=>sdk.Map.setMapCenter({lonLat:{lon:mid[0],lat:mid[1]},zoomLevel:15}),'centrage segment');
+            return _essai(()=>sdk.Map.setMapCenter({lonLat:{lon:mid[0],lat:mid[1]},zoomLevel:15}),'centrage segment');
         }catch(e2){}
     }
 };
@@ -14947,7 +15178,7 @@ const _polyProcessRings = async (rings, parIds) => {
         }
         const savedCenter = _wme.centre, savedZoom = _wme.zoom;
         const res = await _polyLoadAndSelect(cible);
-        _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
+        await _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
         _polyZone = { rings, bbox, tous: retenus, ids: res.ids, groupes: res.groupes || [] };
         if(_currentTurns){ _currentTurns = null; renderTurnBanner(); }   // cible unique, cf. ci-dessus
         const stop = _sweepAborted;
@@ -15258,7 +15489,7 @@ const _polyApplyTypes = async () => {
     const savedCenter = _wme.centre, savedZoom = _wme.zoom;
     try {
         const res = await _polyLoadAndSelect(cible);
-        _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
+        await _essai(() => sdk.Map.setMapCenter({ lonLat: { lon: savedCenter.lon, lat: savedCenter.lat }, zoomLevel: savedZoom }), 'retour à la vue');
         _polyZone.ids = res.ids; _polyZone.groupes = res.groupes || [];
         showToast(t('polyTypesApplied', res.ids.length, _polyZone.tous.length), 4000, '#43a047');
     } catch(e){
@@ -17421,7 +17652,9 @@ const connectOverlay=ov=>{
                 .map(g=>({bbox:g.bbox, ids:g.ids.map(Number).filter(id=>valides.has(id))}))
                 .filter(g=>g.ids.length);
             if(lots.length){
-                const lastTB=await fetchLastTileBuild();
+                // Un seul tri pour toute la zone (historique lu pour les seuls segments datés
+                // après l'assemblage), puis réparti par lot : voir _segsRecents.
+                const recents=await _segsRecents(lots.flatMap(g=>g.ids),await fetchLastTileBuild());
                 lots.forEach((g,i)=>{
                     // ⚠️ lotKind : c'est lui qui décide de la pause entre deux lots à
                     // l'application. Une zone s'applique d'un trait — l'éditeur a déjà
@@ -17437,11 +17670,7 @@ const connectOverlay=ov=>{
                     if(nodesSel) e2.nodesInside=nodesSel;
                     // ⚠️ nullSegs VOLONTAIREMENT vide : un segment hors vue sera rechargé par
                     // le recadrage du lot. L'y inscrire le ferait SAUTER à l'application.
-                    e2.nullSegs=new Set(); e2.recentSegs=new Set();
-                    if(lastTB>0) g.ids.map(Number).forEach(id=>{
-                        const seg=getSegById(id);
-                        if(seg&&seg.modificationData?.updatedOn>lastTB) e2.recentSegs.add(id);
-                    });
+                    e2.nullSegs=new Set(); e2.recentSegs=new Set(g.ids.filter(id=>recents.has(id)));
                     queue.push(e2);
                 });
                 renderQueue();
@@ -17469,16 +17698,10 @@ const connectOverlay=ov=>{
         if(dirConflicts.length) entry.excludedSegs=dirConflicts;
         // Détecter les segments absents du data model (ex. modif récente non propagée)
         entry.nullSegs=new Set(validIds.map(Number).filter(id=>getSegById(id)===null));
-        // Détecter les segments modifiés après le dernier assemblage de tiles
-        const lastTileBuild=await fetchLastTileBuild();
-        entry.recentSegs=new Set();
-        if(lastTileBuild>0){
-            validIds.map(Number).forEach(id=>{
-                if(entry.nullSegs.has(id)) return; // déjà signalé comme absent
-                const seg=getSegById(id);
-                if(seg&&seg.modificationData?.updatedOn>lastTileBuild) entry.recentSegs.add(id);
-            });
-        }
+        // Détecter les segments modifiés après le dernier assemblage de tiles, sauf ceux dont
+        // seul le verrou a changé depuis (voir _segsRecents). Un segment absent du modèle,
+        // déjà dans nullSegs, n'a pas de date : il n'y entre pas.
+        entry.recentSegs=await _segsRecents(validIds,await fetchLastTileBuild());
         queue.push(entry);
         renderQueue();
         const badSegs=entry.nullSegs.size+entry.recentSegs.size;
@@ -17608,10 +17831,12 @@ const connectOverlay=ov=>{
         // undoAll() les déferait si Waze refuse. Jusqu'à la 1.24.05 on le DISAIT sans l'interdire ;
         // la doctrine France (§ 3.1, octobre 2026) veut qu'un script ne touche jamais aux
         // modifications en attente de l'éditeur ⇒ on REFUSE de partir tant qu'il y en a.
-        // Les modifications faites PENDANT l'application sont arrêtées par _attenteEtrangere.
-        // Compte illisible : on part quand même (comportement d'avant), et le journal le dit.
-        let enAttente=0;
-        try{ enAttente=Number(await sdk.Editing.getUnsavedChangesCount())||0; }catch(e){ log('getUnsavedChangesCount: '+e.message); }
+        // Les modifications faites PENDANT l'application sont arrêtées par _attenteEtrangere, et
+        // juste avant chaque save() / undoAll() par le compte de la pile (voir _compteEnAttente).
+        // Compte ILLISIBLE : on ne part pas (audit du 01/11/2026 ; jusqu'à la 1.26.03 on partait
+        // quand même) — sans ce compte, rien ne garantit que save() n'emporte que les fermetures.
+        const enAttente=await _compteEnAttente();
+        if(enAttente===null){ alert(t('applyPendingUnreadable')); return; }
         if(enAttente){ alert(t('applyPendingBlock',enAttente)); return; }
         // Acte identifiable (doctrine France § 3.3) : une entrée SANS MOTIF est SIGNALÉE, pas bloquée
         // (arbitrage de l'auteur du 11/10/2026). Le MTE n'est jamais exigé, et le message n'en parle
@@ -18880,11 +19105,14 @@ const buildSidebar=()=>`
 //  - si son code ne correspond pas à l'empreinte publiée pour sa version (`empreintes`) — copie
 //    modifiée ou abîmée. L'empreinte est un SHA-256 du code, sans les lignes @downloadURL et
 //    @updateURL que GreasyFork réécrit ;
-//  - si le gestionnaire de scripts ne lui donne pas son code (Tampermonkey requis : choix de l'auteur) ;
 //  - si sa version n'est pas publiée (absente de `empreintes`) — sauf pour l'auteur, qui essaie ses
 //    versions avant de les publier.
 // Fichier injoignable ou illisible : le script démarre (une panne de GitHub ne doit pas paralyser
-// les éditeurs). ⚠️ Tout cela tourne dans le navigateur : il arrête la copie périmée ou bricolée,
+// les éditeurs). Code du script illisible par le navigateur : l'empreinte ne peut pas être calculée,
+// et le script démarre aussi (seule la version minimale s'applique) — l'ancien commentaire
+// « Tampermonkey requis » ne disait pas ce que fait le code (audit du 01/11/2026).
+// ⚠️ Ordre de publication : l'empreinte d'une version doit être dans version-min.json AVANT que
+// GreasyFork la serve, sinon elle ne démarre chez personne d'autre que l'auteur. ⚠️ Tout cela tourne dans le navigateur : il arrête la copie périmée ou bricolée,
 // pas celui qui retire ces lignes ; la vraie barrière reste côté Waze.
 const _VM_URL = 'https://raw.githubusercontent.com/DrSlump34/WME-Closures-Toolkit/master/version-min.json';
 const _VM_MAJ = 'https://greasyfork.org/scripts/581015';
@@ -18910,6 +19138,7 @@ const _vmAuteur = async () => {
     const estAuteur = n => !!n && _vmHx(String(n).toLowerCase()) === 0xc0bef069;
     try {
         const w = (typeof unsafeWindow !== 'undefined' && unsafeWindow.getWmeSdk) ? unsafeWindow : window;
+        // Mode ASYNC aussi (seul mode au 01/01/2027) : getUserInfo est attendu plus bas.
         const sdkVm = w.getWmeSdk({ scriptId: 'wme-closures-toolkit-vm', scriptName: String(SCRIPT_NAME) + ' (version)', mode: 'async' });
         for (let i = 0; i < 20; i++) {
             let u = null;
@@ -19017,7 +19246,10 @@ const init=async()=>{
     // Mode ASYNC (Discuss 412920) : seul mode au 01/01/2027. Toutes les méthodes du SDK rendent des
     // promesses ; WCT les attend toutes et lit l'état de WME dans le miroir `_wme`. Une version de WME
     // qui ne connaît pas encore ce mode (prod v2.370) l'ignore et rend des valeurs : les await passent.
-    sdk=getWmeSdk({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME,mode:'async'});
+    // getWmeSdk est posé par WME sur la page : en bac à sable (@grant), on le prend sur
+    // unsafeWindow quand il y est, comme le contrôle de version (fiche du 09/10, constat 14).
+    const _gws=o=>(typeof unsafeWindow!=='undefined' && unsafeWindow.getWmeSdk) ? unsafeWindow.getWmeSdk(o) : getWmeSdk(o);
+    sdk=_gws({scriptId:SCRIPT_ID,scriptName:SCRIPT_NAME,mode:'async'});
     // Ce qui ne change pas pendant la session, relu une fois ; puis le premier relevé du miroir.
     try{ _wme.locale = (await sdk.Settings.getLocale())?.localeCode || ''; }catch(e){}
     try{ _wme.region = (await sdk.Settings.getRegionCode()) || ''; }catch(e){}
@@ -19168,7 +19400,10 @@ const init=async()=>{
         try{ if(queue.length) renderQueue(); }catch(e){}
         try{ if($id('wct-pane-src')?.classList.contains('on')) refreshSrcPartnerFilter(); }catch(e){}
     });
-    setInterval(_selTour,500);
+    // La sélection arrive par « wme-selection-changed » (abonnement ci-dessus). Le tour périodique
+    // n'est plus qu'un FILET : il re-docke le bouton flottant si WME a reconstruit la barre, et
+    // rattrape un événement manqué. 2 s au lieu de 500 ms (fiche du 09/10, constat 13).
+    setInterval(_selTour,2000);
     _selTour();
     // Note : plus besoin de gérer le z-index à l'ouverture des Calques —
     // le FAB étant docké dans le container natif, il suit le même empilement que les boutons WME.
