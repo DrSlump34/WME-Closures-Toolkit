@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.26.07
+// @version      1.27.00
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -1453,6 +1453,35 @@ GM_addStyle(`
     #wct-main-tabs .wct-main-tab { font-size: 0.8em; padding-left: 2px; padding-right: 2px; }
 }
 
+/* — Confirmation de publication (et rappel de responsabilité) : modale sur le body, au-dessus de la carte et de la fenêtre — */
+#wct-rappel { position: fixed; inset: 0; z-index: 10070; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: rgba(38,50,56,.28); }
+#wct-rappel .wct-rp { width: 380px; max-width: 100%; max-height: 100%; overflow: auto; box-sizing: border-box; background: var(--wct-surface); border: 1px solid var(--wct-border);
+    border-radius: 12px; box-shadow: var(--wct-shadow); font-family: 'Rubik','Open Sans',sans-serif; font-size: 12px; line-height: 1.5; color: var(--wct-text); outline: none; }
+#wct-rappel .wct-rp-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px 7px 12px;
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%); color: #fff; }
+#wct-rappel .wct-rp-titre { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; font-weight: 700; }
+#wct-rappel .wct-rp-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+#wct-rappel .wct-rp-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 24px; height: 24px; min-height: 0; border-radius: 50%; padding: 0; flex-shrink: 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
+#wct-rappel .wct-rp-x:hover { background: rgba(255,255,255,.35); }
+#wct-rappel .wct-rp-tete :focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+#wct-rappel .wct-rp-corps { padding: 10px 12px 2px; }
+#wct-rappel .wct-rp-corps p { margin: 0 0 7px; }
+#wct-rappel .wct-rp-question { font-weight: 600; }
+#wct-rappel .wct-rp-alerte { padding: 5px 8px; border-radius: 8px; background: #fff3e0; color: #8d4b00; font-size: 11px; font-weight: 600; }
+#wct-rappel .wct-rp-note { font-size: 11px; color: var(--wct-text2); }
+#wct-rappel .wct-rp-boutons { display: flex; justify-content: flex-end; gap: 6px; padding: 0 12px 10px; }
+#wct-rappel .wct-btn { padding: 3px 10px; font: 600 11px 'Rubik','Open Sans',sans-serif; line-height: 1.6; height: auto; min-height: 0; transition: none; }
+#wct-rappel .wct-btn:active { transform: none; }
+#wct-rappel .wct-btn-neutral { background: #dde3ea; color: var(--wct-text); }
+#wct-rappel .wct-btn-neutral:hover { background: #cfd8e2; filter: none; }
+/* Pilule pleine de la charte : texte blanc sur #1976d2 (4,60:1). */
+#wct-rappel .wct-btn-primary { background: #1976d2; }
+#wct-rappel .wct-btn-primary:hover { background: #1565c0; filter: none; }
+#wct-rappel .wct-rp-boutons :focus-visible { outline: 2px solid var(--wct-blue); outline-offset: 1px; }
+html:is([data-wme-studio-theme="dark"],[data-wme-studio-theme="black"]) #wct-rappel .wct-rp { background: var(--wme-studio-surface, #2b2f33); border-color: var(--wme-studio-border, #4a5056); color: var(--wme-studio-text, #e8eaed); }
+html:is([data-wme-studio-theme="dark"],[data-wme-studio-theme="black"]) #wct-rappel .wct-rp-note { color: var(--wme-studio-text-secondary, #b6c0ca); }
+
 `);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1813,6 +1842,13 @@ const D = {
             confirmClear:'Vider la file\u00A0?',
             clearBusy:'Application en cours : utilisez Stop (ou \u00C9chap) pour l\u2019interrompre. Le journal doit rester visible.',
             confirmApply: (n,m) => `Publier ${n} fermeture(s) sur la carte Waze ? (${m} entrée(s) dans la file)`,
+            remTitle:'Vous restez responsable de vos éditions',
+            remBody:'<p>WME Closures Toolkit <b>prépare</b> les fermetures de la file\u00a0; c’est vous qui décidez de les publier.</p><p>Attention, il <b>publie lui\u2011même</b>\u00a0: les fermetures partent sur la carte Waze dès que vous cliquez sur Publier, sans passer par le bouton Enregistrer de WME. WCT ne sait pas les retirer ensuite\u00a0: il faudrait les supprimer à la main. Relisez la file avant (segments, sens, créneaux, motif).</p><p>Ce que vous publiez avec WCT est votre édition, comme si vous l’aviez faite à la main.</p>',
+            remNote:'Ce rappel s’affiche une fois par navigateur\u00a0; il se revoit depuis l’onglet du script.',
+            remOk:'J’ai compris',
+            confTitle:'Publier sur la carte Waze',
+            confPublish:'Publier',
+            remLink:'Revoir le rappel de responsabilité',
             applyPendingBlock: k => `Appliquer est bloqué : ${k} modification(s) non enregistrée(s) dans WME. Enregistrez-les ou annulez-les d’abord : WCT ne publie que ses propres fermetures.`,
             applyPendingStop: k => `Application arrêtée : ${k} modification(s) faite(s) dans WME pendant l’application. Enregistrez-les ou annulez-les, puis relancez Appliquer : ce qui est déjà posé sera écarté.`,
             applyPendingUnreadable: `Appliquer est bloqué : WCT ne parvient pas à lire le nombre de modifications non enregistrées dans WME. Sans ce compte, il ne peut pas garantir de n’enregistrer que ses propres fermetures : il n’écrit rien de plus. Rechargez WME, puis relancez Appliquer (ce qui est déjà posé sera écarté).`,
@@ -2430,6 +2466,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' erreur(s)':''} 
             confirmClear:'Clear the queue?',
             clearBusy:'Apply is running: use Stop (or Esc) to interrupt it. The log must stay visible.',
             confirmApply: (n,m) => `Publish ${n} closure(s) on the Waze map? (${m} queued entry/ies)`,
+            remTitle:'You remain responsible for your edits',
+            remBody:'<p>WME Closures Toolkit <b>prepares</b> the closures in the queue; you decide to publish them.</p><p>Note that it <b>publishes them itself</b>: the closures go live on the Waze map as soon as you click Publish, without going through WME’s Save button. WCT cannot remove them afterwards: they would have to be deleted by hand. Check the queue first (segments, direction, time slots, reason).</p><p>What you publish with WCT is your edit, just as if you had made it by hand.</p>',
+            remNote:'This reminder is shown once per browser; you can see it again from the script tab.',
+            remOk:'I understand',
+            confTitle:'Publish on the Waze map',
+            confPublish:'Publish',
+            remLink:'See the responsibility reminder again',
             applyPendingBlock: k => `Apply is blocked: ${k} unsaved edit(s) in WME. Save or undo them first: WCT only publishes its own closures.`,
             applyPendingStop: k => `Apply stopped: ${k} edit(s) made in WME during the run. Save or undo them, then run Apply again: what is already placed will be skipped.`,
             applyPendingUnreadable: `Apply is blocked: WCT cannot read the number of unsaved edits in WME. Without that count it cannot guarantee that it saves only its own closures, so it writes nothing more. Reload WME, then run Apply again (what is already placed will be skipped).`,
@@ -3050,6 +3093,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'לנקות את התור?',
             clearBusy:'החלה מתבצעת: השתמש ב-Stop (או Esc) כדי לעצור. היומן חייב להישאר גלוי.',
             confirmApply: (n,m) => `לפרסם ${n} חסימות במפת Waze? (${m} רשומות בתור)`,
+            remTitle:'האחריות על העריכות נשארת שלכם',
+            remBody:'<p><bdi>WME Closures Toolkit</bdi> <b>מכין</b> את החסימות שבתור; אתם מחליטים לפרסם אותן.</p><p>שימו לב: <b>הוא מפרסם בעצמו</b>. החסימות עולות למפת <bdi>Waze</bdi> ברגע שאתם לוחצים „פרסם”, בלי לעבור דרך כפתור השמירה של WME. <bdi>WCT</bdi> אינו יודע להסיר אותן אחר כך: יהיה צורך למחוק אותן ידנית. בדקו את התור לפני כן (מקטעים, כיוון, חלונות זמן, סיבה).</p><p>מה שאתם מפרסמים עם <bdi>WCT</bdi> הוא העריכה שלכם, כאילו עשיתם אותה ביד.</p>',
+            remNote:'תזכורת זו מוצגת פעם אחת בכל דפדפן; אפשר לראות אותה שוב מלשונית הסקריפט.',
+            remOk:'הבנתי',
+            confTitle:'פרסום במפת Waze',
+            confPublish:'פרסם',
+            remLink:'הצגה חוזרת של תזכורת האחריות',
             applyPendingBlock: k => `ההחלה חסומה: ${k} עריכות שלא נשמרו ב-WME. שמור או בטל אותן קודם: WCT מפרסם רק את החסימות שלו.`,
             applyPendingStop: k => `ההחלה נעצרה: ${k} עריכות בוצעו ב-WME במהלך ההחלה. שמור או בטל אותן, ואז הפעל שוב את „החל”: מה שכבר הוצב ידולג.`,
             applyPendingUnreadable: `ההחלה חסומה: WCT לא מצליח לקרוא את מספר העריכות שלא נשמרו ב-WME. בלי ספירה זו אין לו דרך להבטיח שישמור רק את החסימות שלו, ולכן הוא לא כותב דבר נוסף. טען מחדש את WME והפעל שוב את „החל” (מה שכבר הוצב ידולג).`,
@@ -3664,6 +3714,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'Svuotare la coda?',
             clearBusy:'Applicazione in corso: usa Stop (o Esc) per interromperla. Il registro deve restare visibile.',
             confirmApply: (n,m) => `Pubblicare ${n} chiusura/e sulla mappa Waze? (${m} voce/i in coda)`,
+            remTitle:'Resta responsabile delle sue modifiche',
+            remBody:'<p>WME Closures Toolkit <b>prepara</b> le chiusure della coda; è lei a decidere di pubblicarle.</p><p>Attenzione: <b>WCT le pubblica da solo</b>. Le chiusure vanno online sulla mappa Waze appena fa clic su Pubblica, senza passare dal pulsante Salva di WME. WCT non sa rimuoverle dopo: andrebbero eliminate a mano. Controlli prima la coda (segmenti, senso, fasce orarie, motivo).</p><p>Ciò che pubblica con WCT è una sua modifica, come se l’avesse fatta a mano.</p>',
+            remNote:'Questo promemoria compare una volta per browser; può rivederlo dalla scheda dello script.',
+            remOk:'Ho capito',
+            confTitle:'Pubblica sulla mappa Waze',
+            confPublish:'Pubblica',
+            remLink:'Rivedere il promemoria sulla responsabilità',
             applyPendingBlock: k => `Applica è bloccato: ${k} modifica/he non salvata/e in WME. Salvale o annullale prima: WCT pubblica solo le proprie chiusure.`,
             applyPendingStop: k => `Applicazione interrotta: ${k} modifica/he fatta/e in WME durante l’applicazione. Salvale o annullale, poi rilancia Applica: ciò che è già posato verrà scartato.`,
             applyPendingUnreadable: `Applica è bloccato: WCT non riesce a leggere il numero di modifiche non salvate in WME. Senza questo conteggio non può garantire di salvare solo le proprie chiusure, quindi non scrive nient’altro. Ricarica WME, poi rilancia Applica (ciò che è già posato verrà scartato).`,
@@ -3671,7 +3728,7 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             applyPileIllisible: `Applicazione interrotta PRIMA del salvataggio: il numero di modifiche in attesa in WME è diventato illeggibile, WCT non può più verificare che salverebbe solo le sue chiusure. Non salva nulla e non annulla nulla. Le chiusure di questo lotto attendono in WME: salva o annulla tu stesso con i pulsanti di WME, poi rilancia Applica.`,
             applyPileEcartUndo: (n,k) => `Applicazione interrotta SENZA annullare: questo lotto è fallito, ma WME conta ${n} modifica/he in attesa invece delle ${k} posate da WCT. Annullare tutto cancellerebbe una modifica che non è sua: WCT non annulla nulla. Controlla la pila di WME, annulla tu stesso ciò che serve, poi rilancia Applica.`,
             applyPileIllisibleUndo: `Applicazione interrotta SENZA annullare: questo lotto è fallito, e il numero di modifiche in attesa in WME è illeggibile. Annullare tutto potrebbe cancellare una modifica che non è sua: WCT non annulla nulla. Controlla la pila di WME, annulla tu stesso ciò che serve, poi rilancia Applica.`,
-            confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, evento): indicalo nel motivo.`,
+            confirmApplySansActe: k => `\n\n⚠️ ${k} voce/i senza motivo. Una chiusura posata da uno script deve tradurre un atto identificabile (ordinanza, partner, evento): lo indichi nel motivo.`,
             applyExistingUnreadable: 'Chiusure esistenti illeggibili in questa vista: non è stato posato nulla, per non creare doppioni. Sposta leggermente la mappa, poi rilancia Applica.',
             turnDejaFermes: n => `${n} svolta/e già chiusa/e in questa fascia oraria: scartata/e.`,
             holRegionLocate: '📍 Ricava dalla posizione',
@@ -4279,6 +4336,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'Warteschlange leeren?',
             clearBusy:'Anwendung l\u00E4uft: mit Stopp (oder Esc) abbrechen. Das Protokoll muss sichtbar bleiben.',
             confirmApply: (n,m) => `${n} Sperrung(en) auf der Waze-Karte veröffentlichen? (${m} Einträge in der Warteschlange)`,
+            remTitle:'Sie bleiben für Ihre Bearbeitungen verantwortlich',
+            remBody:'<p>WME Closures Toolkit <b>bereitet</b> die Sperrungen der Warteschlange <b>vor</b>; Sie entscheiden, sie zu veröffentlichen.</p><p>Achtung, es <b>veröffentlicht selbst</b>: Die Sperrungen gehen auf der Waze-Karte live, sobald Sie auf Veröffentlichen klicken, ohne den Speichern-Knopf von WME. WCT kann sie danach nicht entfernen: Sie müssten von Hand gelöscht werden. Prüfen Sie vorher die Warteschlange (Segmente, Richtung, Zeitfenster, Grund).</p><p>Was Sie mit WCT veröffentlichen, ist Ihre Bearbeitung, als hätten Sie sie von Hand gemacht.</p>',
+            remNote:'Dieser Hinweis erscheint einmal pro Browser; im Skript-Tab können Sie ihn erneut ansehen.',
+            remOk:'Verstanden',
+            confTitle:'Auf der Waze-Karte veröffentlichen',
+            confPublish:'Veröffentlichen',
+            remLink:'Hinweis zur Verantwortung erneut anzeigen',
             applyPendingBlock: k => `Anwenden ist gesperrt: ${k} nicht gespeicherte Änderung(en) in WME. Zuerst speichern oder rückgängig machen: WCT veröffentlicht nur seine eigenen Sperrungen.`,
             applyPendingStop: k => `Anwenden angehalten: ${k} Änderung(en) während des Anwendens in WME vorgenommen. Speichern oder rückgängig machen, dann Anwenden erneut starten: bereits Gesetztes wird übersprungen.`,
             applyPendingUnreadable: `Anwenden ist gesperrt: WCT kann die Zahl der nicht gespeicherten Änderungen in WME nicht lesen. Ohne diese Zahl kann es nicht garantieren, nur seine eigenen Sperrungen zu speichern, und schreibt daher nichts mehr. WME neu laden, dann Anwenden erneut starten (bereits Gesetztes wird übersprungen).`,
@@ -4893,6 +4957,13 @@ applyDone: (ok,ko,total) => `\u2705 ${ok} OK${ko?' \u2014 '+ko+' error(s)':''} o
             confirmClear:'¿Vaciar la cola?',
             clearBusy:'Aplicaci\u00F3n en curso: usa Detener (o Esc) para interrumpirla. El registro debe seguir visible.',
             confirmApply: (n,m) => `¿Publicar ${n} cierre(s) en el mapa de Waze? (${m} entrada(s) en la cola)`,
+            remTitle:'Usted sigue siendo responsable de sus ediciones',
+            remBody:'<p>WME Closures Toolkit <b>prepara</b> los cierres de la cola; usted decide publicarlos.</p><p>Atención: <b>los publica él mismo</b>. Los cierres se publican en el mapa de Waze en cuanto hace clic en Publicar, sin pasar por el botón Guardar de WME. WCT no sabe retirarlos después: habría que borrarlos a mano. Revise antes la cola (segmentos, sentido, franjas horarias, motivo).</p><p>Lo que usted publica con WCT es su edición, como si la hubiera hecho a mano.</p>',
+            remNote:'Este aviso se muestra una vez por navegador; puede volver a verlo desde la pestaña del script.',
+            remOk:'Entendido',
+            confTitle:'Publicar en el mapa de Waze',
+            confPublish:'Publicar',
+            remLink:'Volver a ver el aviso de responsabilidad',
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} cambio(s) sin guardar en WME. Guárdalos o deshazlos antes: WCT solo publica sus propios cierres.`,
             applyPendingStop: k => `Aplicación detenida: ${k} cambio(s) hecho(s) en WME durante la aplicación. Guárdalos o deshazlos y vuelve a lanzar Aplicar: lo ya colocado se omitirá.`,
             applyPendingUnreadable: `Aplicar está bloqueado: WCT no consigue leer el número de cambios sin guardar en WME. Sin ese recuento no puede garantizar que solo guarde sus propios cierres, así que no escribe nada más. Recarga WME y vuelve a lanzar Aplicar (lo ya colocado se omitirá).`,
@@ -5507,6 +5578,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' error(es)':''} de ${t
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em andamento: use Parar (ou Esc) para interromper. O registro deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Publicar ${n} bloqueio(s) no mapa do Waze? (${m} entrada(s) na fila)`,
+            remTitle:'Você continua responsável pelas suas edições',
+            remBody:'<p>O WME Closures Toolkit <b>prepara</b> os bloqueios da fila; você decide publicá-los.</p><p>Atenção: ele <b>os publica sozinho</b>. Os bloqueios entram no mapa do Waze assim que você clica em Publicar, sem passar pelo botão Salvar do WME. O WCT não sabe removê-los depois: seria preciso apagá-los à mão. Confira a fila antes (segmentos, sentido, horários, motivo).</p><p>O que você publica com o WCT é a sua edição, como se a tivesse feito à mão.</p>',
+            remNote:'Este lembrete aparece uma vez por navegador; você pode revê-lo na aba do script.',
+            remOk:'Entendi',
+            confTitle:'Publicar no mapa do Waze',
+            confPublish:'Publicar',
+            remLink:'Rever o lembrete de responsabilidade',
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não salva(s) no WME. Salve-as ou desfaça-as antes: o WCT só publica os próprios bloqueios.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Salve-as ou desfaça-as e execute Aplicar de novo: o que já foi colocado será ignorado.`,
             applyPendingUnreadable: `Aplicar está bloqueado: o WCT não consegue ler o número de alterações não salvas no WME. Sem essa contagem, ele não pode garantir que salva só os próprios bloqueios, então não escreve mais nada. Recarregue o WME e execute Aplicar de novo (o que já foi colocado será ignorado).`,
@@ -6121,6 +6199,13 @@ applyDone: (ok,ko,total) => `✅ ${ok} OK${ko?' — '+ko+' erro(s)':''} em ${tot
             confirmClear:'Limpar a fila?',
             clearBusy:'Aplica\u00E7\u00E3o em curso: use Parar (ou Esc) para interromper. O registo deve permanecer vis\u00EDvel.',
             confirmApply: (n,m) => `Publicar ${n} corte(s) no mapa do Waze? (${m} entrada(s) na fila)`,
+            remTitle:'Continua responsável pelas suas edições',
+            remBody:'<p>O WME Closures Toolkit <b>prepara</b> os cortes da fila; é você que decide publicá-los.</p><p>Atenção: <b>publica-os sozinho</b>. Os cortes entram no mapa do Waze assim que clica em Publicar, sem passar pelo botão Guardar do WME. O WCT não sabe retirá-los depois: teriam de ser apagados à mão. Verifique a fila antes (segmentos, sentido, horários, motivo).</p><p>O que publica com o WCT é a sua edição, como se a tivesse feito à mão.</p>',
+            remNote:'Este lembrete aparece uma vez por navegador; pode voltar a vê-lo no separador do script.',
+            remOk:'Compreendi',
+            confTitle:'Publicar no mapa do Waze',
+            confPublish:'Publicar',
+            remLink:'Rever o lembrete de responsabilidade',
             applyPendingBlock: k => `Aplicar está bloqueado: ${k} alteração(ões) não guardada(s) no WME. Guarde-as ou anule-as primeiro: o WCT só publica os seus próprios cortes.`,
             applyPendingStop: k => `Aplicação interrompida: ${k} alteração(ões) feita(s) no WME durante a aplicação. Guarde-as ou anule-as e volte a executar Aplicar: o que já foi colocado será ignorado.`,
             applyPendingUnreadable: `Aplicar está bloqueado: o WCT não consegue ler o número de alterações não guardadas no WME. Sem essa contagem, não pode garantir que guarda apenas os seus próprios cortes, por isso não escreve mais nada. Recarregue o WME e volte a executar Aplicar (o que já foi colocado será ignorado).`,
@@ -11893,6 +11978,97 @@ const _poserParMoitie=async(opts,budget)=>{
     const aPoser=segs.length-base.absents-base.sansSens-base.dejaFermes;
     return {...base, refus:aPoser>0?[{segs,n:aPoser,msg:String(r.errs?.[0]||'error')}]:[]};
 };
+// ==== banc:rappel ====
+// Confirmation de publication, seule fenêtre du clic Appliquer : WCT publie lui-même (save() du SDK, sans
+// le bouton Enregistrer de WME) dès qu'on clique Publier. Tant que le rappel de responsabilité n'est pas
+// retenu dans ce navigateur, la fenêtre porte aussi son texte, et « Publier » vaut acceptation : retenue
+// dans localStorage, ou pour la page seulement sans stockage (il revient alors à chaque session). Refus
+// (✕, Annuler, Échap, clic hors de la fenêtre) : rien n'est publié ni retenu (tools/banc-rappel.js).
+const CLE_RAPPEL='wct.rappel.v1';
+let rappelVu=false;
+let confirmationOuverte=false;
+function rappelRetenu(){
+    if(rappelVu) return true;
+    try{ return localStorage.getItem(CLE_RAPPEL)==='1'; }catch(e){ return false; }
+}
+function retenirRappel(){
+    rappelVu=true;
+    try{ localStorage.setItem(CLE_RAPPEL,'1'); }catch(e){ /* retenu pour la page seulement */ }
+}
+// true : la publication peut avoir lieu. Une demande arrivée pendant qu'une fenêtre est ouverte est refusée.
+function confirmerPublication(question,avertissement){
+    if(confirmationOuverte) return Promise.resolve(false);
+    confirmationOuverte=true;
+    const avecRappel=!rappelRetenu();
+    return new Promise(fin=>afficherConfirmation({question,avertissement,rappel:avecRappel},ok=>{
+        confirmationOuverte=false;
+        if(ok && avecRappel) retenirRappel();
+        fin(!!ok);
+    }));
+}
+// Le lien de l'onglet : le texte du rappel dans une fenêtre d'information, qui ne publie ni ne retient rien.
+function revoirRappel(){
+    if(confirmationOuverte) return;
+    confirmationOuverte=true;
+    afficherConfirmation({rappel:true,info:true},()=>{ confirmationOuverte=false; });
+}
+// ==== fin banc:rappel ====
+// La fenêtre : modale, sur le body, au-dessus de la carte et de la fenêtre de WCT. o.rappel : texte de
+// responsabilité et note ; o.info : lecture seule (pas de question, un seul bouton qui ferme). fin(true) :
+// le bouton plein ; fin(false) : ✕, Annuler, Échap ou clic hors de la fenêtre. Les touches ne vont pas
+// plus loin qu'elle : ni raccourcis de WCT ou de WME, ni Entrée d'un champ de la fenêtre de WCT.
+function afficherConfirmation(o,fin){
+    const ancien=document.getElementById('wct-rappel');
+    if(ancien) ancien.remove();
+    const avant=document.activeElement;
+    const fond=document.createElement('div');
+    fond.id='wct-rappel';
+    fond.dir=isRTL()?'rtl':'ltr';
+    const corps=(o.rappel?t('remBody'):'')+
+        (o.info?'':'<p class="wct-rp-question">'+escHtml(o.question)+'</p>')+
+        (o.avertissement?'<p class="wct-rp-alerte">'+escHtml(o.avertissement)+'</p>':'')+
+        (o.rappel?'<p class="wct-rp-note">'+escHtml(t('remNote'))+'</p>':'');
+    const boutons=o.info
+        ? '<button type="button" class="wct-btn wct-btn-primary" data-wct-rp="oui">'+escHtml(t('remOk'))+'</button>'
+        : '<button type="button" class="wct-btn wct-btn-neutral" data-wct-rp="non">'+escHtml(t('btnCancel'))+'</button>'+
+          '<button type="button" class="wct-btn wct-btn-primary" data-wct-rp="oui">'+escHtml(t('confPublish'))+'</button>';
+    fond.innerHTML=
+        '<div class="wct-rp" role="'+(o.info?'dialog':'alertdialog')+'" aria-modal="true" aria-labelledby="wct-rp-t" aria-describedby="wct-rp-c" tabindex="-1">'+
+        '<div class="wct-rp-tete"><span class="wct-rp-titre" id="wct-rp-t"><span class="wct-rp-ico">'+iconeWct(16)+'</span>'+escHtml(t(o.rappel?'remTitle':'confTitle'))+'</span>'+
+        '<button type="button" class="wct-rp-x" data-wct-rp="non" title="'+escHtml(t('btnCancel'))+'" aria-label="'+escHtml(t('btnCancel'))+'">&#x2715;</button></div>'+
+        '<div class="wct-rp-corps" id="wct-rp-c">'+corps+'</div>'+
+        '<div class="wct-rp-boutons">'+boutons+'</div></div>';
+    let fini=false;
+    const fermer=ok=>{
+        if(fini) return;
+        fini=true;
+        fond.remove();
+        try{ if(avant && avant.focus && document.contains(avant)) avant.focus(); }catch(e){ /* le focus reste où il est */ }
+        fin(ok);
+    };
+    fond.addEventListener('click',ev=>{
+        const b=ev.target.closest('[data-wct-rp]');
+        if(b) fermer(b.getAttribute('data-wct-rp')==='oui');
+    });
+    // Un clic posé hors de la fenêtre (appui ET relâché sur le fond) la ferme sans publier.
+    let appuiFond=false;
+    fond.addEventListener('pointerdown',ev=>{ appuiFond=ev.target===fond; });
+    fond.addEventListener('pointerup',ev=>{ if(appuiFond && ev.target===fond) fermer(false); appuiFond=false; });
+    fond.addEventListener('keydown',ev=>{
+        ev.stopPropagation();
+        if(ev.key==='Escape'){ ev.preventDefault(); fermer(false); return; }
+        if(ev.key!=='Tab') return;
+        const btns=[...fond.querySelectorAll('button')];
+        const i=btns.indexOf(document.activeElement);
+        const j=ev.shiftKey ? (i<=0 ? btns.length-1 : i-1) : (i<0 || i===btns.length-1 ? 0 : i+1);
+        ev.preventDefault();
+        btns[j].focus();
+    });
+    document.body.appendChild(fond);
+    // La fenêtre elle-même prend le focus : le lecteur d'écran lit titre et texte, et une Entrée tapée
+    // dans la foulée ne publie rien.
+    fond.querySelector('.wct-rp').focus();
+}
 const applyQueue=async()=>{
     _applyAborted=false;
     let total=_queueTotalClosures(queue),done=0,failed=0;
@@ -17842,7 +18018,9 @@ const connectOverlay=ov=>{
         // (arbitrage de l'auteur du 11/10/2026). Le MTE n'est jamais exigé, et le message n'en parle
         // pas ; une entrée rattachée à un MTE n'est pas signalée, l'événement tenant lieu d'acte.
         const sansActe=queue.filter(e=>!e.config?.mteId && !String(e.config?.reason||'').trim()).length;
-        if(!confirm(t('confirmApply',_queueTotalClosures(queue),queue.length)+(sansActe?t('confirmApplySansActe',sansActe):'')))return;
+        // Une seule fenêtre : la confirmation, qui porte le rappel de responsabilité tant qu'il n'est pas
+        // accepté (banc:rappel). Refus : rien n'est publié.
+        if(!await confirmerPublication(t('confirmApply',_queueTotalClosures(queue),queue.length),sansActe?t('confirmApplySansActe',sansActe).trim():''))return;
         await applyQueue();
     });
     $id('wct-btn-stop')?.addEventListener('click',()=>{ requestApplyAbort(); });
@@ -19024,6 +19202,7 @@ const renderSidebar=()=>{
 };
 
 const connectSidebar=()=>{
+    $id('wct-rappel-revoir')?.addEventListener('click',e=>{ e.preventDefault(); revoirRappel(); });
     $id('wct-enable-toggle')?.addEventListener('change',e=>{
         enabled=e.target.checked;save();
         const wrap=$id('wct-fab-wrap');if(wrap)wrap.style.opacity=enabled?'1':'0.4';
@@ -19094,6 +19273,7 @@ const buildSidebar=()=>`
     <p style="margin-top:12px;font-size:11px;color:var(--wct-grey);line-height:1.6">
         ${t('sbDesc')}
     </p>
+    <p style="margin-top:8px;font-size:11px;line-height:1.6"><a href="#" id="wct-rappel-revoir" style="color:#1565c0">${t('remLink')}</a></p>
 </div>`;
 
 // ===========================================================================
