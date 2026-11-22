@@ -8,7 +8,7 @@
 // @name:he      WME Closures Toolkit
 // @name:it      WME Closures Toolkit
 // @namespace    http://tampermonkey.net/
-// @version      1.27.00
+// @version      1.27.01
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAtMi41IDY4IDY4Jz48ZGVmcz48Y2xpcFBhdGggaWQ9J2InPjxyZWN0IHg9JzAnIHk9JzEzJyB3aWR0aD0nNjgnIGhlaWdodD0nMTQnIHJ4PSc1Jy8+PC9jbGlwUGF0aD48L2RlZnM+PHJlY3QgeD0nMCcgeT0nMTMnIHdpZHRoPSc2OCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyMyMjInLz48ZyBjbGlwLXBhdGg9J3VybCgjYiknPjxsaW5lIHgxPScxMCcgeTE9JzEzJyB4Mj0nMCcgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPScyNCcgeTE9JzEzJyB4Mj0nMTQnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48bGluZSB4MT0nMzgnIHkxPScxMycgeDI9JzI4JyB5Mj0nMjcnIHN0cm9rZT0nI2U1MzkzNScgc3Ryb2tlLXdpZHRoPSc1Jy8+PGxpbmUgeDE9JzUyJyB5MT0nMTMnIHgyPSc0MicgeTI9JzI3JyBzdHJva2U9JyNlNTM5MzUnIHN0cm9rZS13aWR0aD0nNScvPjxsaW5lIHgxPSc2NicgeTE9JzEzJyB4Mj0nNTYnIHkyPScyNycgc3Ryb2tlPScjZTUzOTM1JyBzdHJva2Utd2lkdGg9JzUnLz48L2c+PHJlY3QgeD0nOCcgeT0nMjcnIHdpZHRoPSc4JyBoZWlnaHQ9JzE4JyByeD0nNCcgZmlsbD0nIzIyMicvPjxyZWN0IHg9JzUyJyB5PScyNycgd2lkdGg9JzgnIGhlaWdodD0nMTgnIHJ4PSc0JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nMicgeT0nNDMnIHdpZHRoPScyMCcgaGVpZ2h0PSc3JyByeD0nMy41JyBmaWxsPScjMjIyJy8+PHJlY3QgeD0nNDYnIHk9JzQzJyB3aWR0aD0nMjAnIGhlaWdodD0nNycgcng9JzMuNScgZmlsbD0nIzIyMicvPjwvc3ZnPg==
 // @description  Recurring closures for segments and turns: draw or import an area, select from a GPS track, queue and apply in bulk
 // @description:fr Fermetures récurrentes de segments et de virages : tracez ou importez une zone, sélectionnez depuis un tracé GPS, mettez en file et appliquez en lot
@@ -12525,12 +12525,25 @@ const OV_MARGE = 8;
 // — et comme le panneau est en `position:fixed`, plus rien ne permettrait d'aller la
 // rechercher. Mémoriser une géométrie sans la borner à la relecture, c'est fabriquer un
 // panneau inatteignable pour l'éditeur qui change d'écran.
-const _ovClamp = (g, vw, vh) => {
+// `haut` = premier pixel libre sous le bandeau de WME (cf. `_ovHaut`). 🔴 Borner le haut
+// à 0 laissait l'en-tête de la fenêtre — sa SEULE poignée de déplacement — passer SOUS le
+// bandeau de WME, qui la recouvre : plus de glisser, plus de double-clic de remise à zéro,
+// et la géométrie mémorisée la ramenait là à chaque session, même après réinstallation
+// (AlbertC002, Discuss 405542 #96, 22/11/2026).
+const _ovClamp = (g, vw, vh, haut = 0) => {
     const w = Math.max(OV_W_MIN, Math.min(Number(g.w) || OV_W_MIN, vw - 2 * OV_MARGE));
-    const h = Math.max(OV_H_MIN, Math.min(Number(g.h) || OV_H_MIN, vh - 2 * OV_MARGE));
+    const h = Math.max(OV_H_MIN, Math.min(Number(g.h) || OV_H_MIN, vh - haut - 2 * OV_MARGE));
     const x = Math.max(0, Math.min(Number(g.x) || 0, vw - w));
-    const y = Math.max(0, Math.min(Number(g.y) || 0, vh - h));
+    const y = Math.max(haut, Math.min(Number(g.y) || 0, vh - h));
     return { x, y, w, h };
+};
+// Bas du bandeau de WME (`#app-head`, 64 px MESURÉS le 22/11/2026), relu à chaque geste
+// comme `_ovDroite` : sa hauteur dépend de la version de WME. Sans bandeau trouvé, ou
+// avec une valeur absurde (plus de la moitié de l'écran), 0 — l'ancien comportement.
+const _ovHaut = () => {
+    const el = document.querySelector('#app-head');
+    const r = el && el.getBoundingClientRect();
+    return (r && r.bottom > 0 && r.bottom < window.innerHeight / 2) ? Math.round(r.bottom) : 0;
 };
 // Bord droit utilisable par la fenêtre : le bord GAUCHE de la colonne de boutons de la carte
 // (zoom, calques, géolocalisation… et le bouton 🚧 lui-même), moins la marge. Déplacée ou
@@ -12551,7 +12564,7 @@ const _ovDroite = () => {
 let _ovGeom = null;
 const _ovApply = (el) => {
     if(!el || !_ovGeom) return;
-    const g = _ovClamp(_ovGeom, _ovDroite(), window.innerHeight);
+    const g = _ovClamp(_ovGeom, _ovDroite(), window.innerHeight, _ovHaut());
     el.style.left = g.x + 'px'; el.style.top = g.y + 'px'; el.style.right = 'auto';
     el.style.width = g.w + 'px';
     // `height` ET `maxHeight` : la première fixe la taille, la seconde neutralise le
@@ -12560,7 +12573,7 @@ const _ovApply = (el) => {
     el.style.height = g.h + 'px'; el.style.maxHeight = g.h + 'px';
 };
 const _ovGeomSet = (el, g) => {
-    _ovGeom = _ovClamp(g, _ovDroite(), window.innerHeight);
+    _ovGeom = _ovClamp(g, _ovDroite(), window.innerHeight, _ovHaut());
     _ovApply(el); save();
 };
 // Retour au réglage automatique. ⚠️ Il ne suffit pas de vider `_ovGeom` : les styles
@@ -12580,7 +12593,7 @@ const makeDraggable=(el,handle)=>{
         const mv=ev=>{
             let x=ev.clientX-ox,y=ev.clientY-oy;
             x=Math.max(0,Math.min(x,_ovDroite()-el.offsetWidth));
-            y=Math.max(0,Math.min(y,window.innerHeight-30));
+            y=Math.max(_ovHaut(),Math.min(y,window.innerHeight-30));
             el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';
             // ⚠️ La hauteur maximale est calculée en CSS sur la FENÊTRE (100vh - N), pas
             // sur la position courante du panneau : en le descendant, il s'étendait donc
@@ -12619,7 +12632,7 @@ const makeResizable=(el,handle)=>{
         const x0=e.clientX, y0=e.clientY, w0=r.width, h0=r.height;
         const mv=ev=>{
             const g=_ovClamp({x:r.left,y:r.top,w:w0+(ev.clientX-x0),h:h0+(ev.clientY-y0)},
-                             _ovDroite(),window.innerHeight);
+                             _ovDroite(),window.innerHeight,_ovHaut());
             el.style.width=g.w+'px'; el.style.height=g.h+'px'; el.style.maxHeight=g.h+'px';
         };
         const up=()=>{
